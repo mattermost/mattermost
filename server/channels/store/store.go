@@ -104,6 +104,7 @@ type Store interface {
 	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
 	ScheduledRecap() ScheduledRecapStore
+	Passkey() PasskeyStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
@@ -614,6 +615,8 @@ type SessionStore interface {
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
+	GetSessionsByLoginMethod(loginMethod string) ([]*model.Session, error)
+	GetSessionsByPasskeyId(userID, passkeyID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
@@ -806,6 +809,7 @@ type TokenStore interface {
 	Save(recovery *model.Token) error
 	Delete(token string) error
 	GetByToken(token string) (*model.Token, error)
+	GetByTokenFromMaster(token string) (*model.Token, error)
 	ConsumeOnce(tokenType, tokenStr string) (*model.Token, error)
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
@@ -1639,6 +1643,22 @@ type RecapStore interface {
 	// soft-deleted recaps so deleting a recap does not bypass cooldown.
 	// Returns nil, nil if no manual recap exists.
 	GetLastCompletedManualRecap(userId string) (*model.Recap, error)
+}
+
+type PasskeyStore interface {
+	// SaveIfUnderLimit inserts the passkey unless the user already has limit of them
+	// (ErrLimitExceeded) or its credential id is already registered (ErrConflict).
+	SaveIfUnderLimit(passkey *model.Passkey, limit int) (*model.Passkey, error)
+	// GetForUser returns the user's passkeys, oldest first.
+	GetForUser(userID string) ([]*model.Passkey, error)
+	// GetByCredentialId returns the passkey with the given credential id, or ErrNotFound.
+	GetByCredentialId(credentialID []byte) (*model.Passkey, error)
+	// UpdateUsage sets the sign count and last-used time only if the stored sign count is still
+	// prevSignCount, so a cloned authenticator racing the real one cannot both succeed; otherwise ErrNotFound.
+	UpdateUsage(id string, prevSignCount, signCount, lastUsedAt int64) error
+	// Delete removes the passkey only if userID owns it; otherwise ErrNotFound.
+	Delete(userID, passkeyID string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type ScheduledRecapStore interface {

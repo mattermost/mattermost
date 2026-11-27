@@ -108,6 +108,7 @@ import type {
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
 import type {MfaSecret} from '@mattermost/types/mfa';
+import type {Passkey, PasskeyAssertionCredential, PasskeyEnrollmentTicket, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
 import type {
     ClientPluginManifest,
     PluginManifest,
@@ -1124,6 +1125,14 @@ export default class Client4 {
         );
     };
 
+    // Also returns the response headers so a caller can read the server's Date.
+    getSessionsWithResponse = (userId: string) => {
+        return this.doFetchWithResponse<Session[]>(
+            `${this.getUserRoute(userId)}/sessions`,
+            {method: 'get'},
+        );
+    };
+
     revokeSession = (userId: string, sessionId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getUserRoute(userId)}/sessions/revoke`,
@@ -1332,6 +1341,89 @@ export default class Client4 {
             `${this.getUserRoute(userId)}/tokens`,
             {method: 'post', body: JSON.stringify(body)},
         );
+    };
+
+    getPasskeys = (userId: string) => {
+        return this.doFetch<Passkey[]>(
+            `${this.getUserRoute(userId)}/passkeys`,
+            {method: 'get'},
+        );
+    };
+
+    deletePasskey = (userId: string, passkeyId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getUserRoute(userId)}/passkeys/${passkeyId}`,
+            {method: 'delete'},
+        );
+    };
+
+    beginPasskeyRegistration = (userId: string) => {
+        return this.doFetch<PasskeyRegistrationOptions>(
+            `${this.getUserRoute(userId)}/passkeys/registration/begin`,
+            {method: 'post'},
+        );
+    };
+
+    finishPasskeyRegistration = (userId: string, ceremonyId: string, name: string, credential: PasskeyRegistrationCredential) => {
+        return this.doFetch<Passkey>(
+            `${this.getUserRoute(userId)}/passkeys/registration/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, name, credential})},
+        );
+    };
+
+    createPasskeyEnrollmentTicket = (userId: string) => {
+        return this.doFetch<PasskeyEnrollmentTicket>(
+            `${this.getUserRoute(userId)}/passkeys/enrollment/ticket`,
+            {method: 'post'},
+        );
+    };
+
+    beginPasskeyEnrollmentVerification = (ticket: string) => {
+        return this.doFetch<PasskeyLoginOptions>(
+            `${this.getUsersRoute()}/passkeys/enrollment/verification/begin`,
+            {method: 'post', body: JSON.stringify({ticket})},
+        );
+    };
+
+    finishPasskeyEnrollmentVerification = (ceremonyId: string, credential: PasskeyAssertionCredential) => {
+        return this.doFetch<{user_id: string}>(
+            `${this.getUsersRoute()}/passkeys/enrollment/verification/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, credential})},
+        );
+    };
+
+    beginPasskeyEnrollmentRegistration = (ticket: string) => {
+        return this.doFetch<PasskeyRegistrationOptions>(
+            `${this.getUsersRoute()}/passkeys/enrollment/registration/begin`,
+            {method: 'post', body: JSON.stringify({ticket})},
+        );
+    };
+
+    finishPasskeyEnrollmentRegistration = (ceremonyId: string, name: string, credential: PasskeyRegistrationCredential) => {
+        return this.doFetch<Passkey>(
+            `${this.getUsersRoute()}/passkeys/enrollment/registration/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, name, credential})},
+        );
+    };
+
+    beginPasskeyLogin = () => {
+        return this.doFetch<PasskeyLoginOptions>(
+            `${this.getUsersRoute()}/login/passkey/begin`,
+            {method: 'post'},
+        );
+    };
+
+    finishPasskeyLogin = async (ceremonyId: string, credential: PasskeyAssertionCredential) => {
+        const {data: profile, headers} = await this.doFetchWithResponse<UserProfile>(
+            `${this.getUsersRoute()}/login/passkey/finish`,
+            {method: 'post', body: JSON.stringify({ceremony_id: ceremonyId, credential})},
+        );
+
+        if (headers.has('Token')) {
+            this.setToken(headers.get('Token')!);
+        }
+
+        return profile;
     };
 
     getUserAccessToken = (tokenId: string) => {

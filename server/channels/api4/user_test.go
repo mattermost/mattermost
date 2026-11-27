@@ -2909,6 +2909,50 @@ func TestUserUnicodeNames(t *testing.T) {
 	})
 }
 
+func TestUpdateUserAuthPasskeySession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// A fresh session per call: a successful auth change revokes the target user's sessions.
+	passkeyAdminClient := func(t *testing.T) *model.Client4 {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  th.SystemAdminUser.Roles,
+			Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+		})
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.AuthToken = session.Token
+		client.AuthType = model.HeaderBearer
+		return client
+	}
+
+	samlAuth := func(data string) *model.UserAuth {
+		return &model.UserAuth{AuthData: &data, AuthService: model.UserAuthServiceSaml}
+	}
+
+	t.Run("refused for the admin's own account", func(t *testing.T) {
+		_, resp, err := passkeyAdminClient(t).UpdateUserAuth(context.Background(), th.SystemAdminUser.Id, samlAuth("admin-own@test.com"))
+		require.Error(t, err)
+		assert.Equal(t, "api.user.auth_switch.passkey_session.app_error", err.(*model.AppError).Id)
+		CheckForbiddenStatus(t, resp)
+
+		th.App.InvalidateCacheForUser(th.SystemAdminUser.Id)
+		stored, appErr := th.App.GetUser(th.Context, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, stored.AuthService)
+	})
+
+	t.Run("allowed for a different user", func(t *testing.T) {
+		other := th.CreateUser(t)
+		ruser, resp, err := passkeyAdminClient(t).UpdateUserAuth(context.Background(), other.Id, samlAuth("other@test.com"))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+	})
+}
+
 func TestUpdateUserAuth(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -6682,6 +6726,66 @@ func TestSwitchAccount(t *testing.T) {
 		require.NoError(t, tokenErr)
 		require.Equal(t, th.BasicUser.Email, appToken.Extra)
 	})
+
+	t.Run("Passkey session cannot switch sign-in method", func(t *testing.T) {
+		passkeyClient := func(t *testing.T) *model.Client4 {
+			t.Helper()
+			session, appErr := th.App.CreateSession(th.Context, &model.Session{
+				UserId: th.BasicUser.Id,
+				Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+			})
+			require.Nil(t, appErr)
+			client := th.CreateClient()
+			client.AuthToken = session.Token
+			client.AuthType = model.HeaderBearer
+			return client
+		}
+
+		t.Run("OAuth to email is refused for the passkey session but not for a normal session of the same user", func(t *testing.T) {
+			setupUserAuth(t, model.UserAuthServiceGitlab, true)
+			passkey := passkeyClient(t)
+
+			sr := &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceGitlab,
+				NewService:     model.UserAuthServiceEmail,
+				Email:          th.BasicUser.Email,
+				NewPassword:    th.BasicUser.Password,
+			}
+
+			_, resp, err := passkey.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.passkey_session.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+
+			th.App.InvalidateCacheForUser(th.BasicUser.Id)
+			user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+
+			link, _, err := th.Client.SwitchAccountType(context.Background(), sr)
+			require.NoError(t, err)
+			require.Equal(t, "/login?extra=signin_change", link)
+		})
+
+		t.Run("email to LDAP is refused before any password is checked", func(t *testing.T) {
+			setupUserAuth(t, "", true)
+			passkey := passkeyClient(t)
+
+			sr := &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceEmail,
+				NewService:     model.UserAuthServiceLdap,
+				Email:          th.BasicUser.Email,
+				Password:       th.BasicUser.Password,
+				LdapLoginId:    th.BasicUser.Email,
+				NewPassword:    th.BasicUser.Password,
+			}
+
+			_, resp, err := passkey.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			assert.Equal(t, "api.user.auth_switch.passkey_session.app_error", err.(*model.AppError).Id)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
 }
 
 func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
@@ -6707,6 +6811,20 @@ func assertInvalidToken(t *testing.T, th *TestHelper, token *model.UserAccessTok
 	_, resp, err := th.Client.GetMe(context.Background(), "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+// passkeySessionClient returns a client whose session records a passkey sign-in for user.
+func passkeySessionClient(t *testing.T, th *TestHelper, user *model.User) *model.Client4 {
+	t.Helper()
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId: user.Id,
+		Roles:  user.GetRawRoles(),
+		Props:  model.StringMap{model.SessionPropLoginMethod: model.SessionLoginMethodPasskey},
+	})
+	require.Nil(t, appErr)
+	client := th.CreateClient()
+	client.SetToken(session.Token)
+	return client
 }
 
 func TestCreateUserAccessToken(t *testing.T) {
@@ -6896,6 +7014,52 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create access token as passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		passkeyClient := passkeySessionClient(t, th, user)
+
+		_, resp, err := passkeyClient.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appError *model.AppError
+		require.ErrorAs(t, err, &appError)
+		assert.Equal(t, "api.user.create_user_access_token.passkey_session.app_error", appError.Id)
+
+		tokens, appErr := th.App.GetUserAccessTokensForUser(user.Id, 0, 100)
+		require.Nil(t, appErr)
+		assert.Empty(t, tokens)
+
+		t.Run("a standard session of the same user still creates one", func(t *testing.T) {
+			rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+			require.NoError(t, err)
+			assertToken(t, th, rtoken, user.Id)
+		})
+	})
+
+	t.Run("create access token for a bot as a passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+		th.LoginSystemAdmin(t)
+		bot := th.CreateBotWithSystemAdminClient(t)
+
+		passkeyClient := passkeySessionClient(t, th, th.SystemAdminUser)
+
+		rtoken, _, err := passkeyClient.CreateUserAccessToken(context.Background(), bot.UserId, "test token", 0)
+		require.NoError(t, err)
+		assert.Equal(t, bot.UserId, rtoken.UserId)
 	})
 
 	t.Run("create access token for bot created by user", func(t *testing.T) {
@@ -7941,6 +8105,34 @@ func TestEnableUserAccessToken(t *testing.T) {
 		assertToken(t, th, token, th.BasicUser.Id)
 	})
 
+	t.Run("enable own token as passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+		require.NoError(t, err)
+		_, err = th.Client.DisableUserAccessToken(context.Background(), token.Id)
+		require.NoError(t, err)
+
+		passkeyClient := passkeySessionClient(t, th, user)
+
+		resp, err := passkeyClient.EnableUserAccessToken(context.Background(), token.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appError *model.AppError
+		require.ErrorAs(t, err, &appError)
+		assert.Equal(t, "api.user.create_user_access_token.passkey_session.app_error", appError.Id)
+		assertInvalidToken(t, th, token)
+
+		_, err = th.Client.EnableUserAccessToken(context.Background(), token.Id)
+		require.NoError(t, err)
+		assertToken(t, th, token, user.Id)
+	})
+
 	t.Run("enable token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
@@ -8163,6 +8355,31 @@ func TestRotateUserAccessToken(t *testing.T) {
 		// Old secret must no longer authenticate.
 		oldToken := &model.UserAccessToken{Token: oldSecret}
 		assertInvalidToken(t, th, oldToken)
+	})
+
+	t.Run("rotate own token as passkey session", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		user, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		token, _, err := th.Client.CreateUserAccessToken(context.Background(), user.Id, "test token", 0)
+		require.NoError(t, err)
+
+		passkeyClient := passkeySessionClient(t, th, user)
+
+		_, resp, err := passkeyClient.RotateUserAccessToken(context.Background(), token.Id, 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		var appError *model.AppError
+		require.ErrorAs(t, err, &appError)
+		assert.Equal(t, "api.user.create_user_access_token.passkey_session.app_error", appError.Id)
+		assertToken(t, th, token, user.Id)
+
+		_, _, err = th.Client.RotateUserAccessToken(context.Background(), token.Id, 0)
+		require.NoError(t, err)
 	})
 
 	t.Run("rotate token without permission", func(t *testing.T) {

@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
+
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
 
 import InvitationModal from 'components/invitation_modal';
+import UserSettingsModal from 'components/user_settings/modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -21,17 +24,31 @@ function QueryParamActionController() {
     const location = useLocation();
     const dispatch = useDispatch();
     const history = useHistory();
+    const currentTeamId = useSelector(getCurrentTeamId);
 
     const actionMap: ActionMap = {
         open_invitation_modal: {
             modalId: ModalIdentifiers.INVITATION,
             dialogType: InvitationModal,
         },
+        open_security_settings: {
+            modalId: ModalIdentifiers.USER_SETTINGS,
+            dialogType: UserSettingsModal,
+            dialogProps: {
+                isContentProductSettings: false,
+                activeTab: 'security',
+            },
+        },
     };
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const action = searchParams.get('action');
+
+        // InvitationModal renders nothing without a team but would still be marked open, so skip it
+        if (action === 'open_invitation_modal' && !currentTeamId) {
+            return;
+        }
 
         if (action && actionMap[action]) {
             dispatch(openModal(actionMap[action]));
@@ -42,7 +59,7 @@ function QueryParamActionController() {
                 search: searchParams.toString(),
             });
         }
-    }, [location, actionMap]);
+    }, [location, actionMap, currentTeamId]);
 
     return null;
 }

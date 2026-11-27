@@ -440,6 +440,8 @@ type ServiceSettings struct {
 	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
 	EnforceMultifactorAuthentication       *bool    `access:"authentication_mfa"`
+	EnablePasskeyEnrollment                *bool    `access:"authentication_mfa"`
+	EnablePasskeyLogin                     *bool    `access:"authentication_mfa"`
 	EnableUserAccessTokens                 *bool    `access:"integrations_integration_management"`
 	MaximumPersonalAccessTokenLifetimeDays *int     `access:"integrations_integration_management"`
 	AllowCorsFrom                          *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
@@ -622,6 +624,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnforceMultifactorAuthentication == nil {
 		s.EnforceMultifactorAuthentication = new(false)
+	}
+
+	if s.EnablePasskeyEnrollment == nil {
+		s.EnablePasskeyEnrollment = new(false)
+	}
+
+	if s.EnablePasskeyLogin == nil {
+		s.EnablePasskeyLogin = new(false)
 	}
 
 	if s.EnableUserAccessTokens == nil {

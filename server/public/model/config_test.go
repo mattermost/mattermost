@@ -5523,6 +5523,16 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 	checkStruct(t, reflect.TypeFor[Config](), "Config")
 }
 
+func TestPasskeySettingsDefaults(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	require.NotNil(t, c.ServiceSettings.EnablePasskeyEnrollment)
+	require.False(t, *c.ServiceSettings.EnablePasskeyEnrollment)
+	require.NotNil(t, c.ServiceSettings.EnablePasskeyLogin)
+	require.False(t, *c.ServiceSettings.EnablePasskeyLogin)
+}
+
 func TestMobileEphemeralModeSettingsDefaults(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()

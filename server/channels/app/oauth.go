@@ -219,6 +219,12 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	// A grant outlives the session that made it, so a passkey session (a fallback that must not outlast its own
+	// session) cannot create one. Not gated on the Passkeys flag, so it keeps holding after passkeys are turned off.
+	if rctx.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey {
+		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.passkey_session.app_error", nil, "", http.StatusForbidden)
+	}
+
 	if authRequest.Scope == "" {
 		authRequest.Scope = model.DefaultScope
 	}

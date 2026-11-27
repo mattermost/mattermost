@@ -15,6 +15,7 @@ import (
 const (
 	SessionCookieToken                    = "MMAUTHTOKEN"
 	SessionCookieUser                     = "MMUSERID"
+	SessionCookieLoginMethod              = "MMLOGINMETHOD"
 	SessionCookieCsrf                     = "MMCSRF"
 	SessionCookieCloudUrl                 = "MMCLOUDURL"
 	SessionCacheSize                      = 35000
@@ -39,6 +40,20 @@ const (
 	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
 )
 
+const (
+	// SessionPropLoginMethod records how an interactive sign-in started the session.
+	// Sessions not created by an interactive sign-in (access tokens, OAuth apps,
+	// plugins) don't carry it.
+	SessionPropLoginMethod = "login_method"
+	// SessionLoginMethodStandard marks a session started by any interactive sign-in
+	// other than a passkey: password, LDAP, SAML, OAuth/OpenID, magic link, SSO hand-offs.
+	SessionLoginMethodStandard = "standard"
+	SessionLoginMethodPasskey  = "passkey"
+	// SessionPropPasskeyId records which passkey started a passkey session, so
+	// deleting that passkey can end the session.
+	SessionPropPasskeyId = "passkey_id"
+)
+
 //msgp:tuple StringMap
 type StringMap map[string]string
 
@@ -58,6 +73,8 @@ type LoginOptions struct {
 	IsMobile     bool
 	IsOAuthUser  bool
 	IsSaml       bool
+	IsPasskey    bool
+	PasskeyId    string
 }
 
 // Session contains the user session details.

@@ -970,3 +970,45 @@ func TestGetLimitedClientConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestPasskeyClientConfig(t *testing.T) {
+	const site = "https://chat.example.com"
+	pro := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+
+	for name, tc := range map[string]struct {
+		flag                bool
+		siteURL             string
+		license             *model.License
+		enroll, login       bool
+		wantEnroll, wantLog string
+	}{
+		"flag off, settings on":      {false, site, pro, true, true, "false", "false"},
+		"unlicensed":                 {true, site, nil, true, true, "false", "false"},
+		"legacy E20":                 {true, site, model.NewTestLicenseSKU(model.LicenseShortSkuE20), true, true, "false", "false"},
+		"available, both on":         {true, site, pro, true, true, "true", "true"},
+		"enrollment on, login off":   {true, site, pro, true, false, "true", "false"},
+		"enrollment off, login on":   {true, site, pro, false, true, "false", "true"},
+		"both off":                   {true, site, pro, false, false, "false", "false"},
+		"http non-localhost site":    {true, "http://chat.example.com", pro, true, true, "false", "false"},
+		"ip site":                    {true, "https://10.0.0.5", pro, true, true, "false", "false"},
+		"empty site":                 {true, "", pro, true, true, "false", "false"},
+		"http localhost development": {true, "http://localhost:8065", pro, true, true, "true", "true"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c := &model.Config{}
+			c.SetDefaults()
+			c.FeatureFlags.Passkeys = tc.flag
+			c.ServiceSettings.SiteURL = model.NewPointer(tc.siteURL)
+			c.ServiceSettings.EnablePasskeyEnrollment = model.NewPointer(tc.enroll)
+			c.ServiceSettings.EnablePasskeyLogin = model.NewPointer(tc.login)
+
+			limited := GenerateLimitedClientConfig(c, "", tc.license)
+			assert.Equal(t, tc.wantLog, limited["PasskeyLoginEnabled"])
+			assert.NotContains(t, limited, "PasskeyEnrollmentEnabled")
+
+			full := GenerateClientConfig(c, "", tc.license)
+			assert.Equal(t, tc.wantLog, full["PasskeyLoginEnabled"])
+			assert.Equal(t, tc.wantEnroll, full["PasskeyEnrollmentEnabled"])
+		})
+	}
+}

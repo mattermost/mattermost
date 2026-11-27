@@ -359,6 +359,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
 	api.InitUser()
+	api.InitPasskey()
 	api.InitBot()
 	api.InitTeam()
 	api.InitChannel()

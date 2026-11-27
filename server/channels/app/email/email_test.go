@@ -128,6 +128,79 @@ func TestSendWelcomeEmailWithEmailDisabled(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSendPasskeyAddedEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
+
+	emailTo := strings.ToLower(model.NewId()) + "@example.com"
+	err := mail.DeleteMailBox(emailTo)
+	require.NoError(t, err, "Failed to delete mailbox")
+
+	err = th.service.SendPasskeyAddedEmail(emailTo, "en", "http://testserver", "Work laptop")
+	require.NoError(t, err)
+
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err = mail.RetryInbucket(5, func() error {
+		var getErr error
+		resultsMailbox, getErr = mail.GetMailBox(emailTo)
+		return getErr
+	})
+	if err != nil {
+		t.Skipf("No email was received, maybe due load on the server: %v", err)
+	}
+	require.Len(t, resultsMailbox, 1)
+	require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+
+	email, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+	require.NoError(t, err, "Could not get message from mailbox")
+
+	require.Contains(t, email.Subject, "Passkey added to your account")
+	require.Contains(t, email.Subject, *th.service.config().TeamSettings.SiteName)
+	for name, body := range map[string]string{"HTML": email.Body.HTML, "Text": email.Body.Text} {
+		require.Contains(t, body, "Work laptop", "%s body", name)
+		require.Contains(t, body, "http://testserver", "%s body", name)
+		require.NotContains(t, body, "<no value>", "%s body", name)
+	}
+}
+
+func TestSendPasskeyRemovedEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
+
+	emailTo := strings.ToLower(model.NewId()) + "@example.com"
+	err := mail.DeleteMailBox(emailTo)
+	require.NoError(t, err, "Failed to delete mailbox")
+
+	err = th.service.SendPasskeyRemovedEmail(emailTo, "en", "http://testserver", "Work laptop")
+	require.NoError(t, err)
+
+	var resultsMailbox mail.JSONMessageHeaderInbucket
+	err = mail.RetryInbucket(5, func() error {
+		var getErr error
+		resultsMailbox, getErr = mail.GetMailBox(emailTo)
+		return getErr
+	})
+	if err != nil {
+		t.Skipf("No email was received, maybe due load on the server: %v", err)
+	}
+	require.Len(t, resultsMailbox, 1)
+	require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+
+	email, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+	require.NoError(t, err, "Could not get message from mailbox")
+
+	require.Contains(t, email.Subject, "Passkey removed from your account")
+	require.Contains(t, email.Subject, *th.service.config().TeamSettings.SiteName)
+	for name, body := range map[string]string{"HTML": email.Body.HTML, "Text": email.Body.Text} {
+		require.Contains(t, body, "Work laptop", "%s body", name)
+		require.Contains(t, body, "http://testserver", "%s body", name)
+		require.Contains(t, body, "was removed from your account", "%s body", name)
+		require.NotContains(t, body, "<no value>", "%s body", name)
+	}
+}
+
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

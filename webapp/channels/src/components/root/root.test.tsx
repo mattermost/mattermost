@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
@@ -8,7 +9,7 @@ import {bindActionCreators} from 'redux';
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import * as BrowserUtils from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
 
@@ -22,6 +23,7 @@ jest.mock('components/announcement_bar', () => () => <div/>);
 jest.mock('components/team_sidebar', () => () => <div/>);
 jest.mock('components/mobile_view_watcher', () => () => <div/>);
 jest.mock('./performance_reporter_controller', () => () => <div/>);
+jest.mock('components/user_settings/modal', () => () => null);
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
@@ -63,6 +65,7 @@ describe('components/Root', () => {
         rhsState: null,
         shouldShowAppBar: false,
         isCloud: false,
+        isLoggedIn: false,
         enableDesktopLandingPage: true,
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
@@ -225,6 +228,31 @@ describe('components/Root', () => {
         });
     });
 
+    test('should open the Security tab for an action on a logged-in route outside the team routes', async () => {
+        const history = createMemoryHistory({initialEntries: ['/plug/custom_route?action=open_security_settings']});
+        const props = {...baseProps, isLoggedIn: true, plugins: [{id: 'p1', route: 'custom_route'} as Props['plugins'][number]]};
+        const {store: rootStore} = renderWithContext(<Root {...props}/>, {}, {history});
+
+        await waitFor(() => {
+            expect(rootStore.getState().views.modals.modalState.user_settings?.open).toBe(true);
+        });
+        expect(rootStore.getState().views.modals.modalState.user_settings.dialogProps).toMatchObject({activeTab: 'security'});
+    });
+
+    test('should leave a URL action alone when nobody is logged in', async () => {
+        const history = createMemoryHistory({initialEntries: ['/plug/custom_route?action=open_security_settings']});
+        const props = {...baseProps, plugins: [{id: 'p1', route: 'custom_route'} as Props['plugins'][number]]};
+        const {store: rootStore} = renderWithContext(<Root {...props}/>, {}, {history});
+
+        await waitFor(() => expect(props.actions.loadConfigAndMe).toHaveBeenCalled());
+        await act(async () => {
+            await new Promise((r) => setTimeout(r, 50));
+        });
+
+        expect(rootStore.getState().views.modals.modalState.user_settings?.open).toBeFalsy();
+        expect(history.location.search).toBe('?action=open_security_settings');
+    });
+
     describe('showLandingPageIfNecessary', () => {
         const landingProps = {
             ...baseProps,
@@ -262,6 +290,29 @@ describe('components/Root', () => {
             await waitFor(() => {
                 expect(props.history.push).not.toHaveBeenCalled();
             });
+        });
+
+        test('should not show for the passkey enrollment page', async () => {
+            // An earlier test sets the seen flag, which would end the check before it reaches the path.
+            localStorage.removeItem(StoragePrefixes.LANDING_PAGE_SEEN);
+
+            const props = {
+                ...landingProps,
+                ...{
+                    location: {
+                        pathname: '/login/passkey/enroll',
+                        hash: '#ticket=t1',
+                    },
+                } as RouteComponentProps,
+            };
+
+            renderWithContext(<Root {...props}/>);
+
+            // The landing page check runs right after this call, so waiting on it makes the assertion below meaningful.
+            await waitFor(() => {
+                expect(props.actions.loadRecentlyUsedCustomEmojis).toHaveBeenCalled();
+            });
+            expect(props.history.push).not.toHaveBeenCalled();
         });
 
         test('should not show when disabled', async () => {

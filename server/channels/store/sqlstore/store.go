@@ -119,6 +119,7 @@ type SqlStoreStores struct {
 	deliveryTracking           store.DeliveryTrackingStore
 	recap                      store.RecapStore
 	scheduledRecap             store.ScheduledRecapStore
+	passkey                    store.PasskeyStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
@@ -315,6 +316,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.deliveryTracking = newSqlDeliveryTrackingStore(store)
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.scheduledRecap = newSqlScheduledRecapStore(store)
+	store.stores.passkey = newSqlPasskeyStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
@@ -966,6 +968,10 @@ func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
 
 func (ss *SqlStore) Recap() store.RecapStore {
 	return ss.stores.recap
+}
+
+func (ss *SqlStore) Passkey() store.PasskeyStore {
+	return ss.stores.passkey
 }
 
 func (ss *SqlStore) ScheduledRecap() store.ScheduledRecapStore {

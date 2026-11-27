@@ -2267,6 +2267,10 @@
     "defaultMessage": "OpenID Connect",
     "description": "Page name for Authentication > OpenID Connect in the System Console sidebar; OpenID Connect is a protocol name."
   },
+  "admin.authentication.passkeys": {
+    "defaultMessage": "Passkeys",
+    "description": "Page name for Authentication > Passkeys in the System Console."
+  },
   "admin.authentication.saml": {
     "defaultMessage": "SAML 2.0",
     "description": "Page name for Authentication > SAML 2.0 in the System Console sidebar; SAML 2.0 is a protocol name."
@@ -10907,6 +10911,26 @@
     "defaultMessage": "Settings",
     "description": ""
   },
+  "admin.passkeys.enrollmentDesc": {
+    "defaultMessage": "When true, users can add passkeys to their account and are invited to add one after signing in. A passkey lets them sign in when their usual sign-in method, for example the identity provider, is unavailable.",
+    "description": "Admin console help text for the 'Enable passkey enrollment' toggle."
+  },
+  "admin.passkeys.enrollmentTitle": {
+    "defaultMessage": "Enable passkey enrollment:",
+    "description": "Admin console label for a true/false setting letting users add passkeys to their accounts; ends with a colon before the radio buttons."
+  },
+  "admin.passkeys.loginDesc": {
+    "defaultMessage": "When true, the login page offers \"Sign in with passkey\" to users who added one. Intended to be turned on while the usual sign-in method is unavailable. Turning it off does not sign out users who already signed in with a passkey.",
+    "description": "Admin console help text for the 'Enable passkey login' toggle. 'Sign in with passkey' is the name of a button on the login page and must be translated the same way as that button."
+  },
+  "admin.passkeys.loginTitle": {
+    "defaultMessage": "Enable passkey login:",
+    "description": "Admin console label for a true/false setting letting users sign in with a passkey; ends with a colon before the radio buttons."
+  },
+  "admin.passkeys.siteUrlBanner": {
+    "defaultMessage": "Passkeys work only when the Site URL uses HTTPS and a domain name, not an IP address. localhost is allowed for development.",
+    "description": "Info banner at the top of the Authentication > Passkeys admin page. 'Site URL' is the name of a System Console setting; 'HTTPS' and 'localhost' are technical terms to leave untranslated."
+  },
   "admin.password.enableForgotLink.description": {
     "defaultMessage": "When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>",
     "description": "Admin console help text for the Enable Forgot Password Link toggle; <a></a> wraps a link to the Site Configuration > Customization page."
@@ -15179,6 +15203,10 @@
     "defaultMessage": "E.g.: \"http://example.com:8065\"",
     "description": "Placeholder example value for the Site URL input on the System Console Web Server page."
   },
+  "admin.service.siteURLPasskeyWarning": {
+    "defaultMessage": "Changing the Site URL's host name will stop existing passkeys from working. Users will need to add new passkeys.",
+    "description": "Warning banner shown under the Site URL setting on the Environment > Web Server page while the admin is editing it to a different host name."
+  },
   "admin.service.ssoSessionHours": {
     "defaultMessage": "Session Length SSO (hours):",
     "description": "Label of a numeric input in the System Console > Session Lengths page; SSO refers to single sign-on authentication (SAML, GitLab, OAuth)."
@@ -15670,6 +15698,10 @@
   "admin.sidebar.openid": {
     "defaultMessage": "OpenID Connect",
     "description": "Navigation item in the System Console sidebar under Authentication; 'OpenID Connect' is a protocol name, should not be translated; compact space."
+  },
+  "admin.sidebar.passkeys": {
+    "defaultMessage": "Passkeys",
+    "description": "Navigation item under Authentication in the System Console sidebar. A passkey is a WebAuthn sign-in credential stored on the user's device or password manager."
   },
   "admin.sidebar.password": {
     "defaultMessage": "Password",
@@ -27315,6 +27347,18 @@
     "defaultMessage": "Log in - {siteName}",
     "description": "Browser tab/window title of the login page; {siteName} is the server or site name."
   },
+  "login.passkey": {
+    "defaultMessage": "Passkey",
+    "description": "Label of the login page button that signs in with a passkey."
+  },
+  "login.passkeyTimedOut": {
+    "defaultMessage": "Your passkey sign-in timed out. Choose your passkey again.",
+    "description": "Login page error when the passkey sign-in ceremony expired before the user chose a passkey."
+  },
+  "login.passkeyUnknown": {
+    "defaultMessage": "This passkey isn’t registered on this server. Choose another passkey or log in another way.",
+    "description": "Login page error when the chosen passkey is not registered on this server."
+  },
   "login.passwordChanged": {
     "defaultMessage": "Password updated successfully",
     "description": "Success banner on the login page after the user's password was reset, prompting them to log in again."
@@ -28802,6 +28846,90 @@
   "ONE_TO_50": {
     "defaultMessage": "1-50",
     "description": "Company size option '1-50' employees in the Start Trial form dropdown; keep the numeric range."
+  },
+  "passkey_enrollment_page.account": {
+    "defaultMessage": "This adds a passkey to the account <b>{username}</b>. If that isn't your account, close this page.",
+    "description": "Shown on the passkey enrollment page, opened from the Mattermost app, naming the account the passkey will be added to so the user can notice a link meant for someone else. {username} is that account's username."
+  },
+  "passkey_enrollment_page.addedTitle": {
+    "defaultMessage": "Passkey added",
+    "description": "Title shown after a passkey was added on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.alreadyOnDevice": {
+    "defaultMessage": "This device already has a passkey for your account. Choose \"Use existing passkey\".",
+    "description": "Error shown when the device refuses to create a passkey because it already holds one for the account."
+  },
+  "passkey_enrollment_page.cantAdd": {
+    "defaultMessage": "Can't add a passkey here",
+    "description": "Title of the page, opened from the Mattermost app, when a passkey cannot be added: in the desktop app, in a browser without passkey support, from an incomplete link, or after an error that cannot be retried."
+  },
+  "passkey_enrollment_page.confirmedTitle": {
+    "defaultMessage": "Passkey confirmed",
+    "description": "Title shown after the user's existing passkey was checked on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.desktop": {
+    "defaultMessage": "Open this page in your web browser.",
+    "description": "Shown when the passkey enrollment page is opened inside the Mattermost desktop app, which cannot create passkeys."
+  },
+  "passkey_enrollment_page.expired": {
+    "defaultMessage": "This link has expired or was already used. Return to the app, sign in again and retry.",
+    "description": "Error shown when the enrollment ticket in the page's link was already used, expired, or was issued to a session that did not sign in recently."
+  },
+  "passkey_enrollment_page.incomplete": {
+    "defaultMessage": "This link is incomplete. Return to the app and try again.",
+    "description": "Shown when the page opened from the Mattermost app has no enrollment ticket in its link."
+  },
+  "passkey_enrollment_page.returnToApp": {
+    "defaultMessage": "You can close this page and return to the app.",
+    "description": "Shown after a passkey was added or confirmed on the page opened from the Mattermost app."
+  },
+  "passkey_enrollment_page.signInAgainToAdd": {
+    "defaultMessage": "To add a passkey, return to the app and sign in again. You can still use a passkey you already have.",
+    "description": "Shown under the page text when the page, opened from the Mattermost app, loads with a session that signed in too long ago to add a passkey. The user can still confirm a passkey they already have."
+  },
+  "passkey_enrollment_page.tooLong": {
+    "defaultMessage": "That took too long. Try again.",
+    "description": "Error shown when the passkey setup started on the page timed out on the server."
+  },
+  "passkey_enrollment_page.unavailable": {
+    "defaultMessage": "Passkeys aren't available on this server.",
+    "description": "Error shown when the server has passkeys or passkey enrollment turned off."
+  },
+  "passkey_enrollment_page.unsupported": {
+    "defaultMessage": "This browser can't create passkeys. Open this page in a different browser.",
+    "description": "Shown when the browser opening the passkey enrollment page has no WebAuthn support."
+  },
+  "passkey_enrollment_prompt.notNow": {
+    "defaultMessage": "Not now",
+    "description": "Button in the post-sign-in passkey prompt that dismisses it until the next sign-in."
+  },
+  "passkey_enrollment_prompt.recentLoginRequired": {
+    "defaultMessage": "For your security, sign out and sign back in, then add your passkey within 10 minutes.",
+    "description": "Error shown in the passkey prompt when adding a passkey is refused because the user did not sign in recently enough."
+  },
+  "passkey_enrollment.add": {
+    "defaultMessage": "Add passkey",
+    "description": "Button, in the prompt after sign-in and on the page opened from the Mattermost app, that starts adding a passkey."
+  },
+  "passkey_enrollment.body": {
+    "defaultMessage": "Sign in with your fingerprint, face or screen lock. A passkey also lets you sign in if your usual sign-in method is unavailable.",
+    "description": "Explanation shown in the prompt after sign-in, and on the page opened from the Mattermost app, that offers to add a passkey."
+  },
+  "passkey_enrollment.invalidCredential": {
+    "defaultMessage": "That passkey doesn't belong to your account on this server. Choose another, or add a new one.",
+    "description": "Error shown when the passkey the user chose is not one of their account's passkeys."
+  },
+  "passkey_enrollment.noneRegistered": {
+    "defaultMessage": "You don't have a passkey for this account yet. Add one instead.",
+    "description": "Error shown when the user says they already have a passkey but their account has none."
+  },
+  "passkey_enrollment.title": {
+    "defaultMessage": "Add a passkey",
+    "description": "Title of the prompt shown after sign-in, and of the page opened from the Mattermost app, that offers to add a passkey."
+  },
+  "passkey_enrollment.useExisting": {
+    "defaultMessage": "Use existing passkey",
+    "description": "Button, in the prompt after sign-in and on the page opened from the Mattermost app, for a user who already has a passkey for this account, for example one synced from another device; it checks the passkey instead of adding a duplicate."
   },
   "password_form.change": {
     "defaultMessage": "Change my password",
@@ -35454,6 +35582,94 @@
   "user.settings.notifications.title": {
     "defaultMessage": "Notification settings",
     "description": "Header of the Notifications tab in the user Settings modal."
+  },
+  "user.settings.passkeys.add": {
+    "defaultMessage": "Add passkey",
+    "description": "Button that starts adding a new passkey to the account."
+  },
+  "user.settings.passkeys.alreadyOnDevice": {
+    "defaultMessage": "This device already has a passkey for your account.",
+    "description": "Error shown when the browser reports that the chosen authenticator already holds a passkey for this account."
+  },
+  "user.settings.passkeys.count": {
+    "defaultMessage": "{count, plural, =0 {No passkeys} one {# passkey} other {# passkeys}}",
+    "description": "Summary under the Passkeys heading in Profile > Security when the section is collapsed; {count} is how many passkeys the user has."
+  },
+  "user.settings.passkeys.created": {
+    "defaultMessage": "Created {date}",
+    "description": "Date a passkey was added, shown on its row in the passkey list; {date} is a formatted date."
+  },
+  "user.settings.passkeys.delete": {
+    "defaultMessage": "Delete",
+    "description": "Button on a passkey row that starts deleting that passkey."
+  },
+  "user.settings.passkeys.deleteConfirm": {
+    "defaultMessage": "Delete",
+    "description": "Confirm button of the dialog for deleting a passkey."
+  },
+  "user.settings.passkeys.deleteForgetOnDevice": {
+    "defaultMessage": "If it's saved on this device, we'll ask your browser to remove it too.",
+    "description": "Second sentence of the passkey delete dialog, shown only in browsers that can be asked to remove a passkey; the browser may ignore the request."
+  },
+  "user.settings.passkeys.deleteLabel": {
+    "defaultMessage": "Delete passkey {name}",
+    "description": "Accessible name of the Delete button on one row of the passkey list; {name} is the passkey name the user gave it."
+  },
+  "user.settings.passkeys.deleteMessage": {
+    "defaultMessage": "You will no longer be able to sign in with \"{name}\". Any session started with it will be signed out, including this one if you signed in with it.",
+    "description": "Body of the confirmation dialog for deleting a passkey; {name} is the passkey name. Every session the passkey started is ended; the dialog does not know whether the current one is among them, so the text covers both cases."
+  },
+  "user.settings.passkeys.deleteTitle": {
+    "defaultMessage": "Delete passkey?",
+    "description": "Title of the confirmation dialog for deleting a passkey."
+  },
+  "user.settings.passkeys.description": {
+    "defaultMessage": "Passkeys let you sign in with your fingerprint, face, screen lock or a security key instead of your password.",
+    "description": "Introduction at the top of the expanded Passkeys section in Profile > Security."
+  },
+  "user.settings.passkeys.lastUsed": {
+    "defaultMessage": "Last used {date}",
+    "description": "Date a passkey was last used to sign in, shown on its row in the passkey list; {date} is a formatted date."
+  },
+  "user.settings.passkeys.limit": {
+    "defaultMessage": "You have reached the limit of {max} passkeys. Delete one to add another.",
+    "description": "Shown instead of the add-passkey control when the user already has the maximum number of passkeys; {max} is that maximum."
+  },
+  "user.settings.passkeys.nameHelp": {
+    "defaultMessage": "Leave blank to name it after this browser",
+    "description": "Help text under the passkey name field: an empty name makes the server name the passkey after the browser."
+  },
+  "user.settings.passkeys.nameLabel": {
+    "defaultMessage": "Passkey name",
+    "description": "Label of the optional text field naming a passkey that is about to be added."
+  },
+  "user.settings.passkeys.namePlaceholder": {
+    "defaultMessage": "e.g. Work laptop",
+    "description": "Placeholder in the passkey name field; the example is a name a user might give a passkey."
+  },
+  "user.settings.passkeys.neverUsed": {
+    "defaultMessage": "Never used",
+    "description": "Shown on a passkey row when the passkey has never been used to sign in."
+  },
+  "user.settings.passkeys.none": {
+    "defaultMessage": "You have no passkeys.",
+    "description": "Shown in the expanded Passkeys section when the user has not added any passkey."
+  },
+  "user.settings.passkeys.passkeySessionHint": {
+    "defaultMessage": "You signed in with a passkey. To add a passkey, sign out and sign in with your password or single sign-on.",
+    "description": "Shown in place of the add-passkey controls when the current session started with a passkey, which cannot be used to add another one."
+  },
+  "user.settings.passkeys.signInAgain": {
+    "defaultMessage": "Sign in again",
+    "description": "Button in Profile > Security that signs the user out so they can sign back in and then add a passkey."
+  },
+  "user.settings.passkeys.signInAgainHint": {
+    "defaultMessage": "To add a passkey, sign in again first.",
+    "description": "Shown in place of the add-passkey controls when the current session is too old, or the server refused an add for that reason, to say the user must sign in again before adding a passkey."
+  },
+  "user.settings.passkeys.title": {
+    "defaultMessage": "Passkeys",
+    "description": "Heading of the Passkeys section in Profile > Security."
   },
   "user.settings.plugins.title": {
     "defaultMessage": "{pluginName} Settings",

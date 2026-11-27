@@ -1,0 +1,180 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+import type {Passkey, PasskeyAssertionCredential, PasskeyLoginOptions, PasskeyRegistrationCredential, PasskeyRegistrationOptions} from '@mattermost/types/passkeys';
+
+import {Client4} from 'mattermost-redux/client';
+
+import {isEmbedded} from 'utils/embed';
+
+// Hand-written rather than PublicKeyCredential.parseCreationOptionsFromJSON / toJSON(), which
+// are missing from older browsers (Safari before 18.4, for one).
+
+export function base64urlEncode(buffer: ArrayBuffer): string {
+    let binary = '';
+    for (const byte of new Uint8Array(buffer)) {
+        binary += String.fromCharCode(byte);
+    }
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/[=]+$/, '');
+}
+
+export function base64urlDecode(value: string): ArrayBuffer {
+    // atob accepts unpadded input, so padding is dropped rather than restored.
+    const binary = atob(value.replace(/[=]+$/, '').replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(binary, (c) => c.charCodeAt(0)).buffer;
+}
+
+export function creationOptionsFromJSON(json: PublicKeyCredentialCreationOptionsJSON): PublicKeyCredentialCreationOptions {
+    return {
+        ...json,
+        challenge: base64urlDecode(json.challenge),
+        user: {...json.user, id: base64urlDecode(json.user.id)},
+        excludeCredentials: json.excludeCredentials?.map((c) => ({...c, id: base64urlDecode(c.id)})),
+    } as PublicKeyCredentialCreationOptions;
+}
+
+export function registrationToJSON(credential: PublicKeyCredential): PasskeyRegistrationCredential {
+    const response = credential.response as AuthenticatorAttestationResponse;
+    return {
+        id: credential.id,
+        rawId: base64urlEncode(credential.rawId),
+        type: credential.type,
+        authenticatorAttachment: credential.authenticatorAttachment,
+        clientExtensionResults: credential.getClientExtensionResults(),
+        response: {
+            clientDataJSON: base64urlEncode(response.clientDataJSON),
+            attestationObject: base64urlEncode(response.attestationObject),
+            transports: response.getTransports?.() ?? [],
+        },
+    };
+}
+
+export function requestOptionsFromJSON(json: PublicKeyCredentialRequestOptionsJSON): PublicKeyCredentialRequestOptions {
+    return {
+        ...json,
+        challenge: base64urlDecode(json.challenge),
+        allowCredentials: json.allowCredentials?.map((c) => ({...c, id: base64urlDecode(c.id)})),
+    } as PublicKeyCredentialRequestOptions;
+}
+
+export function assertionToJSON(credential: PublicKeyCredential): PasskeyAssertionCredential {
+    const response = credential.response as AuthenticatorAssertionResponse;
+    return {
+        id: credential.id,
+        rawId: base64urlEncode(credential.rawId),
+        type: credential.type,
+        authenticatorAttachment: credential.authenticatorAttachment,
+        clientExtensionResults: credential.getClientExtensionResults(),
+        response: {
+            clientDataJSON: base64urlEncode(response.clientDataJSON),
+            authenticatorData: base64urlEncode(response.authenticatorData),
+            signature: base64urlEncode(response.signature),
+
+            // The server refuses a missing handle: a usernameless sign-in needs it to find the user.
+            userHandle: response.userHandle ? base64urlEncode(response.userHandle) : null,
+        },
+    };
+}
+
+const isDismissed = (e: unknown) => (e as Error).name === 'NotAllowedError' || (e as Error).name === 'AbortError';
+
+// Resolves null when the user backs out of the browser prompt; the unused ceremony expires on the server.
+export async function createPasskey(
+    begin: () => Promise<PasskeyRegistrationOptions>,
+    finish: (ceremonyId: string, credential: PasskeyRegistrationCredential) => Promise<Passkey>,
+): Promise<Passkey | null> {
+    let created: {rpId: string; credentialId: string} | undefined;
+    try {
+        const {ceremony_id: ceremonyId, options} = await begin();
+        const credential = await navigator.credentials.create({publicKey: creationOptionsFromJSON(options.publicKey)});
+        if (!credential) {
+            return null;
+        }
+
+        // An omitted rp.id means the page's own host to WebAuthn.
+        created = {rpId: options.publicKey.rp.id ?? window.location.hostname, credentialId: credential.id};
+        return await finish(ceremonyId, registrationToJSON(credential as PublicKeyCredential));
+    } catch (e) {
+        const err = e as Error & {server_error_id?: string; status_code?: number};
+
+        // Only a definite refusal: after a network error or 5xx the server may have stored the passkey, and already_registered means the device's passkey is a working one.
+        if (created && err.server_error_id && err.status_code && err.status_code >= 400 && err.status_code < 500 &&
+            err.server_error_id !== 'app.passkey.already_registered.app_error') {
+            signalUnknownPasskey(created.rpId, created.credentialId);
+        }
+        if (isDismissed(err)) {
+            return null;
+        }
+        throw err;
+    }
+}
+
+// Resolves null when the user backs out of the browser prompt; the unused ceremony expires on the server.
+export async function verifyPasskey<T>(
+    begin: () => Promise<PasskeyLoginOptions>,
+    finish: (ceremonyId: string, credential: PasskeyAssertionCredential) => Promise<T>,
+): Promise<T | null> {
+    try {
+        const {ceremony_id: ceremonyId, options} = await begin();
+        const credential = await navigator.credentials.get({publicKey: requestOptionsFromJSON(options.publicKey)}) as PublicKeyCredential | null;
+        if (!credential) {
+            return null;
+        }
+        return await finish(ceremonyId, assertionToJSON(credential));
+    } catch (e) {
+        if (isDismissed(e)) {
+            return null;
+        }
+        throw e;
+    }
+}
+
+// Best effort: older browsers lack signalUnknownCredential, and a failed signal is not worth showing the user.
+export function signalUnknownPasskey(rpId: string, credentialId: string): void {
+    try {
+        PublicKeyCredential.signalUnknownCredential({rpId, credentialId}).catch(() => {});
+    } catch {
+        // PublicKeyCredential or the method is missing.
+    }
+}
+
+// Best effort, like signalUnknownPasskey. Every call lists all credential ids: the browser only compares them
+// with the credential it holds under that handle, and a manager that compares against everything it holds for
+// the site would otherwise hide the passkeys registered under another handle.
+export function signalAcceptedPasskeys(rpId: string, passkeys: Passkey[]): void {
+    const allAcceptedCredentialIds = passkeys.map((p) => p.credential_id);
+    for (const userId of new Set(passkeys.map((p) => p.user_handle))) {
+        try {
+            PublicKeyCredential.signalAllAcceptedCredentials({rpId, userId, allAcceptedCredentialIds}).catch(() => {});
+        } catch {
+            // PublicKeyCredential or the method is missing, or the call threw.
+        }
+    }
+}
+
+// Mirrors the server's recent-login window for adding a passkey; keep the two equal.
+const RECENT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
+
+// Whether the session identified by loginKey (its CSRF token) was started by a standard sign-in recently enough
+// for the server to accept a new passkey. Rejects when the session list cannot be read.
+export async function currentSessionCanAddPasskey(loginKey: string): Promise<boolean> {
+    const {data: sessions, headers} = await Client4.getSessionsWithResponse('me');
+    const current = sessions.find((s) => s.props?.csrf === loginKey);
+
+    // create_at is on the server's clock, so age is measured against the server's Date header; the device clock
+    // may be minutes off. A cross-origin API URL does not expose Date, hence the fallback.
+    const serverNow = Date.parse(headers.get('Date') ?? '');
+    const now = Number.isNaN(serverNow) ? Date.now() : serverNow;
+
+    // The list comes from a read replica, so a session created moments ago may be missing from it. The request
+    // is authenticated by that session, so a missing one is treated as recent.
+    return !current || (current.props.login_method === 'standard' && now - current.create_at <= RECENT_LOGIN_WINDOW_MS);
+}
+
+// No passkey ceremony runs inside the desktop app; browsers without WebAuthn lack
+// PublicKeyCredential; and a frame without the publickey-credentials-* permissions is refused with
+// NotAllowedError, which looks like a dismissed prompt.
+export function canRunPasskeyCeremony(): boolean {
+    return !isDesktopApp() && !isEmbedded() && typeof window.PublicKeyCredential !== 'undefined';
+}

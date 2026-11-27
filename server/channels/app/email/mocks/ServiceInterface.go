@@ -409,6 +409,42 @@ func (_m *ServiceInterface) SendNotificationMail(to string, subject string, html
 	return r0
 }
 
+// SendPasskeyAddedEmail provides a mock function with given fields: _a0, locale, siteURL, passkeyName
+func (_m *ServiceInterface) SendPasskeyAddedEmail(_a0 string, locale string, siteURL string, passkeyName string) error {
+	ret := _m.Called(_a0, locale, siteURL, passkeyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendPasskeyAddedEmail")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, passkeyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SendPasskeyRemovedEmail provides a mock function with given fields: _a0, locale, siteURL, passkeyName
+func (_m *ServiceInterface) SendPasskeyRemovedEmail(_a0 string, locale string, siteURL string, passkeyName string) error {
+	ret := _m.Called(_a0, locale, siteURL, passkeyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendPasskeyRemovedEmail")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, passkeyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SendPasswordChangeEmail provides a mock function with given fields: _a0, method, locale, siteURL
 func (_m *ServiceInterface) SendPasswordChangeEmail(_a0 string, method string, locale string, siteURL string) error {
 	ret := _m.Called(_a0, method, locale, siteURL)

@@ -164,6 +164,8 @@ type ServiceInterface interface {
 	SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error
 	SendPasswordChangeEmail(email, method, locale, siteURL string) error
 	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
+	SendPasskeyAddedEmail(email, locale, siteURL, passkeyName string) error
+	SendPasskeyRemovedEmail(email, locale, siteURL, passkeyName string) error
 	SendUserAccessTokenRotatedEmail(email, locale, siteURL string) error
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error

@@ -337,6 +337,48 @@ func (es *Service) SendUserAccessTokenAddedEmail(email, locale, siteURL string) 
 	return nil
 }
 
+func (es *Service) SendPasskeyAddedEmail(email, locale, siteURL, passkeyName string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.passkey_added_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.passkey_added_body.title")
+	data.Props["Info"] = T("api.templates.passkey_added_body.info",
+		map[string]any{"PasskeyName": passkeyName, "SiteName": es.config().TeamSettings.SiteName, "SiteURL": siteURL})
+	data.Props["Warning"] = T("api.templates.email_warning")
+
+	body, err := es.templatesContainer.RenderToString("password_change_body", data)
+	if err != nil {
+		return err
+	}
+
+	return es.sendMail(email, subject, body, "PasskeyAddedEmail")
+}
+
+func (es *Service) SendPasskeyRemovedEmail(email, locale, siteURL, passkeyName string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.passkey_removed_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.passkey_removed_body.title")
+	data.Props["Info"] = T("api.templates.passkey_removed_body.info",
+		map[string]any{"PasskeyName": passkeyName, "SiteName": es.config().TeamSettings.SiteName, "SiteURL": siteURL})
+	data.Props["Warning"] = T("api.templates.email_warning")
+
+	body, err := es.templatesContainer.RenderToString("password_change_body", data)
+	if err != nil {
+		return err
+	}
+
+	return es.sendMail(email, subject, body, "PasskeyRemovedEmail")
+}
+
 func (es *Service) SendUserAccessTokenRotatedEmail(email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 

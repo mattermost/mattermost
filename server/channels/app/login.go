@@ -227,6 +227,14 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	bname := getBrowserName(ua, r.UserAgent())
 	bversion := getBrowserVersion(ua, r.UserAgent())
 
+	loginMethod := model.SessionLoginMethodStandard
+	if opts.IsPasskey {
+		loginMethod = model.SessionLoginMethodPasskey
+	}
+	session.AddProp(model.SessionPropLoginMethod, loginMethod)
+	if opts.IsPasskey && opts.PasskeyId != "" {
+		session.AddProp(model.SessionPropPasskeyId, opts.PasskeyId)
+	}
 	session.AddProp(model.SessionPropPlatform, plat)
 	session.AddProp(model.SessionPropOs, os)
 	session.AddProp(model.SessionPropBrowser, fmt.Sprintf("%v/%v", bname, bversion))
@@ -362,15 +370,34 @@ func (a *App) AttachSessionCookies(rctx request.CTX, w http.ResponseWriter, r *h
 		Secure:  secure,
 	}
 
+	// The webapp can't see session props, so this cookie tells it to skip MFA setup for
+	// passkey sessions. Any other session expires it, even when the request carried none:
+	// an SSO callback may arrive without it, and a stale one must not outlive a passkey session.
+	loginMethodCookie := &http.Cookie{
+		Name:    model.SessionCookieLoginMethod,
+		Path:    subpath,
+		MaxAge:  -1,
+		Expires: time.Unix(0, 0),
+		Domain:  domain,
+		Secure:  secure,
+	}
+	if rctx.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey {
+		loginMethodCookie.Value = model.SessionLoginMethodPasskey
+		loginMethodCookie.MaxAge = maxAgeSeconds
+		loginMethodCookie.Expires = expiresAt
+	}
+
 	if secure && utils.CheckEmbeddedCookie(r) {
 		sessionCookie.SameSite = http.SameSiteNoneMode
 		userCookie.SameSite = http.SameSiteNoneMode
 		csrfCookie.SameSite = http.SameSiteNoneMode
+		loginMethodCookie.SameSite = http.SameSiteNoneMode
 	}
 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
 	http.SetCookie(w, csrfCookie)
+	http.SetCookie(w, loginMethodCookie)
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
 	if a.License().IsCloud() {

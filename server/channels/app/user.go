@@ -2205,6 +2205,9 @@ func (a *App) permanentDeleteUserData(rctx request.CTX, userID string) error {
 	if err := ss.UserAccessToken().DeleteAllForUser(userID); err != nil {
 		return err
 	}
+	if err := ss.Passkey().PermanentDeleteByUser(userID); err != nil {
+		return err
+	}
 	if err := ss.OAuth().PermanentDeleteAuthDataByUser(userID); err != nil {
 		return err
 	}

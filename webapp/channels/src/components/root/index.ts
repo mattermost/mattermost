@@ -68,6 +68,7 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         shouldShowAppBar: shouldShowAppBar(state),
         isCloud: isCurrentLicenseCloud(state),
+        isLoggedIn: Boolean(userId),
         isDevModeEnabled: isDevModeEnabled(state),
     };
 }

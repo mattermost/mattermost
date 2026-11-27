@@ -64,6 +64,71 @@ describe('stores/LocalStorageStore', () => {
         });
     });
 
+    describe('passkey prompt record', () => {
+        beforeEach(() => {
+            delete (window as any).basename;
+            localStorage.clear();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+            delete (window as any).basename;
+        });
+
+        test('is due for a fresh browser, until skipped for that login', () => {
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'a')).toBe(true);
+
+            LocalStorageStore.setPasskeyPromptSkipped('a');
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'a')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'b')).toBe(true);
+        });
+
+        test('is never due for a user once they enrolled, but still due for another user', () => {
+            LocalStorageStore.setPasskeyEnrolled('userA');
+            expect(LocalStorageStore.isPasskeyPromptDue('userA', 'a')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('userA', 'b')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('userB', 'a')).toBe(true);
+        });
+
+        test('is not due without a user id or a login key, and recording without a user id does nothing', () => {
+            expect(LocalStorageStore.isPasskeyPromptDue('u', '')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('', 'a')).toBe(false);
+
+            LocalStorageStore.setPasskeyEnrolled('');
+            expect(localStorage.length).toBe(0);
+        });
+
+        test('ignores the old unscoped enrollment key', () => {
+            localStorage.setItem('passkey_enrolled', 'true');
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'a')).toBe(true);
+        });
+
+        test('enrollment is recorded per server base path', () => {
+            window.basename = '/one';
+            LocalStorageStore.setPasskeyEnrolled('u');
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'a')).toBe(false);
+
+            window.basename = '/two';
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'a')).toBe(true);
+        });
+
+        test('is not due when storage cannot be read', () => {
+            jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            expect(LocalStorageStore.isPasskeyPromptDue('u', 'a')).toBe(false);
+        });
+
+        test('setters do not throw when storage cannot be written', () => {
+            jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            jest.spyOn(console, 'warn').mockImplementation(() => {});
+            expect(() => LocalStorageStore.setPasskeyEnrolled('u')).not.toThrow();
+            expect(() => LocalStorageStore.setPasskeyPromptSkipped('a')).not.toThrow();
+        });
+    });
+
     describe('testing previous channel', () => {
         test('should remove previous channel without subpath', () => {
             const userId1 = 'userId1';

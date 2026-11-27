@@ -145,6 +145,7 @@ export type ClientConfig = {
     FeatureFlagDiscoverableChannels: string;
     FeatureFlagRecurringScheduledPosts: string;
     FeatureFlagProductRail: string;
+    FeatureFlagPasskeys: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -238,6 +239,8 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+    PasskeyLoginEnabled: 'true' | 'false';
+    PasskeyEnrollmentEnabled: 'true' | 'false';
     UseAnonymousURLs: string;
 
     // Burn on Read Settings
@@ -371,6 +374,8 @@ export type ServiceSettings = {
     AllowedUntrustedInternalConnections: string;
     EnableMultifactorAuthentication: boolean;
     EnforceMultifactorAuthentication: boolean;
+    EnablePasskeyEnrollment: boolean;
+    EnablePasskeyLogin: boolean;
     EnableUserAccessTokens: boolean;
     MaximumPersonalAccessTokenLifetimeDays: number;
     AllowCorsFrom: string;

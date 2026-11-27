@@ -15,7 +15,6 @@ import {makeAsyncComponent} from 'components/async_load';
 import CenterChannel from 'components/channel_layout/center_channel';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
-import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import QuoteSelectionButton from 'components/quote_selection_button/quote_selection_button';
 import Sidebar from 'components/sidebar';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
@@ -25,6 +24,7 @@ import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 
 const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
+const PasskeyEnrollmentPrompt = makeAsyncComponent('PasskeyEnrollmentPrompt', lazy(() => import('components/passkey_enrollment/passkey_enrollment_prompt')));
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
 const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
 const MarkAllAsReadToast = makeAsyncComponent('MarkAllAsReadToast', lazy(() => import('components/feature_toast/features/mark_all_as_read_toast')));
@@ -75,7 +75,6 @@ export default function ChannelController(props: Props) {
     return (
         <>
             <CRTPostsChannelResetWatcher/>
-            <QueryParamActionController/>
             <Sidebar/>
             <div
                 id='channel_view'
@@ -84,6 +83,7 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
+                <PasskeyEnrollmentPrompt/>
                 <QuoteSelectionButton/>
                 {enableMarkAllReadShortcut && <MarkAllAsReadToast/>}
                 <div className={classNames('container-fluid channel-view-inner')}>

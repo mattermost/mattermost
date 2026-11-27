@@ -510,6 +510,31 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(mockValidate).not.toHaveBeenCalled();
     });
 
+    test('should give sibling banners without a key distinct React keys', () => {
+        // The jest setup fails any test that logs a React duplicate-key error.
+        const localSchema = {
+            ...schema,
+            settings: [
+                {label: 'first banner', type: 'banner', banner_type: 'info'},
+                {label: 'second banner', type: 'banner', banner_type: 'warning'},
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                {...DefaultProps}
+                config={config}
+                environmentConfig={environmentConfig}
+                schema={localSchema}
+                patchConfig={jest.fn()}
+                intl={defaultIntl}
+            />,
+        );
+
+        expect(screen.getByText('first banner')).toBeInTheDocument();
+        expect(screen.getByText('second banner')).toBeInTheDocument();
+    });
+
     test('should validate when a setting contains a key and a validation method', () => {
         const mockValidate = jest.fn(() => {
             return new ValidationResult(true, '');

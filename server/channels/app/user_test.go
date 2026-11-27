@@ -1664,6 +1664,7 @@ var userMetadataTables = []string{
 	"Recaps",
 	"RecapChannels",
 	"ChannelJoinRequests",
+	"Passkeys",
 }
 
 // userMetadataQueries counts a user's rows in the userMetadataTables that are not keyed by UserId.
@@ -1840,6 +1841,8 @@ func seedUserMetadata(t *testing.T, th *TestHelper, userID, postID, termsOfServi
 		Message:   "please let me in",
 	})
 	require.NoError(t, nErr)
+
+	savePasskey(t, th, userID, "Passkey", model.GetMillis())
 
 	for _, table := range userMetadataTables {
 		require.NotZero(t, countUserMetadataRows(t, th, table, userID),

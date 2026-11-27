@@ -1522,6 +1522,43 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestRevokePasskeySessionsCmd() {
+	s.Run("revokes with --confirm", func() {
+		printer.Clean()
+		cmd := newTestCmd(s.T(), RevokePasskeySessionsCmd)
+		s.Require().NoError(cmd.Flags().Set("confirm", "true"))
+
+		s.client.
+			EXPECT().
+			RevokePasskeySessions(context.TODO()).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := revokePasskeySessionsCmdF(s.client, cmd, nil)
+		s.Require().NoError(err)
+		s.Require().Equal([]any{"All passkey sessions have been revoked."}, printer.GetLines())
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("returns the wrapped API error", func() {
+		printer.Clean()
+		cmd := newTestCmd(s.T(), RevokePasskeySessionsCmd)
+		s.Require().NoError(cmd.Flags().Set("confirm", "true"))
+		mockErr := errors.New("mock error")
+
+		s.client.
+			EXPECT().
+			RevokePasskeySessions(context.TODO()).
+			Return(&model.Response{StatusCode: http.StatusForbidden}, mockErr).
+			Times(1)
+
+		err := revokePasskeySessionsCmdF(s.client, cmd, nil)
+		s.Require().ErrorIs(err, mockErr)
+		s.Require().EqualError(err, "unable to revoke passkey sessions: mock error")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 	s.Run("One user without problems", func() {
 		printer.Clean()

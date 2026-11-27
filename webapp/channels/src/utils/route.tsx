@@ -16,6 +16,12 @@ const mfaPaths = ['/mfa/setup', '/mfa/confirm'];
 
 const mfaAuthServices = ['', 'email', 'ldap'];
 
+// Only decides where to navigate; the server enforces MFA from the session. The server expires
+// this cookie on every non-passkey sign-in, so a stale one is overwritten by the next sign-in.
+export function isPasskeySession() {
+    return document.cookie.split(';').some((c) => c.trim() === 'MMLOGINMETHOD=passkey');
+}
+
 export type ConfigOption = {
     EnableMultifactorAuthentication?: string;
     EnforceMultifactorAuthentication?: string;
@@ -32,7 +38,8 @@ export function checkIfMFARequired(
         license.MFA === 'true' &&
         config.EnableMultifactorAuthentication === 'true' &&
         config.EnforceMultifactorAuthentication === 'true' &&
-        mfaPaths.indexOf(path) === -1
+        mfaPaths.indexOf(path) === -1 &&
+        !isPasskeySession()
     ) {
         if (
             user &&

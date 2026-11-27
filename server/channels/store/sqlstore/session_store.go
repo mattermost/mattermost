@@ -216,6 +216,31 @@ func (me SqlSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session,
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsByLoginMethod(loginMethod string) ([]*model.Session, error) {
+	builder := me.sessionSelectQuery.Where(sq.Expr("Props->>? = ?", model.SessionPropLoginMethod, loginMethod))
+
+	sessions := []*model.Session{}
+	// Master, not replica: an admin revoking right after an outage must not miss sessions created moments ago.
+	if err := me.GetMaster().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to find sessions with login method %s", loginMethod)
+	}
+	return sessions, nil
+}
+
+func (me SqlSessionStore) GetSessionsByPasskeyId(userID, passkeyID string) ([]*model.Session, error) {
+	// Filtering on UserId lets idx_sessions_user_id bound the scan to one user's sessions.
+	builder := me.sessionSelectQuery.
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Expr("Props->>? = ?", model.SessionPropPasskeyId, passkeyID))
+
+	sessions := []*model.Session{}
+	// Master, not replica: a session created moments ago must not be missed when its passkey is deleted.
+	if err := me.GetMaster().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to find sessions of user %s started by passkey %s", userID, passkeyID)
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	versionProp := model.SessionPropMobileVersion
 	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled

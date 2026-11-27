@@ -83,6 +83,162 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/login/passkey/begin:
+    post:
+      tags:
+        - users
+      summary: Begin a passkey sign-in
+      description: >
+        Start a usernameless sign-in with a passkey. Returns a ceremony ID and the
+        WebAuthn `PublicKeyCredentialRequestOptions` to pass to
+        `navigator.credentials.get()`. The options carry no list of allowed
+        credentials, so the authenticator offers the passkeys it holds for this
+        site, and require user verification. Finish the sign-in with
+        `POST /api/v4/users/login/passkey/finish` within 5 minutes.
+
+
+        Available only when the `Passkeys` feature flag is on, the server has a
+        Professional or higher license, the Site URL is HTTPS (or
+        `http://localhost`) with a domain name as its host, and "Enable passkey
+        login" is on. Otherwise the endpoint responds with 501.
+
+
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled (5 requests per second, bursts of 10). Each endpoint has
+        its own bucket per client address, so requests to other endpoints do not
+        count against it; a client over the limit gets 429 with a plain-text body.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No permission required.
+      operationId: BeginPasskeyLogin
+      responses:
+        "200":
+          description: Sign-in started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ceremony_id:
+                    description: Identifies this sign-in; pass it to the finish request
+                    type: string
+                  options:
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseRequestOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.get()`.
+                    type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/login/passkey/finish:
+    post:
+      tags:
+        - users
+      summary: Finish a passkey sign-in
+      description: >
+        Complete a sign-in started with `POST /api/v4/users/login/passkey/begin`.
+        On success the response carries the user, and the session token is in the
+        `Token` response header. When the request has the header
+        `X-Requested-With: XMLHttpRequest` the session cookies are set as well.
+        The session lasts as long as one from the user's usual sign-in method
+        would, and counts as having passed multi-factor authentication, so no MFA
+        code is asked for. A ceremony can be finished once; a failed attempt uses
+        it up and the client must begin again.
+
+
+        The same account checks as password sign-in apply: the user must not be
+        deactivated, locked out by failed password attempts, have an unverified
+        email when verification is required, or be a bot, a remote user or a guest
+        the server does not allow. A failed passkey sign-in does not count as a
+        failed password attempt, and a successful one does not reset the count.
+
+
+        The error `id` tells the client what to do. `app.passkey.unknown_credential.app_error`
+        means the passkey is not registered on this server (for example it was
+        deleted); the browser can be told to forget it. `app.passkey.counter_regressed.app_error`
+        means the authenticator's signature counter went backwards, which can
+        indicate a cloned authenticator; the sign-in is refused. A counter that
+        stays at 0 is accepted, as synced passkeys do not count.
+
+
+        Available only under the same conditions as the begin request (501
+        otherwise), and rate limited with the same settings, in its own separate bucket
+        per client address (429).
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No permission required.
+      operationId: FinishPasskeyLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ceremony_id
+                - credential
+              properties:
+                ceremony_id:
+                  description: The `ceremony_id` returned by the begin request
+                  type: string
+                credential:
+                  description: The browser's assertion response (the result of
+                    `navigator.credentials.get()`) in WebAuthn JSON form
+                  type: object
+        required: true
+      responses:
+        "200":
+          description: Passkey sign-in successful
+          headers:
+            Token:
+              description: The session token
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: >
+            The request body is invalid, or `ceremony_id` or `credential` is
+            missing. Also returned when the ceremony is unknown, already used or
+            expired, or the credential cannot be parsed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          description: >
+            The passkey is not registered on this server, the assertion failed
+            verification, the signature counter went backwards, or the account
+            may not sign in (see above).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/users/login/cws:
     post:
       tags:
@@ -2074,6 +2230,41 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/sessions/revoke/passkey:
+    post:
+      tags:
+        - users
+      summary: Revoke all passkey-started sessions
+      description: >
+        Signs out every session of every user that was started by a passkey
+        sign-in. Sessions started any other way, and the passkeys themselves, are
+        kept; users can sign in again with a passkey unless passkey sign-in is
+        turned off. Use it after turning passkey sign-in off or after a suspected
+        compromise.
+
+
+        It works whether or not the `Passkeys` feature flag, a Professional or
+        higher license and "Enable passkey login" are currently on.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must have the `manage_system` permission.
+      operationId: RevokePasskeySessions
+      responses:
+        "200":
+          description: Passkey sessions revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v4/users/sessions/device:
     put:
       tags:
@@ -2322,6 +2513,11 @@
         Additionally, specify `mfa_code` when trying to switch an account on LDAP/AD or email that has MFA activated.
 
 
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403, whatever the direction of the switch. Other sessions of the same
+        user are not affected.
+
+
         ##### Permissions
 
         No current authentication required except when switching from OAuth2/SAML to email.
@@ -2435,6 +2631,11 @@
         Mattermost REST API.
 
 
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403 when the token is for the session's own user. Tokens for bots or other
+        users are not affected, and neither are other sessions of the same user.
+
+
         __Minimum server version__: 4.1
 
 
@@ -2524,6 +2725,748 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/passkeys":
+    get:
+      tags:
+        - users
+      summary: Get a user's passkeys
+      description: >
+        Get the passkeys registered to a user, oldest first. Each passkey's name,
+        timestamps, credential ID and user handle are returned, never its public key.
+
+
+        Passkeys are available only when the `Passkeys` feature flag is on and the
+        server has a Professional or higher license; otherwise the endpoint
+        responds with 501. This works whatever the "Enable passkey enrollment" and
+        "Enable passkey login" settings are, so users can still see passkeys they
+        already have.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403.
+      operationId: GetPasskeysForUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Passkeys retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Passkey"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/{passkey_id}":
+    delete:
+      tags:
+        - users
+      summary: Delete a passkey
+      description: >
+        Delete one of the user's passkeys. Deleting a passkey ends every session
+        that was started with it, including the caller's own session if it was
+        started with that passkey; the request itself still succeeds. Other
+        sessions of the user are unaffected.
+        Once the passkey is deleted the user is sent a "passkey removed" email
+        naming it, even if ending one of its sessions then fails (the request
+        answers 500 in that case but the passkey is gone).
+
+
+        Passkeys are available only when the `Passkeys` feature flag is on and the
+        server has a Professional or higher license; otherwise the endpoint
+        responds with 501. This works whatever the "Enable passkey enrollment" and
+        "Enable passkey login" settings are.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403.
+      operationId: DeletePasskey
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+        - name: passkey_id
+          in: path
+          description: Passkey GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Passkey deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: The passkey does not exist or does not belong to the user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/registration/begin":
+    post:
+      tags:
+        - users
+      summary: Begin registering a passkey
+      description: >
+        Start a passkey registration. Returns a ceremony ID and the WebAuthn
+        `PublicKeyCredentialCreationOptions` to pass to `navigator.credentials.create()`.
+        The authenticator must perform user verification. Finish the registration
+        with `POST /api/v4/users/{user_id}/passkeys/registration/finish`, using
+        the same session, within 5 minutes.
+
+
+        Passkeys are available only when the `Passkeys` feature flag is on and the
+        server has a Professional or higher license. The "Enable passkey enrollment"
+        setting must also be on, and the Site URL must be HTTPS (or
+        `http://localhost`) with a domain name as its host. Otherwise the
+        endpoint responds with 501.
+
+
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled (5 requests per second, bursts of 10, in this endpoint's
+        own bucket per client address); a client over the limit gets 429 with a
+        plain-text body.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403. The session must
+        have been started within the last 10 minutes by a sign-in that did not
+        use a passkey; otherwise the endpoint responds with 403 and the user must
+        sign out and sign back in. Bot and remote users cannot register passkeys
+        (403).
+      operationId: BeginPasskeyRegistration
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Registration started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ceremony_id:
+                    description: Identifies this registration; pass it to the finish request
+                    type: string
+                  options:
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseCreationOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.create()`.
+                    type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
+        "400":
+          description: The user already has the maximum of 10 passkeys.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/registration/finish":
+    post:
+      tags:
+        - users
+      summary: Finish registering a passkey
+      description: >
+        Complete a registration started with
+        `POST /api/v4/users/{user_id}/passkeys/registration/begin`. The request must
+        come from the same session that began it, within 5 minutes. On success the
+        user is sent a "passkey added" email.
+
+
+        The same availability conditions as the begin request apply (501 otherwise),
+        and it is rate limited with the same settings as the begin request, in its own
+        separate bucket per client address (429).
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403. The session must
+        still be within 10 minutes of a sign-in that did not use a passkey;
+        otherwise the endpoint responds with 403.
+      operationId: FinishPasskeyRegistration
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ceremony_id
+                - credential
+              properties:
+                ceremony_id:
+                  description: The `ceremony_id` returned by the begin request
+                  type: string
+                name:
+                  description: A name for the passkey, at most 64 characters. Defaults
+                    to "<browser> on <OS>" taken from the request's User-Agent.
+                  type: string
+                credential:
+                  description: The browser's registration response (the result of
+                    `navigator.credentials.create()`) in WebAuthn JSON form
+                  type: object
+        required: true
+      responses:
+        "201":
+          description: Passkey registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passkey"
+        "400":
+          description: >
+            The request body is invalid, or `ceremony_id` or `credential` is
+            missing. Also returned when the ceremony is unknown, already used,
+            expired or begun by another session, the credential is invalid or
+            already registered, the name is over 64 characters, or the user
+            already has 10 passkeys.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/passkeys/enrollment/ticket":
+    post:
+      tags:
+        - users
+      summary: Create a passkey enrollment ticket
+      description: >
+        Issue a single-use ticket that lets another browser, such as the system
+        browser opened by a mobile or desktop app, add a passkey to the caller's
+        account without a session of its own. The ticket is tied to the session
+        that made this request, expires 10 minutes after it is issued, and is used
+        up by the first registration or verification completed with it
+        (`/api/v4/users/passkeys/enrollment/registration/finish` or
+        `/api/v4/users/passkeys/enrollment/verification/finish`). The request has
+        no body.
+
+
+        No recent sign-in is needed to get a ticket. Registering a passkey with it
+        is what requires the issuing session to have started within the last 10
+        minutes by a sign-in that did not use a passkey.
+
+
+        Available only when the `Passkeys` feature flag is on, the server has a
+        Professional or higher license, the Site URL is HTTPS (or
+        `http://localhost`) with a domain name as its host, and "Enable passkey
+        enrollment" is on. Otherwise the endpoint responds with 501.
+
+
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled (5 requests per second, bursts of 10, in this endpoint's
+        own bucket per client address); a client over the limit gets 429 with a
+        plain-text body.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        Must be authenticated as the user. `user_id` must be the caller's own
+        user ID or `me`; any other value responds with 403, system admins included.
+        Bot and remote users cannot get a ticket (403).
+      operationId: CreatePasskeyEnrollmentTicket
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID, or `me` for the current user
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Ticket issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ticket:
+                    description: The ticket; pass it to the enrollment endpoints
+                    type: string
+                  expire_at:
+                    description: The time the ticket expires, in milliseconds since the epoch
+                    type: integer
+                    format: int64
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/passkeys/enrollment/registration/begin:
+    post:
+      tags:
+        - users
+      summary: Begin registering a passkey with an enrollment ticket
+      description: >
+        Start a passkey registration for the user whose session issued the ticket,
+        without a session of the caller's own. Returns a ceremony ID and the
+        WebAuthn `PublicKeyCredentialCreationOptions` to pass to
+        `navigator.credentials.create()`. The authenticator must perform user
+        verification. Finish the registration with
+        `POST /api/v4/users/passkeys/enrollment/registration/finish` within 5
+        minutes. Beginning only reads the ticket, so it can be repeated while the
+        ticket is valid.
+
+
+        The ticket must have been issued by `POST /api/v4/users/{user_id}/passkeys/enrollment/ticket`,
+        be unexpired and unused, and the session that issued it must still exist
+        and not have expired; otherwise the endpoint responds with 400 and
+        `app.passkey.ticket_invalid.app_error` (the response does not say which),
+        and the user must sign in again. That session must also have been started
+        within the last 10 minutes by a sign-in that did not use a passkey;
+        otherwise the endpoint responds with 403 and
+        `app.passkey.recent_login_required.app_error`. A ceremony begun here can be
+        finished only at the matching finish endpoint, not at
+        `/api/v4/users/{user_id}/passkeys/registration/finish`.
+
+
+        Available only under the same conditions as the ticket request: the
+        `Passkeys` feature flag on, a Professional or higher license, a usable
+        Site URL and "Enable passkey enrollment" on. Whether "Enable passkey login"
+        is on does not matter. Otherwise the endpoint responds with 501.
+
+
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled (5 requests per second, bursts of 10, in this endpoint's
+        own bucket per client address); a client over the limit gets 429 with a
+        plain-text body.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No session is required. The request's own session, if any, is not used:
+        the ticket alone decides which user the passkey is for.
+      operationId: BeginPasskeyRegistrationWithTicket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticket
+              properties:
+                ticket:
+                  description: The `ticket` returned by the ticket request
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: Registration started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ceremony_id:
+                    description: Identifies this registration; pass it to the finish request
+                    type: string
+                  options:
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseCreationOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.create()`.
+                    type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialCreationOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
+        "400":
+          description: >
+            The request body is invalid or `ticket` is missing. Also returned when
+            the ticket is unknown, expired, already used or its issuing session is
+            gone (`app.passkey.ticket_invalid.app_error`), or the user already has
+            the maximum of 10 passkeys (`app.passkey.limit_reached.app_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "403":
+          description: >
+            The issuing session was not started within the last 10 minutes by a
+            sign-in that did not use a passkey
+            (`app.passkey.recent_login_required.app_error`), or the user is a bot
+            or remote user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/passkeys/enrollment/registration/finish:
+    post:
+      tags:
+        - users
+      summary: Finish registering a passkey with an enrollment ticket
+      description: >
+        Complete a registration started with
+        `POST /api/v4/users/passkeys/enrollment/registration/begin`, within 5
+        minutes of beginning. The passkey is added to the user whose session issued
+        the ticket. On success the user is sent a "passkey added" email.
+
+
+        The ticket is looked up again, and the same ticket rules apply as at begin:
+        unknown, expired, used or orphaned tickets give 400 with
+        `app.passkey.ticket_invalid.app_error`, and an issuing session that is no
+        longer within 10 minutes of a non-passkey sign-in gives 403 with
+        `app.passkey.recent_login_required.app_error`. The ticket is used up as
+        soon as the authenticator's response is accepted, before the passkey is
+        saved, so one ticket adds at most one passkey. A response the server
+        refuses leaves the ticket usable, and the client can begin again. If saving
+        then fails because the user has 10 passkeys or the credential is already
+        registered, the ticket is already spent. A ceremony can be finished once;
+        one begun at `/api/v4/users/{user_id}/passkeys/registration/begin` cannot
+        be finished here.
+
+
+        Available only under the same conditions as the begin request (501
+        otherwise), and rate limited with the same settings, in its own separate
+        bucket per client address (429).
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No session is required. The request's own session, if any, is not used:
+        the ticket alone decides which user the passkey is for.
+      operationId: FinishPasskeyRegistrationWithTicket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ceremony_id
+                - credential
+              properties:
+                ceremony_id:
+                  description: The `ceremony_id` returned by the begin request
+                  type: string
+                name:
+                  description: A name for the passkey, at most 64 characters. Defaults
+                    to "<browser> on <OS>" taken from the request's User-Agent.
+                  type: string
+                credential:
+                  description: The browser's registration response (the result of
+                    `navigator.credentials.create()`) in WebAuthn JSON form
+                  type: object
+        required: true
+      responses:
+        "201":
+          description: Passkey registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passkey"
+        "400":
+          description: >
+            The request body is invalid, or `ceremony_id` or `credential` is
+            missing. Also returned when the ceremony is unknown, already used,
+            expired or was not begun with a ticket
+            (`app.passkey.ceremony_invalid.app_error`), the ticket is no longer
+            valid (`app.passkey.ticket_invalid.app_error`), the credential is
+            invalid (`app.passkey.invalid_credential.app_error`) or already
+            registered (`app.passkey.already_registered.app_error`), the name is
+            over 64 characters, or the user already has 10 passkeys
+            (`app.passkey.limit_reached.app_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "403":
+          description: >
+            The issuing session was not started within the last 10 minutes by a
+            sign-in that did not use a passkey
+            (`app.passkey.recent_login_required.app_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/passkeys/enrollment/verification/begin:
+    post:
+      tags:
+        - users
+      summary: Begin proving possession of a passkey with an enrollment ticket
+      description: >
+        Start a check that the caller's device holds one of the passkeys of the
+        user whose session issued the ticket, so the device can be recorded as
+        enrolled instead of being asked to add a duplicate. Returns a ceremony ID
+        and the WebAuthn `PublicKeyCredentialRequestOptions` to pass to
+        `navigator.credentials.get()`. The options list the user's passkeys as the
+        only acceptable credentials and require user verification. Finish with
+        `POST /api/v4/users/passkeys/enrollment/verification/finish` within 5
+        minutes. Beginning only reads the ticket, so it can be repeated while the
+        ticket is valid.
+
+
+        The ticket rules are the same as for registration, except that no recent
+        sign-in is needed: the issuing session only has to still exist and not
+        have expired. A user with no passkeys gets 400 with
+        `app.passkey.none_registered.app_error`.
+
+
+        Available only when the `Passkeys` feature flag is on, the server has a
+        Professional or higher license, the Site URL is usable and "Enable passkey
+        enrollment" is on. "Enable passkey login" does not matter, because this
+        creates no session. Otherwise the endpoint responds with 501.
+
+
+        Rate limited per client address like `POST /api/v4/users/login` when rate
+        limiting is enabled (5 requests per second, bursts of 10, in this endpoint's
+        own bucket per client address); a client over the limit gets 429 with a
+        plain-text body.
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No session is required. The request's own session, if any, is not used:
+        the ticket alone decides which user is checked.
+      operationId: BeginPasskeyVerificationWithTicket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticket
+              properties:
+                ticket:
+                  description: The `ticket` returned by the ticket request
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: Verification started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ceremony_id:
+                    description: Identifies this verification; pass it to the finish request
+                    type: string
+                  options:
+                    description: >
+                      The WebAuthn options, wrapped as `{"publicKey": ...}`. Convert
+                      `options.publicKey` from JSON (for example with
+                      `PublicKeyCredential.parseRequestOptionsFromJSON()`) and pass it as the
+                      `publicKey` member of `navigator.credentials.get()`.
+                    type: object
+                    required:
+                      - publicKey
+                    properties:
+                      publicKey:
+                        description: The WebAuthn `PublicKeyCredentialRequestOptions` in JSON
+                          form, with binary fields base64url-encoded
+                        type: object
+        "400":
+          description: >
+            The request body is invalid or `ticket` is missing. Also returned when
+            the ticket is unknown, expired, already used or its issuing session is
+            gone (`app.passkey.ticket_invalid.app_error`), or the user has no
+            passkeys (`app.passkey.none_registered.app_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/passkeys/enrollment/verification/finish:
+    post:
+      tags:
+        - users
+      summary: Finish proving possession of a passkey with an enrollment ticket
+      description: >
+        Complete a check started with
+        `POST /api/v4/users/passkeys/enrollment/verification/begin`, within 5
+        minutes of beginning. On success the passkey the device used is recorded as
+        used (its signature counter and last-used time are updated) and the ticket
+        is used up. No session is created, no cookies are set and no response
+        header carries a token, and failed-attempt counts and multi-factor
+        authentication are not touched.
+
+
+        The ticket is looked up again, so a ticket that is no longer valid gives 400
+        with `app.passkey.ticket_invalid.app_error`. A ceremony can be finished
+        once; a failed attempt uses it up and the client must begin again, although
+        the ticket stays usable until it expires or a check succeeds. The
+        credential must be one of the user's passkeys as they are now.
+        `app.passkey.counter_regressed.app_error` means the authenticator's
+        signature counter went backwards, which can indicate a cloned authenticator;
+        the check is refused. A counter that stays at 0 is accepted, as synced
+        passkeys do not count.
+
+
+        Available only under the same conditions as the begin request (501
+        otherwise), and rate limited with the same settings, in its own separate
+        bucket per client address (429).
+
+
+        __Minimum server version__: 12.2
+
+
+        ##### Permissions
+
+        No session is required. The request's own session, if any, is not used:
+        the ticket alone decides which user is checked.
+      operationId: FinishPasskeyVerificationWithTicket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ceremony_id
+                - credential
+              properties:
+                ceremony_id:
+                  description: The `ceremony_id` returned by the begin request
+                  type: string
+                credential:
+                  description: The browser's assertion response (the result of
+                    `navigator.credentials.get()`) in WebAuthn JSON form
+                  type: object
+        required: true
+      responses:
+        "200":
+          description: Passkey verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    description: The user whose passkey was verified, i.e. the
+                      user the ticket was issued for
+                    type: string
+        "400":
+          description: >
+            The request body is invalid, or `ceremony_id` or `credential` is
+            missing. Also returned when the ceremony is unknown, already used,
+            expired or its ticket is no longer valid
+            (`app.passkey.ceremony_invalid.app_error`,
+            `app.passkey.ticket_invalid.app_error`), or the credential cannot be
+            parsed (`app.passkey.invalid_credential.app_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          description: >
+            The assertion failed verification or the credential is not one of the
+            user's passkeys (`app.passkey.invalid_credential.app_error`), or the
+            signature counter went backwards (`app.passkey.counter_regressed.app_error`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "429":
+          description: Too many requests. The body is plain text, not an error object.
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/users/tokens:
     get:
       tags:
@@ -2776,6 +3719,11 @@
         Re-enable a personal access token that has been disabled.
 
 
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403 when the token belongs to the session's own user. Tokens of bots or
+        other users are not affected, and neither are other sessions of the same user.
+
+
         __Minimum server version__: 4.4
 
 
@@ -2817,6 +3765,11 @@
         Generate a new secret for an existing personal access token, immediately
         invalidating the old secret and any sessions that used it. The response
         includes the new token secret (shown once, like token creation).
+
+
+        A request made with a session that was started by a passkey sign-in is refused
+        with 403 when the token belongs to the session's own user. Tokens of bots or
+        other users are not affected, and neither are other sessions of the same user.
 
 
         __Minimum server version__: 10.10
@@ -2915,6 +3868,10 @@
         For `auth_service` set to `email`, omit `auth_data`; this clears external
         authentication and switches the user to email authentication. For other
         authentication services, `auth_data` must be present and non-empty.
+
+
+        A session that was started by a passkey sign-in cannot change its own user's
+        authentication method (403). Changing another user's is not affected.
 
 
         __Minimum server version__: 4.6

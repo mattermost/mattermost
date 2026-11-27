@@ -39,6 +39,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     NormalizeLdapDNs: 'false',
     NotificationMonitoring: 'true',
     OpenIdAttributeSync: 'true',
+    Passkeys: 'false',
     PermissionPolicies: 'true',
     PolicySimulation: 'true',
     PostAttributes: 'false',

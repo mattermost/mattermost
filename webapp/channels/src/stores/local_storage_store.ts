@@ -19,6 +19,8 @@ const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
 const wasNotifiedOfLogInKey = 'was_notified_of_login';
+const getPasskeyEnrolledKey = (userId: string) => ['passkey_enrolled', userId].join(':');
+const passkeyPromptSkippedKey = 'passkey_prompt_skipped';
 
 const getPathScopedKey = (path: string, key: string) => {
     if (path === '' || path === '/') {
@@ -90,6 +92,42 @@ class LocalStorageStoreClass {
         } catch (error) {
             // eslint-disable-next-line no-console
             console.warn('Unable to store the Markdown view preference', error);
+        }
+    }
+
+    // Recorded per user: another account signing in on this browser has not necessarily enrolled.
+    // Recording must never break adding a passkey or signing in, so blocked storage is swallowed.
+    setPasskeyEnrolled(userId: string): void {
+        if (!userId) {
+            return;
+        }
+        try {
+            this.setItem(getPasskeyEnrolledKey(userId), 'true');
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.warn('Unable to record that this user has a passkey in this browser', error);
+        }
+    }
+
+    setPasskeyPromptSkipped(loginKey: string): void {
+        try {
+            this.setItem(passkeyPromptSkippedKey, loginKey);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.warn('Unable to record that the passkey prompt was skipped', error);
+        }
+    }
+
+    // loginKey identifies one login, so a skip lasts for that login only. Unreadable storage means not due:
+    // a browser that cannot remember a skip would be prompted on every page load.
+    isPasskeyPromptDue(userId: string, loginKey: string): boolean {
+        if (!userId || !loginKey) {
+            return false;
+        }
+        try {
+            return this.getItem(getPasskeyEnrolledKey(userId)) !== 'true' && this.getItem(passkeyPromptSkippedKey) !== loginKey;
+        } catch {
+            return false;
         }
     }
 

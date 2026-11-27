@@ -127,6 +127,36 @@ func (_m *TokenStore) GetByToken(token string) (*model.Token, error) {
 	return r0, r1
 }
 
+// GetByTokenFromMaster provides a mock function with given fields: token
+func (_m *TokenStore) GetByTokenFromMaster(token string) (*model.Token, error) {
+	ret := _m.Called(token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByTokenFromMaster")
+	}
+
+	var r0 *model.Token
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Token, error)); ok {
+		return rf(token)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Token); ok {
+		r0 = rf(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Token)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTokenByTypeAndEmail provides a mock function with given fields: tokenType, email
 func (_m *TokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
 	ret := _m.Called(tokenType, email)

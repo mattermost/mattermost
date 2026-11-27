@@ -6,7 +6,9 @@ import nock from 'nock';
 import React from 'react';
 
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+import type {UserProfile} from '@mattermost/types/users';
 
+import * as userActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
 
@@ -17,9 +19,10 @@ import Login from 'components/login/login';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {isEmbedded} from 'utils/embed';
 import {showNotification} from 'utils/notifications';
 
 import type {GlobalState} from 'types/store';
@@ -38,6 +41,10 @@ jest.mock('utils/desktop_api', () => ({
 
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
+}));
+
+jest.mock('utils/embed', () => ({
+    isEmbedded: jest.fn(() => false),
 }));
 
 describe('components/login/Login', () => {
@@ -758,6 +765,371 @@ describe('components/login/Login', () => {
                     },
                 },
             }));
+        });
+    });
+
+    describe('passkey sign-in', () => {
+        const passkeyState = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                        PasskeyLoginEnabled: 'true',
+                    },
+                },
+            },
+        });
+        const onlyPasskeyState = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        PasskeyLoginEnabled: 'true',
+                    },
+                },
+            },
+        });
+        const redirectPath = '/boards/team/teamID/boardID';
+        const beginResult = {
+            ceremony_id: 'ceremony1',
+            options: {publicKey: {challenge: 'AQID', rpId: 'mm.example.com', userVerification: 'required' as const}},
+        };
+        const rawCredential = {
+            id: 'credential1',
+            rawId: new Uint8Array([1, 2, 3]).buffer,
+            type: 'public-key',
+            authenticatorAttachment: 'platform',
+            getClientExtensionResults: () => ({}),
+            response: {
+                clientDataJSON: new Uint8Array([4]).buffer,
+                authenticatorData: new Uint8Array([5]).buffer,
+                signature: new Uint8Array([6]).buffer,
+                userHandle: new Uint8Array([7]).buffer,
+            },
+        };
+        const abortError = (name: string) => Object.assign(new Error(name), {name});
+
+        let get: jest.Mock;
+        let signalUnknownCredential: jest.Mock;
+        let beginLogin: jest.SpyInstance;
+        let finishLogin: jest.SpyInstance;
+
+        const renderLogin = (state: GlobalState) => {
+            const history = createMemoryHistory({initialEntries: [{pathname: '/login', search: '?redirect_to=' + redirectPath}]});
+            renderWithContext(<Login/>, state, {history});
+            return history;
+        };
+
+        beforeEach(() => {
+            (isDesktopApp as jest.Mock).mockReturnValue(false);
+            (isEmbedded as jest.Mock).mockReturnValue(false);
+            beginLogin = jest.spyOn(Client4, 'beginPasskeyLogin').mockResolvedValue(beginResult);
+            finishLogin = jest.spyOn(Client4, 'finishPasskeyLogin').mockResolvedValue({id: 'user1', roles: ''} as UserProfile);
+            jest.spyOn(userActions, 'loadMe').mockReturnValue(async () => ({data: true}));
+            get = jest.fn().mockResolvedValue(rawCredential);
+            Object.defineProperty(navigator, 'credentials', {value: {get}, configurable: true});
+
+            // jsdom has no WebAuthn; the option is hidden without it.
+            signalUnknownCredential = jest.fn().mockResolvedValue(undefined);
+            Object.defineProperty(window, 'PublicKeyCredential', {value: Object.assign(function PublicKeyCredential() {}, {signalUnknownCredential}), configurable: true});
+        });
+
+        afterEach(() => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            Reflect.deleteProperty(navigator, 'credentials');
+        });
+
+        it('shows a passkey option under the form when passkey sign-in is enabled', () => {
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('link', {name: 'Passkey'})).toBeVisible();
+            expect(screen.getByText('or log in with')).toBeVisible();
+        });
+
+        it('shows no passkey option, and no divider, when passkey sign-in is disabled', () => {
+            renderLogin(mergeObjects(passkeyState, {entities: {general: {config: {PasskeyLoginEnabled: 'false'}}}}));
+
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+            expect(screen.queryByText('or log in with')).not.toBeInTheDocument();
+            expect(screen.getByText('Log in', {selector: 'p'})).toBeVisible();
+        });
+
+        it('shows no passkey option in the desktop app', () => {
+            (isDesktopApp as jest.Mock).mockReturnValue(true);
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+        });
+
+        it('shows no passkey option when embedded', () => {
+            (isEmbedded as jest.Mock).mockReturnValue(true);
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+        });
+
+        it('shows no passkey option when the browser has no WebAuthn', () => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            renderLogin(passkeyState);
+
+            expect(screen.getByRole('button', {name: 'Log in'})).toBeVisible();
+            expect(screen.queryByRole('link', {name: 'Passkey'})).not.toBeInTheDocument();
+        });
+
+        it('offers the passkey option instead of the no-methods page when it is the only method', () => {
+            renderLogin(onlyPasskeyState);
+
+            expect(screen.getByText('Log in with one of the following:')).toBeVisible();
+            expect(screen.getByRole('link', {name: 'Passkey'})).toBeVisible();
+            expect(screen.queryByText('This server doesn’t have any sign-in methods enabled')).not.toBeInTheDocument();
+        });
+
+        it('shows the no-methods page when passkeys are the only method but the browser cannot use them', () => {
+            Reflect.deleteProperty(window, 'PublicKeyCredential');
+            renderLogin(onlyPasskeyState);
+
+            expect(screen.getByText('This server doesn’t have any sign-in methods enabled')).toBeVisible();
+        });
+
+        it('signs in with the chosen passkey and redirects as after a password login', async () => {
+            const history = renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+            expect(get.mock.calls[0][0].publicKey.challenge).toBeInstanceOf(ArrayBuffer);
+            expect(finishLogin.mock.calls[0][0]).toBe('ceremony1');
+            expect(finishLogin.mock.calls[0][1]).toMatchObject({id: 'credential1', response: {userHandle: 'Bw'}});
+        });
+
+        it('records the user as enrolled in this browser after a successful passkey sign-in', async () => {
+            localStorage.clear();
+            const history = renderLogin(passkeyState);
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'login')).toBe(true);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'login')).toBe(false);
+            expect(LocalStorageStore.isPasskeyPromptDue('user2', 'login')).toBe(true);
+        });
+
+        it('does not record the user as enrolled when the server refuses the passkey sign-in', async () => {
+            localStorage.clear();
+            finishLogin.mockRejectedValue({server_error_id: 'api.user.login.not_verified.app_error', message: 'Email not verified'});
+            renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('Email not verified')).toBeVisible();
+            expect(LocalStorageStore.isPasskeyPromptDue('user1', 'login')).toBe(true);
+        });
+
+        it.each(['NotAllowedError', 'AbortError'])('stays silent and usable when the browser prompt ends with %s', async (name) => {
+            get.mockRejectedValueOnce(abortError(name));
+            const history = renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(screen.getByLabelText('Email')).toBeEnabled());
+            expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+            expect(history.location.pathname).toBe('/login');
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+            await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+        });
+
+        it('marks the passkey option aria-disabled only while the ceremony is in flight', async () => {
+            let cancel: (reason: Error) => void = () => {};
+            get.mockReturnValueOnce(new Promise((_, reject) => {
+                cancel = reject;
+            }));
+            renderLogin(passkeyState);
+            expect(screen.getByRole('link', {name: 'Passkey'})).not.toHaveAttribute('aria-disabled', 'true');
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            await waitFor(() => expect(screen.getByRole('link', {name: 'Passkey'})).toHaveAttribute('aria-disabled', 'true'));
+
+            cancel(abortError('NotAllowedError'));
+
+            await waitFor(() => expect(screen.getByRole('link', {name: 'Passkey'})).not.toHaveAttribute('aria-disabled', 'true'));
+        });
+
+        it('says so, and leaves the passkey alone in the browser, when the server does not know it', async () => {
+            finishLogin.mockRejectedValue({server_error_id: 'app.passkey.unknown_credential.app_error', message: 'unknown'});
+            renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('This passkey isn’t registered on this server. Choose another passkey or log in another way.')).toBeVisible();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+            expect(screen.getByLabelText('Email')).toBeEnabled();
+        });
+
+        it('shows the server message when the server refuses the sign-in', async () => {
+            finishLogin.mockRejectedValue({server_error_id: 'api.user.login.not_verified.app_error', message: 'Email not verified'});
+            const history = renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('Email not verified')).toBeVisible();
+            expect(signalUnknownCredential).not.toHaveBeenCalled();
+            expect(history.location.pathname).toBe('/login');
+            expect(screen.getByLabelText('Email')).toBeEnabled();
+        });
+
+        it('shows the server message when the sign-in cannot begin', async () => {
+            beginLogin.mockRejectedValue({server_error_id: 'api.passkey.login_disabled.app_error', message: 'Passkey sign-in is turned off'});
+            renderLogin(passkeyState);
+
+            await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+            expect(await screen.findByText('Passkey sign-in is turned off')).toBeVisible();
+            expect(get).not.toHaveBeenCalled();
+            expect(screen.getByLabelText('Email')).toBeEnabled();
+        });
+
+        describe('autofill', () => {
+            type PendingGet = {signal: AbortSignal; resolve: (credential: unknown) => void};
+
+            const timedOut = 'Your passkey sign-in timed out. Choose your passkey again.';
+            let pending: PendingGet[];
+            let modalSawAbortedAutofill: boolean | undefined;
+
+            const renderAutofill = (state: GlobalState) => {
+                const history = createMemoryHistory({initialEntries: [{pathname: '/login', search: '?redirect_to=' + redirectPath}]});
+                const {unmount} = renderWithContext(<Login/>, state, {history});
+                return {history, unmount};
+            };
+
+            beforeEach(() => {
+                pending = [];
+                modalSawAbortedAutofill = undefined;
+                (window.PublicKeyCredential as unknown as Record<string, unknown>).isConditionalMediationAvailable = jest.fn().mockResolvedValue(true);
+
+                // The conditional request stays pending until the test resolves it or its signal aborts.
+                get.mockImplementation((options: CredentialRequestOptions) => {
+                    if (options.mediation === 'conditional') {
+                        return new Promise((resolve, reject) => {
+                            const signal = options.signal as AbortSignal;
+                            pending.push({signal, resolve});
+                            signal.addEventListener('abort', () => reject(abortError('AbortError')));
+                        });
+                    }
+                    modalSawAbortedAutofill = pending.length > 0 && pending.every((p) => p.signal.aborted);
+                    return Promise.resolve(rawCredential);
+                });
+            });
+
+            it('offers passkeys in the login field and signs in when one is picked', async () => {
+                const {history} = renderAutofill(passkeyState);
+
+                expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'username webauthn');
+                await waitFor(() => expect(pending).toHaveLength(1));
+                expect(get.mock.calls[0][0].mediation).toBe('conditional');
+                expect(get.mock.calls[0][0].signal).toBeInstanceOf(AbortSignal);
+                expect(get.mock.calls[0][0].publicKey.challenge).toBeInstanceOf(ArrayBuffer);
+
+                pending[0].resolve(rawCredential);
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+                expect(finishLogin.mock.calls[0][0]).toBe('ceremony1');
+                expect(finishLogin.mock.calls[0][1]).toMatchObject({id: 'credential1', response: {userHandle: 'Bw'}});
+            });
+
+            it.each([
+                ['missing', undefined],
+                ['false', jest.fn().mockResolvedValue(false)],
+            ])('does not arm autofill when isConditionalMediationAvailable is %s, and the option still signs in', async (_, available) => {
+                (window.PublicKeyCredential as unknown as Record<string, unknown>).isConditionalMediationAvailable = available;
+                const {history} = renderAutofill(passkeyState);
+
+                await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+                expect(pending).toHaveLength(0);
+                expect(beginLogin).toHaveBeenCalledTimes(1);
+            });
+
+            it('neither arms autofill nor tags the field when passkey sign-in is disabled', async () => {
+                renderAutofill(mergeObjects(passkeyState, {entities: {general: {config: {PasskeyLoginEnabled: 'false'}}}}));
+
+                await waitFor(() => expect(screen.getByLabelText('Email')).toBeVisible());
+                expect(screen.getByLabelText('Email')).not.toHaveAttribute('autocomplete', expect.stringContaining('webauthn'));
+                expect(beginLogin).not.toHaveBeenCalled();
+            });
+
+            it('aborts the pending autofill request before the option opens its own prompt, without a banner', async () => {
+                const {history} = renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+
+                await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+                expect(modalSawAbortedAutofill).toBe(true);
+                expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+            });
+
+            it('arms autofill again when the option\'s prompt is cancelled', async () => {
+                renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+                get.mockImplementationOnce(() => {
+                    modalSawAbortedAutofill = pending[0].signal.aborted;
+                    return Promise.reject(abortError('NotAllowedError'));
+                });
+
+                await userEvent.click(screen.getByRole('link', {name: 'Passkey'}));
+
+                await waitFor(() => expect(pending).toHaveLength(2));
+                expect(modalSawAbortedAutofill).toBe(true);
+                expect(pending[1].signal.aborted).toBe(false);
+                expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+            });
+
+            it('says the sign-in timed out and arms autofill again when the ceremony expired', async () => {
+                finishLogin.mockRejectedValueOnce({server_error_id: 'app.passkey.ceremony_invalid.app_error', message: 'invalid ceremony'});
+                const {history} = renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+
+                pending[0].resolve(rawCredential);
+
+                expect(await screen.findByText(timedOut)).toBeVisible();
+                await waitFor(() => expect(pending).toHaveLength(2));
+                expect(beginLogin).toHaveBeenCalledTimes(2);
+                expect(screen.getByLabelText('Email')).toBeEnabled();
+
+                pending[1].resolve(rawCredential);
+
+                await waitFor(() => expect(history.location.pathname).toBe(redirectPath));
+            });
+
+            it('aborts the pending autofill request when the page is left', async () => {
+                const {unmount} = renderAutofill(passkeyState);
+                await waitFor(() => expect(pending).toHaveLength(1));
+
+                unmount();
+
+                expect(pending[0].signal.aborted).toBe(true);
+            });
+
+            it('shows nothing when autofill cannot begin', async () => {
+                let refuse: (reason: unknown) => void = () => {};
+                beginLogin.mockReturnValueOnce(new Promise((_, reject) => {
+                    refuse = reject;
+                }));
+                renderAutofill(passkeyState);
+                await waitFor(() => expect(beginLogin).toHaveBeenCalledTimes(1));
+
+                await act(async () => {
+                    refuse({server_error_id: 'api.passkey.login_disabled.app_error', message: 'Passkey sign-in is turned off'});
+                });
+
+                expect(screen.queryByText('Passkey sign-in is turned off')).not.toBeInTheDocument();
+                expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
+                expect(get).not.toHaveBeenCalled();
+            });
         });
     });
 });

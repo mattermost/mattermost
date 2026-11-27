@@ -27,6 +27,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+// loginRateLimit is shared with the passkey endpoints so they stay limited like password sign-in.
+// Each call returns fresh pointers, as RateLimitedHandler's SetDefaults writes through them.
+func loginRateLimit() model.RateLimitSettings {
+	return model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)}
+}
+
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers)).Methods(http.MethodGet)
@@ -67,7 +73,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), loginRateLimit())).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
@@ -1872,6 +1878,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateUserAuth, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
+	// Same rule as switchAccountType: a passkey session may not change its own account's sign-in method.
+	// An admin changing another user's auth is not the bypass, so it stays allowed.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && c.Params.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("updateUserAuth", "api.user.auth_switch.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	var userAuth model.UserAuth
 	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
@@ -2237,26 +2250,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventResultState(user)
 
-	if user.IsMagicLinkEnabled() {
-		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
-			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
-			return
-		}
-	}
-
-	if user.IsGuest() {
-		if c.App.Channels().License() == nil {
-			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
-			return
-		}
-		if !*c.App.Config().GuestAccountsSettings.Enable {
-			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
-			return
-		}
-	}
-
-	if user.IsRemote() {
-		c.Err = model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+	if appErr := checkUserMaySignIn(c, user); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2297,6 +2292,31 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// checkUserMaySignIn is the account checks password sign-in and passkey sign-in share once the
+// user is authenticated: magic-link, guest and remote users.
+func checkUserMaySignIn(c *Context, user *model.User) *model.AppError {
+	if user.IsMagicLinkEnabled() {
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			return model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
+		}
+	}
+
+	if user.IsGuest() {
+		if c.App.Channels().License() == nil {
+			return model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
+		}
+		if !*c.App.Config().GuestAccountsSettings.Enable {
+			return model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
+		}
+	}
+
+	if user.IsRemote() {
+		return model.NewAppError("login", "api.user.login.remote_users.login.error", nil, "", http.StatusUnauthorized)
+	}
+
+	return nil
 }
 
 func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2923,6 +2943,13 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "switch_request", &switchRequest)
 
+	// Judged on this request's own session, not the user: a normal session of the same user may still
+	// switch. Deliberately not gated on the passkey settings, so the restriction outlives turning passkeys off.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey {
+		c.Err = model.NewAppError("switchAccountType", "api.user.auth_switch.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	link := ""
 	var err *model.AppError
 
@@ -2990,6 +3017,12 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().IsOAuth {
 		c.SetPermissionError(model.PermissionCreateUserAccessToken)
 		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
+	// A token outlives the session, so a passkey session must not mint one for its own account.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && c.Params.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("createUserAccessToken", "api.user.create_user_access_token.passkey_session.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -3349,6 +3382,12 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Re-enabling restores the same lasting access that creating a token would.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && accessToken.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("enableUserAccessToken", "api.user.create_user_access_token.passkey_session.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	if err = c.App.EnableUserAccessToken(c.AppContext, accessToken); err != nil {
 		c.Err = err
 		return
@@ -3407,6 +3446,12 @@ func rotateUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), accessToken.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	// Rotating returns a fresh secret, the same lasting access that creating a token would.
+	if c.AppContext.Session().Props[model.SessionPropLoginMethod] == model.SessionLoginMethodPasskey && accessToken.UserId == c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("rotateUserAccessToken", "api.user.create_user_access_token.passkey_session.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

@@ -25,6 +25,7 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import ProductPluggable from 'components/product_pluggable';
+import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
 import Readout from 'components/readout/readout';
 import {WithUserTheme} from 'components/theme_provider';
 
@@ -52,6 +53,7 @@ const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => imp
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
 const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
+const PasskeyEnrollmentPage = makeAsyncComponent('PasskeyEnrollmentPage', lazy(() => import('components/passkey_enrollment/passkey_enrollment_page')));
 const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', lazy(() => import('components/password_reset_send_link')));
 const PasswordResetForm = makeAsyncComponent('PasswordResetForm', lazy(() => import('components/password_reset_form')));
 const Signup = makeAsyncComponent('SignupController', lazy(() => import('components/signup/signup')));
@@ -157,6 +159,11 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // We don't want to show when we're doing Desktop App external login
         if (this.props.location.pathname === '/login/desktop') {
+            return;
+        }
+
+        // The mobile app opens this page in its own auth browser, which has never seen the landing page
+        if (this.props.location.pathname === '/login/passkey/enroll') {
             return;
         }
 
@@ -318,6 +325,10 @@ export default class Root extends React.PureComponent<Props, State> {
                         component={ErrorPage}
                     />
                     <HFRoute
+                        path={'/login/passkey/enroll'}
+                        component={PasskeyEnrollmentPage}
+                    />
+                    <HFRoute
                         path={'/login'}
                         component={Login}
                     />
@@ -418,6 +429,8 @@ export default class Root extends React.PureComponent<Props, State> {
 
                         <WindowSizeObserver/>
                         <ModalController/>
+                        {/* Logged out, LoggedIn builds redirect_to from this URL, so the action must survive until after sign-in */}
+                        {this.props.isLoggedIn && <QueryParamActionController/>}
                         <GlobalClassificationBanner position='top'/>
                         <AnnouncementBarController/>
                         <SystemNotice/>

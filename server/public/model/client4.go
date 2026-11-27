@@ -1806,6 +1806,16 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
+// RevokePasskeySessions revokes every session that was started by signing in with a passkey.
+func (c *Client4) RevokePasskeySessions(ctx context.Context) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.usersRoute().Join("sessions", "revoke", "passkey"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetSessionAttributesManifest returns the enabled session attribute schema for the caller's platform inferred from User-Agent.
 func (c *Client4) GetSessionAttributesManifest(ctx context.Context) ([]*SessionAttributeManifestEntry, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.usersRoute().Join("sessions", "attributes", "manifest"), "")
@@ -2029,6 +2039,130 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// GetPasskeysForUser returns the passkeys registered to the user, oldest first. Each passkey's
+// credential ID and user handle are returned, but never its public key. Only the user themselves may
+// list their passkeys.
+func (c *Client4) GetPasskeysForUser(ctx context.Context, userID string) ([]*Passkey, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.userRoute(userID).Join("passkeys"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Passkey](r)
+}
+
+// DeletePasskey removes one of the user's passkeys. Only the user themselves may delete it.
+func (c *Client4) DeletePasskey(ctx context.Context, userID, passkeyID string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.userRoute(userID).Join("passkeys", passkeyID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// BeginPasskeyRegistration starts a passkey registration ceremony for the user and returns the
+// options to hand to the browser. Only the user themselves, from a recent sign-in, may do this.
+func (c *Client4) BeginPasskeyRegistration(ctx context.Context, userID string) (*PasskeyRegistrationOptions, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.userRoute(userID).Join("passkeys", "registration", "begin"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyRegistrationOptions](r)
+}
+
+// FinishPasskeyRegistration completes the ceremony begun by BeginPasskeyRegistration and returns
+// the new passkey.
+func (c *Client4) FinishPasskeyRegistration(ctx context.Context, userID string, finish *PasskeyRegistrationFinish) (*Passkey, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.userRoute(userID).Join("passkeys", "registration", "finish"), finish)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Passkey](r)
+}
+
+// CreatePasskeyEnrollmentTicket asks for a single-use ticket that lets the system browser enroll a
+// passkey for the calling session. Only the user themselves may do this.
+func (c *Client4) CreatePasskeyEnrollmentTicket(ctx context.Context, userID string) (*PasskeyEnrollmentTicket, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.userRoute(userID).Join("passkeys", "enrollment", "ticket"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyEnrollmentTicket](r)
+}
+
+// BeginPasskeyRegistrationWithTicket starts a registration ceremony for the user who issued the
+// enrollment ticket. It needs no session: the ticket decides the account.
+func (c *Client4) BeginPasskeyRegistrationWithTicket(ctx context.Context, ticket string) (*PasskeyRegistrationOptions, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("passkeys", "enrollment", "registration", "begin"), &PasskeyEnrollmentTicket{Ticket: ticket})
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyRegistrationOptions](r)
+}
+
+// FinishPasskeyRegistrationWithTicket completes the ceremony begun by
+// BeginPasskeyRegistrationWithTicket and returns the new passkey. It needs no session.
+func (c *Client4) FinishPasskeyRegistrationWithTicket(ctx context.Context, finish *PasskeyRegistrationFinish) (*Passkey, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("passkeys", "enrollment", "registration", "finish"), finish)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Passkey](r)
+}
+
+// BeginPasskeyVerificationWithTicket starts a ceremony that proves the device holds one of the
+// passkeys of the user who issued the enrollment ticket. It needs no session.
+func (c *Client4) BeginPasskeyVerificationWithTicket(ctx context.Context, ticket string) (*PasskeyLoginOptions, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("passkeys", "enrollment", "verification", "begin"), &PasskeyEnrollmentTicket{Ticket: ticket})
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyLoginOptions](r)
+}
+
+// FinishPasskeyVerificationWithTicket completes the ceremony begun by
+// BeginPasskeyVerificationWithTicket. It needs no session and, unlike FinishPasskeyLogin, starts none.
+func (c *Client4) FinishPasskeyVerificationWithTicket(ctx context.Context, finish *PasskeyLoginFinish) (*PasskeyVerification, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("passkeys", "enrollment", "verification", "finish"), finish)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyVerification](r)
+}
+
+// BeginPasskeyLogin starts a usernameless passkey sign-in ceremony and returns the options to hand
+// to the browser. It needs no session.
+func (c *Client4) BeginPasskeyLogin(ctx context.Context) (*PasskeyLoginOptions, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.usersRoute().Join("login", "passkey", "begin"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PasskeyLoginOptions](r)
+}
+
+// FinishPasskeyLogin completes the ceremony begun by BeginPasskeyLogin, like Login keeping the
+// session token for later requests, and returns the signed-in user.
+func (c *Client4) FinishPasskeyLogin(ctx context.Context, finish *PasskeyLoginFinish) (*User, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("login", "passkey", "finish"), finish)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	return DecodeJSONFromResponse[*User](r)
 }
 
 // RotateUserAccessToken generates a new secret for the token identified by tokenId,

@@ -28,12 +28,14 @@ import Constants from 'utils/constants';
 import {isValidPassword} from 'utils/password';
 
 import MfaSection from './mfa_section';
+import PasskeySection from './passkey_section';
 import UserAccessTokenSection from './user_access_token_section';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const SECTION_MFA = 'mfa';
+const SECTION_PASSKEYS = 'passkeys';
 const SECTION_PASSWORD = 'password';
 const SECTION_SIGNIN = 'signin';
 const SECTION_APPS = 'apps';
@@ -207,6 +209,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         } else {
             switch (this.props.activeSection) {
             case SECTION_MFA:
+            case SECTION_PASSKEYS:
             case SECTION_SIGNIN:
             case SECTION_TOKENS:
             case SECTION_APPS:
@@ -1082,6 +1085,12 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     <div className='divider-light'/>
                     <MfaSection
                         active={this.props.activeSection === SECTION_MFA}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        updateSection={this.handleUpdateSection}
+                    />
+                    <div className='divider-light'/>
+                    <PasskeySection
+                        active={this.props.activeSection === SECTION_PASSKEYS}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         updateSection={this.handleUpdateSection}
                     />

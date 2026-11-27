@@ -43,6 +43,8 @@
         "AllowedUntrustedInternalConnections": null,
         "EnableMultifactorAuthentication": null,
         "EnforceMultifactorAuthentication": null,
+        "EnablePasskeyEnrollment": null,
+        "EnablePasskeyLogin": null,
         "EnableUserAccessTokens": null,
         "MaximumPersonalAccessTokenLifetimeDays": null,
         "AllowCorsFrom": null,
@@ -775,6 +777,7 @@
         "EnforceLogPathRoot": false,
         "HealthDashboard": false,
         "EnableBrotliCompression": false,
+        "Passkeys": false,
         "OpenIdAttributeSync": false
     }
 }

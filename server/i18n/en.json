@@ -3594,6 +3594,11 @@
     "description": "API error when an endpoint requires a paid license; 'E10' and 'E20' are legacy Mattermost license tier names."
   },
   {
+    "id": "api.oauth.allow_oauth.passkey_session.app_error",
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then authorize the app.",
+    "description": "Error shown when a session that was started by signing in with a passkey tries to authorize an OAuth app to access the account. 'Passkey' is a sign-in credential stored on the user's device or password manager."
+  },
+  {
     "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
     "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow.",
     "description": "OAuth authorization error shown to developers/users when a public OAuth client omits PKCE; keep 'PKCE' and the parenthetical expansion technical."
@@ -3777,6 +3782,31 @@
     "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin.",
     "description": "API error shown when someone tries to use or manage outgoing webhooks while the admin has turned the feature off; outgoing webhooks send channel messages to external services."
+  },
+  {
+    "id": "api.passkey.enrollment_disabled.app_error",
+    "translation": "Adding passkeys is not enabled.",
+    "description": "API error when a user tries to register a passkey while the admin has turned passkey enrollment off."
+  },
+  {
+    "id": "api.passkey.feature_disabled.app_error",
+    "translation": "Passkeys are not enabled.",
+    "description": "API error when a passkey endpoint is called while the passkeys feature flag is off."
+  },
+  {
+    "id": "api.passkey.license.app_error",
+    "translation": "Passkeys require a Professional license or higher.",
+    "description": "API error when a passkey endpoint is called on a server without at least a Professional license."
+  },
+  {
+    "id": "api.passkey.login_disabled.app_error",
+    "translation": "Signing in with a passkey is turned off on this server.",
+    "description": "API error when a user tries to sign in with a passkey while the admin has turned passkey login off."
+  },
+  {
+    "id": "api.passkey.unavailable.app_error",
+    "translation": "Passkeys are not available with this server's Site URL.",
+    "description": "API error when a user tries to register a passkey but the Site URL is unset, not HTTPS, an IP address, or otherwise unusable as a WebAuthn relying party."
   },
   {
     "id": "api.payload.parse.error",
@@ -5668,6 +5698,36 @@
     "description": "Heading of the email confirming multi-factor authentication was removed from the account."
   },
   {
+    "id": "api.templates.passkey_added_body.info",
+    "translation": "A passkey named \"{{ .PasskeyName }}\" was added to your account on {{ .SiteURL }}. If you did not add it, sign in, remove it under Profile > Security, and contact your system administrator.",
+    "description": "Body text of the security email alerting the user that a passkey was added to their account; {{ .PasskeyName }} is the name the passkey was given, {{ .SiteURL }} the server URL. 'Profile > Security' is a menu path; match the translated UI labels."
+  },
+  {
+    "id": "api.templates.passkey_added_body.title",
+    "translation": "Passkey added to your account",
+    "description": "Heading of the security email alerting the user that a passkey (a sign-in credential stored on their device or password manager) was added to their account."
+  },
+  {
+    "id": "api.templates.passkey_added_subject",
+    "translation": "[{{ .SiteName }}] Passkey added to your account",
+    "description": "Subject line of the email about a new passkey on the account; {{ .SiteName }} is the site name."
+  },
+  {
+    "id": "api.templates.passkey_removed_body.info",
+    "translation": "A passkey named \"{{ .PasskeyName }}\" was removed from your account on {{ .SiteURL }}. If you did not remove it, sign in, check your passkeys under Profile > Security, and contact your system administrator.",
+    "description": "Body text of the security email alerting the user that a passkey was removed from their account; {{ .PasskeyName }} is the name the passkey had, {{ .SiteURL }} the server URL. 'Profile > Security' is a menu path; match the translated UI labels."
+  },
+  {
+    "id": "api.templates.passkey_removed_body.title",
+    "translation": "Passkey removed from your account",
+    "description": "Heading of the security email alerting the user that a passkey (a sign-in credential stored on their device or password manager) was removed from their account."
+  },
+  {
+    "id": "api.templates.passkey_removed_subject",
+    "translation": "[{{ .SiteName }}] Passkey removed from your account",
+    "description": "Subject line of the email about a passkey removed from the account; {{ .SiteName }} is the site name."
+  },
+  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}.",
     "description": "Body text of the password-change confirmation email; {{.TeamDisplayName}} is the site/team name, {{ .TeamURL }} its URL, and {{.Method}} how it changed (e.g. by you, by an admin)."
@@ -6043,6 +6103,11 @@
     "description": "API error shown when switching a user's sign-in method to email/password fails because both email and username login are disabled."
   },
   {
+    "id": "api.user.auth_switch.passkey_session.app_error",
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then change it.",
+    "description": "API error when a session that was started by signing in with a passkey tries to switch the account's sign-in method (for example SSO to email, or email to LDAP). 'Passkey' is a sign-in credential stored on the user's device or password manager."
+  },
+  {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
     "translation": "Bad response from token request.",
     "description": "SSO login error when the external OAuth provider returns an unusable response to the token request."
@@ -6226,6 +6291,11 @@
     "id": "api.user.create_user.user_limits.exceeded",
     "translation": "Can't create user. Server exceeds safe user limit. Contact your administrator with: ERROR_SAFETY_LIMITS_EXCEEDED.",
     "description": "API error when creating a user would exceed the unlicensed server's safety user limit; 'ERROR_SAFETY_LIMITS_EXCEEDED' is a support error code and must not be translated."
+  },
+  {
+    "id": "api.user.create_user_access_token.passkey_session.app_error",
+    "translation": "You signed in with a passkey. Sign in with your usual sign-in method, then manage your access tokens.",
+    "description": "API error when a session that was started by signing in with a passkey tries to create, re-enable or rotate (issue a new secret for) a personal access token for its own account. 'Passkey' is a sign-in credential stored on the user's device or password manager."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
@@ -10752,6 +10822,141 @@
     "description": "API error when enabling or disabling attribute-based access control policies fails; admin-facing."
   },
   {
+    "id": "app.passkey.already_registered.app_error",
+    "translation": "This passkey is already registered to an account on this server.",
+    "description": "API error when finishing passkey registration with an authenticator credential that is already registered (the authenticator ignored the exclusion list)."
+  },
+  {
+    "id": "app.passkey.begin_login.app_error",
+    "translation": "Unable to start passkey sign-in.",
+    "description": "API error when building the WebAuthn sign-in options fails."
+  },
+  {
+    "id": "app.passkey.begin_registration.app_error",
+    "translation": "Unable to start passkey registration.",
+    "description": "API error when building the WebAuthn registration options (or generating the user handle) fails."
+  },
+  {
+    "id": "app.passkey.begin_verification.app_error",
+    "translation": "Unable to start passkey verification.",
+    "description": "API error when building the WebAuthn options or saving the short-lived ceremony for proving the user already has a passkey (the \"Use existing passkey\" choice when enrolling) fails."
+  },
+  {
+    "id": "app.passkey.ceremony_invalid.app_error",
+    "translation": "This passkey request has expired or is no longer valid. Start again.",
+    "description": "API error when finishing passkey registration or sign-in with a ceremony that is unknown, already used, expired, or (for registration) begun by a different session or user."
+  },
+  {
+    "id": "app.passkey.counter_regressed.app_error",
+    "translation": "This passkey could not be used to sign in. Sign in another way and check your passkeys under Profile > Security.",
+    "description": "API error when a passkey sign-in presents a signature counter that did not increase (a possibly cloned authenticator), or when the passkey was used or deleted by another sign-in at the same moment. The user can sign in with another method; Profile > Security is a menu path, match the translated UI labels."
+  },
+  {
+    "id": "app.passkey.delete.app_error",
+    "translation": "Unable to delete the passkey.",
+    "description": "API error when deleting a user's passkey from the database fails."
+  },
+  {
+    "id": "app.passkey.finish_login.app_error",
+    "translation": "Unable to finish passkey sign-in.",
+    "description": "API error when consuming the stored sign-in ceremony, reading the passkey or checking the account fails for a reason other than a normal refusal."
+  },
+  {
+    "id": "app.passkey.finish_registration.app_error",
+    "translation": "Unable to finish passkey registration.",
+    "description": "API error when consuming the stored registration ceremony fails for a reason other than it not existing."
+  },
+  {
+    "id": "app.passkey.finish_verification.app_error",
+    "translation": "Unable to finish passkey verification.",
+    "description": "API error when consuming the stored verification ceremony or the enrollment ticket fails for a reason other than it not existing."
+  },
+  {
+    "id": "app.passkey.get.app_error",
+    "translation": "Unable to load your passkeys.",
+    "description": "API error when listing a user's passkeys from the database fails."
+  },
+  {
+    "id": "app.passkey.get_ticket.app_error",
+    "translation": "Unable to read the passkey enrollment ticket.",
+    "description": "API error when reading the short-lived ticket that lets the system browser enroll a passkey, or the session that issued it, fails for a reason other than the ticket being invalid."
+  },
+  {
+    "id": "app.passkey.invalid_credential.app_error",
+    "translation": "The passkey could not be verified. Try again.",
+    "description": "API error when the authenticator response to a registration or sign-in is malformed or fails verification (wrong origin, relying party, challenge, signature, or user verification missing)."
+  },
+  {
+    "id": "app.passkey.limit_reached.app_error",
+    "translation": "You have reached the maximum number of passkeys. Delete one to add another.",
+    "description": "API error when a user who already has the maximum number of passkeys starts registering another."
+  },
+  {
+    "id": "app.passkey.name_too_long.app_error",
+    "translation": "The passkey name is too long.",
+    "description": "API error when the name given to a new passkey exceeds 64 characters."
+  },
+  {
+    "id": "app.passkey.none_registered.app_error",
+    "translation": "You don't have a passkey for this account yet.",
+    "description": "API error when the user chooses \"Use existing passkey\" while enrolling but has no passkey on their account to verify."
+  },
+  {
+    "id": "app.passkey.not_found.app_error",
+    "translation": "Passkey not found.",
+    "description": "API error when deleting a passkey that does not exist or belongs to another user; the same error is returned for both so callers learn nothing about other users' passkeys."
+  },
+  {
+    "id": "app.passkey.recent_login_required.app_error",
+    "translation": "To add a passkey, sign out and sign back in first, then try again.",
+    "description": "API error when starting or finishing passkey registration from a session that was not started by an interactive non-passkey sign-in within the last 10 minutes."
+  },
+  {
+    "id": "app.passkey.revoke_sessions.app_error",
+    "translation": "The passkey was deleted, but some sessions it started could not be signed out. Check your active sessions under Profile > Security.",
+    "description": "API error when a passkey was deleted but finding or ending the sessions it started failed, so some of them may still be active. Profile > Security is a menu path, match the translated UI labels."
+  },
+  {
+    "id": "app.passkey.save.app_error",
+    "translation": "Unable to save the passkey.",
+    "description": "API error when storing a newly registered passkey in the database fails."
+  },
+  {
+    "id": "app.passkey.save_ceremony.app_error",
+    "translation": "Unable to start passkey registration.",
+    "description": "API error when saving the short-lived registration ceremony (the challenge the authenticator must sign) fails."
+  },
+  {
+    "id": "app.passkey.save_ticket.app_error",
+    "translation": "Unable to save the passkey enrollment ticket.",
+    "description": "API error when storing the short-lived ticket that lets the system browser enroll a passkey fails."
+  },
+  {
+    "id": "app.passkey.ticket_invalid.app_error",
+    "translation": "This enrollment link has expired or was already used. Sign in again and retry.",
+    "description": "API error when the system browser tries to add a passkey with an enrollment link (ticket) that is unknown, expired, already used, or whose sign-in session has since ended."
+  },
+  {
+    "id": "app.passkey.unavailable.app_error",
+    "translation": "Passkeys are not available on this server.",
+    "description": "API error when a passkey ceremony is started but the Site URL cannot serve as a WebAuthn relying party (unset, not HTTPS, an IP address, or rejected by the WebAuthn library)."
+  },
+  {
+    "id": "app.passkey.unknown_credential.app_error",
+    "translation": "This passkey isn't registered on this server.",
+    "description": "API error when a passkey sign-in presents a passkey the server does not know, for example one that was deleted from the account but is still saved on the device."
+  },
+  {
+    "id": "app.passkey.update_usage.app_error",
+    "translation": "Unable to finish passkey sign-in.",
+    "description": "API error when recording a passkey sign-in (its new counter and last-used time) in the database fails."
+  },
+  {
+    "id": "app.passkey.user_not_allowed.app_error",
+    "translation": "This account cannot have passkeys.",
+    "description": "API error when a bot or remote (shared-channel) user tries to register a passkey."
+  },
+  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed to evaluate access control policy.",
     "description": "Error when the server fails to evaluate an attribute-based access control policy while deciding whether a user may access a resource."
@@ -12431,6 +12636,11 @@
     "id": "app.session.get_lru_sessions.app_error",
     "translation": "Unable to get least recently used sessions.",
     "description": "API error returned when fetching a user's oldest (least recently used) login sessions fails, used when enforcing session limits."
+  },
+  {
+    "id": "app.session.get_passkey_sessions.app_error",
+    "translation": "We encountered an error finding passkey sessions.",
+    "description": "API error shown when the server fails to load the sessions started by passkey sign-in from the database, used when an admin revokes all passkey sessions."
   },
   {
     "id": "app.session.get_sessions.app_error",
@@ -19403,6 +19613,41 @@
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Update at must be a valid time.",
     "description": "API error when an outgoing OAuth connection's last-update timestamp is unset; 'Update at' names the UpdateAt field."
+  },
+  {
+    "id": "model.passkey.is_valid.create_at.app_error",
+    "translation": "Passkey must have a creation time.",
+    "description": "API error when a passkey record has no creation timestamp."
+  },
+  {
+    "id": "model.passkey.is_valid.credential_id.app_error",
+    "translation": "Passkey has an invalid credential ID.",
+    "description": "API error when a passkey's credential ID (the identifier the authenticator assigned to it) is empty or longer than WebAuthn allows."
+  },
+  {
+    "id": "model.passkey.is_valid.id.app_error",
+    "translation": "Invalid passkey ID.",
+    "description": "API error when a passkey record's ID is not a valid Mattermost ID."
+  },
+  {
+    "id": "model.passkey.is_valid.name.app_error",
+    "translation": "Passkey name must be between 1 and 64 characters.",
+    "description": "API error when the user-chosen display name of a passkey is empty or too long."
+  },
+  {
+    "id": "model.passkey.is_valid.public_key.app_error",
+    "translation": "Passkey must have a public key.",
+    "description": "API error when a passkey record has no public key; the public key is what verifies later sign-ins."
+  },
+  {
+    "id": "model.passkey.is_valid.user_handle.app_error",
+    "translation": "Passkey has an invalid user handle.",
+    "description": "API error when a passkey's WebAuthn user handle (an opaque per-user identifier kept by the authenticator) is empty or longer than 64 bytes."
+  },
+  {
+    "id": "model.passkey.is_valid.user_id.app_error",
+    "translation": "Invalid passkey user ID.",
+    "description": "API error when a passkey record's owning user ID is not a valid Mattermost ID."
   },
   {
     "id": "model.plugin_command.error.app_error",

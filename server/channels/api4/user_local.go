@@ -46,6 +46,8 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/tokens", api.APILocal(getUserAccessTokensForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/tokens", api.APILocal(createUserAccessToken)).Methods(http.MethodPost)
 
+	api.BaseRoutes.Users.Handle("/sessions/revoke/passkey", api.APILocal(revokePasskeySessions)).Methods(http.MethodPost)
+
 	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APILocal(migrateAuthToLDAP)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APILocal(migrateAuthToSaml)).Methods(http.MethodPost)
 
