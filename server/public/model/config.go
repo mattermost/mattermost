@@ -339,6 +339,10 @@ const (
 	// past any realistic operational use and leaves ample headroom against
 	// int64 overflow when computing token expiry millis.
 	MaxPersonalAccessTokenLifetimeDays = 36500
+
+	MobileQRLoginTokenExpirySecondsDefault = 90
+	MobileQRLoginTokenExpirySecondsMin     = 60
+	MobileQRLoginTokenExpirySecondsMax     = 120
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -440,6 +444,8 @@ type ServiceSettings struct {
 	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
 	EnforceMultifactorAuthentication       *bool    `access:"authentication_mfa"`
+	EnableMobileQRLogin                    *bool    `access:"environment_mobile_security"`
+	MobileQRLoginTokenExpirySeconds        *int     `access:"environment_mobile_security"`
 	EnableUserAccessTokens                 *bool    `access:"integrations_integration_management"`
 	MaximumPersonalAccessTokenLifetimeDays *int     `access:"integrations_integration_management"`
 	AllowCorsFrom                          *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
@@ -622,6 +628,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnforceMultifactorAuthentication == nil {
 		s.EnforceMultifactorAuthentication = new(false)
+	}
+
+	if s.EnableMobileQRLogin == nil {
+		s.EnableMobileQRLogin = new(false)
+	}
+
+	if s.MobileQRLoginTokenExpirySeconds == nil {
+		s.MobileQRLoginTokenExpirySeconds = new(MobileQRLoginTokenExpirySecondsDefault)
 	}
 
 	if s.EnableUserAccessTokens == nil {
@@ -5285,6 +5299,10 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if appErr := validateNonNegativeNumber(*s.SessionIdleTimeoutInMinutes, "ServiceSettings.SessionIdleTimeoutInMinutes"); appErr != nil {
 		return appErr
+	}
+
+	if *s.MobileQRLoginTokenExpirySeconds < MobileQRLoginTokenExpirySecondsMin || *s.MobileQRLoginTokenExpirySeconds > MobileQRLoginTokenExpirySecondsMax {
+		return NewAppError("Config.IsValid", "model.config.is_valid.service_settings.mobile_qr_login_token_expiry_seconds.app_error", map[string]any{"Min": MobileQRLoginTokenExpirySecondsMin, "Max": MobileQRLoginTokenExpirySecondsMax}, "", http.StatusBadRequest)
 	}
 
 	if appErr := validatePositiveNumber(*s.MinimumHashtagLength, "ServiceSettings.MinimumHashtagLength"); appErr != nil {

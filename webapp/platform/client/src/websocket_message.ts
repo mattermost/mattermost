@@ -64,6 +64,7 @@ export type WebSocketMessage = (
     Messages.UserUpdated |
     Messages.UserActivationStatusChanged |
     Messages.UserRoleUpdated |
+    Messages.MobileQRLoginRedeemed |
     Messages.StatusChanged |
     Messages.Typing |
 

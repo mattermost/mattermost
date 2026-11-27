@@ -653,6 +653,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleUserRoleUpdated(msg);
         break;
 
+    case WebSocketEvents.MobileQRLoginRedeemed:
+        dispatch(closeModal(ModalIdentifiers.MOBILE_QR_LOGIN));
+        break;
+
     case WebSocketEvents.ConfigChanged:
         handleConfigChanged(msg);
         break;

@@ -65,12 +65,15 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/auth", api.APISessionRequired(updateUserAuth)).Methods(http.MethodPut)
 
+	api.BaseRoutes.User.Handle("/mobile_login_token", api.APISessionRequired(createMobileQRLoginToken)).Methods(http.MethodPost)
+
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/mobile_qr", api.RateLimitedHandler(api.APIHandler(loginWithMobileQRToken), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(5)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
@@ -2339,6 +2342,67 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func loginWithMobileQRToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	token := props["token"]
+	deviceId := props["device_id"]
+	voipDeviceId := props["voip_device_id"]
+
+	if token == "" {
+		c.SetInvalidParam("token")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithMobileQRToken, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_method", "mobile_qr")
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voipDeviceId))
+
+	session, err := c.App.RedeemMobileQRLoginToken(c.AppContext, w, r, token, deviceId, voipDeviceId)
+	if err != nil {
+		c.Err = model.AsAppError(err)
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
+	auditRec.AddMeta("session_id", session.Id)
+	auditRec.AddMeta("source_session_id", session.Props[model.SessionPropMobileQRSourceSessionId])
+	auditRec.Success()
+	c.LogAuditWithUserId(session.UserId, "success")
+
+	if err := json.NewEncoder(w).Encode(model.MobileQRLoginResponse{Token: session.Token, Csrf: session.GetCSRF()}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func createMobileQRLoginToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	session := c.AppContext.Session()
+	if c.Params.UserId != session.UserId {
+		c.Err = model.NewAppError("createMobileQRLoginToken", "api.user.mobile_qr_login.session_not_allowed.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateMobileQRLoginToken, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	token, err := c.App.CreateMobileQRLoginToken(c.AppContext, session)
+	if err != nil {
+		c.Err = model.AsAppError(err)
+		return
+	}
+
+	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(token); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

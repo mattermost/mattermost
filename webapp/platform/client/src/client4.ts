@@ -149,6 +149,7 @@ import type {TermsOfService} from '@mattermost/types/terms_of_service';
 import type {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
 import type {
     AuthChangeResponse,
+    MobileQRLoginToken,
     UserAccessToken,
     UserAuthUpdate,
     UserProfile,
@@ -1331,6 +1332,13 @@ export default class Client4 {
         return this.doFetch<UserAccessToken>(
             `${this.getUserRoute(userId)}/tokens`,
             {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    createMobileQRLoginToken = () => {
+        return this.doFetch<MobileQRLoginToken>(
+            `${this.getUserRoute('me')}/mobile_login_token`,
+            {method: 'post'},
         );
     };
 

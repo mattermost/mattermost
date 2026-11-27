@@ -1097,6 +1097,33 @@ func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId str
 	return DecodeJSONFromResponse[*User](r)
 }
 
+// CreateMobileQRLoginToken asks the server for a short-lived code that signs a mobile device in as the current user.
+func (c *Client4) CreateMobileQRLoginToken(ctx context.Context) (*MobileQRLoginToken, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.userRoute(Me).Join("mobile_login_token"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*MobileQRLoginToken](r)
+}
+
+// LoginWithMobileQRToken redeems a code created by CreateMobileQRLoginToken and stores the new session token on the client.
+func (c *Client4) LoginWithMobileQRToken(ctx context.Context, token, deviceId, voipDeviceId string) (*MobileQRLoginResponse, *Response, error) {
+	m := make(map[string]string)
+	m["token"] = token
+	m["device_id"] = deviceId
+	m["voip_device_id"] = voipDeviceId
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("login", "mobile_qr"), m)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	return DecodeJSONFromResponse[*MobileQRLoginResponse](r)
+}
+
 func (c *Client4) LoginType(ctx context.Context, loginId string) (*LoginTypeResponse, *Response, error) {
 	m := make(map[string]string)
 	m["login_id"] = loginId

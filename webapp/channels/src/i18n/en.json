@@ -10591,6 +10591,34 @@
     "defaultMessage": "Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile",
     "description": "Breadcrumb path to another System Console setting, inserted as a bold link into the Secure File Preview help text; the segment names should match how those admin console pages are translated."
   },
+  "admin.mobileSecurity.mobileQRLogin.enableDescription": {
+    "defaultMessage": "When enabled, signed-in users on the web or desktop app can show a one-time QR code. Scanning it with the phone's camera opens the Mattermost mobile app and signs in with the same account. Codes can be used once and expire quickly. The mobile session lasts as long as the mobile session length set in {sessionLengths}.",
+    "description": "Admin console help text under the Enable Mobile Sign-In by QR Code toggle on the Mobile Security page; {sessionLengths} is replaced with a link to the Session Lengths settings page."
+  },
+  "admin.mobileSecurity.mobileQRLogin.enableTitle": {
+    "defaultMessage": "Enable Mobile Sign-In by QR Code:",
+    "description": "Label for the toggle on the Mobile Security admin page that lets users sign in to the mobile app by scanning a QR code shown on a computer."
+  },
+  "admin.mobileSecurity.mobileQRLogin.expiryDescription": {
+    "defaultMessage": "How long a sign-in QR code stays valid. Must be between 60 and 120 seconds.",
+    "description": "Admin console help text under the QR code expiry setting on the Mobile Security page."
+  },
+  "admin.mobileSecurity.mobileQRLogin.expiryPlaceholder": {
+    "defaultMessage": "E.g.: 90",
+    "description": "Placeholder example value in the QR code expiry number field on the Mobile Security admin page."
+  },
+  "admin.mobileSecurity.mobileQRLogin.expiryRange": {
+    "defaultMessage": "Must be a number between 60 and 120 seconds.",
+    "description": "Validation error shown when the QR code expiry entered on the Mobile Security admin page is outside the allowed range."
+  },
+  "admin.mobileSecurity.mobileQRLogin.expiryTitle": {
+    "defaultMessage": "QR Code Expiry (seconds):",
+    "description": "Label for the number field on the Mobile Security admin page that sets how many seconds a sign-in QR code stays valid."
+  },
+  "admin.mobileSecurity.mobileQRLogin.sessionLengths": {
+    "defaultMessage": "Session Lengths",
+    "description": "Link text inserted into the QR sign-in help text; the name of the Session Lengths admin console page, which should match how that page is translated."
+  },
   "admin.mobileSecurity.screenCaptureDescription": {
     "defaultMessage": "Blocks screenshots and screen recordings when using the mobile app. Screenshots will appear blank, and screen recordings will blur (iOS) or show a black screen (Android). Also applies when switching apps.",
     "description": "Admin console help text under the Prevent Screen Capture toggle on the Mobile Security page; describes platform-specific behavior on iOS and Android."
@@ -10610,6 +10638,10 @@
   "admin.mobileSecurity.sections.intune.description": {
     "defaultMessage": "Configure Microsoft Intune Mobile Application Management (MAM) for App Protection Policies.",
     "description": "Subtitle text under the Microsoft Intune section header on the Mobile Security admin page; MAM is a Microsoft acronym."
+  },
+  "admin.mobileSecurity.sections.mobileQRLogin.description": {
+    "defaultMessage": "Let users sign in to the mobile app by scanning a QR code shown in the web or desktop app.",
+    "description": "Subtitle under the 'Sign in from a workstation' section header on the Mobile Security admin page."
   },
   "admin.mobileSecurity.secureFilePreviewDescription": {
     "defaultMessage": "Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared.",
@@ -27675,6 +27707,50 @@
     "defaultMessage": "Multi-factor Authentication Setup",
     "description": "Page heading for the multi-factor authentication setup flow shown after login when MFA is required."
   },
+  "mobile_qr_login_modal.countdown": {
+    "defaultMessage": "Expires in {time}",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; countdown under the QR code, {time} is minutes:seconds remaining such as 1:05."
+  },
+  "mobile_qr_login_modal.error.forbidden": {
+    "defaultMessage": "You can't create a sign-in code from this session.",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; error shown when the current session is not allowed to create a code (for example a personal access token or mobile session)."
+  },
+  "mobile_qr_login_modal.error.generic": {
+    "defaultMessage": "We couldn't generate a sign-in code. Try again.",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; error shown when the code could not be created for any other reason."
+  },
+  "mobile_qr_login_modal.expired": {
+    "defaultMessage": "This code has expired.",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; status shown in place of the QR code once it has expired."
+  },
+  "mobile_qr_login_modal.generate_new": {
+    "defaultMessage": "Generate new code",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; button that creates a fresh QR code after the previous one expired."
+  },
+  "mobile_qr_login_modal.instructions": {
+    "defaultMessage": "Scan this code with your phone's camera to sign in to the Mattermost mobile app. The code works once and expires in {seconds, plural, one {# second} other {# seconds}}. Don't share it.",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; instructions above the QR code; {seconds} is how long the code stays valid."
+  },
+  "mobile_qr_login_modal.instructions_generic": {
+    "defaultMessage": "Scan the code with your phone's camera to sign in to the Mattermost mobile app. The code works once and expires quickly. Don't share it.",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; instructions shown while the code is loading, has expired, or failed."
+  },
+  "mobile_qr_login_modal.loading": {
+    "defaultMessage": "Generating code…",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; status shown while the code is being created."
+  },
+  "mobile_qr_login_modal.qr_alt": {
+    "defaultMessage": "QR code to sign in to the Mattermost mobile app",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; alternative text for the QR code image, read by screen readers."
+  },
+  "mobile_qr_login_modal.retry": {
+    "defaultMessage": "Try again",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; button that retries creating a code after an error."
+  },
+  "mobile_qr_login_modal.title": {
+    "defaultMessage": "Sign in on mobile",
+    "description": "Sign in on mobile modal (opened from the account menu on web or desktop), which shows a one-time QR code the user scans with their phone's camera to sign in to the Mattermost mobile app; modal title. Same text as the account menu item that opens it."
+  },
   "mobile.set_status.away.icon": {
     "defaultMessage": "Away",
     "description": "Accessibility label for the Away presence status icon; 'Away' is the user availability status."
@@ -36194,6 +36270,10 @@
   "userAccountMenu.menuButton.ariaLabel": {
     "defaultMessage": "User's account menu",
     "description": "Screen reader label for the avatar button in the global header that opens the user account menu."
+  },
+  "userAccountMenu.mobileQRLoginMenuItem.label": {
+    "defaultMessage": "Sign in on mobile",
+    "description": "Item in the account menu (avatar at top right) on web and desktop that opens a QR code the user scans with their phone's camera to sign in to the Mattermost mobile app."
   },
   "userAccountMenu.offlineMenuItem.label": {
     "defaultMessage": "Offline",

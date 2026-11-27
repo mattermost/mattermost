@@ -6493,6 +6493,31 @@
     "description": "API error in the desktop app server-side login flow when the desktop token belongs to a user who does not authenticate via OAuth or SAML."
   },
   {
+    "id": "api.user.mobile_qr_login.create.app_error",
+    "translation": "Unable to create a mobile sign-in code.",
+    "description": "API error returned to the web or desktop app when the server fails to create or encode the QR code that signs the user in on their mobile device."
+  },
+  {
+    "id": "api.user.mobile_qr_login.disabled.app_error",
+    "translation": "Signing in to the mobile app with a QR code is not enabled on this server.",
+    "description": "API error returned to the web or desktop app when the user asks for a mobile sign-in QR code but the system admin has not enabled the feature."
+  },
+  {
+    "id": "api.user.mobile_qr_login.invalid_token.app_error",
+    "translation": "This sign-in code is invalid or has expired.",
+    "description": "API error shown in the mobile app after scanning a sign-in QR code that was already used, has expired, or can no longer be used. The reason is intentionally not specified."
+  },
+  {
+    "id": "api.user.mobile_qr_login.session_not_allowed.app_error",
+    "translation": "This session cannot be used to sign in a mobile device.",
+    "description": "API error returned to the web or desktop app when a mobile sign-in QR code is requested from a session that is not allowed to, such as a mobile app, bot, personal access token or OAuth app session."
+  },
+  {
+    "id": "api.user.mobile_qr_login.site_url.app_error",
+    "translation": "A Site URL must be configured to sign in to the mobile app with a QR code.",
+    "description": "API error returned to the web or desktop app when a mobile sign-in QR code is requested but the server's Site URL is not set or is not valid."
+  },
+  {
     "id": "api.user.oauth.get_settings.app_error",
     "translation": "Failed to get {{.Service}} settings",
     "description": "Internal error when loading server configuration for an SSO provider; {{.Service}} is the provider name."
@@ -18598,6 +18623,11 @@
     "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
     "translation": "FeatureFlagSyncIntervalSeconds must be a positive number.",
     "description": "Configuration validation error for how often feature flags are refreshed. 'FeatureFlagSyncIntervalSeconds' is a config setting name; keep it in English."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.mobile_qr_login_token_expiry_seconds.app_error",
+    "translation": "MobileQRLoginTokenExpirySeconds must be between {{.Min}} and {{.Max}} seconds.",
+    "description": "Configuration validation error for how long a mobile sign-in QR code stays valid. 'MobileQRLoginTokenExpirySeconds' is a config setting name; keep it in English. {{.Min}} and {{.Max}} are the allowed limits in seconds."
   },
   {
     "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",

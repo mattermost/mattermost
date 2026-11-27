@@ -137,6 +137,12 @@ export type UserAccessToken = {
     expires_at?: number;
 };
 
+export type MobileQRLoginToken = {
+    link: string;
+    qr_code: string;
+    expires_at: number;
+};
+
 export type UsersStats = {
     total_users_count: number;
 };

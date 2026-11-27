@@ -5,6 +5,7 @@ package config
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -838,6 +839,18 @@ func TestGenerateClientConfigLockProfileFieldsForEmailUsers(t *testing.T) {
 
 			clientConfig := GenerateClientConfig(config, "", testCase.license)
 			assert.Equal(t, testCase.expected, clientConfig["LockProfileFieldsForEmailUsers"])
+		})
+	}
+}
+
+func TestGenerateClientConfigEnableMobileQRLogin(t *testing.T) {
+	for name, enabled := range map[string]bool{"disabled": false, "enabled": true} {
+		t.Run(name, func(t *testing.T) {
+			config := &model.Config{}
+			config.SetDefaults()
+			*config.ServiceSettings.EnableMobileQRLogin = enabled
+
+			assert.Equal(t, strconv.FormatBool(enabled), GenerateClientConfig(config, "", nil)["EnableMobileQRLogin"])
 		})
 	}
 }

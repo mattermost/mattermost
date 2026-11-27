@@ -38,6 +38,7 @@ const (
 	WebsocketEventUserAdded                           WebsocketEventType = "user_added"
 	WebsocketEventUserUpdated                         WebsocketEventType = "user_updated"
 	WebsocketEventUserRoleUpdated                     WebsocketEventType = "user_role_updated"
+	WebsocketEventMobileQRLoginRedeemed               WebsocketEventType = "mobile_qr_login_redeemed"
 	WebsocketEventMemberroleUpdated                   WebsocketEventType = "memberrole_updated"
 	WebsocketEventUserRemoved                         WebsocketEventType = "user_removed"
 	WebsocketEventPreferenceChanged                   WebsocketEventType = "preference_changed"

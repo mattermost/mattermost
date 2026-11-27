@@ -29,6 +29,7 @@ export const enum WebSocketEvents {
     UserAdded = 'user_added',
     UserUpdated = 'user_updated',
     UserRoleUpdated = 'user_role_updated',
+    MobileQRLoginRedeemed = 'mobile_qr_login_redeemed',
     MemberRoleUpdated = 'memberrole_updated',
     UserRemoved = 'user_removed',
     PreferenceChanged = 'preference_changed',

@@ -1988,6 +1988,12 @@ components:
               type: boolean
             EnforceMultifactorAuthentication:
               type: boolean
+            EnableMobileQRLogin:
+              type: boolean
+              description: Allow users to sign in to the mobile app by scanning a QR code shown on a signed-in workstation.
+            MobileQRLoginTokenExpirySeconds:
+              type: integer
+              description: How long a mobile QR sign-in code stays valid, between 60 and 120 seconds.
             AllowCorsFrom:
               type: string
             SessionLengthWebInDays:
@@ -2509,6 +2515,10 @@ components:
             EnableMultifactorAuthentication:
               type: boolean
             EnforceMultifactorAuthentication:
+              type: boolean
+            EnableMobileQRLogin:
+              type: boolean
+            MobileQRLoginTokenExpirySeconds:
               type: boolean
             AllowCorsFrom:
               type: boolean
