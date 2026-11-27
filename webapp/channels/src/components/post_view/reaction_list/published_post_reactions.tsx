@@ -6,6 +6,7 @@ import {useDispatch, useStore} from 'react-redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {PublishedPostReactionsProps} from '@mattermost/shared/types/global';
+import type {Reaction} from '@mattermost/types/reactions';
 
 import {PostTypes} from 'mattermost-redux/action_types';
 import {getCustomEmojiForReaction} from 'mattermost-redux/actions/posts';
@@ -16,7 +17,7 @@ import ReactionList from 'components/post_view/reaction_list';
 
 import type {GlobalState} from 'types/store';
 
-// A post with no reactions stays undefined in the store, so this fetches once per mounted post id.
+// The store can hold a partial entry (e.g. from a websocket event), so this syncs the full list once per mounted post id.
 export default function PublishedPostReactions({post, showAddButtonWhenEmpty}: PublishedPostReactionsProps) {
     const dispatch = useDispatch();
     const store = useStore<GlobalState>();
@@ -28,15 +29,24 @@ export default function PublishedPostReactions({post, showAddButtonWhenEmpty}: P
         }
         fetchedPostId.current = post.id;
 
-        if (getReactionsForPosts(store.getState())[post.id] !== undefined) {
-            return;
-        }
-
         Client4.getReactionsForPost(post.id).then((reactions) => {
-            dispatch(batchActions(reactions.map((reaction) => ({
-                type: PostTypes.RECEIVED_REACTION,
-                data: reaction,
-            }))));
+            const reactionKey = (reaction: Reaction) => `${reaction.user_id}-${reaction.emoji_name}`;
+            const fetchedKeys = new Set(reactions.map(reactionKey));
+            const cached = Object.values(getReactionsForPosts(store.getState())[post.id] ?? {});
+
+            const actions = [
+                ...cached.filter((reaction) => !fetchedKeys.has(reactionKey(reaction))).map((reaction) => ({
+                    type: PostTypes.REACTION_DELETED,
+                    data: reaction,
+                })),
+                ...reactions.map((reaction) => ({
+                    type: PostTypes.RECEIVED_REACTION,
+                    data: reaction,
+                })),
+            ];
+            if (actions.length) {
+                dispatch(batchActions(actions));
+            }
 
             for (const emojiName of new Set(reactions.map((reaction) => reaction.emoji_name))) {
                 dispatch(getCustomEmojiForReaction(emojiName));

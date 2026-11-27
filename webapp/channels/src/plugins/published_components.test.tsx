@@ -12,7 +12,7 @@ import {getReactionsForPosts} from 'mattermost-redux/selectors/entities/posts';
 
 import PublishedPostReactions from 'components/post_view/reaction_list/published_post_reactions';
 
-import {renderWithContext, runPostRenderAct, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TestHelper} from 'utils/test_helper';
 
@@ -110,11 +110,13 @@ describe('publishedComponents', () => {
             });
         });
 
-        test('does not fetch reactions already in the store', async () => {
-            reactionsSpy = jest.spyOn(Client4, 'getReactionsForPost');
+        test('replaces a partial store entry with the fetched reactions', async () => {
+            const staleReaction = {...reaction, user_id: userId, emoji_name: 'thumbsup'};
+            const missingReaction = {...reaction, emoji_name: 'heart'};
+            reactionsSpy = jest.spyOn(Client4, 'getReactionsForPost').mockResolvedValue([reaction, missingReaction]);
 
             const {PostReactions} = publishedComponents;
-            renderWithContext(
+            const {store} = renderWithContext(
                 <PostReactions post={post}/>,
                 {
                     ...initialState,
@@ -124,6 +126,7 @@ describe('publishedComponents', () => {
                             reactions: {
                                 [post.id]: {
                                     [`${reaction.user_id}-${reaction.emoji_name}`]: reaction,
+                                    [`${staleReaction.user_id}-${staleReaction.emoji_name}`]: staleReaction,
                                 },
                             },
                         },
@@ -131,11 +134,16 @@ describe('publishedComponents', () => {
                 },
             );
 
+            expect(reactionsSpy).toHaveBeenCalledTimes(1);
+            expect(reactionsSpy).toHaveBeenCalledWith(post.id);
+
+            expect(await screen.findByRole('button', {name: /heart/})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: /smile/})).toBeInTheDocument();
-
-            await runPostRenderAct();
-
-            expect(reactionsSpy).not.toHaveBeenCalled();
+            expect(screen.queryByRole('button', {name: /thumbsup/})).not.toBeInTheDocument();
+            expect(getReactionsForPosts(store.getState())[post.id]).toEqual({
+                [`${reaction.user_id}-${reaction.emoji_name}`]: reaction,
+                [`${missingReaction.user_id}-${missingReaction.emoji_name}`]: missingReaction,
+            });
         });
     });
 });
