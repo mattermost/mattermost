@@ -139,11 +139,11 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 			CheckNotFoundStatus(t, resp)
 		})
 
-		t.Run("the removed post_attributes group is a 404", func(t *testing.T) {
+		t.Run("the post_attributes group resolves", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-				model.GetPostOptions{PropertyGroup: "post_attributes"})
-			require.Error(t, err)
-			CheckNotFoundStatus(t, resp)
+				model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
 		})
 
 		t.Run("unknown group is a 404", func(t *testing.T) {

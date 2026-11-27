@@ -104,9 +104,9 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTask           leaderTask
-	postReminderTask  leaderTask
-	scheduledPostTask leaderTask
+	dndTask           clusterTask
+	postReminderTask  clusterTask
+	scheduledPostTask clusterTask
 
 	healthCheckWorkers *jobs.Workers
 	cancelHealthCheck  context.CancelFunc

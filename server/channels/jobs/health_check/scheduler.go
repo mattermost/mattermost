@@ -29,6 +29,12 @@ func isEnabled(cfg *model.Config) bool {
 	return cfg.FeatureFlags.HealthDashboard
 }
 
+// isSchedulerEnabled also needs SiteHealthSettings.EnableAutomaticChecks. The worker doesn't, so
+// Re-run checks and mmctl health run keep working when automatic checks are off.
+func isSchedulerEnabled(cfg *model.Config) bool {
+	return isEnabled(cfg) && *cfg.SiteHealthSettings.EnableAutomaticChecks
+}
+
 type Scheduler struct {
 	*jobs.PeriodicScheduler
 	jobServer   *jobs.JobServer
@@ -37,7 +43,7 @@ type Scheduler struct {
 
 func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License) *Scheduler {
 	return &Scheduler{
-		PeriodicScheduler: jobs.NewPeriodicScheduler(jobServer, model.JobTypeHealthCheck, schedFreq, isEnabled),
+		PeriodicScheduler: jobs.NewPeriodicScheduler(jobServer, model.JobTypeHealthCheck, schedFreq, isSchedulerEnabled),
 		jobServer:         jobServer,
 		licenseFunc:       licenseFunc,
 	}

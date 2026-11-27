@@ -809,6 +809,9 @@ func (a *App) checkTeamMemberLimits(rctx request.CTX, zipReader *zip.Reader, sou
 		if line.Type != "user" || line.User == nil || line.User.Username == nil || line.User.Teams == nil {
 			continue
 		}
+		if imports.IsRemoteUsername(*line.User.Username) {
+			continue
+		}
 		if line.User.DeleteAt != nil && *line.User.DeleteAt > 0 {
 			continue
 		}

@@ -1,13 +1,16 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {describe, test} from 'node:test';
 import {fileURLToPath} from 'node:url';
 
-import {readGlossary, readStyle} from './lib/glossary.mjs';
-import {checkTranslation} from './lib/rules.mjs';
+import {readGlossary, readStyle} from './glossary.mjs';
+import {checkTranslation} from './rules.mjs';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const files = (contents) => ({read: (rel) => (rel in contents ? JSON.stringify(contents[rel]) : null)});
 const repoTree = {read: (rel) => (fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : null)};
 
@@ -66,6 +69,16 @@ describe('rules', () => {
         assert.deepEqual(check('de', '{{if .On}}On{{else}}Off{{end}}', '{{if .On}}An{{else}}Aus{{end}}', 'server'), []);
     });
 
+    test('server template actions keep their nesting', () => {
+        // The shape of app.bot.get_disable_bot_sysadmin_message. The translation
+        // has the same actions, nested so that disabled bots read as still enabled.
+        const english = '{{if .disableBotsSetting}}{{if .printAllBots}}All disabled{{else}}Some disabled{{end}}{{else}}{{if .printAllBots}}All enabled{{else}}Some enabled{{end}}{{end}}';
+        const renested = '{{if .printAllBots}}{{if .disableBotsSetting}}Alle deaktiviert{{else}}Alle aktiviert{{end}}{{else}}{{if .printAllBots}}Einige deaktiviert{{else}}Einige aktiviert{{end}}{{end}}';
+        const faithful = '{{if .disableBotsSetting}}{{if .printAllBots}}Alle deaktiviert{{else}}Einige deaktiviert{{end}}{{else}}{{if .printAllBots}}Alle aktiviert{{else}}Einige aktiviert{{end}}{{end}}';
+        assert.deepEqual(check('de', english, renested, 'server'), ['error template-action']);
+        assert.deepEqual(check('de', english, faithful, 'server'), []);
+    });
+
     test('server plural forms follow go-i18n, not CLDR', () => {
         const english = {one: '{{.Count}} item', other: '{{.Count}} items'};
         assert.deepEqual(check('es', english, {one: '{{.Count}} elemento', other: '{{.Count}} elementos'}, 'server'), []);
@@ -79,6 +92,8 @@ describe('rules', () => {
         assert.deepEqual(check('pl', 'Confirm sending notifications to groups', 'Confirm sending notifications to groups'), ['error identical-to-english']);
         assert.deepEqual(check('ru', 'Azure Blob Storage', 'Azure Blob Storage'), ['soft identical-to-english']);
         assert.deepEqual(check('de', 'Save changes', 'Save changes'), ['soft identical-to-english']);
+        assert.deepEqual(check('nl', 'Status is "Out of office".', 'Status is "Out of office".'), ['soft identical-to-english']);
+        assert.deepEqual(check('nl', 'Status is "Out of office" for now', 'Status is "Out of office" for now'), ['error identical-to-english']);
         assert.deepEqual(check('de', 'Status', 'Status'), []);
         assert.deepEqual(check('fr', '[on|off|status] [@username]', '[on|off|status] [@username]', 'server'), []);
         assert.deepEqual(check('en-AU', 'Save your changes now', 'Save your changes now'), []);
@@ -106,6 +121,12 @@ describe('rules', () => {
         assert.deepEqual(check('fr', 'You can do it', 'Tu peux le faire'), ['soft address']);
         assert.deepEqual(check('fr', 'Type "tu" to continue', 'Saisissez "tu" pour continuer'), []);
         assert.deepEqual(check('ja', 'You can do it', 'できます'), []);
+    });
+
+    test('a letter after a placeholder or a shortcut separator is not a pronoun', () => {
+        assert.deepEqual(check('nl', 'Your email', 'Uw e-mail'), ['soft address']);
+        assert.deepEqual(check('nl', '{hours}h', '{hours}u'), []);
+        assert.deepEqual(check('nl', 'Upload files:\tCtrl|U', 'Bestanden uploaden:\tCtrl|U'), []);
     });
 
     test('a glossary or style file that is not a JSON object is an error, not an empty one', () => {

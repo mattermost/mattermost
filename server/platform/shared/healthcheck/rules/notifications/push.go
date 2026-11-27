@@ -24,15 +24,13 @@ const (
 )
 
 var pushEmptyURL = healthcheck.Rule{
-	Code:     "PUSH_EMPTY_URL",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_empty_url.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_empty_url.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_EMPTY_URL",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityCritical,
+	TitleID:        healthcheck.TranslationId("health.rule.push_empty_url.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_empty_url.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -41,15 +39,13 @@ var pushEmptyURL = healthcheck.Rule{
 }
 
 var pushBadScheme = healthcheck.Rule{
-	Code:     "PUSH_BAD_SCHEME",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_bad_scheme.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_bad_scheme.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_BAD_SCHEME",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityCritical,
+	TitleID:        healthcheck.TranslationId("health.rule.push_bad_scheme.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_bad_scheme.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -58,15 +54,13 @@ var pushBadScheme = healthcheck.Rule{
 }
 
 var pushTestProxy = healthcheck.Rule{
-	Code:     "PUSH_TEST_PROXY",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_test_proxy.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_test_proxy.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_TEST_PROXY",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.push_test_proxy.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_test_proxy.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -75,15 +69,13 @@ var pushTestProxy = healthcheck.Rule{
 }
 
 var pushProxyUnreachable = healthcheck.Rule{
-	Code:     "PUSH_PROXY_UNREACHABLE",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_proxy_unreachable.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_proxy_unreachable.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_PROXY_UNREACHABLE",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.push_proxy_unreachable.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_proxy_unreachable.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,

@@ -22,45 +22,39 @@ func init() {
 }
 
 var nodeCPUThrottled = healthcheck.Rule{
-	Code:     "NODE_CPU_THROTTLED",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_cpu_throttled.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_cpu_throttled.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Server.ContainerCPUThrottling",
-	EvalNode:   healthcheck.SingleNode(evalNodeCPUThrottled),
+	Code:          "NODE_CPU_THROTTLED",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_cpu_throttled.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_cpu_throttled.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Server.ContainerCPUThrottling",
+	EvalNode:      healthcheck.SingleNode(evalNodeCPUThrottled),
 }
 
 var nodeGOMAXPROCSAboveCPULimit = healthcheck.Rule{
-	Code:     "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_gomaxprocs_above_cpu_limit.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_gomaxprocs_above_cpu_limit.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "Server.GoMaxProcs",
-	EvalNode:   healthcheck.SingleNode(evalNodeGOMAXPROCSAboveCPULimit),
+	Code:          "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_gomaxprocs_above_cpu_limit.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_gomaxprocs_above_cpu_limit.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "Server.GoMaxProcs",
+	EvalNode:      healthcheck.SingleNode(evalNodeGOMAXPROCSAboveCPULimit),
 }
 
 var nodeHostLoadHigh = healthcheck.Rule{
-	Code:     "NODE_HOST_LOAD_HIGH",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_host_load_high.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_host_load_high.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Server.LoadAverage15m",
-	EvalNode:   healthcheck.SingleNode(evalNodeHostLoadHigh),
+	Code:          "NODE_HOST_LOAD_HIGH",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.node_host_load_high.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_host_load_high.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Server.LoadAverage15m",
+	EvalNode:      healthcheck.SingleNode(evalNodeHostLoadHigh),
 }
 
 func nodeCPUDiagnostics(n *healthcheck.NodeSnapshot) (*model.SupportPacketDiagnostics, bool) {

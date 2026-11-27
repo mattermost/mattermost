@@ -1467,13 +1467,13 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 }
 
 func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON string, post *model.Post, message *model.WebSocketEvent) *model.AppError {
-	tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
-	if appErr != nil {
+	tmpPost, err := a.getBurnOnReadPost(rctx, post)
+	if err != nil {
 		var nfErr *store.ErrNotFound
-		if message.EventType() == model.WebsocketEventPostDeleted && errors.As(appErr, &nfErr) {
+		if message.EventType() == model.WebsocketEventPostDeleted && errors.As(err, &nfErr) {
 			return nil
 		}
-		return appErr
+		return model.AsAppError(err)
 	}
 
 	// Use master context to avoid replica lag when fetching priority for newly created posts
@@ -4436,10 +4436,10 @@ User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Kee
 // RevealPost reveals a burn-on-read post for a specific user, creating a read receipt
 // if this is the first time the user is revealing it. Returns the revealed post content
 // with expiration metadata.
-func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, connectionID string) (*model.Post, *model.AppError) {
+func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, connectionID string) (*model.Post, error) {
 	// Validate that this is a burn-on-read post
 	if err := a.validateBurnOnReadPost(rctx, post); err != nil {
-		return nil, model.AsAppError(err)
+		return nil, err
 	}
 
 	// Extract and validate post expiration time
@@ -4497,13 +4497,13 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 	if isFirstReveal {
 		// Send to post author for recipient count updates
 		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, userID, connectionID); err != nil {
-			return nil, model.AsAppError(err)
+			return nil, err
 		}
 
 		// Send to revealing user for multi-device sync
 		// Note: API layer already ensures userID != post.UserId (api4/post.go:1483-1486)
 		if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
-			return nil, model.AsAppError(err)
+			return nil, err
 		}
 	}
 
@@ -4524,7 +4524,7 @@ func (a *App) validateBurnOnReadPost(rctx request.CTX, post *model.Post) error {
 }
 
 // extractPostExpiration extracts the expiration timestamp from post properties.
-func (a *App) extractPostExpiration(post *model.Post) (int64, *model.AppError) {
+func (a *App) extractPostExpiration(post *model.Post) (int64, error) {
 	expirationProp := post.GetProp(model.PostPropsExpireAt)
 	if expirationProp == nil {
 		return 0, model.NewAppError("RevealPost", "app.reveal_post.missing_expire_at.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
@@ -4548,7 +4548,7 @@ func (a *App) extractPostExpiration(post *model.Post) (int64, *model.AppError) {
 }
 
 // validatePostNotExpired ensures the post hasn't expired yet.
-func (a *App) validatePostNotExpired(postID string, expireAt, currentTime int64) *model.AppError {
+func (a *App) validatePostNotExpired(postID string, expireAt, currentTime int64) error {
 	if currentTime >= expireAt {
 		return model.NewAppError("RevealPost", "app.reveal_post.post_expired.app_error", nil, fmt.Sprintf("postId=%s", postID), http.StatusBadRequest)
 	}
@@ -4557,7 +4557,7 @@ func (a *App) validatePostNotExpired(postID string, expireAt, currentTime int64)
 
 // getOrCreateReadReceipt retrieves an existing read receipt or creates a new one
 // for the user. Returns the receipt, whether this is the first reveal, and any error.
-func (a *App) getOrCreateReadReceipt(rctx request.CTX, post *model.Post, userID string, postExpireAt int64, currentTime int64) (*model.ReadReceipt, bool, *model.AppError) {
+func (a *App) getOrCreateReadReceipt(rctx request.CTX, post *model.Post, userID string, postExpireAt int64, currentTime int64) (*model.ReadReceipt, bool, error) {
 	// Try to get existing read receipt
 	receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, userID)
 	if err != nil && !store.IsErrNotFound(err) {
@@ -4596,7 +4596,7 @@ func (a *App) getOrCreateReadReceipt(rctx request.CTX, post *model.Post, userID 
 
 // updateTemporaryPostIfAllRead updates the temporary post expiration if all recipients
 // have read the post. This ensures the post expires when the last reader's receipt expires.
-func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, receipt *model.ReadReceipt) *model.AppError {
+func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, receipt *model.ReadReceipt) error {
 	unreadCount, err := a.Srv().Store().ReadReceipt().GetUnreadCountForPost(rctx, post)
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.reveal_post.read_receipt.get_unread_count.error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4630,7 +4630,7 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 }
 
 // validateReadReceiptNotExpired ensures the user's read receipt hasn't expired.
-func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentTime int64) *model.AppError {
+func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentTime int64) error {
 	if receipt.ExpireAt < currentTime {
 		return model.NewAppError("RevealPost", "app.reveal_post.read_receipt_expired.error", nil, "", http.StatusForbidden)
 	}
@@ -4699,7 +4699,7 @@ func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post,
 }
 
 // publishPostBurnedEvent publishes a websocket event when a post is burned for a user.
-func (a *App) publishPostBurnedEvent(postID string, channelID string, userID string, connectionID string) *model.AppError {
+func (a *App) publishPostBurnedEvent(postID string, channelID string, userID string, connectionID string) error {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostBurned,
 		"",
@@ -4716,7 +4716,7 @@ func (a *App) publishPostBurnedEvent(postID string, channelID string, userID str
 }
 
 // publishAllRecipientsRevealedEvent notifies the post author when all recipients have revealed the message.
-func (a *App) publishAllRecipientsRevealedEvent(rctx request.CTX, post *model.Post, senderExpireAt int64) *model.AppError {
+func (a *App) publishAllRecipientsRevealedEvent(rctx request.CTX, post *model.Post, senderExpireAt int64) error {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventBurnOnReadAllRevealed,
 		"",
@@ -4742,7 +4742,7 @@ func (a *App) enrichPostWithExpirationMetadata(post *model.Post, expireAt int64)
 	post.Metadata.ExpireAt = expireAt
 }
 
-func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
+func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id, true)
 	if err != nil {
 		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4755,10 +4755,10 @@ func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post
 }
 
 // revealPostForAuthor reveals a burn-on-read post for its author, including recipient list.
-func (a *App) revealPostForAuthor(rctx request.CTX, postList *model.PostList, post *model.Post) *model.AppError {
-	revealedPost, appErr := a.getBurnOnReadPost(rctx, post)
-	if appErr != nil {
-		return appErr
+func (a *App) revealPostForAuthor(rctx request.CTX, postList *model.PostList, post *model.Post) error {
+	revealedPost, err := a.getBurnOnReadPost(rctx, post)
+	if err != nil {
+		return err
 	}
 
 	a.ensurePostMetadata(revealedPost)
@@ -4817,7 +4817,7 @@ func (a *App) removePostFromList(postList *model.PostList, postID string) {
 }
 
 // revealPostForUser reveals a burn-on-read post for a user with expiration metadata.
-func (a *App) revealPostForUser(rctx request.CTX, postList *model.PostList, post *model.Post, receipt *model.ReadReceipt) *model.AppError {
+func (a *App) revealPostForUser(rctx request.CTX, postList *model.PostList, post *model.Post, receipt *model.ReadReceipt) error {
 	revealedPost, err := a.getBurnOnReadPost(rctx, post)
 	if err != nil {
 		return err

@@ -45,7 +45,7 @@ const SearchTypeBadge = styled.div`
     background: rgba(var(--sidebar-text-rgb), 0.08);
     color: var(--sidebar-text);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 600;
 
     .icon-close {
         padding: 2px;

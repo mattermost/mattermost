@@ -616,6 +616,9 @@
         "CleanupJobsThresholdDays": null,
         "CleanupConfigThresholdDays": null
     },
+    "SiteHealthSettings": {
+        "EnableAutomaticChecks": null
+    },
     "PluginSettings": {
         "Enable": null,
         "EnableUploads": null,

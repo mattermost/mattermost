@@ -133,6 +133,17 @@ function getBoardsState(currentChannelId: string, section: ProductRailSection = 
     };
 }
 
+// The same state seen from Playbooks, where neither Channels nor Boards is active, so both show their badges.
+function inPlaybooks(state: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
+    return {
+        ...state,
+        plugins: {
+            ...state.plugins,
+            components: {...state.plugins?.components, Product: [playbooks]} as unknown as GlobalState['plugins']['components'],
+        },
+    };
+}
+
 // The store of the last render, for reading back the rail's preferences as saved.
 let lastStore: ReturnType<typeof renderWithContext>['store'];
 
@@ -236,10 +247,25 @@ describe('ProductRail', () => {
         });
 
         test('should split mention counts between Channels and Boards', () => {
-            renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+            renderAt('/playbooks', inPlaybooks(getBoardsState(townSquare.id)));
 
             expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('1');
             expect(screen.getByRole('link', {name: /Boards/})).toHaveTextContent('4');
+        });
+
+        test('should not badge the active item, whose unreads its own sidebar shows', () => {
+            const {unmount} = renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).not.toHaveTextContent('1');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveTextContent('4');
+
+            unmount();
+            renderAt('/team-one/channels/roadmap', getBoardsState(roadmap.id, 'boards'));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Boards/})).not.toHaveTextContent('4');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('1');
         });
     });
 
@@ -263,7 +289,7 @@ describe('ProductRail', () => {
         }
 
         test('should count their mentions on Channels, with boards split off', () => {
-            renderAt('/team-one/threads', withDirectMessage(getBoardsState(townSquare.id)));
+            renderAt('/playbooks', inPlaybooks(withDirectMessage(getBoardsState(townSquare.id))));
 
             // Town square's 1 and the direct message's 2; the boards' stay on Boards.
             expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('3');
@@ -272,11 +298,11 @@ describe('ProductRail', () => {
 
         test('should keep them on Channels even when a board plugin claims them', () => {
             const state = withDirectMessage(getBoardsState(townSquare.id));
-            renderAt('/team-one/threads', {
+            renderAt('/playbooks', {
                 ...state,
                 plugins: {
                     components: {
-                        Product: [],
+                        Product: [playbooks],
                         ChannelKind: [{...boardKind, matcher: (_state: GlobalState, channel: {id: string}) => channel.id === 'dm' || channel.id === roadmap.id || channel.id === bugs.id}],
                     } as unknown as GlobalState['plugins']['components'],
                 },
@@ -288,9 +314,9 @@ describe('ProductRail', () => {
 
         test('should count their mentions on Channels, without boards', () => {
             const state = getBoardsState(townSquare.id);
-            renderAt('/team-one/threads', withDirectMessage({
+            renderAt('/playbooks', withDirectMessage({
                 ...state,
-                plugins: {components: {Product: [], ChannelKind: []} as unknown as GlobalState['plugins']['components']},
+                plugins: {components: {Product: [playbooks], ChannelKind: []} as unknown as GlobalState['plugins']['components']},
             }));
 
             // Town square's 1, the boards' (now plain channels) 4 and the direct message's 2.
@@ -381,11 +407,15 @@ describe('ProductRail', () => {
                 },
             };
 
-            renderAt('/team-one/channels/roadmap', withBoardsShown);
+            const {unmount} = renderAt('/team-one/channels/roadmap', withBoardsShown);
 
             expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
-            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('5');
             expect(screen.getByRole('link', {name: /Boards/})).not.toHaveAttribute('aria-current');
+
+            unmount();
+            renderAt('/playbooks', inPlaybooks(withBoardsShown));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('5');
         });
 
         test('should stay in Channels on a board when Show boards is turned off', () => {

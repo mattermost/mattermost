@@ -125,7 +125,7 @@ describe('components/AdminSidebar', () => {
     });
 
     describe('Site health and Workspace Optimization', () => {
-        const renderSidebar = (skuShortName: string, healthDashboard: boolean) => {
+        const renderSidebar = (skuShortName: string, healthDashboard: boolean, overrides: Partial<Props> = {}) => {
             const props = {
                 ...defaultProps,
                 license: {IsLicensed: 'true', SkuShortName: skuShortName},
@@ -133,9 +133,41 @@ describe('components/AdminSidebar', () => {
                     ...defaultProps.config,
                     FeatureFlags: {HealthDashboard: healthDashboard},
                 },
+                ...overrides,
             };
             renderWithContext(<AdminSidebar {...props}/>);
         };
+
+        const delegatedAdmin = (canReadSiteStatistics: boolean): Partial<Props> => ({
+            isCurrentUserSystemAdmin: false,
+            consoleAccess: {
+                read: {
+                    ...defaultProps.consoleAccess.read,
+                    [RESOURCE_KEYS.REPORTING.SITE_STATISTICS]: canReadSiteStatistics,
+                    [RESOURCE_KEYS.REPORTING.TEAM_STATISTICS]: true,
+                },
+                write: {},
+            },
+        });
+
+        test('shows a delegated admin who can read Site Statistics Site health and not Workspace Optimization', () => {
+            renderSidebar('enterprise', true, delegatedAdmin(true));
+            expect(screen.getByText('Site health')).toBeInTheDocument();
+            expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
+        });
+
+        test('shows a delegated admin who can read Site Statistics Workspace Optimization with the flag off', () => {
+            renderSidebar('enterprise', false, delegatedAdmin(true));
+            expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
+            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+        });
+
+        test('shows a delegated admin who cannot read Site Statistics neither dashboard', () => {
+            renderSidebar('enterprise', true, delegatedAdmin(false));
+            expect(screen.getByText('Team Statistics')).toBeInTheDocument();
+            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+            expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
+        });
 
         test.each(['professional', 'enterprise'])('shows Site health and not Workspace Optimization with the flag on and a %s license', (sku) => {
             renderSidebar(sku, true);
