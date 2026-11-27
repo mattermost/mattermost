@@ -343,11 +343,10 @@
         align-items: center;
         padding: 2px 9px;
         border-radius: 12px;
+        color: var(--sys-center-channel-color);
         font-size: 12px;
         font-weight: 600;
         gap: 4px;
-
-        color: var(--sys-center-channel-color);
 
         @each $tone in critical, warning, info {
             &--#{$tone} {
