@@ -7,7 +7,7 @@
 
 import React, {useEffect, useState, type JSX} from 'react';
 import './custom_profile_attributes.scss';
-import {FormattedList, FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
@@ -24,10 +24,28 @@ import type {ExternalSource} from 'components/admin_console/global_attributes/at
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from 'components/admin_console/global_attributes/constants';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
+import type {SearchableStrings} from 'components/admin_console/types';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
+
+const messages = defineMessages({
+    title: {
+        id: 'admin.customProfileAttributes.title',
+        defaultMessage: 'User attributes sync',
+    },
+    subtitle: {
+        id: 'admin.customProfileAttributes.subtitle',
+        defaultMessage: 'You can add or remove user attributes on the <link>Attribute Management</link> page.',
+    },
+    legacyTitle: {
+        id: 'admin.customProfileAttributes.legacyTitle',
+        defaultMessage: 'Custom profile attributes sync',
+    },
+});
+
+export const searchableStrings: SearchableStrings = Object.values(messages);
 
 type AttributeHelpTextProps = {
     attributeKey: ExternalSource;
@@ -180,15 +198,11 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
         <div className='custom-profile-attributes'>
             <SettingsGroup
                 id={props.id}
-                title={defineMessage({
-                    id: 'admin.customProfileAttributes.title',
-                    defaultMessage: 'User attributes sync',
-                })}
+                title={messages.title}
                 container={false}
                 subtitle={
                     <FormattedMessage
-                        id='admin.customProfileAttributes.subtitle'
-                        defaultMessage='You can add or remove user attributes on the <link>Attribute Management</link> page.'
+                        {...messages.subtitle}
                         values={{
                             link: (msg) => (
                                 <Link
