@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "کلاس ذخیره‌سازی آمازون S3:",
   "admin.image.amazonS3TraceDescription": "(حالت توسعه) هنگامی که درست است، اطلاعات رفع اشکال اضافی را در گزارش های سیستم ثبت کنید.",
   "admin.image.amazonS3TraceTitle": "فعال کردن Amazon S3 Debugging:",
-  "admin.image.archiveRecursionDescription": "وقتی فعال باشد، محتوای اسناد درون فایل‌های ZIP در نتایج جستجو برگردانده می‌شود. این ممکن است بر عملکرد سرور برای فایل های حجیم تأثیر بگذارد.",
-  "admin.image.archiveRecursionTitle": "فعال کردن جستجوی محتوای اسناد در فایل های ZIP:",
   "admin.image.azureAccessKeyDescription": "کلید مشترک حساب Azure Storage شما.",
   "admin.image.azureAccessKeyExample": "به عنوان مثال: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "کلید حساب Azure Storage:",

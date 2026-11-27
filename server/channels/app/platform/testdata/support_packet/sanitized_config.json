@@ -218,7 +218,6 @@
         "EnablePublicLink": null,
         "ExtractContent": null,
         "ExtractContentTimeout": null,
-        "ArchiveRecursion": null,
         "PublicLinkSalt": null,
         "InitialFont": null,
         "AmazonS3AccessKeyId": null,

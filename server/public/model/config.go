@@ -1955,8 +1955,7 @@ type FileSettings struct {
 	Directory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	EnablePublicLink                   *bool   `access:"site_public_links,cloud_restrictable"`
 	ExtractContent                     *bool   `access:"environment_file_storage,write_restrictable"`
-	ExtractContentTimeout              *int    `access:"environment_file_storage,write_restrictable"` // In seconds. 0 disables the timeout.
-	ArchiveRecursion                   *bool   `access:"environment_file_storage,write_restrictable"`
+	ExtractContentTimeout              *int    `access:"environment_file_storage,write_restrictable"`                    // In seconds. 0 disables the timeout.
 	PublicLinkSalt                     *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
 	InitialFont                        *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
 	AmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -2054,10 +2053,6 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExtractContentTimeout == nil {
 		s.ExtractContentTimeout = new(10)
-	}
-
-	if s.ArchiveRecursion == nil {
-		s.ArchiveRecursion = new(false)
 	}
 
 	if isUpdate {

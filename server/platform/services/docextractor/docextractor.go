@@ -13,14 +13,9 @@ import (
 )
 
 const (
-	// defaultMaxArchiveDepth is the nesting depth applied when MaxArchiveDepth
-	// is not set. Limits recursive archive-in-archive extraction to prevent
-	// stack overflow from pathologically deep nesting.
-	defaultMaxArchiveDepth = 5
-	// maxArchiveExtractedText is the aggregate byte budget for all text
-	// accumulated across every entry of an archive (and its nested archives).
+	// maxExtractedText is the text size retained by the document extractors.
 	// Aligned with the post-extraction truncation applied by the caller.
-	maxArchiveExtractedText int64 = 1024 * 1024 // 1MB
+	maxExtractedText int64 = 1024 * 1024 // 1MB
 )
 
 // ExtractSettings defines the features enabled/disable during the document text extraction.
@@ -29,12 +24,8 @@ type ExtractSettings struct {
 	// Extractors that watch this context stop reading once it is cancelled.
 	// Other converters keep running on a detached goroutine; only the caller's
 	// wait is unblocked for those.
-	Ctx              context.Context
-	ArchiveRecursion bool
-	MaxFileSize      int64
-	// MaxArchiveDepth limits how many levels deep recursive archive extraction
-	// will descend. A value <= 0 uses defaultMaxArchiveDepth.
-	MaxArchiveDepth int
+	Ctx             context.Context
+	MaxFileSize     int64
 	MMPreviewURL    string
 	MMPreviewSecret string
 	// Timeout bounds how long a caller waits for a single extraction. A value
@@ -71,12 +62,6 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 	enabledExtractors.Add(&documentExtractor{})
 	enabledExtractors.Add(&pdfExtractor{})
 
-	if settings.ArchiveRecursion {
-		enabledExtractors.Add(&archiveExtractor{SubExtractor: enabledExtractors})
-	} else {
-		enabledExtractors.Add(&archiveExtractor{})
-	}
-
 	if settings.MMPreviewURL != "" {
 		enabledExtractors.Add(newMMPreviewExtractor(settings.MMPreviewURL, settings.MMPreviewSecret, pdfExtractor{}))
 	}
@@ -110,11 +95,7 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 		return "", fmt.Errorf("document text extraction capacity exhausted (%d concurrent extractions)", maxConcurrentExtractions)
 	}
 
-	maxDepth := settings.MaxArchiveDepth
-	if maxDepth <= 0 {
-		maxDepth = defaultMaxArchiveDepth
-	}
-	budget := newExtractionBudget(maxArchiveExtractedText, maxDepth)
+	budget := newExtractionBudget(maxExtractedText)
 
 	// Use the fast synchronous path only when neither a timeout nor a
 	// cancellable context is in play.

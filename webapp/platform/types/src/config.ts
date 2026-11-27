@@ -573,7 +573,6 @@ export type FileSettings = {
     EnablePublicLink: boolean;
     ExtractContent: boolean;
     ExtractContentTimeout: number;
-    ArchiveRecursion: boolean;
     PublicLinkSalt: string;
     InitialFont: string;
     AmazonS3AccessKeyId: string;

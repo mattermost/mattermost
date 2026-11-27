@@ -1925,30 +1925,6 @@ If you choose not to install these dependencies, you’ll see log entries for do
 
 </Note>
 
-### Enable searching content of documents within ZIP files
-
-<table>
-<colgroup>
-<col style={{width: '41%'}} />
-<col style={{width: '58%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Enables users to search the contents of compressed ZIP files attached to messages.</p><ul><li><strong>true</strong>: Contents of documents within ZIP files are returned in search results. This may have an impact on server performance for large files. the specified local file directory.</li><li><strong>false</strong>: <strong>(Default)</strong> The contents of documents within ZIP files aren’t returned in search results.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; File Storage</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>ArchiveRecursion</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_FILESETTINGS_ARCHIVERECURSION</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-- You can search for document content within ZIP files when using Mattermost in a web browser or the desktop app.
-- Searching document contents adds load to your server.
-- This setting applies only to standard ZIP files. 7zip (`.7z`) files are blocked for security reasons and are not searchable.
-- For large deployments, or teams that share many large, text-heavy documents, we recommend you review our [hardware requirements](/deployment-guide/software-hardware-requirements#hardware-requirements), and test enabling this feature in a staging environment before enabling it in a production environment.
-
-</Note>
-
 ### Amazon S3 bucket
 
 <table>

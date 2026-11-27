@@ -85,7 +85,7 @@ func contextErr(ctx context.Context) error {
 // officeRetainLimit is the text size kept for one docx, pptx, or odt extraction.
 // A nil budget still uses the aggregate cap. A smaller remaining budget wins.
 func officeRetainLimit(budget *ExtractionBudget) int {
-	limit := maxArchiveExtractedText
+	limit := maxExtractedText
 	if budget == nil {
 		return int(limit)
 	}

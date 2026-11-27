@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Classe de Armazenamento Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Modo de Desenvolvimento) Quando verdadeiro, regista informação de depuração adicional nos registos do sistema.",
   "admin.image.amazonS3TraceTitle": "Ativar Depuração do Amazon S3:",
-  "admin.image.archiveRecursionDescription": "Quando ativado, o conteúdo dos documentos dentro de ficheiros ZIP será devolvido nos resultados da procura. Isto pode ter impacto no desempenho do servidor com ficheiros grandes.",
-  "admin.image.archiveRecursionTitle": "Ativar procura no conteúdo de documentos dentro de ficheiros ZIP:",
   "admin.image.azureAccessKeyDescription": "A chave partilhada da sua conta de Armazenamento Azure.",
   "admin.image.azureAccessKeyExample": "Exemplo: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Chave da Conta de Armazenamento Azure:",

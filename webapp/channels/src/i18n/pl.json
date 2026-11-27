@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 Storage Class:",
   "admin.image.amazonS3TraceDescription": "(Tryb Developerski) Jeśli włączony, dodatkowe informacje debugowania zostaną zapisane w logach systemowych.",
   "admin.image.amazonS3TraceTitle": "Włącz Debugowanie Amazon S3:",
-  "admin.image.archiveRecursionDescription": "Po włączeniu tej opcji zawartość dokumentów w plikach ZIP będzie zwracana w wynikach wyszukiwania. Może to mieć wpływ na wydajność serwera w przypadku dużych plików.",
-  "admin.image.archiveRecursionTitle": "Umożliwia przeszukiwanie zawartości dokumentów w plikach ZIP:",
   "admin.image.azureAccessKeyDescription": "Klucz wspólny dla twojego konta Azure Storage.",
   "admin.image.azureAccessKeyExample": "Np.: „9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=”",
   "admin.image.azureAccessKeyTitle": "Klucz konta Azure Storage:",

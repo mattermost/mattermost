@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3-lagringsklasse:",
   "admin.image.amazonS3TraceDescription": "(Utviklingsmodus) Når sann, logges ekstra feilsøkingsinformasjon til systemloggene.",
   "admin.image.amazonS3TraceTitle": "Aktiver feilsøking for Amazon S3:",
-  "admin.image.archiveRecursionDescription": "Når aktivert, returneres innholdet i dokumenter inne i ZIP-filer i søkeresultatene. Dette kan påvirke serverytelsen for store filer.",
-  "admin.image.archiveRecursionTitle": "Aktiver søk i innholdet i dokumenter inne i ZIP-filer:",
   "admin.image.azureAccessKeyDescription": "Den delte nøkkelen for Azure Storage-kontoen din.",
   "admin.image.azureAccessKeyExample": "F.eks.: «9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=»",
   "admin.image.azureAccessKeyTitle": "Azure Storage-kontonøkkel:",

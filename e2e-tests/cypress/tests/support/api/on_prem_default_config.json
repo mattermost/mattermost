@@ -197,7 +197,6 @@
         "EnablePublicLink": false,
         "ExtractContent": true,
         "ExtractContentTimeout": 10,
-        "ArchiveRecursion": false,
         "PublicLinkSalt": "",
         "InitialFont": "nunito-bold.ttf",
         "AmazonS3AccessKeyId": "",

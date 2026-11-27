@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Lớp lưu trữ Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Chế độ phát triển) Khi đúng, hãy ghi thông tin gỡ lỗi bổ sung vào nhật ký hệ thống.",
   "admin.image.amazonS3TraceTitle": "Bật Amazon S3 Debugging:",
-  "admin.image.archiveRecursionDescription": "Khi được bật, nội dung của tài liệu trong tệp ZIP sẽ được trả về trong kết quả tìm kiếm. Điều này có thể ảnh hưởng đến hiệu suất của máy chủ đối với các tệp lớn.",
-  "admin.image.archiveRecursionTitle": "Cho phép tìm kiếm nội dung tài liệu trong tệp ZIP:",
   "admin.image.azureAccessKeyDescription": "Khóa chia sẻ cho tài khoản Azure Storage của bạn.",
   "admin.image.azureAccessKeyExample": "Ví dụ: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Khóa tài khoản Azure Storage:",

@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 스토리지 클래스:",
   "admin.image.amazonS3TraceDescription": "(개발 모드) 이 설정이 활성화되면 시스템 로그에 추가 디버깅 정보를 기록합니다.",
   "admin.image.amazonS3TraceTitle": "Amazon S3 디버길 활성화 :",
-  "admin.image.archiveRecursionDescription": "이 옵션을 활성화하면 ZIP 파일 내의 문서 콘텐츠가 검색 결과에 반환됩니다. 이는 대용량 파일의 경우 서버 성능에 영향을 미칠 수 있습니다.",
-  "admin.image.archiveRecursionTitle": "ZIP 파일 내 문서 콘텐츠 검색을 활성화합니다:",
   "admin.image.azureAccessKeyDescription": "Azure Storage 계정의 공유 키입니다.",
   "admin.image.azureAccessKeyExample": "예시: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storage 계정 키:",

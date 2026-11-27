@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 saugojimo klasė:",
   "admin.image.amazonS3TraceDescription": "(Kūrimo režimas) Kai tiesa, sistemos žurnaluose registruojama papildoma derinimo informacija.",
   "admin.image.amazonS3TraceTitle": "Įgalinti Amazon S3 derinimą:",
-  "admin.image.archiveRecursionDescription": "Kai įjungta, ZIP failų dokumentų turinys bus grąžintas paieškos rezultatuose. Tai gali turėti įtakos didelių failų serverio veikimui.",
-  "admin.image.archiveRecursionTitle": "Įgalinti dokumentų turinio paiešką ZIP failuose:",
   "admin.image.azureAccessKeyDescription": "Bendrasis Jūsų Azure Storage paskyros raktas.",
   "admin.image.azureAccessKeyExample": "Pvz.: „9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=“",
   "admin.image.azureAccessKeyTitle": "Azure Storage paskyros raktas:",
