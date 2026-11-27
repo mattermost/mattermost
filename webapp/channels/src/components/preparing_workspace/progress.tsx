@@ -4,6 +4,8 @@
 import React, {useRef} from 'react';
 import {CSSTransition} from 'react-transition-group';
 
+import PaginationDots from 'components/common/pagination_dots';
+
 import {WizardSteps} from './steps';
 import type {WizardStep} from './steps';
 
@@ -16,32 +18,25 @@ type Props = {
 };
 
 export const Progress = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
-    // exclude transitioning out as a progress step
-    const numSteps = props.stepOrder.length - 1;
-    if (numSteps < 2) {
+    const visibleSteps = props.stepOrder.filter((step) => step !== WizardSteps.LaunchingWorkspace);
+    const totalSteps = visibleSteps.length;
+    if (totalSteps < 2) {
         return null;
     }
 
-    const dots = props.stepOrder.filter((step) => step !== WizardSteps.LaunchingWorkspace).map((step) => {
-        let className = 'PreparingWorkspaceProgress__circle';
-        if (props.step === step) {
-            className += ' active';
-        }
-
-        return (
-            <div
-                key={step}
-                className={className}
-            />
-        );
-    });
+    const activeStepIndex = visibleSteps.indexOf(props.step);
+    const currentStep = activeStepIndex >= 0 ? activeStepIndex + 1 : 1;
 
     return (
         <div
             ref={ref}
             className='PreparingWorkspaceProgress'
         >
-            <div className='PreparingWorkspaceProgress__circles'>{dots}</div>
+            <PaginationDots
+                totalSteps={totalSteps}
+                currentStep={currentStep}
+                orientation='vertical'
+            />
         </div>
     );
 });
