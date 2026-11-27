@@ -324,7 +324,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 required: true,
             });
             created.push(marking);
-            await unarchiveWithoutRequiredValues(adminClient, channel.id, [marking]);
+            await unarchiveWithoutRequiredValues(pw, adminClient, team.id, channel.id);
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
             await channelsPage.goto(team.name, channel.name);

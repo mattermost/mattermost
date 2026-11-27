@@ -8036,6 +8036,43 @@ func TestLinkedProperties(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("patch PermissionValues to admin on a linked channel field takes effect", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:             model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeChannel,
+			TargetType:       "system",
+			LinkedFieldID:    &sourceID,
+			PermissionField:  &sysadminLevel,
+			PermissionValues: &sysadminLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		adminLevel := model.PermissionLevelAdmin
+		patch := &model.PropertyFieldPatch{PermissionValues: &adminLevel}
+		updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "channel", createdLinked.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *updated.PermissionValues)
+	})
 }
 
 func TestSystemObjectType(t *testing.T) {
@@ -9567,5 +9604,118 @@ func TestCreatePropertyFieldRequiredChannelsMissingValuesGate(t *testing.T) {
 		}, false, "")
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+}
+
+// TestChannelFieldRequiredUnfillable covers the fillable-by-channel-creators
+// rule over REST: a channel attribute only system admins (or nobody) can set
+// can't be made required, and the refusal answers before the channel scan's
+// 409 would.
+func TestChannelFieldRequiredUnfillable(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	level := func(l model.PermissionLevel) *model.PermissionLevel { return &l }
+
+	newField := func(t *testing.T, values *model.PermissionLevel) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "a" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeChannel,
+			TargetType:       "system",
+			PermissionValues: values,
+		}, false, "")
+		require.Nil(t, appErr)
+		return field
+	}
+
+	for _, tc := range []struct {
+		name  string
+		level model.PermissionLevel
+	}{
+		{name: "sysadmin", level: model.PermissionLevelSysadmin},
+		{name: "none", level: model.PermissionLevelNone},
+	} {
+		t.Run("creating a required "+tc.name+"-level field is refused", func(t *testing.T) {
+			_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, &model.PropertyField{
+				Name:             "a" + model.NewId(),
+				Type:             model.PropertyFieldTypeText,
+				ObjectType:       model.PropertyFieldObjectTypeChannel,
+				TargetType:       "system",
+				PermissionValues: level(tc.level),
+				Attrs:            model.StringInterface{"required": true},
+			})
+			require.Error(t, err)
+			CheckErrorID(t, err, "app.property_field.required_unfillable.app_error")
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("marking a "+tc.name+"-level field required is refused", func(t *testing.T) {
+			field := newField(t, level(tc.level))
+
+			patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+			_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+			require.Error(t, err)
+			CheckErrorID(t, err, "app.property_field.required_unfillable.app_error")
+			CheckBadRequestStatus(t, resp)
+
+			reloaded, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+			require.Nil(t, appErr)
+			require.False(t, model.IsPropertyFieldRequired(reloaded))
+		})
+	}
+
+	t.Run("marking an admin-level field required reaches the channel scan", func(t *testing.T) {
+		field := newField(t, level(model.PermissionLevelAdmin))
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_field.required.channels_missing_values.app_error")
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+	})
+
+	t.Run("without an Enterprise Advanced license the rule is off", func(t *testing.T) {
+		field := newField(t, level(model.PermissionLevelSysadmin))
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		// The REST API refuses channel attributes outright without that
+		// license; the plugin API and other app callers reach this path.
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, field, false, "")
+		require.Nil(t, appErr)
+		require.True(t, model.IsPropertyFieldRequired(updated))
+	})
+
+	t.Run("lowering a required field to sysadmin is refused", func(t *testing.T) {
+		field := newField(t, level(model.PermissionLevelAdmin))
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		_, err := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+
+		lowered := *field.Permissions
+		restrictions := *lowered.Restrictions
+		restrictions.Value.Write = model.PermissionLevelSysadmin
+		lowered.Restrictions = &restrictions
+		b, err := json.Marshal(&lowered)
+		require.NoError(t, err)
+		var permissionsPatch model.PermissionsPatch
+		require.NoError(t, json.Unmarshal(b, &permissionsPatch))
+		patch := &model.PropertyFieldPatch{Permissions: &permissionsPatch}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property_field.required_unfillable.app_error")
+		CheckBadRequestStatus(t, resp)
 	})
 }

@@ -15,11 +15,14 @@ import type {PropertyField} from '@mattermost/types/properties';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
+import {useOptionRemovalGuard} from 'components/admin_console/global_attributes/attribute_details/use_option_removal_guard';
+import type {OptionUsageCheck} from 'components/admin_console/global_attributes/attribute_details/use_option_removal_guard';
 import {findNameConflicts} from 'components/admin_console/global_attributes/utils';
 import Setting from 'components/admin_console/setting';
 import ConfirmModal from 'components/confirm_modal';
@@ -46,6 +49,7 @@ import {
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
     PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID,
+    PROPERTY_FIELD_OPTION_IN_USE_ERROR_ID,
     actionsToGlobalBanner,
     fetchChannelClassificationField,
     fetchClassificationField,
@@ -100,6 +104,7 @@ const msg = defineMessages({
     globalBannerLevelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Select a classification level to display on the global banner. The banner text and color are determined by the chosen level.'},
     errorGlobalBannerNoLevel: {id: 'admin.classification_markings.error.global_banner_no_level', defaultMessage: 'A global classification level must be selected when the global banner is enabled.'},
     errorGlobalBannerLevelMissing: {id: 'admin.classification_markings.error.global_banner_level_missing', defaultMessage: 'The global classification banner is configured with a level that no longer exists. Select a level that exists in the current classification levels.'},
+    errorLevelInUse: {id: 'admin.classification_markings.error.level_in_use', defaultMessage: "A level you removed is applied to channels and can't be deleted. The levels were reloaded; remove only levels no channel uses."},
     errorDeleteHasDependents: {id: 'admin.classification_markings.error.delete_has_dependents', defaultMessage: 'Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.'},
     errorCreateNameConflict: {id: 'admin.classification_markings.error.create_name_conflict', defaultMessage: 'Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.'},
     conflictTitle: {id: 'admin.classification_markings.conflict.title', defaultMessage: 'Classification markings cannot be configured'},
@@ -134,6 +139,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const abacEnabled = Boolean(useSelector(getAccessControlSettings)?.EnableAttributeBasedAccessControl);
+    const requiredEnforcementEnabled = useSelector(isChannelAttributesRequiredEnabled);
 
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string>();
@@ -141,6 +147,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const [saveError, setSaveError] = useState<string>();
     const [existingField, setExistingField] = useState<PropertyField | null>(null);
     const [existingLinkedField, setExistingLinkedField] = useState<PropertyField | null>(null);
+    const [hasChannelField, setHasChannelField] = useState(false);
 
     // A same-named field this feature does not own. Blocking, because every
     // remaining action would either adopt it, collide with it, or delete it.
@@ -230,11 +237,13 @@ export default function ClassificationMarkings({disabled}: Props) {
                 }
                 let conflict: FieldConflict | null = linkedLookup.conflict ? {kind: 'system', field: linkedLookup.conflict} : null;
 
+                let channelFieldExists = false;
                 if (!conflict) {
                     const channelLookup = await fetchChannelClassificationField(templateId);
                     if (cancelled) {
                         return;
                     }
+                    channelFieldExists = Boolean(channelLookup.field);
                     if (channelLookup.conflict) {
                         conflict = {kind: 'channel', field: channelLookup.conflict};
                     }
@@ -275,6 +284,7 @@ export default function ClassificationMarkings({disabled}: Props) {
 
                     setExistingField(field);
                     setExistingLinkedField(linkedField ?? null);
+                    setHasChannelField(channelFieldExists);
                     setClearanceEnabled(hasClearance);
                     setInitialClearanceEnabled(hasClearance);
                     setEnabled(true);
@@ -447,6 +457,30 @@ export default function ClassificationMarkings({disabled}: Props) {
         switchToCustom();
     }, [switchToCustom]);
 
+    // Only a saved level of a set that channels use can be held by a channel.
+    const levelUsageCheck: OptionUsageCheck | undefined = requiredEnforcementEnabled && hasChannelField && existingField ? {objectType: 'template', fieldId: existingField.id} : undefined;
+    const removalGuard = useOptionRemovalGuard(levelUsageCheck);
+    const {requestRemoval} = removalGuard;
+    const requestDeleteLevel = useCallback((id: string) => {
+        requestRemoval(id, () => deleteLevel(id));
+    }, [requestRemoval, deleteLevel]);
+
+    // The server refused to drop a level channels use, so show the levels it has.
+    const reloadLevels = useCallback(async () => {
+        try {
+            const field = (await fetchClassificationField()).field;
+            if (field) {
+                const result = processClassificationField(field);
+                setLevels(result.levels);
+                setInitialLevels(result.levels);
+                setPresetId(result.presetId);
+                setExistingField(field);
+            }
+        } catch {
+            // The save error is already shown; the list stays as the admin left it.
+        }
+    }, []);
+
     const addLevel = useCallback(() => {
         setLevels((prev) => {
             const maxRank = prev.reduce((max, l) => Math.max(max, l.rank), 0);
@@ -594,6 +628,7 @@ export default function ClassificationMarkings({disabled}: Props) {
 
             setExistingField(savedTemplate);
             setExistingLinkedField(savedLinked);
+            setHasChannelField(Boolean(channelField));
             setInitialClearanceEnabled(clearanceEnabled);
             setLevels(result.levels);
             setInitialLevels(result.levels);
@@ -656,6 +691,9 @@ export default function ClassificationMarkings({disabled}: Props) {
             const clientErr = err as ClientError;
             if (clientErr.server_error_id === PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID) {
                 setSaveError(formatMessage(msg.errorCreateNameConflict, {error: clientErr.message}));
+            } else if (clientErr.server_error_id === PROPERTY_FIELD_OPTION_IN_USE_ERROR_ID) {
+                setSaveError(formatMessage(msg.errorLevelInUse));
+                reloadLevels();
             } else if (clientErr.status_code === 409) {
                 setSaveError(formatMessage(msg.errorDeleteHasDependents));
             } else {
@@ -665,7 +703,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         } finally {
             setSaving(false);
         }
-    }, [validate, persistLevels, dispatch]);
+    }, [validate, persistLevels, dispatch, reloadLevels]);
 
     if (loading) {
         return (
@@ -834,7 +872,8 @@ export default function ClassificationMarkings({disabled}: Props) {
                             <ClassificationLevelsTable
                                 levels={levels}
                                 updateLevel={updateLevel}
-                                deleteLevel={deleteLevel}
+                                deleteLevel={requestDeleteLevel}
+                                removalGuard={removalGuard}
                                 onReorder={handleReorder}
                                 disabled={readOnly}
                             />

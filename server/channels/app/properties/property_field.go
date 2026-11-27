@@ -254,6 +254,20 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		return nil, err
 	}
 
+	// Judged here rather than in a hook: only now are a linked field's
+	// permissions final.
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel && ps.requiredFillableEnforced() {
+		accessControl, err := ps.groupConvertsAttrs(field.GroupID)
+		if err != nil {
+			return nil, fmt.Errorf("CreatePropertyField: %w", err)
+		}
+		if accessControl {
+			if err := ps.CheckRequiredChannelFieldFillable(rctx, field, nil); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	// Check for hierarchical name conflicts
 	conflictLevel, err := ps.fieldStore.CheckPropertyNameConflict(field, "")
 	if err != nil {

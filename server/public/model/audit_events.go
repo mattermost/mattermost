@@ -185,10 +185,11 @@ const (
 
 // Property Field Options
 const (
-	AuditEventCreatePropertyFieldOptions = "createPropertyFieldOptions" // add options to a property field
-	AuditEventDeletePropertyFieldOptions = "deletePropertyFieldOptions" // delete options of a property field
-	AuditEventGetPropertyFieldOptions    = "getPropertyFieldOptions"    // list the options of a property field
-	AuditEventPatchPropertyFieldOptions  = "patchPropertyFieldOptions"  // update options of a property field
+	AuditEventCreatePropertyFieldOptions   = "createPropertyFieldOptions"   // add options to a property field
+	AuditEventDeletePropertyFieldOptions   = "deletePropertyFieldOptions"   // delete options of a property field
+	AuditEventGetPropertyFieldOptions      = "getPropertyFieldOptions"      // list the options of a property field
+	AuditEventGetPropertyFieldOptionsInUse = "getPropertyFieldOptionsInUse" // report which options of a property field are in use
+	AuditEventPatchPropertyFieldOptions    = "patchPropertyFieldOptions"    // update options of a property field
 )
 
 // Property Values

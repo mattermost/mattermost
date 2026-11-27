@@ -184,6 +184,62 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// getPropertyFieldOptionsInUse reports which of the options named in the body
+// are held by a channel value. The IDs ride in a body, as up to the option cap
+// of them would not fit the default URL length limit. Only the verdict is returned: how many channels
+// hold an option, and which, would expose channels the caller may not see.
+func getPropertyFieldOptionsInUse(c *Context, w http.ResponseWriter, r *http.Request) {
+	field, rctx := propertyFieldForOptions(c, "getPropertyFieldOptionsInUse")
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFieldOptionsInUse, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
+	model.AddEventParameterToAuditRec(auditRec, "field_id", field.ID)
+
+	opts := model.PropertyFieldSearchOpts{TargetType: field.TargetType}
+	if field.TargetID != "" {
+		opts.TargetIDs = []string{field.TargetID}
+	}
+	if !resolveScopeAndCheckPermissions(c, &opts, "getPropertyFieldOptionsInUse") {
+		return
+	}
+	// Whether any channel holds an option says something about channels the
+	// caller may not see, so only someone who can delete the options may ask.
+	if !requireOptionsPermission(c, rctx, field, "getPropertyFieldOptionsInUse") {
+		return
+	}
+
+	var optionIDs []string
+	if err := json.NewDecoder(r.Body).Decode(&optionIDs); err != nil {
+		c.SetInvalidParamWithErr("option_ids", err)
+		return
+	}
+	if !checkPropertyFieldOptionCount(c, len(optionIDs), "getPropertyFieldOptionsInUse") {
+		return
+	}
+	for _, optionID := range optionIDs {
+		if !model.IsValidId(optionID) {
+			c.SetInvalidParam("option_ids")
+			return
+		}
+	}
+
+	inUse, err := c.App.PropertyFieldOptionsInUse(rctx, field.GroupID, field.ID, optionIDs)
+	if err != nil {
+		c.Err = model.AsAppError(err)
+		return
+	}
+
+	auditRec.Success()
+
+	if err := json.NewEncoder(w).Encode(model.PropertyFieldOptionsInUse{OptionIDs: inUse}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func createPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request) {
 	field, rctx := propertyFieldForOptions(c, "createPropertyFieldOptions")
 	if c.Err != nil {

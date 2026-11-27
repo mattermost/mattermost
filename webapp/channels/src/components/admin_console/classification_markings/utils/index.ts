@@ -44,6 +44,8 @@ export const CLASSIFICATIONS_FIELD_TYPE: PropertyField['type'] = 'rank';
 // Returned by the server when a create would duplicate a live name within an
 // object type. Distinguishes a create conflict from the delete-dependents
 // conflict, which shares its HTTP status.
+// The server refused to drop an option a channel value holds.
+export const PROPERTY_FIELD_OPTION_IN_USE_ERROR_ID = 'api.property_field.options.delete.in_use.app_error';
 export const PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID = 'app.property_field.create.name_conflict.app_error';
 
 // Admin console path for the Classification Markings page (System Console > Site

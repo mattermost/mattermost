@@ -9,10 +9,16 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
 
+import {useOptionRemovalGuard} from './use_option_removal_guard';
+import type {OptionUsageCheck} from './use_option_removal_guard';
+
 type Args = {
     orderedOptions: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     buildNewOption: (name: string) => PropertyFieldOption;
+
+    // Set when removing a saved option must first check that channels do not use it.
+    usageCheck?: OptionUsageCheck;
 };
 
 // Shared add/remove/rename/duplicate-detection logic for both options chip
@@ -24,7 +30,7 @@ type Args = {
 // (moveOptionByIndex vs. rank_utils.ts's moveOptionByAscIndex) stays in each
 // component, since a plain-index move and a rank-value move are genuinely
 // different operations, not a shared concern.
-export function useOptionChipEditor({orderedOptions, onOptionsChange, buildNewOption}: Args) {
+export function useOptionChipEditor({orderedOptions, onOptionsChange, buildNewOption, usageCheck}: Args) {
     const {formatMessage} = useIntl();
     const [query, setQuery] = useState('');
     const addInputRef = useRef<HTMLInputElement>(null);
@@ -54,9 +60,23 @@ export function useOptionChipEditor({orderedOptions, onOptionsChange, buildNewOp
         onOptionsChange(orderedOptions.map((option, i) => (i === index ? {...option, name: trimmed} : option)));
     }, [orderedOptions, nameCollidesWith, onOptionsChange]);
 
+    const removalGuard = useOptionRemovalGuard(usageCheck);
+
+    // The usage check is asynchronous, so the removal itself reads the latest
+    // list rather than the one from the render that started it.
+    const latestRef = useRef({orderedOptions, onOptionsChange});
+    latestRef.current = {orderedOptions, onOptionsChange};
+
     const handleRemove = useCallback((index: number) => {
-        onOptionsChange(orderedOptions.filter((_, i) => i !== index));
-    }, [orderedOptions, onOptionsChange]);
+        const target = orderedOptions[index];
+        if (!target) {
+            return;
+        }
+        removalGuard.requestRemoval(target.id, () => {
+            const latest = latestRef.current;
+            latest.onOptionsChange(latest.orderedOptions.filter((option) => (target.id ? option.id !== target.id : option !== target)));
+        });
+    }, [orderedOptions, removalGuard]);
 
     const addValue = useCallback(() => {
         if (!trimmedQuery || isDuplicate) {
@@ -98,6 +118,7 @@ export function useOptionChipEditor({orderedOptions, onOptionsChange, buildNewOp
         nameCollidesWith,
         handleRename,
         handleRemove,
+        removalGuard,
         addValue,
         handleQueryKeyDown,
         placeholderText,

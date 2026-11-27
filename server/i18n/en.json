@@ -4403,6 +4403,11 @@
     "description": "API error when the property field's object type differs from the type segment in the request URL; developer-leaning register."
   },
   {
+    "id": "api.property_field.options.delete.in_use.app_error",
+    "translation": "This option is applied to channels and can't be deleted.",
+    "description": "Error returned when an attempt is made to delete, or remove through a field update, an option of a channel attribute (e.g. a select-type attribute) that is currently applied to one or more channels."
+  },
+  {
     "id": "api.property_field.options.empty_body.app_error",
     "translation": "No property field options were provided.",
     "description": "API error when a request to add, update or delete the selectable options of a custom property field (e.g. a select-type attribute) contains no options."
@@ -11572,6 +11577,11 @@
     "description": "Server error when reading the selectable options of a custom property field fails in the database."
   },
   {
+    "id": "app.property_field.options.in_use.app_error",
+    "translation": "Unable to determine which property field options are in use.",
+    "description": "Server error returned by the endpoint the System Console calls before removing a channel attribute option, when looking up which of the given options channels hold as values fails."
+  },
+  {
     "id": "app.property_field.options.invalid.app_error",
     "translation": "The property field options were rejected: {{.Reason}}.",
     "description": "API error when a request to change a property field's options is rejected as a whole. {{.Reason}} is an untranslated English explanation (e.g. 'field X has been deleted')."
@@ -11595,6 +11605,11 @@
     "id": "app.property_field.required_disabled.app_error",
     "translation": "This attribute cannot be marked required while required-attribute enforcement is disabled.",
     "description": "API error when an admin tries to mark a channel attribute as required while the server feature that enforces required attributes is turned off."
+  },
+  {
+    "id": "app.property_field.required_unfillable.app_error",
+    "translation": "Channel creators can't set this attribute, so it can't be required.",
+    "description": "API error, shown in the System Console under the Required toggle, when an admin tries to make a channel attribute required (or change who can set a required one) while the people creating channels can't set its value, because only system admins, nobody, a plugin or a sync source can set it, or its values are hidden from channel members."
   },
   {
     "id": "app.property_field.search.app_error",

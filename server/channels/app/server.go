@@ -425,6 +425,9 @@ func NewServer(options ...Option) (*Server, error) {
 			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
+	s.propertyService.SetRequiredFillableEnforcement(func() bool {
+		return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() && model.MinimumEnterpriseAdvancedLicense(s.License())
+	})
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
 	// The CPA group registers a content-level audit sink here.

@@ -3,11 +3,14 @@
 
 import {createColumnHelper, getCoreRowModel, useReactTable} from '@tanstack/react-table';
 import type {ColumnDef} from '@tanstack/react-table';
-import React, {useMemo} from 'react';
+import React, {createContext, useContext, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
+import OptionRemovalErrors from 'components/admin_console/global_attributes/attribute_details/option_removal_errors';
+import type {OptionRemovalGuard} from 'components/admin_console/global_attributes/attribute_details/use_option_removal_guard';
 
 import LevelColorCell from './level_color_cell';
 import LevelNameCell from './level_name_cell';
@@ -19,6 +22,7 @@ import {
     ColorCellWrapper,
     ColorSwatch,
     DeleteButton,
+    LevelRemovalError,
     RankCell,
     ReadOnlyColor,
     TableWrapper,
@@ -30,18 +34,59 @@ type ClassificationLevelsTableProps = {
     levels: ClassificationLevel[];
     updateLevel: (id: string, updates: Partial<ClassificationLevel>) => void;
     deleteLevel: (id: string) => void;
+
+    // Present when removing a saved level must first check that channels do not use it.
+    removalGuard?: OptionRemovalGuard;
     onReorder: (prev: number, next: number) => void;
     disabled?: boolean;
 };
 
-export default function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled}: ClassificationLevelsTableProps) {
+const col = createColumnHelper<ClassificationLevel>();
+
+// The guard changes whenever a check starts or ends. Cells read it from context
+// so the columns stay stable and their cells are not remounted.
+const RemovalGuardContext = createContext<OptionRemovalGuard | undefined>(undefined);
+
+function LevelRemovalMessage({level}: {level: ClassificationLevel}) {
+    const guard = useContext(RemovalGuardContext);
+    if (!guard) {
+        return null;
+    }
+    return (
+        <LevelRemovalError>
+            <OptionRemovalErrors
+                options={[level]}
+                guard={guard}
+                className='ClassificationLevels__removalError'
+            />
+        </LevelRemovalError>
+    );
+}
+
+function DeleteLevelButton({id, label, deleteLevel}: {id: string; label: string; deleteLevel: (id: string) => void}) {
+    const guard = useContext(RemovalGuardContext);
+    return (
+        <WithTooltip title={label}>
+            <DeleteButton
+                aria-label={label}
+                onClick={() => deleteLevel(id)}
+                disabled={guard?.isChecking(id)}
+            >
+                <TrashCanOutlineIcon
+                    size={18}
+                    color='var(--error-text)'
+                />
+            </DeleteButton>
+        </WithTooltip>
+    );
+}
+
+export default function ClassificationLevelsTable({levels, updateLevel, deleteLevel, removalGuard, onReorder, disabled}: ClassificationLevelsTableProps) {
     const {formatMessage} = useIntl();
 
     const rows = useMemo(() => {
         return [...levels].sort((a, b) => a.rank - b.rank);
     }, [levels]);
-
-    const col = createColumnHelper<ClassificationLevel>();
 
     const columns = useMemo<Array<ColumnDef<ClassificationLevel, any>>>(() => {
         return [
@@ -56,14 +101,17 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
                     </ColHeaderLeft>
                 ),
                 cell: ({row}) => (
-                    <LevelNameCell
-                        value={row.original.name}
-                        id={row.original.id}
-                        updateLevel={updateLevel}
-                        disabled={disabled}
-                        autoFocus={isPendingLevel(row.original)}
-                        label={formatMessage({id: 'admin.classification_markings.levels.table.text.input', defaultMessage: 'Classification level name'})}
-                    />
+                    <>
+                        <LevelNameCell
+                            value={row.original.name}
+                            id={row.original.id}
+                            updateLevel={updateLevel}
+                            disabled={disabled}
+                            autoFocus={isPendingLevel(row.original)}
+                            label={formatMessage({id: 'admin.classification_markings.levels.table.text.input', defaultMessage: 'Classification level name'})}
+                        />
+                        <LevelRemovalMessage level={row.original}/>
+                    </>
                 ),
                 enableSorting: false,
             }),
@@ -117,23 +165,17 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
                 header: () => null,
                 cell: ({row}) => (
                     <ActionsCell>
-                        <WithTooltip title={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}>
-                            <DeleteButton
-                                aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
-                                onClick={() => deleteLevel(row.original.id)}
-                            >
-                                <TrashCanOutlineIcon
-                                    size={18}
-                                    color='var(--error-text)'
-                                />
-                            </DeleteButton>
-                        </WithTooltip>
+                        <DeleteLevelButton
+                            id={row.original.id}
+                            label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
+                            deleteLevel={deleteLevel}
+                        />
                     </ActionsCell>
                 ),
                 enableSorting: false,
             })]),
         ];
-    }, [col, updateLevel, deleteLevel, disabled, formatMessage]);
+    }, [updateLevel, deleteLevel, disabled, formatMessage]);
 
     const table = useReactTable<ClassificationLevel>({
         data: rows,
@@ -151,8 +193,10 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
     });
 
     return (
-        <TableWrapper>
-            <AdminConsoleListTable<ClassificationLevel> table={table}/>
-        </TableWrapper>
+        <RemovalGuardContext.Provider value={removalGuard}>
+            <TableWrapper>
+                <AdminConsoleListTable<ClassificationLevel> table={table}/>
+            </TableWrapper>
+        </RemovalGuardContext.Provider>
     );
 }

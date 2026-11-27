@@ -1337,6 +1337,10 @@ type PropertyValueStore interface {
 	// template together with the fields linking to it to cover every value
 	// that points at the template's options.
 	GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error)
+	// SelectOptionIDsInUse returns the subset of optionIDs that a live value of
+	// one of the given fields holds on a channel, archived or not. A value
+	// counts when it is the option's ID or a JSON array containing it.
+	SelectOptionIDsInUse(groupID string, fieldIDs, optionIDs []string) ([]string, error)
 }
 
 type AccessControlPolicyStore interface {

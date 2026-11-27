@@ -32,7 +32,9 @@ func setupMissingAttributes(t *testing.T) *TestHelper {
 // createMissingAttributesField seeds a channel field through the property
 // service, because App.CreatePropertyField refuses a field created already
 // required while an active channel lacks a value, and these tests are about
-// that state.
+// that state. Required is then set in the store, because the service also
+// refuses a required field channel creators can't set, while one that already
+// exists is kept.
 func createMissingAttributesField(t *testing.T, th *TestHelper, displayName string, required bool, valueWrite model.PermissionLevel) *model.PropertyField {
 	t.Helper()
 	return createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeText, displayName, required, valueWrite)
@@ -56,13 +58,19 @@ func createMissingAttributesFieldOfType(t *testing.T, th *TestHelper, fieldType 
 		PermissionOptions: &sysadmin,
 		Attrs: model.StringInterface{
 			model.PropertyFieldAttrDisplayName: displayName,
-			model.PropertyFieldAttrRequired:    required,
 		},
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
 	})
+
+	if required {
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		updated, err := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+		field = updated[0]
+	}
 	return field
 }
 

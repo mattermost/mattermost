@@ -8429,6 +8429,21 @@ func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, object
 	return DecodeJSONFromResponse[*PropertyFieldOptionPage](r)
 }
 
+// GetPropertyFieldOptionsInUse returns which of optionIDs are held by a channel
+// value, on the field or any channel field linking to it.
+func (c *Client4) GetPropertyFieldOptionsInUse(ctx context.Context, groupName, objectType, fieldID string, optionIDs []string) ([]string, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID).Join("in_use"), optionIDs)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	result, resp, err := DecodeJSONFromResponse[*PropertyFieldOptionsInUse](r)
+	if err != nil {
+		return nil, resp, err
+	}
+	return result.OptionIDs, resp, nil
+}
+
 // CreatePropertyFieldOptions adds options to a property field. Each option may
 // name the options it sits below, by name, including others in the same call.
 func (c *Client4) CreatePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {

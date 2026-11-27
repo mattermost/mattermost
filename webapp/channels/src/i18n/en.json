@@ -3307,6 +3307,10 @@
     "defaultMessage": "A global classification level must be selected when the global banner is enabled.",
     "description": "Validation error when the admin enables the global classification banner without choosing a classification level for it."
   },
+  "admin.classification_markings.error.level_in_use": {
+    "defaultMessage": "A level you removed is applied to channels and can't be deleted. The levels were reloaded; remove only levels no channel uses.",
+    "description": "Error shown next to Save on the Classification Markings page when the server refuses to delete a classification level because channels have it set."
+  },
   "admin.classification_markings.error.no_levels": {
     "defaultMessage": "At least one classification level is required when classification markings are enabled.",
     "description": "Validation error when the admin enables classification markings but the levels list is empty."
@@ -5879,6 +5883,26 @@
     "defaultMessage": "Required",
     "description": "Field label (adjective) for the toggle that makes a value for this attribute mandatory when creating a channel, in an attribute's Channels settings in the System Console. Also used as the toggle's screen-reader label."
   },
+  "admin.global_attributes.applies_to.channels.required.unfillable_change_button": {
+    "defaultMessage": "Change to Channel admin",
+    "description": "Button in the warning under the Required toggle that moves who can set the attribute's value on channels to Channel admin."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_change_failed": {
+    "defaultMessage": "Couldn't change who can set this attribute. Try again.",
+    "description": "Error shown under the warning on a required channel attribute when changing who can set its value to Channel admin fails."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_owner_text": {
+    "defaultMessage": "Ask its owner to make it settable by channel admins, or turn Required off.",
+    "description": "Body of the warning shown for a required channel attribute whose value can't be set by channel creators because its owner controls it. The only remedies are asking the owner or turning Required off."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_text": {
+    "defaultMessage": "It's required, but channel creators can't set its value, so new channels are created without it and flagged.",
+    "description": "Body of the warning shown for a required channel attribute whose value channel creators can't set, explaining that new channels are created without a value and flagged."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_title": {
+    "defaultMessage": "Channel creators can't set this attribute",
+    "description": "Title of the warning shown in an attribute's Channels settings when the attribute is required but channel creators can't set its value."
+  },
   "admin.global_attributes.applies_to.channels.summary.display": {
     "defaultMessage": "Display: {locations}",
     "description": "Segment of the one-line summary on the collapsed/header Channels row of an attribute's 'Applies to' settings, e.g. 'Optional · Display: Header + Channel Info'. {locations} is the already-translated display location names joined with ' + '."
@@ -6495,6 +6519,14 @@
     "defaultMessage": "Text attributes have no preset values — a value is typed in per resource.",
     "description": "Help text shown under the Options area on the attribute detail page when the attribute Type is Text, explaining why there are no options to configure. The em dash separates two clauses."
   },
+  "admin.global_attributes.attribute_details.options.in_use": {
+    "defaultMessage": "This option is applied to channels and can't be deleted.",
+    "description": "Inline error shown beside an attribute option when the admin tries to remove it but channels have it set as their value."
+  },
+  "admin.global_attributes.attribute_details.options.in_use_check_failed": {
+    "defaultMessage": "Couldn't check whether channels use this option. Please try again.",
+    "description": "Inline error shown beside an attribute option when checking whether channels use it failed, so the option was not removed."
+  },
   "admin.global_attributes.attribute_details.options.invalid": {
     "defaultMessage": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank.",
     "description": "Inline validation error shown under the Options area on the attribute detail page when one or more option chips are malformed. 'Rank' refers to the ordering number on ranked options."
@@ -6643,9 +6675,17 @@
     "defaultMessage": "An attribute with this name already exists. Please choose a different name.",
     "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when another attribute already uses the same unique name."
   },
+  "admin.global_attributes.attribute_details.save_error.option_in_use": {
+    "defaultMessage": "An option you removed is applied to channels and can't be deleted. The options were reloaded; remove only options no channel uses.",
+    "description": "Error shown next to Save on the attribute page when the server refuses to delete an option because channels have it set."
+  },
   "admin.global_attributes.attribute_details.save_error.required_channels_missing_values": {
     "defaultMessage": "This attribute can't be made required while some channels have no value for it. Notify their channel admins, then try again.",
     "description": "Red error banner on the attribute page (System Console > System Attributes > Attribute Management) when saving Required is refused because some channels have no value yet; shown only if the server sent no message of its own."
+  },
+  "admin.global_attributes.attribute_details.save_error.required_unfillable": {
+    "defaultMessage": "Channel creators can't set this attribute, so it can't be required.",
+    "description": "Fallback error shown next to the Save button when the server refuses to make a channel attribute Required because channel creators can't set its value. The server's own message is shown when present."
   },
   "admin.global_attributes.attribute_details.save_error.reserved_word": {
     "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",

@@ -771,17 +771,24 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := validatePostField(field); err != nil {
+	if err = validatePostField(field); err != nil {
 		return nil, err
 	}
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+	if err = h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 		return nil, err
 	}
-	if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
+	if err = h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field, existing)
+	field, err = h.enforceGroupPermissions(rctx, field, existing)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.checkRequiredFillable(rctx, field, existing); err != nil {
+		return nil, err
+	}
+	return field, nil
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -831,6 +838,9 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 
 		updated, err := h.enforceGroupPermissions(rctx, field, existing)
 		if err != nil {
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
+		}
+		if err := h.checkRequiredFillable(rctx, updated, existing); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 		fields[i] = updated
@@ -1451,6 +1461,16 @@ func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existi
 		return model.NewAppError("UpsertPropertyField", "app.property_field.openid_sync_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
 	return nil
+}
+
+// checkRequiredFillable runs CheckRequiredChannelFieldFillable on an update
+// after the group permissions are pinned, so the field is judged on the
+// value.write tier it is stored with. Creates are judged by the service itself.
+func (h *AccessControlAttributeValidationHook) checkRequiredFillable(rctx request.CTX, field, existing *model.PropertyField) error {
+	if !h.propertyService.requiredFillableEnforced() {
+		return nil
+	}
+	return h.propertyService.CheckRequiredChannelFieldFillable(rctx, field, existing)
 }
 
 func newRequiredAttrDisabledError(field *model.PropertyField) error {

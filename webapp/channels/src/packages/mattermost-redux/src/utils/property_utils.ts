@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyChangePolicy, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyChangePolicy, PropertyField, PropertyFieldOption, PropertyPermissionLevel, PropertyRestrictions} from '@mattermost/types/properties';
 
 // The identity sources a user attribute can be synced from, in the order the
 // server resolves them (model.GetPropertyFieldSyncSource). Each names the
@@ -208,4 +208,100 @@ export function getPropertyFieldLabel(field: PropertyField): string {
         return formatPropertyFieldLabel(raw);
     }
     return raw;
+}
+
+// Reads at member or everyone are visible to every member of a channel.
+function isReadableByMembers(level: PropertyPermissionLevel | undefined): boolean {
+    return level === 'member' || level === 'everyone';
+}
+
+// The restrictions the server enforces for the field: permissions.restrictions
+// when present, otherwise the conversion of the legacy permission_* keys and
+// attrs (model.PermissionsFromLegacy). A nil permission_values is the channel
+// default, admin.
+function getEffectiveRestrictions(field: PropertyField): {restrictions: PropertyRestrictions; masked: boolean} {
+    if (field.permissions) {
+        return {restrictions: field.permissions.restrictions ?? {value: {}, option: {}, field: {}}, masked: Boolean(field.permissions.masking)};
+    }
+
+    const accessMode = field.attrs?.access_mode;
+    let read: PropertyPermissionLevel = 'none';
+    if (accessMode === undefined || accessMode === '' || accessMode === 'public' || accessMode === 'shared_only') {
+        read = 'everyone';
+    }
+
+    const sourceManaged = isPropertyFieldSourceManaged(field);
+    let valueWrite: PropertyPermissionLevel = field.permission_values ?? 'admin';
+    if (sourceManaged) {
+        valueWrite = 'none';
+    }
+    const protectedField = field.protected === true || field.attrs?.protected === true;
+    const fieldWrite: PropertyPermissionLevel = protectedField ? 'none' : (field.permission_field || 'none');
+    const optionWrite: PropertyPermissionLevel = field.attrs?.protected === true ? 'none' : (field.permission_options || 'none');
+
+    return {
+        restrictions: {
+            value: {read, write: valueWrite || 'none'},
+            option: {read, write: optionWrite},
+            field: {write: fieldWrite},
+        },
+        masked: accessMode === 'shared_only',
+    };
+}
+
+function isManagedByAdmin(field: PropertyField): boolean {
+    return field.attrs?.managed === 'admin';
+}
+
+// The value.write tiers the create endpoint lets a channel's creator fill; the
+// creator becomes the channel's admin.
+function isFillableAtCreation(level: PropertyPermissionLevel | undefined): boolean {
+    return level === 'admin' || level === 'creator' || level === 'member' || level === 'everyone';
+}
+
+// Mirrors model.IsChannelFieldFillableByCreators: whoever creates a channel can
+// give it a value for the field only when value.write is a tier creation fills,
+// and members can read the field's options and values. A required field failing
+// this can never be satisfied by a new channel.
+export function isChannelFieldFillableByCreators(field: PropertyField): boolean {
+    if (field.object_type !== 'channel' || isManagedByAdmin(field)) {
+        return false;
+    }
+
+    const {restrictions, masked} = getEffectiveRestrictions(field);
+    if (masked) {
+        return false;
+    }
+
+    return isFillableAtCreation(restrictions.value?.write) &&
+        isReadableByMembers(restrictions.value?.read) &&
+        isReadableByMembers(restrictions.option?.read);
+}
+
+// Whether the only thing keeping creators from filling the field is its
+// value.write tier (sysadmin or none), so moving that tier to admin fixes it.
+// Admin-managed, source-managed, masked and unreadable fields need more than that.
+export function isChannelFieldLevelOnlyUnfillable(field: PropertyField): boolean {
+    if (field.object_type !== 'channel' || isManagedByAdmin(field) || isPropertyFieldSourceManaged(field)) {
+        return false;
+    }
+
+    const {restrictions, masked} = getEffectiveRestrictions(field);
+    if (masked || !isReadableByMembers(restrictions.value?.read) || !isReadableByMembers(restrictions.option?.read)) {
+        return false;
+    }
+
+    // Any tier creation can't fill is fixed by moving it to admin.
+    return !isFillableAtCreation(restrictions.value?.write);
+}
+
+// The restrictions to PATCH to let channel admins set the field's values. The
+// server replaces restrictions wholesale, so the rest of the effective
+// restrictions are carried over unchanged.
+export function getRestrictionsWithChannelAdminValueWrite(field: PropertyField): PropertyRestrictions {
+    const {restrictions} = getEffectiveRestrictions(field);
+    return {
+        ...restrictions,
+        value: {...restrictions.value, write: 'admin'},
+    };
 }

@@ -509,4 +509,60 @@ describe('ClassificationAttribute', () => {
         expect(await screen.findByTestId('classificationAttributeSaveError')).toBeInTheDocument();
         expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
     });
+    it("shows the server's message and turns Required back off when channel creators can't set the attribute", async () => {
+        mockLoad(channelField({actions: ['display_label_header']}));
+        jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(new ClientError('https://example.com', {
+            message: "Channel creators can't set this attribute, so it can't be required.",
+            server_error_id: 'app.property_field.required_unfillable.app_error',
+            status_code: 400,
+            url: 'https://example.com/api/v4/properties',
+        }));
+
+        render();
+
+        await userEvent.click(await screen.findByTestId('channelsResourceRequired-button'));
+        expect(screen.getByTestId('channelsResourceRequired-button')).toBeChecked();
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(await screen.findByTestId('classificationAttributeSaveError')).toHaveTextContent("Channel creators can't set this attribute, so it can't be required.");
+        expect(screen.getByTestId('channelsResourceRequired-button')).not.toBeChecked();
+    });
+
+    it('keeps a stored Required on when a save of the field is refused because channel creators cannot set it', async () => {
+        mockLoad(channelField({required: true, actions: ['display_label_header']}));
+        jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(new ClientError('https://example.com', {
+            message: "Channel creators can't set this attribute, so it can't be required.",
+            server_error_id: 'app.property_field.required_unfillable.app_error',
+            status_code: 400,
+            url: 'https://example.com/api/v4/properties',
+        }));
+
+        render();
+
+        expect(await screen.findByTestId('channelsResourceRequired-button')).toBeChecked();
+        await userEvent.click(screen.getByLabelText('Header'));
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(await screen.findByTestId('classificationAttributeSaveError')).toBeInTheDocument();
+        expect(screen.getByTestId('channelsResourceRequired-button')).toBeChecked();
+    });
+
+    it('warns about a required field channel creators cannot set, and fixes it with a permissions-only patch', async () => {
+        mockLoad({...channelField({required: true, actions: ['display_label_header']}), permission_values: 'sysadmin'});
+        const patchSpy = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(channelField({required: true}));
+
+        render();
+
+        expect(await screen.findByTestId('requiredUnfillableWarning')).toHaveTextContent("Channel creators can't set this attribute");
+        await userEvent.click(screen.getByRole('button', {name: 'Change to Channel admin'}));
+
+        await waitFor(() => expect(screen.queryByTestId('requiredUnfillableWarning')).not.toBeInTheDocument());
+        expect(patchSpy).toHaveBeenCalledWith('access_control', 'channel', 'channel_field_id_1234567890', {
+            permissions: {restrictions: {
+                value: {read: 'everyone', write: 'admin'},
+                option: {read: 'everyone', write: 'none'},
+                field: {write: 'none'},
+            }},
+        });
+    });
 });

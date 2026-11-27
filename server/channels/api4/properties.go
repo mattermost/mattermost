@@ -51,6 +51,7 @@ func (api *API) InitProperties() {
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
 
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(getPropertyFieldOptions)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyFieldOptions.Handle("/in_use", api.APISessionRequired(getPropertyFieldOptionsInUse)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(createPropertyFieldOptions)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(patchPropertyFieldOptions)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(deletePropertyFieldOptions)).Methods(http.MethodDelete)
@@ -694,7 +695,8 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// PermissionValues is only patchable on a linked field (any object type),
-	// and only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
+	// and only to Member or Sysadmin, or Admin on a channel field, where it is
+	// the default tier. Requiring LinkedFieldID keeps this off
 	// standalone fields, which can have a weaker (Member-level) PermissionField
 	// than a linked field's always-sysadmin one -- without this, a caller who
 	// can already edit a weaker-gated field's definition could use this
@@ -705,7 +707,14 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_not_linked.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-		if *patch.PermissionValues != model.PermissionLevelMember && *patch.PermissionValues != model.PermissionLevelSysadmin {
+		switch *patch.PermissionValues {
+		case model.PermissionLevelMember, model.PermissionLevelSysadmin:
+		case model.PermissionLevelAdmin:
+			if existingField.ObjectType != model.PropertyFieldObjectTypeChannel {
+				c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_invalid.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+		default:
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_invalid.app_error", nil, "", http.StatusBadRequest)
 			return
 		}

@@ -308,7 +308,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 required: true,
             });
             created.push(undesignated);
-            await unarchiveWithoutRequiredValues(adminClient, channel.id, [undesignated]);
+            await unarchiveWithoutRequiredValues(pw, adminClient, team.id, channel.id);
 
             // # Look at the incomplete channel as an ordinary member
             const asMember = await pw.testBrowser.login(user);

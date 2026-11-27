@@ -96,6 +96,28 @@ func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, gro
 	return nil
 }
 
+// checkRequiredFieldFillable refuses a channel field that would end up
+// required while channel creators can't set it. The access_control hook
+// enforces the same rule on every path; running it here as well makes the
+// refusal win over checkRequiredAttributeTransition's channel scan, which
+// would otherwise answer first with a misleading conflict.
+func (a *App) checkRequiredFieldFillable(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) error {
+	if !a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
+		return nil
+	}
+	if !model.IsPropertyFieldRequired(next) || !a.isAccessControlGroup(groupID) {
+		return nil
+	}
+
+	if err := a.Srv().propertyService.CheckRequiredChannelFieldFillable(rctx, next, prev); err != nil {
+		if appErr := mapPropertyServiceError(callerName, err); appErr != nil {
+			return appErr
+		}
+		return model.NewAppError(callerName, "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
 func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) (teamID, channelID string, ok bool) {
 	switch field.TargetType {
 	case "team":
@@ -291,6 +313,9 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// already marked required. Since a new field has no ID yet, no existing
 	// channel can hold a value for it; installations with active local channels
 	// must therefore create it optional, backfill values, then mark it required.
+	if err := a.checkRequiredFieldFillable(rctx, "CreatePropertyField", field.GroupID, nil, field); err != nil {
+		return nil, model.AsAppError(err)
+	}
 	if err := a.checkRequiredAttributeTransition(rctx, "CreatePropertyField", field.GroupID, nil, field); err != nil {
 		return nil, model.AsAppError(err)
 	}
@@ -562,8 +587,16 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			)
 		}
 
+		if fillableErr := a.checkRequiredFieldFillable(rctx, "UpdatePropertyFields", groupID, existing, f); fillableErr != nil {
+			return nil, nil, model.AsAppError(fillableErr)
+		}
 		if transitionErr := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); transitionErr != nil {
 			return nil, nil, model.AsAppError(transitionErr)
+		}
+		if a.refusesOptionsInUse() {
+			if droppedErr := a.refuseUpdateDroppingOptionsInUse(rctx, "UpdatePropertyFields", groupID, existing, f); droppedErr != nil {
+				return nil, nil, model.AsAppError(droppedErr)
+			}
 		}
 	}
 

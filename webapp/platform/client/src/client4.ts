@@ -2604,6 +2604,16 @@ export default class Client4 {
         );
     };
 
+    // getPropertyFieldOptionsInUse reports which of optionIds are held by a
+    // channel value, on the field or any channel field linking to it. Only the
+    // verdict is returned, never counts.
+    getPropertyFieldOptionsInUse = async (groupName: string, objectType: string, fieldId: string, optionIds: string[]) => {
+        return this.doFetch<{option_ids: string[]}>(
+            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}/in_use`,
+            {method: 'POST', body: JSON.stringify(optionIds)},
+        );
+    };
+
     searchGlobalAttributes = async (search: GlobalAttributeListingSearch) => {
         return this.doFetch<GlobalAttributeListing>(
             `${this.getBaseRoute()}/properties/groups/access_control/attributes/search`,

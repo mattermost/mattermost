@@ -425,6 +425,42 @@ func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs 
 	return ids, nil
 }
 
+func (s *SqlPropertyValueStore) SelectOptionIDsInUse(groupID string, fieldIDs, optionIDs []string) ([]string, error) {
+	if len(fieldIDs) == 0 || len(optionIDs) == 0 {
+		return []string{}, nil
+	}
+
+	// Same normalization as GetReferencedOptionIDs, narrowed to channel values
+	// and to the options asked about. Channels.DeleteAt is deliberately not
+	// consulted: an archived channel still holds its values.
+	builder := s.getQueryBuilder().
+		Select("DISTINCT opt").
+		From("PropertyValues pv").
+		CrossJoin(`LATERAL jsonb_array_elements_text(
+			CASE jsonb_typeof(pv.Value)
+				WHEN 'array' THEN pv.Value
+				WHEN 'string' THEN jsonb_build_array(pv.Value)
+				ELSE '[]'::jsonb
+			END
+		) AS opt`).
+		Where(sq.Eq{"pv.FieldID": fieldIDs, "pv.DeleteAt": 0, "pv.TargetType": "channel"}).
+		Where(sq.Eq{"opt": optionIDs}).
+		OrderBy("opt")
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"pv.GroupID": groupID})
+	}
+
+	// Read from master: a lagging replica must not report an option as unused
+	// when a value was just written.
+	ids := []string{}
+	if err := s.GetMaster().SelectBuilder(&ids, builder); err != nil {
+		return nil, errors.Wrap(err, "property_value_select_option_ids_in_use_select")
+	}
+
+	return ids, nil
+}
+
 func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
 	if targetType == "" || targetID == "" {
 		return store.NewErrInvalidInput("PropertyValue", "target", "type or id empty")

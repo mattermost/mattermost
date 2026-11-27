@@ -29,6 +29,10 @@ type PropertyService struct {
 	requestOptionsExtractor RequestOptionsExtractor
 	groupCache              sync.Map // name -> *model.PropertyGroup
 	groupIDCache            sync.Map // id -> *model.PropertyGroup
+
+	// requiredFillableEnforcement reports whether a channel field may only be
+	// required while channel creators can set it. Nil means it may always be.
+	requiredFillableEnforcement func() bool
 }
 
 type ServiceConfig struct {
@@ -58,6 +62,16 @@ func (c *ServiceConfig) validate() error {
 		return errors.New("required parameters are not provided")
 	}
 	return nil
+}
+
+// SetRequiredFillableEnforcement sets what decides whether a channel field may
+// only be required while channel creators can set it.
+func (ps *PropertyService) SetRequiredFillableEnforcement(enforced func() bool) {
+	ps.requiredFillableEnforcement = enforced
+}
+
+func (ps *PropertyService) requiredFillableEnforced() bool {
+	return ps.requiredFillableEnforcement != nil && ps.requiredFillableEnforcement()
 }
 
 // extractCallerID gets the caller ID from a request context using the configured extractor.

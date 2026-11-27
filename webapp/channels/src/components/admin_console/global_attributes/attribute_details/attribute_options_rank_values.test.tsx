@@ -5,7 +5,9 @@ import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {Client4} from 'mattermost-redux/client';
+
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 
@@ -144,5 +146,110 @@ describe('AttributeOptionsRankValues', () => {
             {id: 'b', name: 'High', rank: 1},
             {id: 'a', name: 'Low', rank: 2},
         ]);
+    });
+    describe('removing an option channels may use', () => {
+        const usageCheck = {objectType: 'template', fieldId: 'field-1'};
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('keeps the option and shows the error when channels use it', async () => {
+            const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: ['a']});
+            const onOptionsChange = jest.fn();
+            renderWithContext(
+                <AttributeOptionsRankValues
+                    options={baseOptions()}
+                    onOptionsChange={onOptionsChange}
+                    usageCheck={usageCheck}
+                />,
+            );
+
+            await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+
+            const error = await screen.findByTestId('optionInUseError-a');
+            expect(error).toHaveAttribute('role', 'alert');
+            expect(error).toHaveTextContent("This option is applied to channels and can't be deleted.");
+            expect(inUse).toHaveBeenCalledWith('access_control', 'template', 'field-1', ['a']);
+            expect(onOptionsChange).not.toHaveBeenCalled();
+        });
+
+        it('removes the option once the check finds it unused, disabling its remove button meanwhile', async () => {
+            let resolveCheck: (value: {option_ids: string[]}) => void = () => {};
+            jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockReturnValue(new Promise((resolve) => {
+                resolveCheck = resolve;
+            }));
+            const onOptionsChange = jest.fn();
+            renderWithContext(
+                <AttributeOptionsRankValues
+                    options={baseOptions()}
+                    onOptionsChange={onOptionsChange}
+                    usageCheck={usageCheck}
+                />,
+            );
+
+            const [removeFirst] = screen.getAllByRole('button', {name: 'Remove option'});
+            await userEvent.click(removeFirst);
+            expect(removeFirst).toBeDisabled();
+            expect(onOptionsChange).not.toHaveBeenCalled();
+
+            await act(async () => {
+                resolveCheck({option_ids: []});
+            });
+
+            expect(onOptionsChange).toHaveBeenCalledTimes(1);
+            expect(onOptionsChange.mock.calls[0][0].map((option: PropertyFieldOption) => option.id)).toEqual(['b']);
+            expect(screen.queryByTestId('optionInUseError-a')).not.toBeInTheDocument();
+        });
+
+        it('keeps the option and says so when the check itself fails', async () => {
+            jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockRejectedValue(new Error('nope'));
+            const onOptionsChange = jest.fn();
+            renderWithContext(
+                <AttributeOptionsRankValues
+                    options={baseOptions()}
+                    onOptionsChange={onOptionsChange}
+                    usageCheck={usageCheck}
+                />,
+            );
+
+            await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+
+            expect(await screen.findByTestId('optionRemoveCheckError-a')).toBeInTheDocument();
+            expect(onOptionsChange).not.toHaveBeenCalled();
+        });
+
+        it('does not check an option that was never saved', async () => {
+            const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse');
+            const onOptionsChange = jest.fn();
+            renderWithContext(
+                <AttributeOptionsRankValues
+                    options={[{id: '', name: 'Draft', rank: 1}]}
+                    onOptionsChange={onOptionsChange}
+                    usageCheck={usageCheck}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove option'}));
+
+            expect(inUse).not.toHaveBeenCalled();
+            expect(onOptionsChange).toHaveBeenCalledWith([]);
+        });
+
+        it('does not check anything without a usage check', async () => {
+            const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse');
+            const onOptionsChange = jest.fn();
+            renderWithContext(
+                <AttributeOptionsRankValues
+                    options={baseOptions()}
+                    onOptionsChange={onOptionsChange}
+                />,
+            );
+
+            await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+
+            expect(inUse).not.toHaveBeenCalled();
+            expect(onOptionsChange).toHaveBeenCalledTimes(1);
+        });
     });
 });

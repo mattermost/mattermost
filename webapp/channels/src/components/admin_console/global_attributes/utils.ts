@@ -7,6 +7,7 @@ import {supportsHierarchy, type ChannelAttributeComplianceSummary, type ChannelA
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {getRestrictionsWithChannelAdminValueWrite} from 'mattermost-redux/utils/property_utils';
 
 import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 
@@ -387,6 +388,20 @@ export function patchLinkedAttributeField(
     return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(attrs ? {attrs} : {}),
         ...(permissionValues ? {permission_values: permissionValues} : {}),
+    });
+}
+
+// Moves a channel field's value.write tier to admin. A field served without
+// permissions (the typed permissions flag is off) takes it as permission_values.
+// Otherwise the whole restrictions object goes in permissions, since a patch may
+// not mix permissions with the legacy keys and restrictions replace the stored
+// ones wholesale.
+export function patchChannelFieldValueWriteToAdmin(field: PropertyField): Promise<PropertyField> {
+    if (!field.permissions) {
+        return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, 'channel', field.id, {permission_values: 'admin'});
+    }
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, 'channel', field.id, {
+        permissions: {restrictions: getRestrictionsWithChannelAdminValueWrite(field)},
     });
 }
 

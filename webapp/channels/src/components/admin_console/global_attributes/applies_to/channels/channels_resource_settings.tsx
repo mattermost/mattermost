@@ -7,8 +7,10 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelFieldFillableByCreators, isChannelFieldLevelOnlyUnfillable, isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import * as Menu from 'components/menu';
 
@@ -19,9 +21,10 @@ import {useNotifyChannelAdmins} from './notify_channel_admins_modal';
 import {changePolicyLabelFor, displayLocationLabel} from './summary';
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
 import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, CHANNEL_DISPLAY_LOCATION_OPTIONS, isOrderedChangePolicy} from './types';
+import useChannelField from './use_channel_field';
 import useChannelMissingValues from './use_channel_missing_values';
 
-import {notifyChannelAdminsOfMissingValue} from '../../utils';
+import {notifyChannelAdminsOfMissingValue, patchChannelFieldValueWriteToAdmin} from '../../utils';
 
 import './channels_resource_settings.scss';
 
@@ -87,6 +90,11 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     // the kill switch is off the Required field (and its banner) don't render
     // at all, so there is nothing for this fetch to feed.
     const missingValues = useChannelMissingValues({fieldId: channelFieldId, enabled: requiredEnforcementEnabled, revision: channelFieldUpdateAt});
+    const {field: savedField, setField: setSavedField} = useChannelField({fieldId: channelFieldId, enabled: requiredEnforcementEnabled, revision: channelFieldUpdateAt});
+    const [changingLevel, setChangingLevel] = useState(false);
+    const [levelChangeFailed, setLevelChangeFailed] = useState(false);
+    const showUnfillableWarning = savedField !== null && isPropertyFieldRequired(savedField) && !isChannelFieldFillableByCreators(savedField);
+    const canChangeLevel = showUnfillableWarning && isChannelFieldLevelOnlyUnfillable(savedField);
     const openChannelsWithoutValueModal = useChannelsWithoutValueModal();
     const promptNotifyChannelAdmins = useNotifyChannelAdmins();
 
@@ -147,6 +155,32 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         }
         onChange({...value, required: event.target.checked});
     }, [blockedByMissingValues, onChange, value]);
+
+    const handleChangeLevel = useCallback(async () => {
+        if (!savedField) {
+            return;
+        }
+        setChangingLevel(true);
+        setLevelChangeFailed(false);
+
+        // Like handleNotify: this instance can be re-pointed at another
+        // attribute while the patch is in flight, and the result belongs to
+        // the field that was patched.
+        const stillCurrent = () => mountedRef.current && channelFieldIdRef.current === savedField.id;
+        try {
+            const patched = await patchChannelFieldValueWriteToAdmin(savedField);
+            if (stillCurrent()) {
+                setSavedField(patched);
+            }
+        } catch {
+            if (stillCurrent()) {
+                setLevelChangeFailed(true);
+            }
+        }
+        if (mountedRef.current) {
+            setChangingLevel(false);
+        }
+    }, [savedField, setSavedField]);
 
     const handleViewList = useCallback(() => {
         if (!channelFieldId) {
@@ -329,6 +363,30 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                                 />
                             )}
                         </div>
+                        {showUnfillableWarning && (
+                            <div
+                                className='ChannelsResourceSettings__unfillable'
+                                data-testid='requiredUnfillableWarning'
+                            >
+                                <SectionNotice
+                                    type='warning'
+                                    title={formatMessage(messages.unfillableTitle)}
+                                    description={formatMessage(canChangeLevel ? messages.unfillableText : messages.unfillableOwnerText)}
+                                    primaryButtonLabel={canChangeLevel ? formatMessage(messages.unfillableChangeButton) : undefined}
+                                    onPrimaryAction={canChangeLevel ? handleChangeLevel : undefined}
+                                    primaryActionLoading={changingLevel}
+                                />
+                                {levelChangeFailed && (
+                                    <p
+                                        className='ChannelsResourceSettings__help'
+                                        role='alert'
+                                        data-testid='requiredUnfillableChangeError'
+                                    >
+                                        <FormattedMessage {...messages.unfillableChangeFailed}/>
+                                    </p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -424,6 +482,11 @@ const messages = defineMessages({
     requiredLabel: {id: 'admin.global_attributes.applies_to.channels.required.label', defaultMessage: 'Required'},
     requiredOnHelp: {id: 'admin.global_attributes.applies_to.channels.required.help_on', defaultMessage: 'Required — the channel must have a value for this attribute before it can be created.'},
     requiredOffHelp: {id: 'admin.global_attributes.applies_to.channels.required.help_off', defaultMessage: 'Optional — this attribute can still be added to a channel after it is created.'},
+    unfillableTitle: {id: 'admin.global_attributes.applies_to.channels.required.unfillable_title', defaultMessage: "Channel creators can't set this attribute"},
+    unfillableText: {id: 'admin.global_attributes.applies_to.channels.required.unfillable_text', defaultMessage: "It's required, but channel creators can't set its value, so new channels are created without it and flagged."},
+    unfillableOwnerText: {id: 'admin.global_attributes.applies_to.channels.required.unfillable_owner_text', defaultMessage: 'Ask its owner to make it settable by channel admins, or turn Required off.'},
+    unfillableChangeButton: {id: 'admin.global_attributes.applies_to.channels.required.unfillable_change_button', defaultMessage: 'Change to Channel admin'},
+    unfillableChangeFailed: {id: 'admin.global_attributes.applies_to.channels.required.unfillable_change_failed', defaultMessage: "Couldn't change who can set this attribute. Try again."},
     changePolicyLabel: {id: 'admin.global_attributes.applies_to.channels.change_policy.label', defaultMessage: 'Changing the value'},
     changePolicyAriaLabel: {id: 'admin.global_attributes.applies_to.channels.change_policy.aria_label', defaultMessage: 'Changing the value, currently {value}'},
     changePolicyUnorderedHelp: {id: 'admin.global_attributes.applies_to.channels.change_policy.unordered_help', defaultMessage: 'Raising and lowering need ranked values, so they are only offered on a Rank attribute.'},
