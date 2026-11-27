@@ -56,6 +56,7 @@ describe('TeamPolicyEditor', () => {
             AttributeRefreshIntervalSeconds: 30,
             DecisionCacheMaxAgeSeconds: 60,
             DecisionCacheSize: 1000000,
+            EnableDecisionCache: true,
         },
         onNavigateBack: jest.fn(),
         actions: {

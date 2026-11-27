@@ -83,6 +83,17 @@ func TestConfigDefaults(t *testing.T) {
 		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
 		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
 	})
+	t.Run("decision cache is enabled by default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableDecisionCache)
+		require.True(t, *c.AccessControlSettings.EnableDecisionCache)
+	})
+	t.Run("decision cache setting keeps an explicit value", func(t *testing.T) {
+		c := Config{AccessControlSettings: AccessControlSettings{EnableDecisionCache: new(false)}}
+		c.SetDefaults()
+		require.False(t, *c.AccessControlSettings.EnableDecisionCache)
+	})
 }
 
 func TestConfigIsValid(t *testing.T) {

@@ -34,10 +34,20 @@ type channelReadAccessHarness struct {
 
 func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 	t.Helper()
+	return setupChannelReadAccessTestWithConfig(t, nil)
+}
+
+// setupChannelReadAccessTestWithConfig also applies updateConfig before the server starts, for
+// settings read only at startup.
+func setupChannelReadAccessTestWithConfig(t *testing.T, updateConfig func(cfg *model.Config)) *channelReadAccessHarness {
+	t.Helper()
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
 		cfg.FeatureFlags.ChannelPermissionActions = true
+		if updateConfig != nil {
+			updateConfig(cfg)
+		}
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {

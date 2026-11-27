@@ -1071,6 +1071,7 @@ export type AccessControlSettings = {
     AttributeRefreshIntervalSeconds: number;
     DecisionCacheMaxAgeSeconds: number;
     DecisionCacheSize: number;
+    EnableDecisionCache: boolean;
 };
 
 export type ContentFlaggingNotificationSettings = {
