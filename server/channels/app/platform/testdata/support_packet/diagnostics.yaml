@@ -13,6 +13,13 @@ server:
   # Machine
   os: linux
   architecture: amd64
+  os_release: # /etc/os-release or /usr/lib/os-release on Linux, describing the container image when running_in_container is true; kern.osproductversion on macOS
+    id: rhel
+    version_id: "8.10" # RHEL includes the minor version, Debian only the major
+    platform_id: platform:el8 # RHEL and Fedora family only; platform:el8 matches RHEL 8 and its clones
+    pretty_name: Red Hat Enterprise Linux 8.10 (Ootpa)
+  kernel_release: 4.18.0-553.el8_10.x86_64 # uname -r; the host's kernel, also inside a container; Linux and macOS
+  running_in_container: true # from MM_INSTALL_TYPE, KUBERNETES_SERVICE_HOST, /.dockerenv, /run/.containerenv or cgroup paths on Linux; always false on macOS
   hostname: mm-host
   installation_type: docker
   # Capacity (hardware → effective quota)

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func writeTempCgroupFile(t *testing.T, dir, name, content string) string {
+func writeTempFile(t *testing.T, dir, name, content string) string {
 	t.Helper()
 	path := filepath.Join(dir, name)
 	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
@@ -25,11 +25,11 @@ func writeTempCgroupFile(t *testing.T, dir, name, content string) string {
 
 func setTempCgroupLayout(t *testing.T, dir, membership, mountRoot, mountPoint string) cgroupV2Info {
 	t.Helper()
-	resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup", "0::"+membership+"\n")
-	resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo", "31 30 0:28 "+mountRoot+" "+mountPoint+" rw,nosuid,nodev,noexec,relatime - cgroup2 cgroup rw\n")
+	resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup", "0::"+membership+"\n")
+	resourcePaths.procSelfMountInfo = writeTempFile(t, dir, "proc-self-mountinfo", "31 30 0:28 "+mountRoot+" "+mountPoint+" rw,nosuid,nodev,noexec,relatime - cgroup2 cgroup rw\n")
 	relative, err := filepath.Rel(mountRoot, membership)
 	require.NoError(t, err)
-	writeTempCgroupFile(t, filepath.Join(mountPoint, relative), "memory.max", "max\n")
+	writeTempFile(t, filepath.Join(mountPoint, relative), "memory.max", "max\n")
 
 	info, err := getCgroupV2Info()
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func TestGetContainerLimits(t *testing.T) {
 	info := cgroupV2Info{dir: dir, memoryStatsSupported: true}
 
 	t.Run("limited CPU", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "cpu.max", "200000 100000\n")
+		writeTempFile(t, dir, "cpu.max", "200000 100000\n")
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestGetContainerLimits(t *testing.T) {
 	})
 
 	t.Run("unlimited CPU", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "cpu.max", "max 100000\n")
+		writeTempFile(t, dir, "cpu.max", "max 100000\n")
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
@@ -58,7 +58,7 @@ func TestGetContainerLimits(t *testing.T) {
 	})
 
 	t.Run("fractional CPU limit", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "cpu.max", "50000 100000\n")
+		writeTempFile(t, dir, "cpu.max", "50000 100000\n")
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
@@ -67,7 +67,7 @@ func TestGetContainerLimits(t *testing.T) {
 
 	t.Run("CPU limit does not depend on memory.max", func(t *testing.T) {
 		cpuOnlyDir := filepath.Join(dir, "cpu-only")
-		writeTempCgroupFile(t, cpuOnlyDir, "cpu.max", "100000 100000\n")
+		writeTempFile(t, cpuOnlyDir, "cpu.max", "100000 100000\n")
 
 		limits, err := getContainerLimits(cgroupV2Info{dir: cpuOnlyDir, memoryStatsSupported: true})
 		require.NoError(t, err)
@@ -101,9 +101,9 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 	t.Run("mount root above the namespace root does not match the namespace root", func(t *testing.T) {
 		mountPoint := filepath.Join(dir, "ancestor-root")
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-ancestor", "0::/\n")
-		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-ancestor", "31 30 0:28 /../.. "+mountPoint+" rw - cgroup2 cgroup rw\n")
-		writeTempCgroupFile(t, mountPoint, "memory.max", "max\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup-ancestor", "0::/\n")
+		resourcePaths.procSelfMountInfo = writeTempFile(t, dir, "proc-self-mountinfo-ancestor", "31 30 0:28 /../.. "+mountPoint+" rw - cgroup2 cgroup rw\n")
+		writeTempFile(t, mountPoint, "memory.max", "max\n")
 
 		_, err := getCgroupV2Info()
 		require.ErrorContains(t, err, "no matching cgroup2 mount")
@@ -117,9 +117,9 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 	t.Run("membership outside the namespace does not match a namespace mount", func(t *testing.T) {
 		mountPoint := filepath.Join(dir, "namespace-mount")
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-outside", "0::/../../init\n")
-		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-outside", "31 30 0:28 / "+mountPoint+" rw - cgroup2 cgroup rw\n")
-		writeTempCgroupFile(t, filepath.Join(mountPoint, "init"), "memory.max", "max\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup-outside", "0::/../../init\n")
+		resourcePaths.procSelfMountInfo = writeTempFile(t, dir, "proc-self-mountinfo-outside", "31 30 0:28 / "+mountPoint+" rw - cgroup2 cgroup rw\n")
+		writeTempFile(t, filepath.Join(mountPoint, "init"), "memory.max", "max\n")
 
 		_, err := getCgroupV2Info()
 		require.ErrorContains(t, err, "no matching cgroup2 mount")
@@ -133,10 +133,10 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 	t.Run("mountinfo escaped paths are decoded", func(t *testing.T) {
 		mountPoint := filepath.Join(dir, "escaped mount")
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-escaped", "0::/\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup-escaped", "0::/\n")
 		encodedMountPoint := strings.ReplaceAll(mountPoint, " ", `\040`)
-		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-escaped", "31 30 0:28 / "+encodedMountPoint+" rw - cgroup2 cgroup rw\n")
-		writeTempCgroupFile(t, mountPoint, "memory.max", "max\n")
+		resourcePaths.procSelfMountInfo = writeTempFile(t, dir, "proc-self-mountinfo-escaped", "31 30 0:28 / "+encodedMountPoint+" rw - cgroup2 cgroup rw\n")
+		writeTempFile(t, mountPoint, "memory.max", "max\n")
 
 		info, err := getCgroupV2Info()
 		require.NoError(t, err)
@@ -149,19 +149,19 @@ func TestGetCgroupV2Info(t *testing.T) {
 		info := setTempCgroupLayout(t, dir, "/system.slice/mattermost.service", "/", mountPoint)
 		assert.Equal(t, filepath.Join(mountPoint, "system.slice/mattermost.service"), info.dir)
 
-		writeTempCgroupFile(t, mountPoint, "memory.max", "104857600\n")
-		writeTempCgroupFile(t, mountPoint, "cpu.max", "100000 100000\n")
-		writeTempCgroupFile(t, mountPoint, "memory.current", "94371840\n")
-		writeTempCgroupFile(t, mountPoint, "memory.stat", "inactive_file 10485760\n")
-		writeTempCgroupFile(t, mountPoint, "memory.events", "oom_kill 99\n")
+		writeTempFile(t, mountPoint, "memory.max", "104857600\n")
+		writeTempFile(t, mountPoint, "cpu.max", "100000 100000\n")
+		writeTempFile(t, mountPoint, "memory.current", "94371840\n")
+		writeTempFile(t, mountPoint, "memory.stat", "inactive_file 10485760\n")
+		writeTempFile(t, mountPoint, "memory.events", "oom_kill 99\n")
 
-		writeTempCgroupFile(t, info.dir, "memory.max", "1073741824\n")
-		writeTempCgroupFile(t, info.dir, "cpu.max", "200000 100000\n")
-		writeTempCgroupFile(t, info.dir, "memory.current", "536870912\n")
-		writeTempCgroupFile(t, info.dir, "memory.stat", "inactive_file 134217728\n")
-		writeTempCgroupFile(t, info.dir, "memory.events", "oom_kill 2\n")
-		resourcePaths.procMeminfo = writeTempCgroupFile(t, dir, "proc-meminfo", "MemAvailable: 1024000 kB\nSwapTotal: 4096 kB\nSwapFree: 1024 kB\n")
-		resourcePaths.procSelfStatus = writeTempCgroupFile(t, dir, "proc-status", "VmRSS: 131072 kB\n")
+		writeTempFile(t, info.dir, "memory.max", "1073741824\n")
+		writeTempFile(t, info.dir, "cpu.max", "200000 100000\n")
+		writeTempFile(t, info.dir, "memory.current", "536870912\n")
+		writeTempFile(t, info.dir, "memory.stat", "inactive_file 134217728\n")
+		writeTempFile(t, info.dir, "memory.events", "oom_kill 2\n")
+		resourcePaths.procMeminfo = writeTempFile(t, dir, "proc-meminfo", "MemAvailable: 1024000 kB\nSwapTotal: 4096 kB\nSwapFree: 1024 kB\n")
+		resourcePaths.procSelfStatus = writeTempFile(t, dir, "proc-status", "VmRSS: 131072 kB\n")
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
@@ -182,7 +182,7 @@ func TestGetCgroupV2Info(t *testing.T) {
 	})
 
 	t.Run("cgroup v1 is unsupported without reading mountinfo", func(t *testing.T) {
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-v1", "12:memory:/mattermost\n11:cpu:/mattermost\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup-v1", "12:memory:/mattermost\n11:cpu:/mattermost\n")
 		resourcePaths.procSelfMountInfo = filepath.Join(dir, "missing-mountinfo")
 
 		info, err := getCgroupV2Info()
@@ -193,9 +193,9 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 	t.Run("cgroup v2 without the memory controller is unsupported", func(t *testing.T) {
 		mountPoint := filepath.Join(dir, "no-memory-controller")
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-no-memory", "0::/\n")
-		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-no-memory", "31 30 0:28 / "+mountPoint+" rw - cgroup2 cgroup rw\n")
-		writeTempCgroupFile(t, mountPoint, "cpu.max", "50000 100000\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup-no-memory", "0::/\n")
+		resourcePaths.procSelfMountInfo = writeTempFile(t, dir, "proc-self-mountinfo-no-memory", "31 30 0:28 / "+mountPoint+" rw - cgroup2 cgroup rw\n")
+		writeTempFile(t, mountPoint, "cpu.max", "50000 100000\n")
 
 		info, err := getCgroupV2Info()
 		require.NoError(t, err)
@@ -208,8 +208,8 @@ func TestGetCgroupV2Info(t *testing.T) {
 	})
 
 	t.Run("v2 membership without a matching mount fails", func(t *testing.T) {
-		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-unmounted", "0::/mattermost\n")
-		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-unmatched", "31 30 0:28 / /other rw - ext4 /dev/sda rw\n")
+		resourcePaths.procSelfCgroup = writeTempFile(t, dir, "proc-self-cgroup-unmounted", "0::/mattermost\n")
+		resourcePaths.procSelfMountInfo = writeTempFile(t, dir, "proc-self-mountinfo-unmatched", "31 30 0:28 / /other rw - ext4 /dev/sda rw\n")
 
 		_, err := getCgroupV2Info()
 		require.ErrorContains(t, err, "no matching cgroup2 mount")
@@ -225,16 +225,16 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 
 	setProcFiles := func(t *testing.T) {
 		t.Helper()
-		resourcePaths.procMeminfo = writeTempCgroupFile(t, dir, "proc-meminfo", "MemTotal:       8192000 kB\nMemAvailable:   1024000 kB\nSwapTotal:         4096 kB\nSwapFree:          1024 kB\n")
-		resourcePaths.procSelfStatus = writeTempCgroupFile(t, dir, "proc-status", "Name:\tmattermost\nVmRSS:\t131072 kB\n")
+		resourcePaths.procMeminfo = writeTempFile(t, dir, "proc-meminfo", "MemTotal:       8192000 kB\nMemAvailable:   1024000 kB\nSwapTotal:         4096 kB\nSwapFree:          1024 kB\n")
+		resourcePaths.procSelfStatus = writeTempFile(t, dir, "proc-status", "Name:\tmattermost\nVmRSS:\t131072 kB\n")
 	}
 
 	t.Run("host and cgroup v2 memory", func(t *testing.T) {
 		setProcFiles(t)
-		writeTempCgroupFile(t, dir, "memory.max", "1073741824\n")
-		writeTempCgroupFile(t, dir, "memory.current", "536870912\n")
-		writeTempCgroupFile(t, dir, "memory.stat", "anon 268435456\ninactive_file 134217728\n")
-		writeTempCgroupFile(t, dir, "memory.events", "low 0\nhigh 0\nmax 1\noom 3\noom_kill 2\n")
+		writeTempFile(t, dir, "memory.max", "1073741824\n")
+		writeTempFile(t, dir, "memory.current", "536870912\n")
+		writeTempFile(t, dir, "memory.stat", "anon 268435456\ninactive_file 134217728\n")
+		writeTempFile(t, dir, "memory.events", "low 0\nhigh 0\nmax 1\noom 3\noom_kill 2\n")
 
 		got, err := getMemoryDiagnostics(info)
 		require.NoError(t, err)
@@ -262,9 +262,9 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 
 	t.Run("cgroup memory limit", func(t *testing.T) {
 		setProcFiles(t)
-		writeTempCgroupFile(t, dir, "memory.current", "1\n")
-		writeTempCgroupFile(t, dir, "memory.stat", "inactive_file 0\n")
-		writeTempCgroupFile(t, dir, "memory.events", "oom_kill 0\n")
+		writeTempFile(t, dir, "memory.current", "1\n")
+		writeTempFile(t, dir, "memory.stat", "inactive_file 0\n")
+		writeTempFile(t, dir, "memory.events", "oom_kill 0\n")
 
 		for _, tc := range []struct {
 			name      string
@@ -276,7 +276,7 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 			{"sub-MB rounds up to 1MB", "524288\n", 1},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				writeTempCgroupFile(t, dir, "memory.max", tc.memoryMax)
+				writeTempFile(t, dir, "memory.max", tc.memoryMax)
 
 				got, err := getMemoryDiagnostics(info)
 				require.NoError(t, err)
@@ -292,8 +292,8 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 	})
 
 	t.Run("missing proc field", func(t *testing.T) {
-		resourcePaths.procMeminfo = writeTempCgroupFile(t, dir, "meminfo_missing", "MemTotal: 8192000 kB\n")
-		resourcePaths.procSelfStatus = writeTempCgroupFile(t, dir, "status_unused", "VmRSS: 131072 kB\n")
+		resourcePaths.procMeminfo = writeTempFile(t, dir, "meminfo_missing", "MemTotal: 8192000 kB\n")
+		resourcePaths.procSelfStatus = writeTempFile(t, dir, "status_unused", "VmRSS: 131072 kB\n")
 
 		_, err := getMemoryDiagnostics(info)
 		require.ErrorContains(t, err, "MemAvailable not found")
@@ -315,12 +315,12 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				partialDir := filepath.Join(dir, "partial", strings.ReplaceAll(tc.name, " ", "-"))
-				writeTempCgroupFile(t, partialDir, "memory.max", "1073741824\n")
+				writeTempFile(t, partialDir, "memory.max", "1073741824\n")
 				if tc.current != "" {
-					writeTempCgroupFile(t, partialDir, "memory.current", tc.current)
+					writeTempFile(t, partialDir, "memory.current", tc.current)
 				}
-				writeTempCgroupFile(t, partialDir, "memory.stat", tc.stat)
-				writeTempCgroupFile(t, partialDir, "memory.events", tc.events)
+				writeTempFile(t, partialDir, "memory.stat", tc.stat)
+				writeTempFile(t, partialDir, "memory.events", tc.events)
 
 				_, err := getMemoryDiagnostics(cgroupV2Info{dir: partialDir, memoryStatsSupported: true})
 				require.ErrorContains(t, err, tc.wantErr)
@@ -330,7 +330,7 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 
 	t.Run("malformed cgroup memory limit fails", func(t *testing.T) {
 		setProcFiles(t)
-		writeTempCgroupFile(t, dir, "memory.max", "unlimited\n")
+		writeTempFile(t, dir, "memory.max", "unlimited\n")
 
 		_, err := getMemoryDiagnostics(info)
 		require.ErrorContains(t, err, "memory.max")
@@ -345,15 +345,15 @@ func TestGetCPUStats(t *testing.T) {
 
 	setLoadAvg := func(t *testing.T, content string) {
 		t.Helper()
-		resourcePaths.procLoadAvg = writeTempCgroupFile(t, dir, "loadavg", content)
+		resourcePaths.procLoadAvg = writeTempFile(t, dir, "loadavg", content)
 	}
 	cgroupDir := func(t *testing.T, cpuMax, cpuStat string) cgroupV2Info {
 		t.Helper()
 		cgroup := t.TempDir()
 		if cpuMax != "" {
-			writeTempCgroupFile(t, cgroup, "cpu.max", cpuMax)
+			writeTempFile(t, cgroup, "cpu.max", cpuMax)
 		}
-		writeTempCgroupFile(t, cgroup, "cpu.stat", cpuStat)
+		writeTempFile(t, cgroup, "cpu.stat", cpuStat)
 		return cgroupV2Info{dir: cgroup}
 	}
 
