@@ -7627,15 +7627,15 @@
     "defaultMessage": "Severity",
     "description": "Label in the details list of an expanded unknown or resolved finding on the System Console Site health page; the value is the severity the check has when firing (Critical, Warning or Info)."
   },
-  "admin.health_dashboard.duration.days": {
+  "admin.health_dashboard.duration.whole_days": {
     "defaultMessage": "{days, plural, one {# day} other {# days}}",
     "description": "Duration in whole days on the System Console Site health page, such as \"2 days\", used in \"Open for {duration}\" and \"Not checked for {duration}\"."
   },
-  "admin.health_dashboard.duration.hours": {
+  "admin.health_dashboard.duration.whole_hours": {
     "defaultMessage": "{hours, plural, one {# hour} other {# hours}}",
     "description": "Duration in whole hours on the System Console Site health page, such as \"22 hours\", used in \"Open for {duration}\" and \"Not checked for {duration}\"."
   },
-  "admin.health_dashboard.duration.minutes": {
+  "admin.health_dashboard.duration.whole_minutes": {
     "defaultMessage": "{minutes, plural, one {# minute} other {# minutes}}",
     "description": "Duration in whole minutes on the System Console Site health page, such as \"45 minutes\", used in \"Open for {duration}\" and \"Not checked for {duration}\"."
   },

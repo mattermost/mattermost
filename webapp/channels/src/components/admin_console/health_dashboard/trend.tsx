@@ -10,9 +10,9 @@ import type {HealthFinding} from '@mattermost/types/health';
 import RelativeTime from './relative_time';
 
 const durationMessages = defineMessages({
-    days: {id: 'admin.health_dashboard.duration.days', defaultMessage: '{days, plural, one {# day} other {# days}}'},
-    hours: {id: 'admin.health_dashboard.duration.hours', defaultMessage: '{hours, plural, one {# hour} other {# hours}}'},
-    minutes: {id: 'admin.health_dashboard.duration.minutes', defaultMessage: '{minutes, plural, one {# minute} other {# minutes}}'},
+    days: {id: 'admin.health_dashboard.duration.whole_days', defaultMessage: '{days, plural, one {# day} other {# days}}'},
+    hours: {id: 'admin.health_dashboard.duration.whole_hours', defaultMessage: '{hours, plural, one {# hour} other {# hours}}'},
+    minutes: {id: 'admin.health_dashboard.duration.whole_minutes', defaultMessage: '{minutes, plural, one {# minute} other {# minutes}}'},
 });
 
 const MINUTE = 60 * 1000;
