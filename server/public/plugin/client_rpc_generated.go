@@ -10168,9 +10168,7 @@ func (s *apiRPCServer) GetAccessControlVisualAST(args *Z_GetAccessControlVisualA
 }
 
 type Z_CreateScopedSessionArgs struct {
-	A string
-	B *model.SessionScope
-	C int64
+	A *model.CreateScopedSessionRequest
 }
 
 type Z_CreateScopedSessionReturns struct {
@@ -10178,8 +10176,8 @@ type Z_CreateScopedSessionReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
-	_args := &Z_CreateScopedSessionArgs{userID, scope, expiresAt}
+func (g *apiRPCClient) CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError) {
+	_args := &Z_CreateScopedSessionArgs{req}
 	_returns := &Z_CreateScopedSessionReturns{}
 	if err := g.client.Call("Plugin.CreateScopedSession", _args, _returns); err != nil {
 		log.Printf("RPC call to CreateScopedSession API failed: %s", err.Error())
@@ -10189,9 +10187,9 @@ func (g *apiRPCClient) CreateScopedSession(userID string, scope *model.SessionSc
 
 func (s *apiRPCServer) CreateScopedSession(args *Z_CreateScopedSessionArgs, returns *Z_CreateScopedSessionReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError)
+		CreateScopedSession(req *model.CreateScopedSessionRequest) (*model.Session, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.CreateScopedSession(args.A, args.B, args.C)
+		returns.A, returns.B = hook.CreateScopedSession(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API CreateScopedSession called but not implemented."))
 	}

@@ -1298,8 +1298,11 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (props.InGroupId != "" || props.NotInGroupId != "") && c.AppContext.Session().IsScoped() {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
+	if c.AppContext.Session().IsScoped() &&
+		(props.InGroupId != "" || props.NotInGroupId != "" ||
+			props.InChannelId != "" || props.NotInChannelId != "" ||
+			props.TeamId != "" || props.NotInTeamId != "") {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 

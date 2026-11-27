@@ -79,6 +79,9 @@ func (ch *Channels) syncPluginsActiveState() {
 	ch.pluginsLock.RUnlock()
 
 	if pluginsEnvironment == nil {
+		if cfg := ch.cfgSvc.Config().PluginSettings.Enable; cfg != nil && !*cfg {
+			ch.revokeAllScopedSessions()
+		}
 		return
 	}
 

@@ -20,23 +20,44 @@ func TestPluginAPICreateScopedSession(t *testing.T) {
 	f := newScopeFixture(t, th)
 	api := th.SetupPluginAPI()
 
-	session, appErr := api.CreateScopedSession(f.bot.Id, f.scope(), model.GetMillis()+30*60*1000)
+	session, appErr := api.CreateScopedSession(&model.CreateScopedSessionRequest{
+		UserID:    f.bot.Id,
+		Scope:     f.scope(),
+		ExpiresAt: model.GetMillis() + 30*60*1000,
+	})
 	require.Nil(t, appErr)
 	scope, scoped := session.Scope()
 	require.True(t, scoped)
 	assert.Equal(t, "pluginid", scope.CreatedByPluginID)
 
-	_, appErr = api.CreateScopedSession(f.bot.Id, f.scope(), model.GetMillis()+model.SessionScopeMaxLifetimeMillis+60*1000)
+	_, appErr = api.CreateScopedSession(&model.CreateScopedSessionRequest{
+		UserID:    f.bot.Id,
+		Scope:     f.scope(),
+		ExpiresAt: model.GetMillis() + model.SessionScopeMaxLifetimeMillis + 60*1000,
+	})
 	require.NotNil(t, appErr, "TTL is capped at 24h")
 
-	t.Run("extending past 24h is rejected", func(t *testing.T) {
+	t.Run("nil request probe returns 400", func(t *testing.T) {
+		probeSession, appErr := api.CreateScopedSession(nil)
+		assert.Nil(t, probeSession)
+		require.NotNil(t, appErr)
+		assert.Equal(t, 400, appErr.StatusCode)
+	})
+
+	t.Run("extending past 24h or to non-positive expiry is rejected", func(t *testing.T) {
 		appErr := api.ExtendSessionExpiry(session.Id, model.GetMillis()+model.SessionScopeMaxLifetimeMillis+60*1000)
 		require.NotNil(t, appErr)
+		require.NotNil(t, api.ExtendSessionExpiry(session.Id, 0), "zero expiry would make the scoped session never expire")
+		require.NotNil(t, api.ExtendSessionExpiry(session.Id, -1), "negative expiry would make the scoped session never expire")
 		require.Nil(t, api.ExtendSessionExpiry(session.Id, model.GetMillis()+60*60*1000))
 	})
 
 	t.Run("extensions can't pass 24h after creation", func(t *testing.T) {
-		aging, appErr := api.CreateScopedSession(f.bot.Id, f.scope(), model.GetMillis()+30*60*1000)
+		aging, appErr := api.CreateScopedSession(&model.CreateScopedSessionRequest{
+			UserID:    f.bot.Id,
+			Scope:     f.scope(),
+			ExpiresAt: model.GetMillis() + 30*60*1000,
+		})
 		require.Nil(t, appErr)
 		createdAt := model.GetMillis() - 23*60*60*1000
 		_, err := th.SQLStore.GetMaster().Exec("UPDATE Sessions SET CreateAt = $1 WHERE Id = $2", createdAt, aging.Id)
@@ -82,12 +103,19 @@ func TestScopedSessionsRevokedOnPluginDisable(t *testing.T) {
 	}
 
 	func (p *MyPlugin) OnActivate() error {
+		if _, appErr := p.API.CreateScopedSession(nil); appErr == nil || appErr.StatusCode != 400 {
+			return errors.New("nil CreateScopedSession probe did not return 400")
+		}
 		scope := &model.SessionScope{
 			Permissions: model.ScopeReadPermissions,
 			Resources:   model.SessionScopeResources{ChannelIDs: []string{%q}, OpenTeamPublicChannels: true},
 			OnBehalfOfUserID: %q,
 		}
-		session, appErr := p.API.CreateScopedSession(%q, scope, model.GetMillis()+30*60*1000)
+		session, appErr := p.API.CreateScopedSession(&model.CreateScopedSessionRequest{
+			UserID:    %q,
+			Scope:     scope,
+			ExpiresAt: model.GetMillis() + 30*60*1000,
+		})
 		if appErr != nil {
 			return appErr
 		}
@@ -127,7 +155,11 @@ func TestScopedSessionsRevokedOnPluginDisable(t *testing.T) {
 	}, 10*time.Second, 100*time.Millisecond, "scoped session must be revoked when its plugin is disabled")
 
 	t.Run("sync revokes sessions minted after deactivation", func(t *testing.T) {
-		late, err := th.App.CreateScopedSession(th.Context, pluginID, f.bot.Id, f.scope(), model.GetMillis()+30*60*1000)
+		late, err := th.App.CreateScopedSession(th.Context, pluginID, &model.CreateScopedSessionRequest{
+			UserID:    f.bot.Id,
+			Scope:     f.scope(),
+			ExpiresAt: model.GetMillis() + 30*60*1000,
+		})
 		require.NoError(t, err)
 
 		th.App.ch.syncPluginsActiveState()

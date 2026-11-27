@@ -31,9 +31,19 @@ var ScopeReadPermissions = []string{
 	"view_team",
 }
 
-// SessionScope restricts a session to a set of read permissions over a set of
-// channels. For a scoped session, read access is exactly the scope: channel and
-// team memberships neither add to it nor are required for it.
+// CreateScopedSessionRequest describes a scoped session to create.
+// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+type CreateScopedSessionRequest struct {
+	UserID    string        `json:"user_id"`
+	Scope     *SessionScope `json:"scope"`
+	ExpiresAt int64         `json:"expires_at"`
+}
+
+// SessionScope restricts a session to a set of permissions over a set of
+// resources. Currently only read permissions (ScopeReadPermissions) are
+// supported; for a scoped session, read access is exactly the scope: channel
+// and team memberships neither add to it nor are required for it.
+// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
 type SessionScope struct {
 	Permissions []string              `json:"permissions"`
 	Resources   SessionScopeResources `json:"resources"`
@@ -171,14 +181,20 @@ func SessionScopeGrantsTeamPublicChannels(scope *SessionScope, team *Team, limit
 }
 
 // SessionScopeAllowsChannel is the single decision of whether a channel is in a
-// session scope. team must be the channel's team, or nil if it isn't known; it
-// is only consulted for the public-channel grants.
+// session scope. team must be the channel's team for any channel that belongs
+// to a team; deleted and policy-enforced teams deny every channel on them,
+// including explicitly listed channels.
 func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team, limits SessionScopeLimits) bool {
 	if scope == nil || channel == nil {
 		return false
 	}
 	if channel.DeleteAt != 0 || channel.PolicyEnforced || channel.IsGroupOrDirect() {
 		return false
+	}
+	if channel.TeamId != "" {
+		if team == nil || team.Id != channel.TeamId || team.DeleteAt != 0 || team.PolicyEnforced {
+			return false
+		}
 	}
 
 	if scope.ListsChannel(channel.Id) {
@@ -187,6 +203,5 @@ func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team
 
 	return channel.Type == ChannelTypeOpen &&
 		team != nil &&
-		team.Id == channel.TeamId &&
 		SessionScopeGrantsTeamPublicChannels(scope, team, limits)
 }

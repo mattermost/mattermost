@@ -201,8 +201,16 @@ func TestSessionScopeAllowsChannel(t *testing.T) {
 		},
 	}
 
-	assert.True(t, SessionScopeAllowsChannel(scope, listedPrivate, nil, none), "listed channel")
-	assert.True(t, SessionScopeAllowsChannel(scope, listedPrivate, nil, compliance), "listed channel with compliance")
+	assert.True(t, SessionScopeAllowsChannel(scope, listedPrivate, closedTeam, none), "listed channel")
+	assert.True(t, SessionScopeAllowsChannel(scope, listedPrivate, closedTeam, compliance), "listed channel with compliance")
+	assert.False(t, SessionScopeAllowsChannel(scope, listedPrivate, nil, none), "listed channel with unknown team fails closed")
+	assert.False(t, SessionScopeAllowsChannel(scope, listedPrivate, openTeam, none), "listed channel with mismatched team")
+	deletedClosedTeam := *closedTeam
+	deletedClosedTeam.DeleteAt = 1
+	assert.False(t, SessionScopeAllowsChannel(scope, listedPrivate, &deletedClosedTeam, none), "listed channel on deleted team")
+	policyClosedTeam := *closedTeam
+	policyClosedTeam.PolicyEnforced = true
+	assert.False(t, SessionScopeAllowsChannel(scope, listedPrivate, &policyClosedTeam, none), "listed channel on policy-enforced team")
 	assert.True(t, SessionScopeAllowsChannel(scope, publicOnOpen, openTeam, none), "public channel on open team")
 	assert.False(t, SessionScopeAllowsChannel(scope, publicOnOpen, openTeam, compliance), "compliance disables open-team grant")
 	assert.False(t, SessionScopeAllowsChannel(scope, publicOnOpen, nil, none), "unknown team")
@@ -214,11 +222,11 @@ func TestSessionScopeAllowsChannel(t *testing.T) {
 
 	deleted := *listedPrivate
 	deleted.DeleteAt = 1
-	assert.False(t, SessionScopeAllowsChannel(scope, &deleted, nil, none), "archived channel")
+	assert.False(t, SessionScopeAllowsChannel(scope, &deleted, closedTeam, none), "archived channel")
 
 	policy := *listedPrivate
 	policy.PolicyEnforced = true
-	assert.False(t, SessionScopeAllowsChannel(scope, &policy, nil, none), "policy-enforced channel")
+	assert.False(t, SessionScopeAllowsChannel(scope, &policy, closedTeam, none), "policy-enforced channel")
 
 	policyPublic := *publicOnOpen
 	policyPublic.PolicyEnforced = true
@@ -226,7 +234,7 @@ func TestSessionScopeAllowsChannel(t *testing.T) {
 
 	noOpenTeams := &SessionScope{Permissions: ScopeReadPermissions, Resources: SessionScopeResources{ChannelIDs: []string{listedPrivate.Id}}}
 	assert.False(t, SessionScopeAllowsChannel(noOpenTeams, publicOnOpen, openTeam, none), "open-team grant off")
-	assert.False(t, SessionScopeAllowsChannel(nil, listedPrivate, nil, none), "nil scope")
+	assert.False(t, SessionScopeAllowsChannel(nil, listedPrivate, closedTeam, none), "nil scope")
 	assert.False(t, SessionScopeAllowsChannel(scope, publicOnOpen, openTeam, noJoin), "open-team grant off without join_public_teams")
 
 	t.Run("public channels on listed teams", func(t *testing.T) {
