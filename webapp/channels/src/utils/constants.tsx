@@ -403,6 +403,7 @@ export const ModalIdentifiers = {
     LEAVE_TEAM: 'leave_team',
     RENAME_CHANNEL: 'rename_channel',
     USER_SETTINGS: 'user_settings',
+    MOBILE_QR_LOGIN: 'mobile_qr_login',
     QUICK_SWITCH: 'quick_switch',
     REMOVED_FROM_CHANNEL: 'removed_from_channel',
     CHANNEL_ACCESS_DENIED: 'channel_access_denied',

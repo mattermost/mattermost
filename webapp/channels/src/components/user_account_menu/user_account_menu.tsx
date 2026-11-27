@@ -16,6 +16,7 @@ import UserAccountCustomStatusMenuItem from './user_account_custom_status_menuit
 import UserAccountDndMenuItem from './user_account_dnd_menuitem';
 import UserAccountLogoutMenuItem from './user_account_logout_menuitem';
 import UserAccountMenuButton from './user_account_menuButton';
+import UserAccountMobileQRLoginMenuItem from './user_account_mobile_qr_login_menuitem';
 import UserAccountNameMenuItem from './user_account_name_menuitem';
 import UserAccountOfflineMenuItem from './user_account_offline_menuitem';
 import UserAccountOnlineMenuItem from './user_account_online_menuitem';
@@ -130,6 +131,9 @@ export default function UserAccountMenu(props: Props) {
             <UserAccountProfileMenuItem
                 userId={props.userId}
             />
+            {props.isMobileQRLoginEnabled && (
+                <UserAccountMobileQRLoginMenuItem/>
+            )}
             <Menu.Separator/>
             <UserAccountLogoutMenuItem/>
         </Menu.Container>

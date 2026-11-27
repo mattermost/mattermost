@@ -340,6 +340,10 @@ export type UserUpdated = BaseWebSocketMessage<WebSocketEvents.UserUpdated, {
 
 export type UserActivationStatusChanged = BaseWebSocketMessage<WebSocketEvents.UserActivationStatusChange>;
 
+export type MobileQRLoginRedeemed = BaseWebSocketMessage<WebSocketEvents.MobileQRLoginRedeemed, {
+    source_session_id: string;
+}>;
+
 export type UserRoleUpdated = BaseWebSocketMessage<WebSocketEvents.UserRoleUpdated, {
     user_id: string;
     roles: string;

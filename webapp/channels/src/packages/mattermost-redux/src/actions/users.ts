@@ -9,7 +9,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate} from '@mattermost/types/users';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate, MobileQRLoginToken} from '@mattermost/types/users';
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -1265,6 +1265,18 @@ export function switchLdapToEmail(ldapPassword: string, email: string, emailPass
             mfaCode,
         ],
     });
+}
+
+export function createMobileQRLoginToken(): ActionFuncAsync<MobileQRLoginToken> {
+    return async (dispatch, getState) => {
+        try {
+            const data = await Client4.createMobileQRLoginToken();
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+    };
 }
 
 export function createUserAccessToken(userId: string, description: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {

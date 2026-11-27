@@ -307,6 +307,22 @@ describe('handleEvent', () => {
     });
 });
 
+describe('mobile QR login redeemed', () => {
+    test('closes the mobile QR login modal', () => {
+        jest.mocked(store.dispatch).mockClear();
+
+        handleEvent(wsMessage<WebSocketMessages.MobileQRLoginRedeemed>({
+            event: WebSocketEvents.MobileQRLoginRedeemed,
+            data: {source_session_id: 'session1'},
+        }));
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: ActionTypes.MODAL_CLOSE,
+            modalId: ModalIdentifiers.MOBILE_QR_LOGIN,
+        });
+    });
+});
+
 describe('handlePostEditEvent', () => {
     beforeEach(() => {
         jest.mocked(store.dispatch).mockClear();

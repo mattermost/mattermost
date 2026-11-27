@@ -1,0 +1,53 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.MobileQRLoginModal {
+    &__body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-bottom: 24px;
+        gap: 16px;
+        text-align: center;
+    }
+
+    &__instructions {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__stage {
+        display: flex;
+        width: 240px;
+        height: 240px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-m);
+        gap: 12px;
+    }
+
+    &__qr {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border-radius: var(--radius-m);
+
+        // The code is scanned by a camera, so it must stay dark on light in every theme.
+        background: #fff;
+        image-rendering: pixelated;
+    }
+
+    &__status {
+        padding: 0 16px;
+        margin: 0;
+    }
+
+    &__countdown {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-variant-numeric: tabular-nums;
+    }
+}
