@@ -23,7 +23,7 @@ export const severityMessages = defineMessages<HealthFindingSeverity>({
 
 export const stateMessages = defineMessages({
     resolved: {id: 'admin.health_dashboard.state.resolved', defaultMessage: 'Recently resolved'},
-    unknown: {id: 'admin.health_dashboard.state.unknown', defaultMessage: 'Unknown'},
+    unknown: {id: 'admin.health_dashboard.state.unknown', defaultMessage: 'Not checked'},
 });
 
 const icons = {

@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useId} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {BellOffOutlineIcon, ChevronRightIcon, ChevronUpIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+import {BellOffOutlineIcon, ChevronDownIcon, ChevronUpIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
 import {getHealthFindingSection, isHealthFindingMuted} from 'mattermost-redux/utils/health_utils';
@@ -29,7 +29,7 @@ type Props = {
 };
 
 const stateBadges = defineMessages({
-    unknown: {id: 'admin.health_dashboard.finding.unknown', defaultMessage: 'Unknown'},
+    unknown: {id: 'admin.health_dashboard.finding.unknown', defaultMessage: 'Not checked'},
     resolved: {id: 'admin.health_dashboard.finding.resolved', defaultMessage: 'Resolved'},
 });
 
@@ -56,11 +56,11 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
     if (!message && finding.state === 'unknown') {
         message = formatMessage({
             id: 'admin.health_dashboard.finding.unknown_fallback',
-            defaultMessage: 'This check could not run, so its result is unknown.',
+            defaultMessage: "This check couldn't run, and the server didn't say why.",
         });
     }
 
-    const Chevron = expanded ? ChevronUpIcon : ChevronRightIcon;
+    const Chevron = expanded ? ChevronUpIcon : ChevronDownIcon;
 
     return (
         <li
@@ -142,12 +142,6 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
                             )}
                         </span>
                     </span>
-                    <Chevron
-                        className='HealthFinding__chevron'
-                        size={18}
-                        color='currentColor'
-                        aria-hidden={true}
-                    />
                 </button>
                 {onMute && onUnmute && (
                     <span className='HealthFinding__action'>
@@ -158,6 +152,20 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
                         />
                     </span>
                 )}
+
+                {/* Mute can't be nested in the header button, so the chevron after it is a pointer-only copy of that toggle. */}
+                <button
+                    type='button'
+                    className='HealthFinding__chevron'
+                    tabIndex={-1}
+                    aria-hidden={true}
+                    onClick={() => onToggle(finding.fingerprint)}
+                >
+                    <Chevron
+                        size={18}
+                        color='currentColor'
+                    />
+                </button>
             </div>
             <FindingDetail
                 id={detailId}

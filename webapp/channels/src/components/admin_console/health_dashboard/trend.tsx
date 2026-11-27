@@ -10,28 +10,25 @@ import type {HealthFinding} from '@mattermost/types/health';
 import RelativeTime from './relative_time';
 
 const durationMessages = defineMessages({
-    daysHours: {id: 'admin.health_dashboard.duration.days_hours', defaultMessage: '{days}d {hours}h'},
-    days: {id: 'admin.health_dashboard.duration.days', defaultMessage: '{days}d'},
-    hoursMinutes: {id: 'admin.health_dashboard.duration.hours_minutes', defaultMessage: '{hours}h {minutes}m'},
-    hours: {id: 'admin.health_dashboard.duration.hours', defaultMessage: '{hours}h'},
-    minutes: {id: 'admin.health_dashboard.duration.minutes', defaultMessage: '{minutes}m'},
+    days: {id: 'admin.health_dashboard.duration.whole_days', defaultMessage: '{days, plural, one {# day} other {# days}}'},
+    hours: {id: 'admin.health_dashboard.duration.whole_hours', defaultMessage: '{hours, plural, one {# hour} other {# hours}}'},
+    minutes: {id: 'admin.health_dashboard.duration.whole_minutes', defaultMessage: '{minutes, plural, one {# minute} other {# minutes}}'},
 });
 
-// Compact duration such as "3d 4h" or "2h 5m", never shorter than a minute.
-export function formatDuration(ms: number, formatMessage: IntlShape['formatMessage']) {
-    const totalMinutes = Math.max(Math.floor(ms / 60000), 1);
-    const totalHours = Math.floor(totalMinutes / 60);
-    const days = Math.floor(totalHours / 24);
-    const hours = totalHours % 24;
-    const minutes = totalMinutes % 60;
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
 
-    if (days > 0) {
-        return formatMessage(hours > 0 ? durationMessages.daysHours : durationMessages.days, {days, hours});
+// One rounded unit, such as "22 hours", never shorter than a minute. The breakpoints match
+// RelativeTime's, so a duration and a relative time on the page round the same way.
+export function formatDuration(ms: number, formatMessage: IntlShape['formatMessage']) {
+    if (ms < 59.5 * MINUTE) {
+        return formatMessage(durationMessages.minutes, {minutes: Math.max(Math.round(ms / MINUTE), 1)});
     }
-    if (totalHours > 0) {
-        return formatMessage(minutes > 0 ? durationMessages.hoursMinutes : durationMessages.hours, {hours: totalHours, minutes});
+    if (ms < 23.5 * HOUR) {
+        return formatMessage(durationMessages.hours, {hours: Math.round(ms / HOUR)});
     }
-    return formatMessage(durationMessages.minutes, {minutes: totalMinutes});
+    return formatMessage(durationMessages.days, {days: Math.round(ms / DAY)});
 }
 
 type Props = {
@@ -57,7 +54,7 @@ const Trend = ({finding, now}: Props) => {
         return (
             <FormattedMessage
                 id='admin.health_dashboard.trend.unknown'
-                defaultMessage='Unevaluated for {duration}'
+                defaultMessage='Not checked for {duration}'
                 values={{duration}}
             />
         );
@@ -65,7 +62,7 @@ const Trend = ({finding, now}: Props) => {
     return (
         <FormattedMessage
             id='admin.health_dashboard.trend.firing'
-            defaultMessage='Firing for {duration}'
+            defaultMessage='Open for {duration}'
             values={{duration}}
         />
     );

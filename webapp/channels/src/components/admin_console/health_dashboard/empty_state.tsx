@@ -36,18 +36,18 @@ const titles = defineMessages<HealthFindingTab>({
     warning: {id: 'admin.health_dashboard.empty_tab.warning', defaultMessage: 'No warning findings'},
     info: {id: 'admin.health_dashboard.empty_tab.info', defaultMessage: 'No info findings'},
     resolved: {id: 'admin.health_dashboard.empty_tab.resolved', defaultMessage: 'Nothing resolved in the last 7 days'},
-    unknown: {id: 'admin.health_dashboard.empty_tab.unknown', defaultMessage: 'Every check could be evaluated'},
+    unknown: {id: 'admin.health_dashboard.empty_tab.unknown', defaultMessage: 'Every check ran'},
 });
 
-const severityBody = defineMessage({id: 'admin.health_dashboard.empty_tab.severity_body', defaultMessage: 'Nothing at this severity is firing.'});
+const severityBody = defineMessage({id: 'admin.health_dashboard.empty_tab.severity_body', defaultMessage: 'Nothing at this severity is open.'});
 
 const bodies: Record<HealthFindingTab, MessageDescriptor> = {
-    open: defineMessage({id: 'admin.health_dashboard.all_clear.body', defaultMessage: 'Nothing is firing and every check could be evaluated.'}),
+    open: defineMessage({id: 'admin.health_dashboard.all_clear.body', defaultMessage: 'Nothing is open and every check ran.'}),
     critical: severityBody,
     warning: severityBody,
     info: severityBody,
     resolved: defineMessage({id: 'admin.health_dashboard.empty_tab.resolved_body', defaultMessage: 'Findings that clear on their own are listed here for 7 days.'}),
-    unknown: defineMessage({id: 'admin.health_dashboard.empty_tab.unknown_body', defaultMessage: 'Checks that cannot run are listed here as unknown, never as healthy.'}),
+    unknown: defineMessage({id: 'admin.health_dashboard.empty_tab.unknown_body', defaultMessage: "Checks that can't run are listed here as not checked, never as healthy."}),
 };
 
 // Muted findings are still there, so a tab emptied by muting must not read as all clear.

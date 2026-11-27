@@ -386,7 +386,7 @@ const AdminDefinition: AdminDefinitionType = {
         subsections: {
             site_health: {
                 url: 'reporting/site_health',
-                title: defineMessage({id: 'admin.sidebar.siteHealth', defaultMessage: 'Site health'}),
+                title: defineMessage({id: 'admin.sidebar.siteHealth', defaultMessage: 'Site Health'}),
                 schema: {
                     id: 'HealthDashboard',
                     component: HealthDashboard,

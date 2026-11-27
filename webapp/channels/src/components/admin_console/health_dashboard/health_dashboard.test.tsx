@@ -70,7 +70,7 @@ function rowTitles() {
 async function renderDashboard(list: HealthFindingList, initialState = {}) {
     jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(list);
     renderWithContext(<HealthDashboard/>, initialState);
-    return screen.findByText(/^(Last evaluated|Not evaluated yet)/);
+    return screen.findByText(/^(Last checked|Not evaluated yet)/);
 }
 
 function makeRun(status: Job['status'], overrides: Partial<Job> = {}): Job {
@@ -143,11 +143,11 @@ describe('components/admin_console/health_dashboard', () => {
     test('shows the page title once, in the admin header, above the last evaluation time', async () => {
         await renderDashboard(evaluated(mixed));
 
-        const titles = screen.getAllByText('Site health');
+        const titles = screen.getAllByText('Site Health');
         expect(titles).toHaveLength(1);
         expect(screen.getByTestId('admin-console-header')).toContainElement(titles[0]);
-        expect(screen.queryByRole('heading', {name: 'Site health'})).not.toBeInTheDocument();
-        expect(screen.getByText(/^Last evaluated/)).toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Site Health'})).not.toBeInTheDocument();
+        expect(screen.getByText(/^Last checked/)).toBeInTheDocument();
     });
 
     test('empty state: nothing has been evaluated yet', async () => {
@@ -155,7 +155,7 @@ describe('components/admin_console/health_dashboard', () => {
 
         expect(screen.getByText('Not evaluated yet')).toBeInTheDocument();
         expect(screen.getByText('No health check has run yet. To run one now, select Re-run checks.')).toBeInTheDocument();
-        expect(screen.queryByText(/^Last evaluated/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Last checked/)).not.toBeInTheDocument();
         expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
     });
 
@@ -172,8 +172,8 @@ describe('components/admin_console/health_dashboard', () => {
         await renderDashboard(evaluated([]));
 
         expect(screen.getByText('All clear')).toBeInTheDocument();
-        expect(screen.getByText(/^Last evaluated/)).toBeInTheDocument();
-        expect(tabTexts()).toEqual(['Open0', 'Critical0', 'Warning0', 'Info0', 'Recently resolved0', 'Unknown0']);
+        expect(screen.getByText(/^Last checked/)).toBeInTheDocument();
+        expect(tabTexts()).toEqual(['Open0', 'Critical0', 'Warning0', 'Info0', 'Recently resolved0', 'Not checked0']);
         expect(screen.queryByText('Not evaluated yet')).not.toBeInTheDocument();
     });
 
@@ -181,7 +181,7 @@ describe('components/admin_console/health_dashboard', () => {
         test('count open as firing plus unknown, severities as firing only, and resolved within 7 days', async () => {
             await renderDashboard(evaluated(mixed));
 
-            expect(tabTexts()).toEqual(['Open5', 'Critical1', 'Warning2', 'Info1', 'Recently resolved1', 'Unknown1']);
+            expect(tabTexts()).toEqual(['Open5', 'Critical1', 'Warning2', 'Info1', 'Recently resolved1', 'Not checked1']);
         });
 
         test('unknown findings are excluded from severity counts', async () => {
@@ -190,15 +190,15 @@ describe('components/admin_console/health_dashboard', () => {
                 makeFinding({fingerprint: 'u2', severity: 'warning', state: 'unknown'}),
             ]));
 
-            expect(tabTexts()).toEqual(['Open2', 'Critical0', 'Warning0', 'Info0', 'Recently resolved0', 'Unknown2']);
+            expect(tabTexts()).toEqual(['Open2', 'Critical0', 'Warning0', 'Info0', 'Recently resolved0', 'Not checked2']);
             expect(screen.queryByText('All clear')).not.toBeInTheDocument();
-            expect(sectionHeadings()).toEqual(['Could not be evaluated2']);
+            expect(sectionHeadings()).toEqual(['Not checked2']);
         });
 
         test('open lists firing findings by severity, then unknowns, and no resolved findings', async () => {
             await renderDashboard(evaluated(mixed));
 
-            expect(sectionHeadings()).toEqual(['Critical1', 'Warning2', 'Info1', 'Could not be evaluated1']);
+            expect(sectionHeadings()).toEqual(['Critical1', 'Warning2', 'Info1', 'Not checked1']);
             expect(screen.queryByText('Resolved recently')).not.toBeInTheDocument();
         });
 
@@ -209,7 +209,7 @@ describe('components/admin_console/health_dashboard', () => {
                 makeFinding({fingerprint: 'u3', severity: 'critical', state: 'unknown', title: 'Unknown critical', state_since: NOW - (30 * 60000)}),
             ]));
 
-            expect(sectionHeadings()).toEqual(['Could not be evaluated3']);
+            expect(sectionHeadings()).toEqual(['Not checked3']);
             expect(rowTitles()).toEqual(['Unknown critical', 'Unknown warning', 'Unknown info']);
         });
 
@@ -231,13 +231,13 @@ describe('components/admin_console/health_dashboard', () => {
             expect(rowTitles()).toEqual(['Resolved recently']);
         });
 
-        test('unknown lists unknown findings, expanded, with the explanation and their cause', async () => {
+        test('not checked lists unknown findings, expanded, with the explanation and their cause', async () => {
             await renderDashboard(evaluated(mixed));
 
-            await userEvent.click(screen.getByRole('tab', {name: /^Unknown/}));
+            await userEvent.click(screen.getByRole('tab', {name: /^Not checked/}));
 
-            expect(sectionHeadings()).toEqual(['Could not be evaluated1']);
-            expect(screen.getByText(/Unknown does not mean healthy/)).toBeVisible();
+            expect(sectionHeadings()).toEqual(['Not checked1']);
+            expect(screen.getByText(/Not checked doesn't mean healthy/)).toBeVisible();
             expect(screen.getByText('Config section unavailable.')).toBeVisible();
         });
 
@@ -280,7 +280,7 @@ describe('components/admin_console/health_dashboard', () => {
             ['Critical', 'No critical findings'],
             ['Info', 'No info findings'],
             ['Recently resolved', 'Nothing resolved in the last 7 days'],
-            ['Unknown', 'Every check could be evaluated'],
+            ['Not checked', 'Every check ran'],
         ])('an empty %s tab explains why it is empty', async (tab, message) => {
             await renderDashboard(evaluated([makeFinding({fingerprint: 'w1', severity: 'warning'})]));
 
@@ -347,7 +347,7 @@ describe('components/admin_console/health_dashboard', () => {
 
             await userEvent.click(severity);
 
-            expect(sectionHeadings()).toEqual(['Critical1', 'Warning2', 'Info1', 'Could not be evaluated1']);
+            expect(sectionHeadings()).toEqual(['Critical1', 'Warning2', 'Info1', 'Not checked1']);
         });
 
         test('category expands areas with a firing critical and omits area tags from rows', async () => {
@@ -390,7 +390,7 @@ describe('components/admin_console/health_dashboard', () => {
                 'Warning new': 'Warning',
                 'Warning old': 'Warning',
                 'Info one': 'Info',
-                'Unknown one': 'Unknown',
+                'Unknown one': 'Not checked',
             });
 
             await userEvent.click(screen.getByRole('tab', {name: /^Recently resolved/}));
@@ -467,7 +467,7 @@ describe('components/admin_console/health_dashboard', () => {
             await renderDashboard(evaluated([pushFinding, mutedByBob]), systemAdmin);
 
             expect(mutedToggle()).toHaveTextContent('Muted1');
-            expect(tabTexts()).toEqual(['Open1', 'Critical1', 'Warning0', 'Info0', 'Recently resolved0', 'Unknown0']);
+            expect(tabTexts()).toEqual(['Open1', 'Critical1', 'Warning0', 'Info0', 'Recently resolved0', 'Not checked0']);
             expect(screen.queryByText('Muted by a colleague')).not.toBeInTheDocument();
         });
 
@@ -614,7 +614,7 @@ describe('components/admin_console/health_dashboard', () => {
         async function renderRunDashboard(list: HealthFindingList, initialState = systemAdmin) {
             jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(list);
             const result = renderWithContext(<HealthDashboard/>, initialState);
-            await screen.findByText(/^(Last evaluated|Not evaluated yet)/);
+            await screen.findByText(/^(Last checked|Not evaluated yet)/);
             return result;
         }
 
@@ -668,7 +668,7 @@ describe('components/admin_console/health_dashboard', () => {
             expect(runButton()).toBeEnabled();
         });
 
-        test('updates "Last evaluated" from the refreshed findings', async () => {
+        test('updates "Last checked" from the refreshed findings', async () => {
             const user = setupUser();
             const {store} = await renderRunDashboard({evaluated_at: 0, findings: []});
             jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
@@ -677,7 +677,7 @@ describe('components/admin_console/health_dashboard', () => {
             await startRun(user);
             await jobUpdated(store, makeRun('success'));
 
-            expect(await screen.findByText(/^Last evaluated/)).toBeInTheDocument();
+            expect(await screen.findByText(/^Last checked/)).toBeInTheDocument();
             expect(screen.queryByText('Not evaluated yet')).not.toBeInTheDocument();
         });
 

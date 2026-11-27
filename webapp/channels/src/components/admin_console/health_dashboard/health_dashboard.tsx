@@ -412,7 +412,7 @@ const HealthDashboard = ({
                     <p className='HealthDashboard__lastEvaluated'>
                         <FormattedMessage
                             id='admin.health_dashboard.last_evaluated'
-                            defaultMessage='Last evaluated {time}'
+                            defaultMessage='Last checked {time}'
                             values={{time: <RelativeTime value={lastEvaluatedAt}/>}}
                         />
                     </p>
@@ -454,7 +454,7 @@ const HealthDashboard = ({
                             id='admin.health_dashboard.muted.toggle'
                             defaultMessage='Muted'
                         />
-                        <span className='HealthDashboard__tabCount'>{mutedFindings.length}</span>
+                        <span className='HealthDashboard__count'>{mutedFindings.length}</span>
                     </button>
                 </div>
                 <div className='HealthDashboard__toolbar HealthDashboard__toolbar--secondary'>
@@ -508,23 +508,26 @@ const HealthDashboard = ({
             <AdminHeader>
                 <FormattedMessage
                     id='admin.health_dashboard.title'
-                    defaultMessage='Site health'
+                    defaultMessage='Site Health'
                 />
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
-                    {automaticChecks === false && (
-                        <AutomaticChecksOffBanner/>
-                    )}
-                    {automaticChecksError && (
-                        <AlertBanner
-                            mode='danger'
-                            className='HealthDashboard__automaticChecksError'
-                            onDismiss={() => setAutomaticChecksError(null)}
-                            message={<FormattedMessage {...automaticChecksError}/>}
-                        />
-                    )}
-                    {content}
+                    {/* One child, so the container's flex gap doesn't add to the rows' own margins. */}
+                    <div>
+                        {automaticChecks === false && (
+                            <AutomaticChecksOffBanner/>
+                        )}
+                        {automaticChecksError && (
+                            <AlertBanner
+                                mode='danger'
+                                className='HealthDashboard__automaticChecksError'
+                                onDismiss={() => setAutomaticChecksError(null)}
+                                message={<FormattedMessage {...automaticChecksError}/>}
+                            />
+                        )}
+                        {content}
+                    </div>
                 </div>
             </div>
         </div>

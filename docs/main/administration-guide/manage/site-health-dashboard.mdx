@@ -14,7 +14,7 @@ From Mattermost v12.3, the Site health dashboard is enabled by default. In v12.2
 
 ## Access the dashboard
 
-Go to **System Console \> Reporting \> Site health**. System administrators and delegated admins who can read **Site Statistics** can access this page.
+Go to **System Console \> Reporting \> Site Health**. System administrators and delegated admins who can read **Site Statistics** can access this page.
 
 Delegated admins see the page read-only: they can't mute or unmute findings or re-run checks. Which findings they see depends on their permissions.
 
@@ -59,11 +59,11 @@ The dashboard evaluates your deployment and surfaces findings in one of three st
 
 | State | Meaning |
 | --- | --- |
-| Firing | The check is failing and requires attention. |
-| Unknown | The check cannot run and its result is indeterminate. |
+| Open | The check is failing and requires attention. |
+| Not checked | The check couldn't run, so its result isn't known. Not checked doesn't mean healthy: each finding shows why the check couldn't run. |
 | Resolved | The check was previously failing and has since passed. |
 
-Each finding row shows its severity, title, category area, and how long the condition has been in its current state. Select a row to expand it and read the full description and any remediation guidance.
+Each finding row shows its severity, title, category area, and how long the condition has been in its current state, such as **Open for 2 days** or **Not checked for 22 hours**. Times are rounded to a single unit of minutes, hours, or days. Select a row, or the chevron at its right end, to expand it and read the full description and any remediation guidance.
 
 ### Severity levels
 
@@ -77,11 +77,11 @@ Each finding row shows its severity, title, category area, and how long the cond
 
 Checks run automatically about once an hour, unless you [turn off automatic checks](#turn-off-automatic-checks). In a high availability cluster, every node reports its own status, so a finding can point to the node that has the problem. For example, it can name a node that can't reach LDAP, SAML, SMTP, Elasticsearch or OpenSearch, or file storage while the other nodes can, or a node whose database connection pool is nearly full.
 
-To run the checks now instead of waiting, select **Re-run checks** at the top of the page. The button shows **Running checks…** until the run finishes, usually within a minute or two, and then the findings and **Last evaluated** update. If a run is already in progress, whether you or the hourly schedule started it, the dashboard waits for that run instead of starting another. If the run fails, the dashboard shows the reason and keeps the previous findings.
+To run the checks now instead of waiting, select **Re-run checks** at the top of the page. The button shows **Running checks…** until the run finishes, usually within a minute or two, and then the findings and **Last checked** update. If a run is already in progress, whether you or the hourly schedule started it, the dashboard waits for that run instead of starting another. If the run fails, the dashboard shows the reason and keeps the previous findings.
 
 - Until the first check runs, the dashboard has no findings to show. Select **Re-run checks** to run it straight away.
 - After you fix the cause of a finding, it moves to **Recently resolved** after the next check run. Select **Re-run checks** to confirm the fix without waiting up to an hour.
-- A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
+- A finding becomes **Not checked** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
 - If a node doesn't report back in time, the dashboard shows **A cluster node is not responding**. That node's other findings keep their last known state until it responds again. A busy or slow node can cause this warning to appear briefly.
 
 ### Turn off automatic checks
@@ -94,10 +94,10 @@ While automatic checks are off, the dashboard shows the findings from the last r
 
 Findings are grouped into tabs:
 
-- **Open** — all firing and unknown findings.
-- **Critical**, **Warning**, **Info** — firing findings filtered by severity.
+- **Open** — all open findings, plus checks that couldn't run.
+- **Critical**, **Warning**, **Info** — open findings filtered by severity.
 - **Recently resolved** — findings that have cleared.
-- **Unknown** — checks that could not run.
+- **Not checked** — checks that couldn't run.
 
 Tab counts reflect only unmuted findings. If every finding in a tab is muted, the tab displays how many findings are muted rather than an all-clear message, so muting a critical finding never makes the page appear healthy.
 
@@ -113,7 +113,7 @@ Mutes are workspace-wide: a finding muted by one administrator is muted for all 
 
 ### Mute a finding
 
-Firing and unknown findings have a **Mute** button at the right end of the row. Select **Mute** to suppress the finding immediately. No confirmation dialog appears — unmuting is one click away in the Muted list.
+Open and not-checked findings have a **Mute** button at the right end of the row, before the chevron. Select **Mute** to suppress the finding immediately. No confirmation dialog appears — unmuting is one click away in the Muted list.
 
 Resolved findings cannot be muted.
 
@@ -151,7 +151,7 @@ Use the [mmctl](/administration-guide/manage/mmctl-command-line-tool) `health ch
 mmctl health check
 ```
 
-By default, only firing and unknown findings are shown. Use the following flags to include more:
+By default, only open findings and checks that couldn't run are shown. Use the following flags to include more:
 
 | Flag | Description |
 | --- | --- |

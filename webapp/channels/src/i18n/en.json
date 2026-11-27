@@ -7512,8 +7512,8 @@
     "description": "Setting label for a text field on the Guest Access admin page; a list of email domains allowed for guest accounts. Ends with a colon."
   },
   "admin.health_dashboard.all_clear.body": {
-    "defaultMessage": "Nothing is firing and every check could be evaluated.",
-    "description": "Body of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+    "defaultMessage": "Nothing is open and every check ran.",
+    "description": "Body of the empty Open tab on the System Console Site health page, shown when no finding is open and every health check could run."
   },
   "admin.health_dashboard.all_clear.title": {
     "defaultMessage": "All clear",
@@ -7627,25 +7627,17 @@
     "defaultMessage": "Severity",
     "description": "Label in the details list of an expanded unknown or resolved finding on the System Console Site health page; the value is the severity the check has when firing (Critical, Warning or Info)."
   },
-  "admin.health_dashboard.duration.days": {
-    "defaultMessage": "{days}d",
-    "description": "Compact duration in days on the System Console Site health page, such as \"3d\"; d abbreviates days."
+  "admin.health_dashboard.duration.whole_days": {
+    "defaultMessage": "{days, plural, one {# day} other {# days}}",
+    "description": "Duration in whole days on the System Console Site health page, such as \"2 days\", used in \"Open for {duration}\" and \"Not checked for {duration}\"."
   },
-  "admin.health_dashboard.duration.days_hours": {
-    "defaultMessage": "{days}d {hours}h",
-    "description": "Compact duration in days and hours on the System Console Site health page, such as \"3d 4h\"; d abbreviates days and h hours."
+  "admin.health_dashboard.duration.whole_hours": {
+    "defaultMessage": "{hours, plural, one {# hour} other {# hours}}",
+    "description": "Duration in whole hours on the System Console Site health page, such as \"22 hours\", used in \"Open for {duration}\" and \"Not checked for {duration}\"."
   },
-  "admin.health_dashboard.duration.hours": {
-    "defaultMessage": "{hours}h",
-    "description": "Compact duration in hours on the System Console Site health page, such as \"5h\"; h abbreviates hours."
-  },
-  "admin.health_dashboard.duration.hours_minutes": {
-    "defaultMessage": "{hours}h {minutes}m",
-    "description": "Compact duration in hours and minutes on the System Console Site health page, such as \"2h 5m\"; h abbreviates hours and m minutes."
-  },
-  "admin.health_dashboard.duration.minutes": {
-    "defaultMessage": "{minutes}m",
-    "description": "Compact duration in minutes on the System Console Site health page, such as \"9m\"; m abbreviates minutes."
+  "admin.health_dashboard.duration.whole_minutes": {
+    "defaultMessage": "{minutes, plural, one {# minute} other {# minutes}}",
+    "description": "Duration in whole minutes on the System Console Site health page, such as \"45 minutes\", used in \"Open for {duration}\" and \"Not checked for {duration}\"."
   },
   "admin.health_dashboard.empty_tab.critical": {
     "defaultMessage": "No critical findings",
@@ -7672,16 +7664,16 @@
     "description": "Body of the empty Recently resolved tab on the System Console Site health page."
   },
   "admin.health_dashboard.empty_tab.severity_body": {
-    "defaultMessage": "Nothing at this severity is firing.",
-    "description": "Body of an empty Critical, Warning or Info tab on the System Console Site health page."
+    "defaultMessage": "Nothing at this severity is open.",
+    "description": "Body of an empty Critical, Warning or Info tab on the System Console Site health page; open means a finding that is still a problem."
   },
   "admin.health_dashboard.empty_tab.unknown": {
-    "defaultMessage": "Every check could be evaluated",
-    "description": "Title of the empty Unknown tab on the System Console Site health page, shown when every health check could be evaluated."
+    "defaultMessage": "Every check ran",
+    "description": "Title of the empty Not checked tab on the System Console Site health page, shown when every health check could run."
   },
   "admin.health_dashboard.empty_tab.unknown_body": {
-    "defaultMessage": "Checks that cannot run are listed here as unknown, never as healthy.",
-    "description": "Body of the empty Unknown tab on the System Console Site health page; stresses that an unknown check is never treated as healthy."
+    "defaultMessage": "Checks that can't run are listed here as not checked, never as healthy.",
+    "description": "Body of the empty Not checked tab on the System Console Site health page; stresses that a check that could not run is never treated as healthy."
   },
   "admin.health_dashboard.empty_tab.warning": {
     "defaultMessage": "No warning findings",
@@ -7713,7 +7705,7 @@
   },
   "admin.health_dashboard.export.exporting": {
     "defaultMessage": "Exporting…",
-    "description": "Label of the Export menu button on the System Console Site health page while the export is being fetched from the server."
+    "description": "Screen reader name of the Export button on the System Console Site health page while the export is being fetched from the server; the visible label stays Export and a spinner shows instead."
   },
   "admin.health_dashboard.export.html": {
     "defaultMessage": "Download HTML",
@@ -7740,11 +7732,11 @@
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
   "admin.health_dashboard.finding.unknown": {
-    "defaultMessage": "Unknown",
-    "description": "Badge on a finding row of the System Console Site health page, when findings are grouped by category, for a check that could not be evaluated."
+    "defaultMessage": "Not checked",
+    "description": "Badge on a finding row of the System Console Site health page, when findings are grouped by category, for a check that could not run; same wording as the Not checked tab."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
-    "defaultMessage": "This check could not run, so its result is unknown.",
+    "defaultMessage": "This check couldn't run, and the server didn't say why.",
     "description": "Cause shown on a finding row of the System Console Site health page when a check could not be evaluated and the server gave no reason."
   },
   "admin.health_dashboard.group_by.category": {
@@ -7761,11 +7753,11 @@
   },
   "admin.health_dashboard.just_now": {
     "defaultMessage": "just now",
-    "description": "Relative time on the System Console Site health page for a moment less than a minute ago, used inside sentences such as \"Last evaluated {time}\" and \"Muted by {name} {time}\"."
+    "description": "Relative time on the System Console Site health page for a moment less than a minute ago, used inside sentences such as \"Last checked {time}\" and \"Muted by {name} {time}\"."
   },
   "admin.health_dashboard.last_evaluated": {
-    "defaultMessage": "Last evaluated {time}",
-    "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
+    "defaultMessage": "Last checked {time}",
+    "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"19 hours ago\" of the latest health check run."
   },
   "admin.health_dashboard.mute.error": {
     "defaultMessage": "The finding could not be muted, so it is still in the open list. Try again.",
@@ -7844,8 +7836,8 @@
     "description": "Tab and section label on the System Console Site health page for findings that stopped firing in the last 7 days."
   },
   "admin.health_dashboard.state.unknown": {
-    "defaultMessage": "Unknown",
-    "description": "Tab label on the System Console Site health page for health checks that could not be evaluated."
+    "defaultMessage": "Not checked",
+    "description": "Tab label on the System Console Site health page for health checks that could not run; compact space."
   },
   "admin.health_dashboard.tab.open": {
     "defaultMessage": "Open",
@@ -7856,28 +7848,28 @@
     "description": "Screen reader label for the tabs that filter findings on the System Console Site health page."
   },
   "admin.health_dashboard.title": {
-    "defaultMessage": "Site health",
+    "defaultMessage": "Site Health",
     "description": "Page header of the System Console Site health page, which lists health findings for the workspace."
   },
   "admin.health_dashboard.trend.firing": {
-    "defaultMessage": "Firing for {duration}",
-    "description": "Meta line on a finding row of the System Console Site health page; {duration} is a compact duration such as \"3d 4h\"."
+    "defaultMessage": "Open for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page for a finding that is still open; {duration} is how long it has been open, such as \"2 days\"."
   },
   "admin.health_dashboard.trend.resolved": {
     "defaultMessage": "Resolved {time}",
     "description": "Meta line on a resolved finding row of the System Console Site health page; {time} is a relative time such as \"2 hours ago\"."
   },
   "admin.health_dashboard.trend.unknown": {
-    "defaultMessage": "Unevaluated for {duration}",
-    "description": "Meta line on a finding row of the System Console Site health page for a check that could not be evaluated; {duration} is a compact duration such as \"5h\"."
+    "defaultMessage": "Not checked for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page for a check that could not run; {duration} is how long it has not been checked, such as \"22 hours\"."
   },
   "admin.health_dashboard.unknown.explanation": {
-    "defaultMessage": "These checks could not run, so their result is unknown. Unknown does not mean healthy: each one shows why it could not be checked.",
-    "description": "Explanation under the \"Could not be evaluated\" section of the System Console Site health page; unknown results must not be read as healthy."
+    "defaultMessage": "These checks couldn't run. Not checked doesn't mean healthy: each card shows why.",
+    "description": "One-line explanation under the \"Not checked\" section of the System Console Site health page; a check that could not run must not be read as healthy, and each card says why it could not run."
   },
   "admin.health_dashboard.unknown.title": {
-    "defaultMessage": "Could not be evaluated",
-    "description": "Heading of the section on the System Console Site health page listing health checks that could not be evaluated."
+    "defaultMessage": "Not checked",
+    "description": "Heading of the section on the System Console Site health page listing health checks that could not run; same wording as the Not checked tab."
   },
   "admin.health_dashboard.unmute.error": {
     "defaultMessage": "The finding could not be unmuted, so it is still muted. Try again.",
@@ -15740,7 +15732,7 @@
     "description": "Category heading in the System Console left navigation sidebar, grouping site-wide configuration pages; compact space."
   },
   "admin.sidebar.siteHealth": {
-    "defaultMessage": "Site health",
+    "defaultMessage": "Site Health",
     "description": "Navigation item in the System Console sidebar under Reporting; opens the Site health page listing health findings; compact space."
   },
   "admin.sidebar.smtp": {

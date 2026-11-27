@@ -66,14 +66,14 @@ function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, 
 }
 
 describe('components/admin_console/health_dashboard/finding_row', () => {
-    test('a firing finding shows its title, message, severity, area and how long it has been firing', () => {
+    test('a firing finding shows its title, message, severity, area and how long it has been open', () => {
         renderRow(makeFinding());
 
         expect(screen.getByText('Push notification server is not HTTPS')).toBeInTheDocument();
         expect(screen.getByText('The push server uses http://.')).toBeInTheDocument();
         expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Critical$/);
         expect(screen.getByTestId('healthFindingArea')).toHaveTextContent('Notifications');
-        expect(header().getByText('Firing for 1m')).toBeInTheDocument();
+        expect(header().getByText('Open for 1 minute')).toBeInTheDocument();
     });
 
     test('hideArea omits the area tag', () => {
@@ -101,18 +101,18 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(within(document.getElementById(detail)!).getByText('Warning')).toBeVisible();
     });
 
-    test('an unknown finding shows its message as the cause and how long it has been unevaluated', () => {
+    test('an unknown finding shows its message as the cause and how long it has not been checked', () => {
         renderRow(makeFinding({state: 'unknown', message: 'Config section unavailable.', state_since: now - (125 * 60000)}));
 
         expect(screen.getByText('Config section unavailable.')).toBeInTheDocument();
-        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Unknown$/);
-        expect(header().getByText('Unevaluated for 2h 5m')).toBeInTheDocument();
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Not checked$/);
+        expect(header().getByText('Not checked for 2 hours')).toBeInTheDocument();
     });
 
     test('an unknown finding without a message falls back to a generic cause', () => {
         renderRow(makeFinding({state: 'unknown', message: ''}));
 
-        expect(screen.getByText('This check could not run, so its result is unknown.')).toBeInTheDocument();
+        expect(screen.getByText("This check couldn't run, and the server didn't say why.")).toBeInTheDocument();
         expect(screen.getByText('Push notification server is not HTTPS')).toBeInTheDocument();
     });
 
@@ -145,6 +145,23 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(onToggle).toHaveBeenCalledWith('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     });
 
+    test('the chevron after the Mute button also toggles the row, without adding a second control for keyboards or screen readers', async () => {
+        const {onToggle, onMute} = renderRow(makeFinding());
+
+        const row = screen.getByTestId('healthFinding-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        const chevron = row.querySelector<HTMLButtonElement>('.HealthFinding__chevron')!;
+        const mute = screen.getByRole('button', {name: 'Mute'});
+        expect(mute.compareDocumentPosition(chevron) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(chevron).toHaveAttribute('tabindex', '-1');
+        expect(chevron).toHaveAttribute('aria-hidden', 'true');
+
+        await userEvent.click(chevron);
+
+        expect(onToggle).toHaveBeenCalledWith('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        expect(onMute).not.toHaveBeenCalled();
+        expect(screen.getAllByRole('button')).toEqual([screen.getByRole('button', {name: /Push notification server is not HTTPS/}), mute]);
+    });
+
     function expandedDetail() {
         const toggle = screen.getByRole('button', {name: /Push notification server is not HTTPS/});
         expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -168,7 +185,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(within(detail).queryByText('Critical')).not.toBeInTheDocument();
         expect(within(detail).getByText('node-3')).toBeInTheDocument();
         expect(within(detail).getByText('http://push.example.com')).toBeInTheDocument();
-        expect(within(detail).queryByText('Firing for 1m')).not.toBeInTheDocument();
+        expect(within(detail).queryByText('Open for 1 minute')).not.toBeInTheDocument();
     });
 
     test('a firing finding first seen in an earlier state shows the date it was first detected, even without other details', () => {

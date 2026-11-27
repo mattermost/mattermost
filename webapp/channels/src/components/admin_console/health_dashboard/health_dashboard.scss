@@ -56,18 +56,6 @@
         white-space: nowrap;
     }
 
-    &__exportLabel {
-        display: inline-grid;
-
-        > span {
-            grid-area: 1 / 1;
-        }
-
-        > [aria-hidden='true'] {
-            visibility: hidden;
-        }
-    }
-
     &__toolbar {
         display: flex;
         flex-wrap: wrap;
@@ -99,7 +87,7 @@
         border: none;
         border-radius: var(--radius-s);
         background: none;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.8);
         font-size: 13px;
         font-weight: 600;
         gap: 6px;
@@ -126,9 +114,13 @@
                 color: var(--health-#{$tone});
             }
         }
+
+        &--empty svg {
+            color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        }
     }
 
-    &__tabCount {
+    &__count {
         display: inline-flex;
         min-width: 16px;
         height: 16px;
@@ -137,7 +129,13 @@
         padding: 0 5px;
         border-radius: 8px;
         background: rgba(var(--sys-center-channel-color-rgb), 0.1);
+        font-family: 'Open Sans', sans-serif;
         font-size: 11px;
+        font-weight: 600;
+    }
+
+    &__tab--empty &__count {
+        background: none;
     }
 
     &__mutedToggle {
@@ -149,7 +147,7 @@
         border-radius: var(--radius-s);
         margin-left: auto;
         background: var(--sys-center-channel-bg);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.8);
         font-size: 13px;
         font-weight: 600;
         gap: 6px;
@@ -168,8 +166,8 @@
         }
     }
 
-    &__mutedToggle--active &__tabCount {
-        background: rgba(var(--sys-button-bg-rgb), 0.16);
+    &__mutedToggle--active &__count {
+        background: rgba(var(--sys-button-bg-rgb), 0.12);
     }
 
     &__muteError {
@@ -183,7 +181,7 @@
         border-radius: var(--radius-m);
         margin: 0 0 14px;
         background: rgba(var(--sys-center-channel-color-rgb), 0.04);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.8);
         font-size: 13px;
         gap: 8px;
         line-height: 19px;
@@ -201,7 +199,7 @@
     }
 
     &__groupByLabel {
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
         font-size: 12px;
         font-weight: 600;
     }
@@ -212,7 +210,7 @@
         border-radius: var(--radius-m);
         background: var(--sys-center-channel-bg);
         box-shadow: var(--elevation-1);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
         text-align: center;
     }
 
@@ -238,7 +236,8 @@
         }
     }
 
-    &__sectionTitle {
+    // Doubled up to beat the System Console's .admin-console h3 margins.
+    & &__sectionTitle {
         display: flex;
         align-items: center;
         padding: 14px 4px 8px;
@@ -254,13 +253,6 @@
         color: var(--health-tone);
     }
 
-    &__sectionCount {
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
-        font-family: 'Open Sans', sans-serif;
-        font-size: 13px;
-        font-weight: 400;
-    }
-
     &__sectionRule {
         height: 1px;
         flex: 1;
@@ -271,6 +263,8 @@
     &__unknownExplanation {
         margin: 0 4px 8px;
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        font-size: 13.5px;
+        line-height: 20px;
     }
 
     &__findings {
@@ -291,7 +285,8 @@
         box-shadow: var(--elevation-1);
     }
 
-    &__areaHeading {
+    & &__areaHeading {
+        padding: 0;
         margin: 0;
     }
 
@@ -332,7 +327,7 @@
     }
 
     &__areaCount {
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
         font-size: 13px;
         font-weight: 400;
     }
@@ -348,6 +343,7 @@
         align-items: center;
         padding: 2px 9px;
         border-radius: 12px;
+        color: var(--sys-center-channel-color);
         font-size: 12px;
         font-weight: 600;
         gap: 4px;
@@ -355,7 +351,10 @@
         @each $tone in critical, warning, info {
             &--#{$tone} {
                 background: rgba(var(--health-#{$tone}-rgb), 0.1);
-                color: var(--health-#{$tone});
+
+                svg {
+                    color: var(--health-#{$tone});
+                }
             }
         }
     }
@@ -399,7 +398,7 @@
         border-left-color: rgba(var(--sys-center-channel-color-rgb), 0.24);
     }
 
-    &--muted &__header {
+    &--muted &__icon {
         opacity: 0.72;
     }
 
@@ -473,7 +472,7 @@
         flex-wrap: wrap;
         align-items: center;
         margin-top: 6px;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
         font-size: 12px;
         gap: 6px 10px;
     }
@@ -482,7 +481,7 @@
         padding: 2px 9px;
         border-radius: 12px;
         background: rgba(var(--health-tone-rgb), 0.1);
-        color: var(--health-tone);
+        color: var(--sys-center-channel-color);
         font-weight: 600;
     }
 
@@ -503,20 +502,26 @@
         }
     }
 
-    &__chevron {
-        flex-shrink: 0;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
-    }
-
     &__action:not(:empty) {
         flex-shrink: 0;
-        padding: 12px 16px 0 0;
+        padding-top: 12px;
     }
 
-    &__muteButton {
-        display: inline-flex;
+    // The System Console text colour, like the rest of the page; the theme's is too light at 0.72.
+    &__action &__muteButton:not(:hover, :focus-visible, :active) {
+        --button-fg: rgba(var(--sys-center-channel-color-rgb), 0.72);
+    }
+
+    &__chevron {
+        display: flex;
+        flex-shrink: 0;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        margin: 19px 16px 0 8px;
+        background: none;
+        color: rgba(var(--sys-center-channel-color-rgb), 0.56);
     }
 
     &__detail {
@@ -529,9 +534,10 @@
         margin-top: 22px;
     }
 
-    &__detailTitle {
+    // Doubled up to beat the System Console's .admin-console h4 margin.
+    & &__detailTitle {
         margin: 0 0 8px;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
         font-size: 11px;
         font-weight: 600;
         letter-spacing: 0.6px;
@@ -585,8 +591,12 @@
         grid-template-columns: max-content 1fr;
 
         dt {
-            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.72);
             font-weight: 400;
+
+            code {
+                color: rgba(var(--sys-center-channel-color-rgb), 0.8);
+            }
         }
 
         dd {
