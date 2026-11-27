@@ -310,7 +310,7 @@ requested_plugin_slugs() {
   fi
 
   local manifest token name
-  manifest="$(manifest_plugin_slugs)"
+  manifest="$(core_plugin_slugs)"
   for token in ${requested//,/ }; do
     case "$token" in
       all) printf '%s\n' "$manifest" ;;
@@ -318,7 +318,7 @@ requested_plugin_slugs() {
       *)
         name="$(plugin_repo_name "$token")"
         if ! grep -qx "mattermost/$name" <<< "$manifest"; then
-          log "$name is not in repositoryDependencies; cloning only works if the repo is public."
+          log "$name is not a core plugin; cloning only works if this run's git credentials can read it."
         fi
         printf 'mattermost/%s\n' "$name"
         ;;

@@ -32,7 +32,7 @@ When no usable Enterprise checkout is present (single-repo runs and git-triggere
 
 ### Plugins
 
-The core plugin list is the set of `github.com/mattermost/mattermost-plugin-*` entries in `repositoryDependencies`: mostly the plugins `server/Makefile` prepackages, with Boards v2 in place of Boards, plus Weave and the Google Calendar, Drive, and Meet plugins. `mattermost-plugin-dataminr` is left out because the Cloud Agent token cannot read it. Listing them there grants the git token access, and the install hook reads the same list, so there is a single place to add or remove a plugin.
+The core plugin list is `CORE_PLUGIN_SLUGS` in `scripts/cloud-agent-lib.sh`: mostly the plugins `server/Makefile` prepackages, with Boards v2 in place of Boards, plus Weave and the Google Calendar, Drive, and Meet plugins. `mattermost-plugin-dataminr` is left out because the Cloud Agent token cannot read it. The list only drives `CLOUD_AGENT_SUPER_ENV=true` and `CLOUD_AGENT_PLUGINS=all`. `repositoryDependencies` stays limited to Enterprise, so the git token does not cover the plugins; the multi-repo saved "Super Environment" in Cursor is what grants and checks them out.
 
 The install hook:
 
@@ -46,8 +46,8 @@ The plugins' own `.cursor/` setups are not run. They target a standalone prebuil
 
 Cursor resolves the environment in this order: a personal saved environment, a team saved environment, then `.cursor/environment.json` (single-repo runs only). A saved environment reads this file only when its environment.json location points at it. Either setup below works:
 
-- **Multi-repo saved environment (recommended)**: in the [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents), create an environment with `mattermost/mattermost`, `mattermost/enterprise`, and the plugin repos you want. Set its environment.json location to `mattermost/mattermost`'s `.cursor/environment.json`. Cursor clones every repo as a sibling and the install hook hydrates the plugins it finds. Optionally add `CLOUD_AGENT_SUPER_ENV=true` as an environment-scoped secret so any core plugin you did not select is cloned too.
-- **Single repo plus flag**: use an environment that points at this file and add `CLOUD_AGENT_SUPER_ENV=true` (or `CLOUD_AGENT_PLUGINS=playbooks,agents,...`) as an environment-scoped secret. The install hook clones the plugins using the token scope from `repositoryDependencies`.
+- **Multi-repo saved environment (recommended)**: in the [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents), create an environment with `mattermost/mattermost`, `mattermost/enterprise`, and the plugin repos you want. Set its environment.json location to `mattermost/mattermost`'s `.cursor/environment.json`. Cursor clones every repo as a sibling and the install hook hydrates the plugins it finds. Optionally add `CLOUD_AGENT_SUPER_ENV=true` as an environment-scoped secret so any core plugin you did not select is cloned too (this only succeeds for repos the run's git credentials can read).
+- **Single repo plus flag**: use an environment that points at this file and add `CLOUD_AGENT_SUPER_ENV=true` (or `CLOUD_AGENT_PLUGINS=playbooks,agents,...`) as an environment-scoped secret. The install hook clones the plugins with the run's git credentials. `repositoryDependencies` no longer lists the plugins, so private plugin repos only clone when those credentials can already read them; otherwise use the multi-repo saved environment.
 
 Keep the standard environment free of those variables. Without them, the install hook does not clone plugins, though it still hydrates any `mattermost-plugin-*` checkout already present.
 

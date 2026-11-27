@@ -77,9 +77,9 @@ node_bin_dir_for() {
 }
 
 # --- Sibling repositories ---------------------------------------------------
-# Cursor's multi-repo environments clone selected repos as siblings, but single-repo
-# runs (including git-triggered automations) only get them on the GitHub token via
-# repositoryDependencies. These helpers find an existing checkout or clone one.
+# Cursor's multi-repo environments clone selected repos as siblings. Single-repo runs
+# (including git-triggered automations) do not, so these helpers find an existing
+# checkout or clone one.
 
 github_clone_url() {
   printf 'https://github.com/%s.git\n' "$1"
@@ -295,11 +295,7 @@ clone_sibling_checkout() {
     return 0
   fi
 
-  if grep -q "\"github.com/$slug\"" "$ROOT/.cursor/environment.json" 2>/dev/null; then
-    log "Failed to clone $slug. It is already in repositoryDependencies; check that the repo exists and that the Cursor GitHub app can read it."
-  else
-    log "Failed to clone $slug. Add github.com/$slug to repositoryDependencies in .cursor/environment.json so the GitHub token can access it."
-  fi
+  log "Failed to clone $slug. Check that the repo exists and that this run's git credentials can read it; add it to the multi-repo saved environment if it is private."
   return 1
 }
 
@@ -326,11 +322,32 @@ refresh_managed_checkout() {
 
 # --- Mattermost plugins -----------------------------------------------------
 
-# Core plugin repos are the github.com/mattermost/mattermost-plugin-* entries in
-# repositoryDependencies, so the GitHub token and the clone list never drift apart.
-manifest_plugin_slugs() {
-  { grep -o 'github\.com/mattermost/mattermost-plugin-[A-Za-z0-9._-]*' "$ROOT/.cursor/environment.json" || true; } | \
-    sed 's#^github\.com/##' | sort -u
+# Plugins that CLOUD_AGENT_SUPER_ENV=true and CLOUD_AGENT_PLUGINS=all clone. Cloning needs
+# the plugin repos to be readable by the checkout's git credentials; the multi-repo saved
+# environment grants that, repositoryDependencies does not. mattermost-plugin-dataminr is
+# left out because the Cloud Agent token cannot read it.
+CORE_PLUGIN_SLUGS=(
+  mattermost/mattermost-plugin-agents
+  mattermost/mattermost-plugin-boards-v2
+  mattermost/mattermost-plugin-calls
+  mattermost/mattermost-plugin-channel-export
+  mattermost/mattermost-plugin-github
+  mattermost/mattermost-plugin-gitlab
+  mattermost/mattermost-plugin-google-calendar
+  mattermost/mattermost-plugin-google-drive
+  mattermost/mattermost-plugin-google-meet
+  mattermost/mattermost-plugin-jira
+  mattermost/mattermost-plugin-legal-hold
+  mattermost/mattermost-plugin-metrics
+  mattermost/mattermost-plugin-mscalendar
+  mattermost/mattermost-plugin-msteams-meetings
+  mattermost/mattermost-plugin-playbooks
+  mattermost/mattermost-plugin-weave
+  mattermost/mattermost-plugin-zoom
+)
+
+core_plugin_slugs() {
+  printf '%s\n' "${CORE_PLUGIN_SLUGS[@]}"
 }
 
 plugin_repo_name() {

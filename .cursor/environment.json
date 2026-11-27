@@ -5,24 +5,7 @@
     "dockerfile": "Dockerfile"
   },
   "repositoryDependencies": [
-    "github.com/mattermost/enterprise",
-    "github.com/mattermost/mattermost-plugin-agents",
-    "github.com/mattermost/mattermost-plugin-boards-v2",
-    "github.com/mattermost/mattermost-plugin-calls",
-    "github.com/mattermost/mattermost-plugin-channel-export",
-    "github.com/mattermost/mattermost-plugin-github",
-    "github.com/mattermost/mattermost-plugin-gitlab",
-    "github.com/mattermost/mattermost-plugin-google-calendar",
-    "github.com/mattermost/mattermost-plugin-google-drive",
-    "github.com/mattermost/mattermost-plugin-google-meet",
-    "github.com/mattermost/mattermost-plugin-jira",
-    "github.com/mattermost/mattermost-plugin-legal-hold",
-    "github.com/mattermost/mattermost-plugin-metrics",
-    "github.com/mattermost/mattermost-plugin-mscalendar",
-    "github.com/mattermost/mattermost-plugin-msteams-meetings",
-    "github.com/mattermost/mattermost-plugin-playbooks",
-    "github.com/mattermost/mattermost-plugin-weave",
-    "github.com/mattermost/mattermost-plugin-zoom"
+    "github.com/mattermost/enterprise"
   ],
   "install": "bash .cursor/scripts/cloud-agent-install.sh",
   "start": "bash .cursor/scripts/cloud-agent-start.sh",
