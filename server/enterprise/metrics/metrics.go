@@ -247,6 +247,7 @@ type MetricsInterfaceImpl struct {
 	AccessControlEvaluateDuration          prometheus.Histogram
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
+	AccessControlDecisionCacheEnabled      prometheus.Gauge
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
@@ -1689,6 +1690,16 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
+	m.AccessControlDecisionCacheEnabled = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "decision_cache_enabled",
+			Help:        "1 when this node runs the ABAC decision cache, 0 when AccessControlSettings.EnableDecisionCache turned it off at startup",
+			ConstLabels: additionalLabels,
+		})
+	m.Registry.MustRegister(m.AccessControlDecisionCacheEnabled)
+
 	// Auto-translation Subsystem
 	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
@@ -2411,6 +2422,14 @@ func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float
 
 func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
 	mi.AccessControlCacheInvalidation.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) SetAccessControlDecisionCacheEnabled(enabled bool) {
+	if enabled {
+		mi.AccessControlDecisionCacheEnabled.Set(1)
+		return
+	}
+	mi.AccessControlDecisionCacheEnabled.Set(0)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64) {

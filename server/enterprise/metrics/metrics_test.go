@@ -558,3 +558,29 @@ func TestAuditLoggerMetrics(t *testing.T) {
 		require.NotContains(t, metrics[name], "audit_file", "%s: audit targets should not be reported under their unprefixed name", name)
 	}
 }
+
+func TestAccessControlDecisionCacheEnabledGauge(t *testing.T) {
+	readGauge := func(t *testing.T, th *api4.TestHelper) float64 {
+		t.Helper()
+		miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+		require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+		m := &prometheusModels.Metric{}
+		require.NoError(t, miImpl.AccessControlDecisionCacheEnabled.Write(m))
+		return m.Gauge.GetValue()
+	}
+
+	t.Run("reports 1 when the cache is enabled at startup", func(t *testing.T) {
+		th := api4.SetupEnterprise(t, app.StartMetrics)
+		configureMetrics(th)
+
+		require.Equal(t, 1.0, readGauge(t, th))
+	})
+
+	t.Run("reports 0 when the cache is disabled at startup", func(t *testing.T) {
+		t.Setenv("MM_ACCESSCONTROLSETTINGS_ENABLEDECISIONCACHE", "false")
+		th := api4.SetupEnterprise(t, app.StartMetrics)
+		configureMetrics(th)
+
+		require.Equal(t, 0.0, readGauge(t, th))
+	})
+}

@@ -608,6 +608,11 @@ func (_m *MetricsInterface) RegisterDBCollector(db *sql.DB, name string) {
 	_m.Called(db, name)
 }
 
+// SetAccessControlDecisionCacheEnabled provides a mock function with given fields: enabled
+func (_m *MetricsInterface) SetAccessControlDecisionCacheEnabled(enabled bool) {
+	_m.Called(enabled)
+}
+
 // SetAutoTranslateQueueDepth provides a mock function with given fields: depth
 func (_m *MetricsInterface) SetAutoTranslateQueueDepth(depth float64) {
 	_m.Called(depth)

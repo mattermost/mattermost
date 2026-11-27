@@ -327,6 +327,7 @@ func (ch *Channels) initAccessDecisionCache() {
 	} else {
 		ch.srv.Log().Info(accessDecisionCacheDisabledLog)
 	}
+	ch.reportAccessDecisionCacheEnabled()
 
 	ch.AddConfigListener(ch.invalidateAccessDecisionsOnConfigChange)
 	ch.AddConfigListener(ch.applyAccessDecisionCacheSettings)
@@ -340,8 +341,17 @@ func (ch *Channels) initAccessDecisionCache() {
 	}
 }
 
+// reportAccessDecisionCacheEnabled sets the gauge to whether this node allocated the cache.
+func (ch *Channels) reportAccessDecisionCacheEnabled() {
+	if metrics := ch.srv.GetMetrics(); metrics != nil {
+		metrics.SetAccessControlDecisionCacheEnabled(ch.accessDecisions != nil)
+	}
+}
+
 // onAccessDecisionCacheSwitchChange logs that a changed EnableDecisionCache waits for a restart.
+// It also reports the gauge again, since metrics can be turned on after startup.
 func (ch *Channels) onAccessDecisionCacheSwitchChange(prevCfg, cfg *model.Config) {
+	ch.reportAccessDecisionCacheEnabled()
 	if enabled := accessDecisionCacheEnabled(cfg); enabled != accessDecisionCacheEnabled(prevCfg) {
 		ch.srv.Log().Info(accessDecisionCacheSwitchChangedLog,
 			mlog.Bool("enabled", enabled),
