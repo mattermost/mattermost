@@ -97,7 +97,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		for _, plugin := range availablePlugins {
 			pluginID := plugin.Manifest.Id
 			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginID]; ok {
+			if state, ok := config.PluginStates[pluginID]; ok && state != nil {
 				pluginEnabled = state.Enable
 			}
 

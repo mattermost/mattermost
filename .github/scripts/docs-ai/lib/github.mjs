@@ -12,7 +12,11 @@ export async function gh(path, {method = 'GET', body} = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    throw new Error(`GitHub ${method} ${path} -> ${res.status}: ${await res.text()}`);
+    const err = new Error(`GitHub ${method} ${path} -> ${res.status}: ${await res.text()}`);
+    // Callers that back off on rate limits need Retry-After / x-ratelimit-*.
+    err.status = res.status;
+    err.headers = Object.fromEntries(res.headers);
+    throw err;
   }
   return res.status === 204 ? null : res.json();
 }

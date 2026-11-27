@@ -1603,6 +1603,81 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 	})
 }
 
+func TestPluginSettingsSetDefaultsRemovesNilPluginStates(t *testing.T) {
+	const arbitraryPluginID = "com.example.someplugin"
+	const otherPluginID = "com.example.otherplugin"
+
+	testCases := []struct {
+		name   string
+		states map[string]*PluginState
+	}{
+		{
+			name:   "nil entry for an arbitrary plugin",
+			states: map[string]*PluginState{arbitraryPluginID: nil},
+		},
+		{
+			name:   "nil entry for the channel export plugin",
+			states: map[string]*PluginState{"com.mattermost.plugin-channel-export": nil},
+		},
+		{
+			name: "nil entry alongside non-nil entries",
+			states: map[string]*PluginState{
+				arbitraryPluginID: nil,
+				otherPluginID:     {Enable: true},
+			},
+		},
+		{
+			name: "nil entries for built-in plugins",
+			states: map[string]*PluginState{
+				PluginIdNPS:       nil,
+				PluginIdCalls:     nil,
+				PluginIdPlaybooks: nil,
+				PluginIdAI:        nil,
+				arbitraryPluginID: nil,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			expected := map[string]PluginState{}
+			for id, state := range tc.states {
+				if state != nil {
+					expected[id] = *state
+				}
+			}
+
+			c := Config{}
+			c.PluginSettings.PluginStates = tc.states
+			c.SetDefaults()
+
+			states := c.PluginSettings.PluginStates
+			for id, state := range states {
+				assert.NotNilf(t, state, "PluginStates[%q] must not be nil after SetDefaults", id)
+			}
+
+			for id, want := range expected {
+				require.Contains(t, states, id)
+				assert.Equal(t, want, *states[id])
+			}
+
+			_, present := states[arbitraryPluginID]
+			assert.False(t, present, "nil entry for a non built-in plugin should be removed")
+			_, present = states["com.mattermost.plugin-channel-export"]
+			assert.False(t, present, "nil entry for the channel export plugin should be removed")
+
+			require.NotNil(t, states[PluginIdNPS])
+			assert.True(t, states[PluginIdNPS].Enable)
+			require.NotNil(t, states[PluginIdCalls])
+			assert.True(t, states[PluginIdCalls].Enable)
+			require.NotNil(t, states[PluginIdPlaybooks])
+			assert.True(t, states[PluginIdPlaybooks].Enable)
+			require.NotNil(t, states[PluginIdAI])
+			assert.True(t, states[PluginIdAI].Enable)
+		})
+	}
+}
+
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()

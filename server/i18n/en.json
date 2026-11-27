@@ -7074,8 +7074,8 @@
   },
   {
     "id": "app.admin.get_latest_version.disabled.app_error",
-    "translation": "Checking for the latest Mattermost release is disabled. Turn on Enable Security Alerts to allow it.",
-    "description": "API error returned when an administrator asks for the latest Mattermost release while the 'Enable Security Alerts' System Console setting is off; that setting also stops the server fetching the latest release. Admin-facing."
+    "translation": "Checking for the latest Mattermost release is disabled. Turn on Check for Security and Release Updates to allow it.",
+    "description": "API error returned when an administrator asks for the latest Mattermost release while the 'Check for Security and Release Updates' System Console setting (Site Configuration > Notices) is off; that setting also stops the server fetching the latest release. Admin-facing."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -14935,7 +14935,7 @@
   },
   {
     "id": "health.report.summary.not_evaluated",
-    "translation": "The first health check runs within an hour of enabling the feature.",
+    "translation": "No health check has run yet.",
     "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never completed and there are no findings."
   },
   {
@@ -16576,8 +16576,8 @@
   },
   {
     "id": "health.rule.version.unknown.latest_disabled",
-    "translation": "Latest release not checked: Enable Security Alerts is off, so the server does not fetch it.",
-    "description": "Health dashboard reason shown when a version check could not run because the administrator turned off the 'Enable Security Alerts' setting, which also stops the server fetching the latest Mattermost release, so the check's status is unknown. 'Enable Security Alerts' is the name of a System Console setting."
+    "translation": "Latest release not checked: Check for Security and Release Updates is off, so the server does not fetch it.",
+    "description": "Health dashboard reason shown when a version check could not run because the administrator turned off the 'Check for Security and Release Updates' setting, which also stops the server fetching the latest Mattermost release, so the check's status is unknown. 'Check for Security and Release Updates' is the name of a System Console setting under Site Configuration > Notices."
   },
   {
     "id": "health.rule.version.unknown.line",

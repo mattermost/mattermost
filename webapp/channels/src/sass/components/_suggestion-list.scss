@@ -21,7 +21,7 @@
         background: rgba(var(--center-channel-color-rgb), 0.48);
         color: var(--center-channel-bg);
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 600;
     }
 
     .LoadingSpinner {
@@ -313,7 +313,7 @@
     }
 
     .suggestion-list__unread {
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .suggestion-list__icon {

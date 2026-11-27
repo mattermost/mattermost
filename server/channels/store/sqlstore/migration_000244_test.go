@@ -123,28 +123,22 @@ func TestMigration000244(t *testing.T) {
 	upSQL := readMigrationSQL(t, "000244_drop_post_attributes_group.up.sql")
 	downSQL := readMigrationSQL(t, "000244_drop_post_attributes_group.down.sql")
 
-	// New() applies every migration, so 000244 has already run against an
-	// empty database. Nothing recreates the group afterwards.
-	t.Run("a freshly migrated database has no post_attributes group", func(t *testing.T) {
-		assert.Zero(t, snapshotGroup(t, store, postAttributesGroupName).total())
-	})
+	// snapshotAll captures every group's rows, keyed by group name.
+	snapshotAll := func(t *testing.T) map[string]groupRows {
+		t.Helper()
+		var names []string
+		require.NoError(t, store.GetMaster().Select(&names, `SELECT Name FROM PropertyGroups ORDER BY Name`))
+		all := make(map[string]groupRows, len(names))
+		for _, name := range names {
+			all[name] = snapshotGroup(t, store, name)
+		}
+		return all
+	}
 
-	t.Run("a database without a post_attributes group is untouched", func(t *testing.T) {
-		seedPropertyGroup(t, store, model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypePost)
-		before := snapshotGroup(t, store, model.AccessControlPropertyGroupName)
-		require.NotZero(t, before.total())
-
-		_, err := store.GetMaster().ExecNoTimeout(upSQL)
-		require.NoError(t, err)
-		assert.Equal(t, before, snapshotGroup(t, store, model.AccessControlPropertyGroupName))
-	})
-
-	t.Run("deletes every post_attributes row and nothing else", func(t *testing.T) {
+	t.Run("keeps every pre-existing post_attributes row and every other group", func(t *testing.T) {
 		seedPropertyGroup(t, store, postAttributesGroupName, model.PropertyFieldObjectTypePost)
 		// A second field in the same group, so it holds more than one.
 		seedPropertyGroup(t, store, postAttributesGroupName, model.PropertyFieldObjectTypePost)
-		// Another group holding the same object type, to show the match is by
-		// group and not by object type.
 		seedPropertyGroup(t, store, model.NewId(), model.PropertyFieldObjectTypePost)
 		seedPropertyGroup(t, store, model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser)
 
@@ -156,53 +150,51 @@ func TestMigration000244(t *testing.T) {
 		require.Len(t, legacy.Grants, 2)
 		require.Len(t, legacy.Values, 4)
 
-		var others []groupRows
-		var otherNames []string
-		require.NoError(t, store.GetMaster().Select(&otherNames, `SELECT Name FROM PropertyGroups WHERE Name <> $1 ORDER BY Name`, postAttributesGroupName))
-		for _, name := range otherNames {
-			others = append(others, snapshotGroup(t, store, name))
-		}
+		before := snapshotAll(t)
 
 		_, err := store.GetMaster().ExecNoTimeout(upSQL)
 		require.NoError(t, err)
 
-		assert.Equal(t, groupRows{}, snapshotGroup(t, store, postAttributesGroupName), "every post_attributes row should be gone, grants included")
+		assert.Equal(t, legacy, snapshotGroup(t, store, postAttributesGroupName), "no post_attributes row may be deleted, grants included")
+		assert.Equal(t, before, snapshotAll(t), "no group may lose or gain rows")
+	})
 
-		// Orphan check: no option, edge, grant or value points at a deleted field.
-		for _, table := range []string{"PropertyOptions", "PropertyOptionEdges", "PropertyFieldGrants", "PropertyValues"} {
-			var orphans int
-			require.NoError(t, store.GetMaster().Get(&orphans,
-				`SELECT COUNT(*) FROM `+table+` t WHERE NOT EXISTS (SELECT 1 FROM PropertyFields f WHERE f.ID = t.FieldID)`))
-			assert.Zero(t, orphans, "%s should hold no orphan rows", table)
-		}
+	t.Run("leaves post_attributes post fields at member", func(t *testing.T) {
+		postAttributes := getOrRegisterGroup(t, store, postAttributesGroupName)
+		legacyMember := createLeveledField(t, store, postAttributes, model.PropertyFieldObjectTypePost, model.PermissionLevelMember, nil)
+		convertedMember := createLeveledField(t, store, postAttributes, model.PropertyFieldObjectTypePost, "",
+			restrictionsWithValueWrite(model.PermissionLevelMember))
+		permissionsBefore := storedPermissions(t, store, convertedMember)
+		updateAtsBefore := storedUpdateAts(t, store, legacyMember, convertedMember)
 
-		var afterNames []string
-		require.NoError(t, store.GetMaster().Select(&afterNames, `SELECT Name FROM PropertyGroups ORDER BY Name`))
-		require.Equal(t, otherNames, afterNames, "no other group may be removed")
-		for i, name := range afterNames {
-			assert.Equal(t, others[i], snapshotGroup(t, store, name), "group %q must be unchanged", name)
-		}
+		_, err := store.GetMaster().ExecNoTimeout(upSQL)
+		require.NoError(t, err)
 
-		ac := snapshotGroup(t, store, model.AccessControlPropertyGroupName)
-		assert.Len(t, ac.Groups, 1)
-		assert.NotEmpty(t, ac.Fields)
-		assert.NotEmpty(t, ac.Values)
+		column, write := storedLevels(t, store, legacyMember)
+		assert.Equal(t, "member", column)
+		assert.False(t, write.Valid)
+
+		column, write = storedLevels(t, store, convertedMember)
+		assert.Equal(t, "member", column)
+		assert.Equal(t, "member", write.String)
+		assert.Equal(t, permissionsBefore, storedPermissions(t, store, convertedMember))
+		assert.Equal(t, updateAtsBefore, storedUpdateAts(t, store, legacyMember, convertedMember))
 	})
 
 	t.Run("running it again changes nothing", func(t *testing.T) {
-		before := snapshotGroup(t, store, model.AccessControlPropertyGroupName)
+		before := snapshotAll(t)
+		require.NotZero(t, before[postAttributesGroupName].total())
 		_, err := store.GetMaster().ExecNoTimeout(upSQL)
 		require.NoError(t, err)
-		assert.Equal(t, before, snapshotGroup(t, store, model.AccessControlPropertyGroupName))
-		assert.Zero(t, snapshotGroup(t, store, postAttributesGroupName).total())
+		assert.Equal(t, before, snapshotAll(t))
 	})
 
 	t.Run("the down migration is a no-op", func(t *testing.T) {
-		before := snapshotGroup(t, store, model.AccessControlPropertyGroupName)
+		before := snapshotAll(t)
+		require.NotZero(t, before[postAttributesGroupName].total())
 		_, err := store.GetMaster().ExecNoTimeout(downSQL)
 		require.NoError(t, err)
-		assert.Equal(t, before, snapshotGroup(t, store, model.AccessControlPropertyGroupName))
-		assert.Zero(t, snapshotGroup(t, store, postAttributesGroupName).total(), "down must not recreate the group")
+		assert.Equal(t, before, snapshotAll(t))
 	})
 
 	t.Run("moves access_control post fields at member to creator and nothing else", func(t *testing.T) {
