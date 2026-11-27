@@ -20,6 +20,7 @@ import ReactionList from './reaction_list';
 
 type Props = {
     post: Post;
+    showAddButtonWhenEmpty?: boolean;
 };
 
 function makeMapStateToProps() {

@@ -18,10 +18,11 @@ jest.mock('components/post_view/reaction', () => {
 });
 
 jest.mock('./add_reaction_button', () => {
+    const label = 'Add a reaction';
     return {
         __esModule: true,
         default: () => (
-            <div data-testid='add-reaction-button'/>
+            <button aria-label={label}/>
         ),
     };
 });
@@ -99,5 +100,45 @@ describe('components/ReactionList', () => {
 
         expect(firstRender.length).toBe(2);
         expect(firstRender).toEqual(secondRender);
+    });
+
+    test('should render nothing when there are no reactions', () => {
+        const {container} = render(
+            <ReactionList
+                {...baseProps}
+                reactions={{}}
+            />,
+        );
+
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    test('should render only the add button when there are no reactions and showAddButtonWhenEmpty is set', () => {
+        render(
+            <ReactionList
+                {...baseProps}
+                reactions={{}}
+                showAddButtonWhenEmpty={true}
+            />,
+        );
+
+        const list = screen.getByLabelText('reactions');
+        expect(list).toHaveClass('post-reaction-list');
+        expect(screen.getByRole('button', {name: 'Add a reaction'})).toBeInTheDocument();
+        expect(screen.queryAllByTestId(/^reaction-/)).toHaveLength(0);
+        expect(list).toContainElement(screen.getByRole('button', {name: 'Add a reaction'}));
+    });
+
+    test('should render nothing when showAddButtonWhenEmpty is set but the user cannot add reactions', () => {
+        const {container} = render(
+            <ReactionList
+                {...baseProps}
+                reactions={{}}
+                canAddReactions={false}
+                showAddButtonWhenEmpty={true}
+            />,
+        );
+
+        expect(container).toBeEmptyDOMElement();
     });
 });
