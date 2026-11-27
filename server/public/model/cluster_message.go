@@ -60,6 +60,7 @@ const (
 	ClusterEventInvalidateCacheForAccessControlPolicyEtag   ClusterEvent = "inv_access_control_policy_etag"
 	ClusterEventInvalidateCacheForUserPropertyValuesEpoch   ClusterEvent = "inv_user_property_values_epoch"
 	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
+	ClusterEventInvalidateCacheForChannelAttributes         ClusterEvent = "inv_channel_attributes"
 	ClusterEventInvalidateCacheForChannelMemberRoles        ClusterEvent = "inv_channel_member_roles"
 	ClusterEventInvalidateAccessDecisions                   ClusterEvent = "inv_access_decisions"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"

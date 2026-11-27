@@ -243,6 +243,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockAttributesStore.On("GetSubject", mock.Anything, "no-attributes-user-id", "group-id", model.PropertyFieldObjectTypeUser).Return(nil, store.NewErrNotFound("Attributes", "no-attributes-user-id"))
 	fakeChannelSubject := model.Subject{ID: "channel-id", Type: "channel", Attributes: map[string]any{"public": true}}
 	mockAttributesStore.On("GetSubject", mock.Anything, "channel-id", "group-id", model.PropertyFieldObjectTypeChannel).Return(&fakeChannelSubject, nil)
+	mockAttributesStore.On("GetSubject", mock.Anything, "no-attributes-channel-id", "group-id", model.PropertyFieldObjectTypeChannel).Return(nil, store.NewErrNotFound("Attributes", "no-attributes-channel-id"))
 	mockStore.On("Attributes").Return(&mockAttributesStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}

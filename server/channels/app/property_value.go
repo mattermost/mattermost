@@ -74,21 +74,22 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	if len(channelIDs) > 0 {
 		a.invalidateAccessDecisionsForResources(channelIDs)
 	}
-	if len(seen) == 0 {
-		return
+	if len(seen) > 0 {
+		userIDs := make([]string, 0, len(seen))
+		for userID := range seen {
+			userIDs = append(userIDs, userID)
+		}
+		a.invalidateAccessDecisionsForUsers(userIDs)
 	}
 
-	userIDs := make([]string, 0, len(seen))
-	for userID := range seen {
-		userIDs = append(userIDs, userID)
-	}
-	a.invalidateAccessDecisionsForUsers(userIDs)
-
-	// Only the epoch half is gated: nothing reads it while ABAC is off, and each invalidation
-	// costs a cluster message. A flip clears both caches wholesale, so nothing skipped here
-	// survives as a stale entry.
+	// Only the epoch and attribute caches are gated: nothing reads them while ABAC is off, and
+	// each invalidation costs a cluster message. A flip clears them wholesale, so nothing skipped
+	// here survives as a stale entry.
 	if !a.attributeBasedAccessControlEnabled() {
 		return
+	}
+	for _, channelID := range channelIDs {
+		a.Srv().Store().Attributes().InvalidateChannelAttributes(channelID)
 	}
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
@@ -103,6 +104,9 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 
 	if targetType == model.PropertyFieldObjectTypeChannel {
 		a.invalidateAccessDecisionsForResources([]string{targetID})
+		if a.attributeBasedAccessControlEnabled() {
+			a.Srv().Store().Attributes().InvalidateChannelAttributes(targetID)
+		}
 		return
 	}
 	if targetType != model.PropertyFieldObjectTypeUser {
@@ -118,7 +122,8 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 }
 
-// invalidateAllUserAttributeCaches drops every cached decision, CPA epoch and user attribute blob.
+// invalidateAllUserAttributeCaches drops every cached decision, CPA epoch, and user and channel
+// attribute blob.
 // For field mutations, which change what every subject resolves to without touching a single
 // PropertyValues row, and so are invisible to an epoch computed from that table.
 func (a *App) invalidateAllUserAttributeCaches() {
@@ -129,6 +134,7 @@ func (a *App) invalidateAllUserAttributeCaches() {
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
 	a.Srv().Store().Attributes().ClearUserAttributesCache()
+	a.Srv().Store().Attributes().ClearChannelAttributesCache()
 }
 
 // CreatePropertyValue creates a new property value.

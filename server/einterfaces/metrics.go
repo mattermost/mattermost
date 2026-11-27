@@ -51,6 +51,7 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	IncrementWebsocketReconnectEvent(eventType, disconnectErrCode, originClient string)
 	IncrementWebsocketReconnectFailure(reason string, isRemote bool, disconnectErrCode, originClient string)
+	IncrementWebSocketSlowConnectionClose()
 
 	IncrementHTTPWebSockets(originClient string)
 	DecrementHTTPWebSockets(originClient string)

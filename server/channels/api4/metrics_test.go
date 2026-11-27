@@ -33,6 +33,7 @@ func setupMetricsMock() *mocks.MetricsInterface {
 	metricsMock.On("ObserveRedisEndpointDuration", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
 	metricsMock.On("Register").Return()
 	metricsMock.On("SetAccessControlDecisionCacheEnabled", mock.AnythingOfType("bool")).Return().Maybe()
+	metricsMock.On("IncrementWebSocketSlowConnectionClose").Return().Maybe()
 	metricsMock.On("IncrementAttributeViewRefresh", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return().Maybe()
 	metricsMock.On("SetAttributeViewStaleness", mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return().Maybe()
 

@@ -113,6 +113,7 @@ func (ch *Channels) clusterInvalidateAccessDecisionsHandler(msg *model.ClusterMe
 	}
 	ch.evictMembershipRoles(&inv)
 	ch.evictUserAttributes(&inv)
+	ch.evictChannelAttributes(&inv)
 	ch.applyAccessDecisionInvalidation(&inv)
 }
 
@@ -137,6 +138,27 @@ func (ch *Channels) evictUserAttributes(inv *accessDecisionInvalidation) {
 		return
 	}
 	subjects.RemoveUserAttributesLocal(inv.Users)
+}
+
+// evictChannelAttributes is evictUserAttributes for the channels a peer invalidated: a channel's
+// attribute write invalidates its decisions by resource, and its subject eviction travels
+// separately, so it can arrive late.
+func (ch *Channels) evictChannelAttributes(inv *accessDecisionInvalidation) {
+	if !inv.Global && len(inv.Resources) == 0 {
+		return
+	}
+	subjects, ok := ch.srv.Store().(interface {
+		RemoveChannelAttributesLocal([]string)
+		PurgeChannelAttributesLocal()
+	})
+	if !ok {
+		return
+	}
+	if inv.Global {
+		subjects.PurgeChannelAttributesLocal()
+		return
+	}
+	subjects.RemoveChannelAttributesLocal(inv.Resources)
 }
 
 // evictMembershipRoles drops this node's cached channel member roles that a peer's membership

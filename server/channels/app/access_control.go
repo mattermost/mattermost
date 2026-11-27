@@ -32,9 +32,10 @@ func (a *App) attributeBasedAccessControlEnabled() bool {
 	return attributeBasedAccessControlEnabled(a.Config())
 }
 
-// clearABACRenderCachesOnFlip drops both render-ETag epoch caches when ABAC is toggled: they are
-// only invalidated while ABAC is active, so a change made while it was off would leave a stale
-// epoch for the switch back on to serve.
+// clearABACRenderCachesOnFlip drops both render-ETag epoch caches and the user and channel
+// attribute caches when ABAC is toggled: they are only invalidated while ABAC is active, so a
+// change made while it was off would leave a stale epoch or attribute blob for the switch back on
+// to serve.
 func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
 	if attributeBasedAccessControlEnabled(prevCfg) == attributeBasedAccessControlEnabled(cfg) {
 		return
@@ -42,6 +43,8 @@ func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
 
 	ch.srv.Store().AccessControlPolicy().ClearEtagCache()
 	ch.srv.Store().Attributes().ClearUserPropertyValuesEpochCache()
+	ch.srv.Store().Attributes().ClearUserAttributesCache()
+	ch.srv.Store().Attributes().ClearChannelAttributesCache()
 }
 
 // ResourceAttributesInPoliciesEnabled reports whether access rules may compare a
