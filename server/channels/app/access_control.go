@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 	"slices"
 	"strings"
@@ -2968,17 +2969,36 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	return subject, nil
 }
 
+// BuildAccessControlSubjectForSession builds the subject for the request rctx
+// serves. Server-derived attributes and tls_device_id come only from that
+// request; their cached copies prove only what an earlier request had.
 func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID string) (*model.Subject, *model.AppError) {
 	subject, appErr := a.BuildAccessControlSubject(rctx, rctx.Session().UserId, rctx.Session().Roles, channelID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
+	if !a.sessionAttributesEnabled() {
+		return subject, nil
+	}
+
 	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if attrs != nil {
+
+	requestAttrs, err := a.requestScopedSessionAttributes(rctx)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	if len(requestAttrs) > 0 {
+		if attrs == nil {
+			attrs = make(map[string]any, len(requestAttrs))
+		}
+		maps.Copy(attrs, requestAttrs)
+	}
+
+	if len(attrs) > 0 {
 		subject.Session = attrs
 	}
 	return subject, nil

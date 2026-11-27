@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
@@ -61,6 +62,16 @@ func enableSessionAttributesCollection(t *testing.T, th *TestHelper) {
 
 func enableSessionAttributeFields(t *testing.T, th *TestHelper, fieldNames ...string) {
 	t.Helper()
+	setSessionAttributeFieldsEnabled(t, th, true, fieldNames...)
+}
+
+func disableSessionAttributeFields(t *testing.T, th *TestHelper, fieldNames ...string) {
+	t.Helper()
+	setSessionAttributeFieldsEnabled(t, th, false, fieldNames...)
+}
+
+func setSessionAttributeFieldsEnabled(t *testing.T, th *TestHelper, enabled bool, fieldNames ...string) {
+	t.Helper()
 	require.NoError(t, th.Server.doSetupSessionAttributesProperties())
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
@@ -85,7 +96,7 @@ func enableSessionAttributeFields(t *testing.T, th *TestHelper, fieldNames ...st
 		if field.Attrs == nil {
 			field.Attrs = model.StringInterface{}
 		}
-		field.Attrs["enabled"] = true
+		field.Attrs["enabled"] = enabled
 		toUpdate = append(toUpdate, field)
 	}
 	require.Len(t, toUpdate, len(fieldNames))
@@ -129,6 +140,13 @@ func newSessionAttributesRequest(t *testing.T, userAgent, remoteAddr string) *ht
 		r.RemoteAddr = remoteAddr
 	}
 	return r
+}
+
+func evaluatedRequestSessionAttributes(t *testing.T, th *TestHelper, rctx request.CTX) map[string]any {
+	t.Helper()
+	attrs, err := th.App.requestScopedSessionAttributes(rctx)
+	require.NoError(t, err)
+	return attrs
 }
 
 func sessionAttributeValuesByFieldName(t *testing.T, th *TestHelper, sessionID string) map[string]string {
@@ -266,7 +284,7 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		require.Empty(t, sessionAttributeValuesByFieldName(t, th, session.Id))
 	})
 
-	t.Run("creates session attributes when none exist", func(t *testing.T) {
+	t.Run("server-derived attributes are request-scoped not cached", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)
 
@@ -275,17 +293,26 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		rctx := th.Context.WithSession(session)
 
 		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
-		th.App.ProcessSessionAttributesRequest(rctx, r)
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
 
+		// Server-derived attributes should NOT be cached
 		valuesByName := sessionAttributeValuesByFieldName(t, th, session.Id)
-		assert.Equal(t, "Macintosh", valuesByName[model.SessionAttributesPropertyFieldUserAgentPlatform])
-		assert.Equal(t, "Mac OS", valuesByName[model.SessionAttributesPropertyFieldUserAgentOS])
-		assert.Equal(t, "Chrome", valuesByName[model.SessionAttributesPropertyFieldUserAgentBrowserName])
-		assert.Equal(t, "60.0.3112", valuesByName[model.SessionAttributesPropertyFieldUserAgentBrowserVersion])
-		assert.Equal(t, "192.0.2.10", valuesByName[model.SessionAttributesPropertyFieldIPAddress])
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentPlatform)
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentOS)
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentBrowserName)
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentBrowserVersion)
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldIPAddress)
+
+		// But should be present in the request context
+		serverDerived := evaluatedRequestSessionAttributes(t, th, requestCtx)
+		assert.Equal(t, "Macintosh", serverDerived[model.SessionAttributesPropertyFieldUserAgentPlatform])
+		assert.Equal(t, "Mac OS", serverDerived[model.SessionAttributesPropertyFieldUserAgentOS])
+		assert.Equal(t, "Chrome", serverDerived[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+		assert.Equal(t, "60.0.3112", serverDerived[model.SessionAttributesPropertyFieldUserAgentBrowserVersion])
+		assert.Equal(t, "192.0.2.10", serverDerived[model.SessionAttributesPropertyFieldIPAddress])
 	})
 
-	t.Run("stores Android as the platform of an Android session", func(t *testing.T) {
+	t.Run("Android platform is request-scoped not cached", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)
 
@@ -294,14 +321,74 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		rctx := th.Context.WithSession(session)
 
 		r := newSessionAttributesRequest(t, testUserAgentAndroid, "192.0.2.10:1234")
-		th.App.ProcessSessionAttributesRequest(rctx, r)
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
 
+		// Server-derived attributes should be in context, not cache
+		serverDerived := evaluatedRequestSessionAttributes(t, th, requestCtx)
+		assert.Equal(t, "Android", serverDerived[model.SessionAttributesPropertyFieldUserAgentPlatform])
+		assert.Equal(t, "Android", serverDerived[model.SessionAttributesPropertyFieldUserAgentOS])
+
+		// Not in cache
 		valuesByName := sessionAttributeValuesByFieldName(t, th, session.Id)
-		assert.Equal(t, "Android", valuesByName[model.SessionAttributesPropertyFieldUserAgentPlatform])
-		assert.Equal(t, "Android", valuesByName[model.SessionAttributesPropertyFieldUserAgentOS])
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentPlatform)
+		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentOS)
 	})
 
-	t.Run("each call overwrites cached attributes with the latest request values", func(t *testing.T) {
+	t.Run("mobile request without a user agent uses the session's login metadata", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:   th.BasicUser.Id,
+			DeviceId: "apple_rn-v2:device",
+			Props: model.StringMap{
+				model.SessionPropPlatform: "iPhone",
+				model.SessionPropOs:       "iOS",
+				model.SessionPropBrowser:  "Mobile App/2.30.0",
+			},
+		})
+		require.Nil(t, appErr)
+
+		requestCtx := th.App.ProcessSessionAttributesRequest(th.Context.WithSession(session), newSessionAttributesRequest(t, "", "192.0.2.10:1234"))
+
+		assert.Equal(t, model.SessionAttributePlatformMobile, RequestSessionAttributes(requestCtx).Platform)
+		assert.Equal(t, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:               "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentPlatform:       "iPhone",
+			model.SessionAttributesPropertyFieldUserAgentOS:             "iOS",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName:    "Mobile App",
+			model.SessionAttributesPropertyFieldUserAgentBrowserVersion: "2.30.0",
+		}, evaluatedRequestSessionAttributes(t, th, requestCtx))
+	})
+
+	t.Run("request attributes are checked against the schema when evaluated", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		disableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldIPAddress, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
+		requestCtx := th.App.ProcessSessionAttributesRequest(th.Context.WithSession(session), r)
+
+		attrs := evaluatedRequestSessionAttributes(t, th, requestCtx)
+		assert.NotContains(t, attrs, model.SessionAttributesPropertyFieldIPAddress)
+		assert.NotContains(t, attrs, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.Equal(t, "Chrome", attrs[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+
+		// A websocket connection keeps its upgrade request's context for its lifetime,
+		// so fields enabled later must apply to it without a reconnect.
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldIPAddress, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		attrs = evaluatedRequestSessionAttributes(t, th, requestCtx)
+		assert.Equal(t, "192.0.2.10", attrs[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "proxy-device-id", attrs[model.SessionAttributesPropertyFieldTLSDDeviceID])
+	})
+
+	t.Run("each request has its own server-derived attributes in context", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)
 
@@ -310,19 +397,24 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		rctx := th.Context.WithSession(session)
 
 		firstRequest := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
-		th.App.ProcessSessionAttributesRequest(rctx, firstRequest)
+		firstCtx := th.App.ProcessSessionAttributesRequest(rctx, firstRequest)
 
-		initial := sessionAttributeValuesByFieldName(t, th, session.Id)
-		assert.Equal(t, "192.0.2.10", initial[model.SessionAttributesPropertyFieldIPAddress])
-		assert.Equal(t, "Chrome", initial[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+		firstAttrs := evaluatedRequestSessionAttributes(t, th, firstCtx)
+		assert.Equal(t, "192.0.2.10", firstAttrs[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Chrome", firstAttrs[model.SessionAttributesPropertyFieldUserAgentBrowserName])
 
 		const otherUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0"
 		secondRequest := newSessionAttributesRequest(t, otherUserAgent, "203.0.113.42:1234")
-		th.App.ProcessSessionAttributesRequest(rctx, secondRequest)
+		secondCtx := th.App.ProcessSessionAttributesRequest(rctx, secondRequest)
 
-		after := sessionAttributeValuesByFieldName(t, th, session.Id)
-		assert.Equal(t, "203.0.113.42", after[model.SessionAttributesPropertyFieldIPAddress])
-		assert.Equal(t, "Firefox", after[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+		secondAttrs := evaluatedRequestSessionAttributes(t, th, secondCtx)
+		assert.Equal(t, "203.0.113.42", secondAttrs[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Firefox", secondAttrs[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+
+		// Server-derived attributes should NOT be cached
+		cached := sessionAttributeValuesByFieldName(t, th, session.Id)
+		assert.NotContains(t, cached, model.SessionAttributesPropertyFieldIPAddress)
+		assert.NotContains(t, cached, model.SessionAttributesPropertyFieldUserAgentBrowserName)
 	})
 
 	t.Run("accepts valid client session attribute values and rejects invalid ones", func(t *testing.T) {
@@ -387,10 +479,11 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
 		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
 
-		th.App.ProcessSessionAttributesRequest(rctx, r)
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
 
 		values := sessionAttributeValuesByFieldName(t, th, session.Id)
 		assert.NotContains(t, values, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.NotContains(t, evaluatedRequestSessionAttributes(t, th, requestCtx), model.SessionAttributesPropertyFieldTLSDDeviceID)
 	})
 
 	t.Run("accepts proxy device ID header when TrustProxyDeviceIdentityHeader is enabled", func(t *testing.T) {
@@ -406,10 +499,29 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
 		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
 
-		th.App.ProcessSessionAttributesRequest(rctx, r)
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
 
 		values := sessionAttributeValuesByFieldName(t, th, session.Id)
 		assert.Equal(t, "proxy-device-id", values[model.SessionAttributesPropertyFieldTLSDDeviceID])
+		assert.Equal(t, "proxy-device-id", evaluatedRequestSessionAttributes(t, th, requestCtx)[model.SessionAttributesPropertyFieldTLSDDeviceID])
+	})
+
+	t.Run("ignores proxy device ID header when tls_device_id is not enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
+
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
+
+		assert.NotContains(t, sessionAttributeValuesByFieldName(t, th, session.Id), model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.NotContains(t, evaluatedRequestSessionAttributes(t, th, requestCtx), model.SessionAttributesPropertyFieldTLSDDeviceID)
 	})
 
 	t.Run("revokes session on device ID mismatch when EnforceDeviceIDConsistency is enabled", func(t *testing.T) {
@@ -484,51 +596,60 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 func TestGetSessionAttributeFieldsByName(t *testing.T) {
 	th := Setup(t)
 	enableSessionAttributesCollection(t, th)
-	ipName := model.SessionAttributesPropertyFieldIPAddress
+	fieldName := model.SessionAttributesPropertyFieldClientIPAddress
 
 	first, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
 	require.Nil(t, appErr)
 	second, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
 	require.Nil(t, appErr)
-	require.Same(t, first[ipName], second[ipName], "the parsed schema must be reused while no field changes")
+	require.Same(t, first[fieldName], second[fieldName], "the parsed schema must be reused while no field changes")
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
 	require.Nil(t, appErr)
-	ipField, appErr := th.App.GetPropertyFieldByName(th.Context, group.ID, "", ipName)
+	field, appErr := th.App.GetPropertyFieldByName(th.Context, group.ID, "", fieldName)
 	require.Nil(t, appErr)
-	ipField.Attrs[model.SAAttrTTLSeconds] = 60
-	_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, ipField, true, "")
+	field.Attrs[model.SAAttrTTLSeconds] = 120
+	_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, field, true, "")
 	require.Nil(t, appErr)
 
 	third, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
 	require.Nil(t, appErr)
-	require.NotSame(t, first[ipName], third[ipName])
-	require.Equal(t, 60, third[ipName].Attrs.TTLSeconds)
+	require.NotSame(t, first[fieldName], third[fieldName])
+	require.Equal(t, 120, third[fieldName].Attrs.TTLSeconds)
 }
 
 func TestProcessSessionAttributesRequestSkipsUnchangedWrites(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	enableSessionAttributesCollection(t, th)
+	enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldClientIPAddress, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	setSessionAttributesAccessControlSettings(t, th, true, false)
 	saStore := th.App.Srv().Store().SessionAttribute()
-	ipName := model.SessionAttributesPropertyFieldIPAddress
+	ipName := model.SessionAttributesPropertyFieldClientIPAddress
+
+	newRequest := func(t *testing.T, clientIP string) *http.Request {
+		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
+		r.Header.Set(model.SessionAttributeHeaderClientAttributes, encodeClientSessionAttributesHeader(t, map[string]any{ipName: clientIP}))
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
+		return r
+	}
 
 	// process stores what a first request collects as if it was written
-	// ageMillis ago, then processes a request from remoteAddr and returns what
+	// ageMillis ago, then processes a request reporting clientIP and returns what
 	// ends up stored.
-	process := func(t *testing.T, ageMillis int64, remoteAddr string) (int64, map[string]any, map[string]int64) {
+	process := func(t *testing.T, ageMillis int64, clientIP string) (int64, map[string]any, map[string]int64) {
 		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, appErr)
 		rctx := th.Context.WithSession(session)
-		th.App.ProcessSessionAttributesRequest(rctx, newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234"))
+		th.App.ProcessSessionAttributesRequest(rctx, newRequest(t, "10.0.0.10"))
 
 		seeded, _, err := saStore.Get(session.Id)
 		require.NoError(t, err)
-		require.Len(t, seeded, len(model.SessionAttributesRequestDerivedFieldNames))
+		require.Len(t, seeded, 2)
 		require.NoError(t, saStore.Invalidate(session.Id))
 		seededAt := model.GetMillis() - ageMillis
 		require.NoError(t, saStore.Refresh(session.Id, seeded, seededAt))
 
-		th.App.ProcessSessionAttributesRequest(rctx, newSessionAttributesRequest(t, testUserAgentChrome, remoteAddr))
+		th.App.ProcessSessionAttributesRequest(rctx, newRequest(t, clientIP))
 		attrs, timestamps, err := saStore.Get(session.Id)
 		require.NoError(t, err)
 		return seededAt, attrs, timestamps
@@ -545,27 +666,27 @@ func TestProcessSessionAttributesRequestSkipsUnchangedWrites(t *testing.T) {
 	}
 
 	t.Run("an unchanged request rewrites nothing", func(t *testing.T) {
-		seededAt, _, timestamps := process(t, 1000, "192.0.2.10:1234")
+		seededAt, _, timestamps := process(t, 1000, "10.0.0.10")
 		for name, timestamp := range timestamps {
 			assert.Equal(t, seededAt, timestamp, name)
 		}
 	})
 
 	t.Run("a changed IP is rewritten on its own", func(t *testing.T) {
-		seededAt, attrs, timestamps := process(t, 1000, "192.0.2.20:1234")
-		assert.Equal(t, "192.0.2.20", attrs[ipName])
+		seededAt, attrs, timestamps := process(t, 1000, "10.0.0.20")
+		assert.Equal(t, "10.0.0.20", attrs[ipName])
 		requireOnlyIPRewritten(t, seededAt, timestamps)
 	})
 
-	t.Run("an IP older than half its TTL is rewritten, fresher user agent fields are not", func(t *testing.T) {
+	t.Run("an IP older than half its TTL is rewritten, a fresher device ID is not", func(t *testing.T) {
 		// Derived from the defaults rather than hardcoded: an age past half the IP's
-		// TTL but short of half the user agent fields' TTL.
+		// TTL but short of half the device ID's TTL.
 		ipHalfTTL := int64(model.SessionAttributeDefaultTTLNetworkIdentity) * 500
-		userAgentHalfTTL := int64(model.SessionAttributeDefaultTTLIdentity) * 500
-		require.Less(t, ipHalfTTL, userAgentHalfTTL, "the IP must go stale before the user agent fields for this case to mean anything")
-		age := (ipHalfTTL + userAgentHalfTTL) / 2
+		deviceIDHalfTTL := int64(model.SessionAttributeDefaultTTLIdentity) * 500
+		require.Less(t, ipHalfTTL, deviceIDHalfTTL, "the IP must go stale before the device ID for this case to mean anything")
+		age := (ipHalfTTL + deviceIDHalfTTL) / 2
 
-		seededAt, _, timestamps := process(t, age, "192.0.2.10:1234")
+		seededAt, _, timestamps := process(t, age, "10.0.0.10")
 		requireOnlyIPRewritten(t, seededAt, timestamps)
 	})
 }
@@ -629,6 +750,8 @@ func TestFilterStaleSessionAttributes(t *testing.T) {
 func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	enableSessionAttributesCollection(t, th)
+	enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	setSessionAttributesAccessControlSettings(t, th, true, false)
 
 	session1, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, appErr)
@@ -637,8 +760,10 @@ func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 
 	for _, session := range []*model.Session{session1, session2} {
 		rctx := th.Context.WithSession(session)
-		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "test-device-id")
 		th.App.ProcessSessionAttributesRequest(rctx, r)
+		// tls_device_id is cached for device ID consistency checks
 		require.NotEmpty(t, sessionAttributeValuesByFieldName(t, th, session.Id))
 	}
 
@@ -651,12 +776,14 @@ func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 func TestClusterUpdateSessionAttributesHandler(t *testing.T) {
 	th := Setup(t)
 	ps := th.App.Srv().Platform()
+	enableSessionAttributesCollection(t, th)
+	enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldNetworkInterfaceType)
 
-	t.Run("valid payload merges attributes into the cache", func(t *testing.T) {
+	t.Run("valid payload merges client attributes into the cache", func(t *testing.T) {
 		sessionID := model.NewId()
 		data, err := json.Marshal(model.SessionAttributesClusterPayload{
 			SessionID: sessionID,
-			Attrs:     map[string]any{model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10"},
+			Attrs:     map[string]any{model.SessionAttributesPropertyFieldNetworkInterfaceType: "wifi"},
 			Timestamp: model.GetMillis(),
 		})
 		require.NoError(t, err)
@@ -666,7 +793,7 @@ func TestClusterUpdateSessionAttributesHandler(t *testing.T) {
 			Data:  data,
 		})
 
-		assert.Equal(t, "192.0.2.10", sessionAttributeRawValues(t, th, sessionID)[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "wifi", sessionAttributeRawValues(t, th, sessionID)[model.SessionAttributesPropertyFieldNetworkInterfaceType])
 	})
 
 	t.Run("malformed JSON is ignored without panic", func(t *testing.T) {

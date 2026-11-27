@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -2814,24 +2815,141 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 		assert.Empty(t, subject.Session)
 	})
 
-	t.Run("populates session attributes from the cache", func(t *testing.T) {
+	t.Run("populates client attributes from cache and server-derived from context", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldNetworkInterfaceType)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		// Cache client attribute
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldNetworkInterfaceType: "wifi",
+		}, model.GetMillis()))
+
+		// Process request to get server-derived attributes in context
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(requestCtx, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		assert.Equal(t, "wifi", subject.Session[model.SessionAttributesPropertyFieldNetworkInterfaceType])
+		assert.Equal(t, "192.0.2.10", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Chrome", subject.Session[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+	})
+
+	t.Run("takes server-derived attributes from request context, not cache", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		withHeader := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		withHeader.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "device-a")
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(th.App.ProcessSessionAttributesRequest(rctx, withHeader), "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "device-a", subject.Session[model.SessionAttributesPropertyFieldTLSDDeviceID])
+		assert.Equal(t, "192.0.2.10", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Chrome", subject.Session[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+
+		withoutHeader := newSessionAttributesRequest(t, testUserAgentChrome, "198.51.100.7:1234")
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(th.App.ProcessSessionAttributesRequest(rctx, withoutHeader), "")
+		require.Nil(t, appErr)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.Equal(t, "198.51.100.7", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Chrome", subject.Session[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+		assert.Equal(t, "device-a", sessionAttributeRawValues(t, th, session.Id)[model.SessionAttributesPropertyFieldTLSDDeviceID])
+
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldIPAddress)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldUserAgentBrowserName)
+	})
+
+	t.Run("drops cached tls_device_id from GetSessionAttributes and evaluation", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldNetworkInterfaceType, model.SessionAttributesPropertyFieldTLSDDeviceID)
 
 		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, appErr)
 		rctx := th.Context.WithSession(session)
 
 		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
-			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
-			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+			model.SessionAttributesPropertyFieldTLSDDeviceID:         "cached-device",
+			model.SessionAttributesPropertyFieldNetworkInterfaceType: "wifi",
 		}, model.GetMillis()))
+		cached, appErr := th.App.GetSessionAttributes(rctx, session.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]any{model.SessionAttributesPropertyFieldNetworkInterfaceType: "wifi"}, cached,
+			"GetSessionAttributes feeds policy simulation, so it must leave out cached tls_device_id")
 
 		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
 		require.Nil(t, appErr)
-		require.NotNil(t, subject)
+		assert.Equal(t, "wifi", subject.Session[model.SessionAttributesPropertyFieldNetworkInterfaceType])
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	})
+
+	t.Run("ignores the context device ID when TrustProxyDeviceIdentityHeader is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := WithRequestSessionAttributes(th.Context.WithSession(session), &platform.RequestSessionAttributes{
+			Platform:      model.SessionAttributePlatformBrowser,
+			ProxyDeviceID: "device-a",
+		})
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "device-a", subject.Session[model.SessionAttributesPropertyFieldTLSDDeviceID])
+
+		setSessionAttributesAccessControlSettings(t, th, false, false)
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	})
+
+	t.Run("ignores context attributes when session attributes are disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := WithRequestSessionAttributes(th.Context.WithSession(session), &platform.RequestSessionAttributes{
+			Platform:      model.SessionAttributePlatformBrowser,
+			ProxyDeviceID: "device-a",
+			ServerDerived: map[string]any{
+				model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+				model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+			},
+		})
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "device-a", subject.Session[model.SessionAttributesPropertyFieldTLSDDeviceID])
 		assert.Equal(t, "192.0.2.10", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
-		assert.Equal(t, "Chrome", subject.Session[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SessionAttributes = false })
+		th.ConfigStore.SetReadOnlyFF(true)
+
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Empty(t, subject.Session)
 	})
 }
 

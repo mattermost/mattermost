@@ -847,6 +847,41 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		return &gotPost
 	}
 
+	t.Run("evaluates download access with the connection's proxy device ID", func(t *testing.T) {
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).
+			Return(func(rctx request.CTX, _, _, _, _ string) bool {
+				return RequestSessionAttributes(rctx).ProxyDeviceID == "managed-device"
+			})
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:                   userID,
+			Platform:                 &platform.PlatformService{},
+			Suite:                    mockSuite,
+			RequestSessionAttributes: &platform.RequestSessionAttributes{ProxyDeviceID: "managed-device"},
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+		msg := makeMessage(makeOuterPostJSON(t))
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.Contains(t, gotJSON, fileID, "file ID should be present for the managed device")
+	})
+
 	t.Run("files stripped from embed when user denied download", func(t *testing.T) {
 		postJSON := makeOuterPostJSON(t)
 		msg := makeMessage(postJSON)
@@ -1205,6 +1240,53 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 		assert.NotNil(t, gotPost.Metadata.Images, "Images should be preserved when files are stripped")
 		assert.Contains(t, gotPost.Metadata.Images, "https://example.com/img.png")
 	})
+
+	t.Run("server-derived attributes are restored from WebSocket connection", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 1)
+		msg := makeMessage(channelID, postJSON)
+
+		// Create WebConn with server-derived attributes (IP address, user agent)
+		serverDerivedAttrs := map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+		}
+
+		mockSuite := &platform_mocks.SuiteIFace{}
+		// Mock should verify that the context has the server-derived attributes
+		mockSuite.On("HasPermissionToChannelAction",
+			mock.MatchedBy(func(rctx request.CTX) bool {
+				// Verify server-derived attributes are present in the context
+				inputs := RequestSessionAttributes(rctx)
+				return inputs != nil &&
+					inputs.ServerDerived[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10" &&
+					inputs.ServerDerived[model.SessionAttributesPropertyFieldUserAgentBrowserName] == "Chrome"
+			}),
+			userID,
+			mock.AnythingOfType("string"),
+			channelID,
+			model.AccessControlPolicyActionDownloadFileAttachment,
+		).Return(true)
+
+		wc := &platform.WebConn{
+			UserId:                   userID,
+			Platform:                 &platform.PlatformService{},
+			Suite:                    mockSuite,
+			RequestSessionAttributes: &platform.RequestSessionAttributes{ServerDerived: serverDerivedAttrs},
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+
+		err := hook.Process(msg, wc, makeArgs(channelID, 1))
+		require.NoError(t, err)
+
+		// Verify the mock was called with the correct context
+		mockSuite.AssertExpectations(t)
+
+		// Files should be preserved since permission was granted
+		gotPost := extractPost(t, msg)
+		assert.Len(t, gotPost.Metadata.Files, 1)
+		assert.Len(t, gotPost.FileIds, 1)
+	})
 }
 
 func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
@@ -1372,6 +1454,25 @@ func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 		msg := makeMessage()
 		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
 		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("evaluates with the connection's request session attributes", func(t *testing.T) {
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).
+			Return(func(rctx request.CTX, _, _ string) bool {
+				return RequestSessionAttributes(rctx).ProxyDeviceID == "managed-device"
+			})
+		wc := &platform.WebConn{
+			UserId:                   userID,
+			Platform:                 &platform.PlatformService{},
+			Suite:                    mockSuite,
+			RequestSessionAttributes: &platform.RequestSessionAttributes{ProxyDeviceID: "managed-device"},
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
 	})
 
 	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {

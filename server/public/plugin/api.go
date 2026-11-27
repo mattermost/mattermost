@@ -892,6 +892,9 @@ type API interface {
 	GetFile(fileId string) ([]byte, *model.AppError)
 
 	// HasPermissionToFileAction evaluates the applicable policy for a session and file.
+	// The evaluation is not tied to a user request, so the session attributes taken from
+	// the request (IP address, user agent fields and the proxy's tls_device_id) are absent,
+	// and rules that require them deny.
 	//
 	// @tag File
 	// Minimum server version: 11.7

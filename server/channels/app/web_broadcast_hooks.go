@@ -275,17 +275,19 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	return nil
 }
 
-// webConnSessionContext returns a context carrying the connection's session, so a channel
-// access rule over user.session.* is evaluated against this connection. Evaluated without
-// it, the subject has no session attributes: a rule that requires one denies everyone,
-// and a rule that tolerates a missing one admits a denied session. Callers fail closed
-// when the connection has no session.
+// webConnSessionContext returns a context carrying the connection's session and the
+// request-scoped session attributes of its upgrade request, so a channel access rule over
+// user.session.* is evaluated against this connection. Evaluated without them, the subject
+// has no session attributes: a rule that requires one denies everyone, and a rule that
+// tolerates a missing one admits a denied session. Callers fail closed when the connection
+// has no session.
 func webConnSessionContext(webConn *platform.WebConn) (request.CTX, bool) {
 	session := webConn.GetSession()
 	if session == nil {
 		return nil, false
 	}
-	return request.EmptyContext(webConn.Platform.Log()).WithSession(session), true
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	return WithRequestSessionAttributes(rctx, webConn.RequestSessionAttributes), true
 }
 
 // filterChannelMentionsForWebConn keeps only the channel mentions whose channel the recipient
@@ -481,10 +483,8 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
 	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip files.
-	session := webConn.GetSession()
-	if session != nil {
-		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if rctx, hasSession := webConnSessionContext(webConn); hasSession {
+		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, rctx.Session().Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}
 	}
@@ -603,10 +603,8 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 
 	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
 	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip file info.
-	session := webConn.GetSession()
-	if session != nil {
-		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if rctx, hasSession := webConnSessionContext(webConn); hasSession {
+		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, rctx.Session().Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}
 	}
@@ -750,13 +748,12 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 
 	// A rule may reference the session's device or network, so the evaluation needs
 	// this connection's session; without one there is nothing to evaluate.
-	session := webConn.GetSession()
-	if session == nil {
+	rctx, hasSession := webConnSessionContext(webConn)
+	if !hasSession {
 		msg.Reject()
 		return nil
 	}
 
-	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
 	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
 		msg.Reject()
 	}
@@ -784,9 +781,7 @@ func (h *channelReadAccessRedactBroadcastHook) Process(msg *platform.HookedWebSo
 
 	// As in channelReadAccessBroadcastHook, the evaluation needs this connection's
 	// session; without one the channel stays out.
-	session := webConn.GetSession()
-	if session != nil {
-		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if rctx, hasSession := webConnSessionContext(webConn); hasSession {
 		if webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
 			return nil
 		}

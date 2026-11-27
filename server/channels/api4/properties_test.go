@@ -91,6 +91,42 @@ func TestSessionAttributesFieldEditing(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("cannot tune ttl/grace on request-scoped fields", func(t *testing.T) {
+		fieldsByName := make(map[string]*model.PropertyField, len(fields))
+		for _, f := range fields {
+			fieldsByName[f.Name] = f
+		}
+		for _, name := range []string{
+			model.SessionAttributesPropertyFieldIPAddress,
+			model.SessionAttributesPropertyFieldUserAgentOS,
+			model.SessionAttributesPropertyFieldTLSDDeviceID,
+		} {
+			target := fieldsByName[name]
+			require.NotNil(t, target, name)
+
+			patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, target.ID, &model.PropertyFieldPatch{
+				Attrs: &model.StringInterface{model.SAAttrEnabled: true},
+			})
+			require.NoError(t, err, name)
+			CheckOKStatus(t, resp)
+			require.Equal(t, true, patched.Attrs[model.SAAttrEnabled], name)
+
+			_, resp, err = th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, target.ID, &model.PropertyFieldPatch{
+				Attrs: &model.StringInterface{model.SAAttrTTLSeconds: 120},
+			})
+			require.Error(t, err, name)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "app.session_attributes.field_immutable.app_error")
+
+			_, resp, err = th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, objectType, target.ID, &model.PropertyFieldPatch{
+				Attrs: &model.StringInterface{model.SAAttrGracePeriodSeconds: 120},
+			})
+			require.Error(t, err, name)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "app.session_attributes.field_immutable.app_error")
+		}
+	})
 }
 
 func TestSessionAttributesFeatureFlagGate(t *testing.T) {

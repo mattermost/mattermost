@@ -17,21 +17,24 @@ func TestSessionAttributesHook(t *testing.T) {
 	th.service.AddHook(NewSessionAttributesHook(th.service, group.ID))
 	systemCallerContext := RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem)
 
-	createField := func() *model.PropertyField {
+	createFieldWithName := func(name string) *model.PropertyField {
 		f, err := th.service.CreatePropertyField(systemCallerContext, &model.PropertyField{
 			GroupID:    group.ID,
-			Name:       model.NewId(),
+			Name:       name,
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeSession,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.SAAttrEnabled:            false,
-				model.SAAttrTTLSeconds:         15,
-				model.SAAttrGracePeriodSeconds: 15,
+				model.SAAttrTTLSeconds:         60,
+				model.SAAttrGracePeriodSeconds: 60,
 			},
 		})
 		require.NoError(t, err)
 		return f
+	}
+	createField := func() *model.PropertyField {
+		return createFieldWithName(model.NewId())
 	}
 
 	t.Run("blocks create from a normal caller", func(t *testing.T) {
@@ -51,10 +54,41 @@ func TestSessionAttributesHook(t *testing.T) {
 		require.NoError(t, err)
 
 		current.Attrs[model.SAAttrEnabled] = true
-		current.Attrs[model.SAAttrTTLSeconds] = 60
-		current.Attrs[model.SAAttrGracePeriodSeconds] = 60
+		current.Attrs[model.SAAttrTTLSeconds] = 120
+		current.Attrs[model.SAAttrGracePeriodSeconds] = 120
 		_, _, _, err = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{current})
 		require.NoError(t, err)
+	})
+
+	t.Run("blocks tuning ttl/grace on request-scoped fields while allowing enabled", func(t *testing.T) {
+		for _, fieldName := range []string{
+			model.SessionAttributesPropertyFieldIPAddress,
+			model.SessionAttributesPropertyFieldUserAgentPlatform,
+			model.SessionAttributesPropertyFieldUserAgentOS,
+			model.SessionAttributesPropertyFieldUserAgentBrowserName,
+			model.SessionAttributesPropertyFieldUserAgentBrowserVersion,
+			model.SessionAttributesPropertyFieldTLSDDeviceID,
+		} {
+			f := createFieldWithName(fieldName)
+
+			current, err := th.service.GetPropertyField(th.Context, group.ID, f.ID)
+			require.NoError(t, err)
+			current.Attrs[model.SAAttrEnabled] = true
+			_, _, _, err = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{current})
+			require.NoError(t, err, fieldName)
+
+			current, err = th.service.GetPropertyField(th.Context, group.ID, f.ID)
+			require.NoError(t, err)
+			current.Attrs[model.SAAttrTTLSeconds] = 120
+			_, _, _, err = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{current})
+			require.Error(t, err, fieldName)
+
+			current, err = th.service.GetPropertyField(th.Context, group.ID, f.ID)
+			require.NoError(t, err)
+			current.Attrs[model.SAAttrGracePeriodSeconds] = 120
+			_, _, _, err = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{current})
+			require.Error(t, err, fieldName)
+		}
 	})
 
 	t.Run("blocks renaming from a normal caller", func(t *testing.T) {

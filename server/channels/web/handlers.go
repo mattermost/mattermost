@@ -344,7 +344,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.App.ChannelAccessEnforcementActive() {
 		c.AppContext = app.WithChannelAccessMemo(c.AppContext)
 	}
-	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
+	c.AppContext = c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()

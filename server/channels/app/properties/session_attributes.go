@@ -13,9 +13,9 @@ import (
 
 // SessionAttributesHook keeps the seeded session_attributes schema fixed: fields
 // can't be created or deleted through the public API, and updates are limited to
-// the tunable Attrs (enabled, ttl_seconds, grace_period_seconds). The fields are
-// not Protected (that is reserved for plugin-owned fields), so this hook is the
-// enforcement instead.
+// the tunable Attrs (enabled, plus ttl_seconds and grace_period_seconds for
+// client-reported attributes). The fields are not Protected (that is reserved for
+// plugin-owned fields), so this hook is the enforcement instead.
 type SessionAttributesHook struct {
 	BasePropertyHook
 	propertyService *PropertyService
@@ -85,7 +85,7 @@ func (h *SessionAttributesHook) validateUpdate(rctx request.CTX, incoming *model
 	if err != nil {
 		return err
 	}
-	if sessionAttributeIdentityChanged(existing, incoming) || !sessionAttributeAttrsEditAllowed(existing.Attrs, incoming.Attrs) {
+	if sessionAttributeIdentityChanged(existing, incoming) || !sessionAttributeAttrsEditAllowed(existing.Name, existing.Attrs, incoming.Attrs) {
 		return h.immutableErr("changed")
 	}
 	return nil
@@ -110,11 +110,14 @@ func sessionAttributeIdentityChanged(existing, incoming *model.PropertyField) bo
 	return existing.LinkedFieldID != nil && *existing.LinkedFieldID != *incoming.LinkedFieldID
 }
 
-func sessionAttributeAttrsEditAllowed(existing, incoming model.StringInterface) bool {
+func sessionAttributeAttrsEditAllowed(fieldName string, existing, incoming model.StringInterface) bool {
 	tunable := map[string]bool{
-		model.SAAttrEnabled:            true,
-		model.SAAttrTTLSeconds:         true,
-		model.SAAttrGracePeriodSeconds: true,
+		model.SAAttrEnabled: true,
+	}
+	_, isRequestDerived := model.SessionAttributesRequestDerivedFieldNames[fieldName]
+	if !isRequestDerived && fieldName != model.SessionAttributesPropertyFieldTLSDDeviceID {
+		tunable[model.SAAttrTTLSeconds] = true
+		tunable[model.SAAttrGracePeriodSeconds] = true
 	}
 	for key, existingValue := range existing {
 		if tunable[key] {

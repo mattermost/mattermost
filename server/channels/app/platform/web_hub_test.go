@@ -1245,6 +1245,23 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 		assert.False(t, websocketClosed(t, wc))
 	})
 
+	t.Run("first challenge closes without binding when resolveRequestAttributes revokes the session", func(t *testing.T) {
+		session := createUserSession(t, th, th.BasicUser.Id)
+		wc := newChallengeWebConn(t, th, s.Listener.Addr(), &model.Session{})
+		wc.resolveRequestAttributes = func(s *model.Session) *RequestSessionAttributes {
+			require.NoError(t, th.Service.RevokeSession(th.Context, s))
+			return nil
+		}
+
+		serveChallenge(th, wc, 1, session.Token)
+
+		assert.True(t, websocketClosed(t, wc))
+		assert.Empty(t, wc.UserId)
+		assert.Empty(t, wc.GetSessionToken())
+		assert.Empty(t, wc.GetSession().Id)
+		assert.False(t, th.Service.SessionIsRegistered(*session))
+	})
+
 	t.Run("first challenge on an authenticated connection keeps it open and unchanged", func(t *testing.T) {
 		session := createUserSession(t, th, th.BasicUser.Id)
 		other := createUserSession(t, th, th.BasicUser2.Id)

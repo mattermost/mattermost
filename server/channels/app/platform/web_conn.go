@@ -81,19 +81,37 @@ type pluginWSPostedHook struct {
 	req          *model.WebSocketRequest
 }
 
+// RequestSessionAttributes holds what a request offered for the session attributes that
+// are taken from the request itself rather than from the session cache. The values are
+// checked against the session attribute schema when a policy is evaluated, not when the
+// request arrives, so a long-lived websocket connection follows schema changes.
+type RequestSessionAttributes struct {
+	// Platform is the session attribute platform the request came from.
+	Platform string
+	// ServerDerived are the IP address and user agent values, not yet validated.
+	ServerDerived map[string]any
+	// ProxyDeviceID is the proxy's device ID header, only recorded while that header is trusted.
+	ProxyDeviceID string
+}
+
 type WebConnConfig struct {
-	WebSocket         *websocket.Conn
-	Session           model.Session
-	TFunc             i18n.TranslateFunc
-	Locale            string
-	ConnectionID      string
-	Active            bool
-	ReuseCount        int
-	OriginClient      string
-	PostedAck         bool
-	RemoteAddress     string
-	XForwardedFor     string
-	DisconnectErrCode string
+	WebSocket                *websocket.Conn
+	Session                  model.Session
+	TFunc                    i18n.TranslateFunc
+	Locale                   string
+	ConnectionID             string
+	Active                   bool
+	ReuseCount               int
+	OriginClient             string
+	PostedAck                bool
+	RemoteAddress            string
+	XForwardedFor            string
+	DisconnectErrCode        string
+	RequestSessionAttributes *RequestSessionAttributes
+	// ResolveRequestAttributes processes the upgrade request's session attributes
+	// for the session an authentication challenge supplies. Only set when the
+	// upgrade request had no session.
+	ResolveRequestAttributes func(session *model.Session) *RequestSessionAttributes
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -117,6 +135,10 @@ type WebConn struct {
 	UserId            string
 	PostedAck         bool
 	DisconnectErrCode string
+	// RequestSessionAttributes are the request-scoped session attribute inputs of the
+	// websocket upgrade request.
+	RequestSessionAttributes *RequestSessionAttributes
+	resolveRequestAttributes func(session *model.Session) *RequestSessionAttributes
 
 	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
@@ -272,29 +294,31 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	}
 
 	wc := &WebConn{
-		Platform:           ps,
-		Suite:              suite,
-		HookRunner:         runner,
-		send:               cfg.activeQueue,
-		deadQueue:          cfg.deadQueue,
-		deadQueuePointer:   cfg.deadQueuePointer,
-		Sequence:           cfg.sequence,
-		WebSocket:          cfg.WebSocket,
-		lastUserActivityAt: model.GetMillis(),
-		UserId:             cfg.Session.UserId,
-		T:                  cfg.TFunc,
-		Locale:             cfg.Locale,
-		PostedAck:          cfg.PostedAck,
-		DisconnectErrCode:  cfg.DisconnectErrCode,
-		reuseCount:         cfg.ReuseCount,
-		endWritePump:       make(chan struct{}),
-		pumpFinished:       make(chan struct{}),
-		pluginPosted:       make(chan pluginWSPostedHook, 10),
-		lastLogTimeSlow:    time.Now(),
-		lastLogTimeFull:    time.Now(),
-		originClient:       cfg.OriginClient,
-		remoteAddress:      cfg.RemoteAddress,
-		xForwardedFor:      cfg.XForwardedFor,
+		Platform:                 ps,
+		Suite:                    suite,
+		HookRunner:               runner,
+		send:                     cfg.activeQueue,
+		deadQueue:                cfg.deadQueue,
+		deadQueuePointer:         cfg.deadQueuePointer,
+		Sequence:                 cfg.sequence,
+		WebSocket:                cfg.WebSocket,
+		lastUserActivityAt:       model.GetMillis(),
+		UserId:                   cfg.Session.UserId,
+		T:                        cfg.TFunc,
+		Locale:                   cfg.Locale,
+		PostedAck:                cfg.PostedAck,
+		DisconnectErrCode:        cfg.DisconnectErrCode,
+		RequestSessionAttributes: cfg.RequestSessionAttributes,
+		resolveRequestAttributes: cfg.ResolveRequestAttributes,
+		reuseCount:               cfg.ReuseCount,
+		endWritePump:             make(chan struct{}),
+		pumpFinished:             make(chan struct{}),
+		pluginPosted:             make(chan pluginWSPostedHook, 10),
+		lastLogTimeSlow:          time.Now(),
+		lastLogTimeFull:          time.Now(),
+		originClient:             cfg.OriginClient,
+		remoteAddress:            cfg.RemoteAddress,
+		xForwardedFor:            cfg.XForwardedFor,
 	}
 	wc.Active.Store(cfg.Active)
 

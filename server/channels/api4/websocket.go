@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
@@ -50,6 +51,17 @@ func (api *API) InitWebSocket() {
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
+	// ProcessSessionAttributesRequest runs in web.Handler before this handler and may
+	// have revoked the session on a device ID mismatch (leaving no request attributes).
+	if token := c.AppContext.Session().Token; token != "" &&
+		*c.App.Config().AccessControlSettings.EnforceDeviceIDConsistency &&
+		app.RequestSessionAttributes(c.AppContext) == nil {
+		if _, err := c.App.GetSession(token); err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SocketMaxMessageSizeKb,
 		WriteBufferSize: model.SocketMaxMessageSizeKb,
@@ -68,14 +80,23 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket:     ws,
-		Session:       *c.AppContext.Session(),
-		TFunc:         c.AppContext.T,
-		Locale:        "",
-		Active:        true,
-		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
-		RemoteAddress: c.AppContext.IPAddress(),
-		XForwardedFor: c.AppContext.XForwardedFor(),
+		WebSocket:                ws,
+		Session:                  *c.AppContext.Session(),
+		TFunc:                    c.AppContext.T,
+		Locale:                   "",
+		Active:                   true,
+		PostedAck:                r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress:            c.AppContext.IPAddress(),
+		XForwardedFor:            c.AppContext.XForwardedFor(),
+		RequestSessionAttributes: app.RequestSessionAttributes(c.AppContext),
+	}
+
+	if c.AppContext.Session().UserId == "" {
+		// The handler blocks in wc.Pump() for the connection's lifetime, so r and
+		// c.AppContext remain valid when the authentication challenge arrives.
+		cfg.ResolveRequestAttributes = func(session *model.Session) *platform.RequestSessionAttributes {
+			return app.RequestSessionAttributes(c.App.ProcessSessionAttributesRequest(c.AppContext.WithSession(session), r))
+		}
 	}
 
 	cfg.DisconnectErrCode = normalizeDisconnectErrCode(r.URL.Query().Get(disconnectErrCodeParam))

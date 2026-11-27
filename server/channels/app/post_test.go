@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -7565,6 +7566,50 @@ func TestAppendABACEtag(t *testing.T) {
 			model.SessionAttributesPropertyFieldClientVersion: "6.4.0",
 		}, 3000))
 		assert.NotEqual(t, first, th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id))
+	})
+
+	t.Run("changes when the request's own session attributes change", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = model.NewPointer(true)
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+		etagFor := func(rctx request.CTX) string {
+			return th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
+		}
+		withRequestAttrs := func(ip, deviceID string) request.CTX {
+			return WithRequestSessionAttributes(rctx, &platform.RequestSessionAttributes{
+				Platform:      model.SessionAttributePlatformBrowser,
+				ServerDerived: map[string]any{model.SessionAttributesPropertyFieldIPAddress: ip},
+				ProxyDeviceID: deviceID,
+			})
+		}
+
+		noRequestAttrs := etagFor(rctx)
+		office := etagFor(withRequestAttrs("10.0.0.1", ""))
+		assert.NotEqual(t, noRequestAttrs, office)
+		assert.NotEqual(t, office, etagFor(withRequestAttrs("203.0.113.7", "")))
+		assert.Equal(t, office, etagFor(withRequestAttrs("10.0.0.1", "")), "the same request attributes must give the same ETag")
+
+		managedDevice := etagFor(withRequestAttrs("10.0.0.1", "managed-device"))
+		assert.NotEqual(t, office, managedDevice)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = model.NewPointer(false)
+		})
+		assert.Equal(t, office, etagFor(withRequestAttrs("10.0.0.1", "managed-device")),
+			"an untrusted device ID is not evaluated, so it must not change the ETag")
+
+		disableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldIPAddress)
+		assert.Equal(t, noRequestAttrs, etagFor(withRequestAttrs("10.0.0.1", "")),
+			"a disabled field is not evaluated, so it must not change the ETag")
 	})
 }
 

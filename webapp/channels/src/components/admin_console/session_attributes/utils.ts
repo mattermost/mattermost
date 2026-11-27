@@ -20,16 +20,16 @@ export type SessionAttributeTunables = {
     platforms: SessionPlatform[];
 };
 
-// Mirrors the server's request-derived field names (SessionAttributesRequestDerivedFieldNames in
-// server/public/model/session_attributes.go): only these are populated by the server rather than the
-// client, so only these surface as "Server"-sourced. Notably client_ip_address is seeded but is NOT
-// request-derived, so it must not be flagged.
+// Request-scoped session attributes supplied by the server or trusted proxy rather than
+// the client: they surface as "Server"-sourced and do not expose configurable TTL/grace.
+// Notably client_ip_address is seeded but client-reported, so it must not be flagged.
 export const SERVER_SOURCED_NAMES = [
     'ip_address',
     'user_agent_platform',
     'user_agent_os',
     'user_agent_browser_name',
     'user_agent_browser_version',
+    'tls_device_id',
 ] as const;
 
 const DURATION_PRESET_LABELS: Record<number, string> = {

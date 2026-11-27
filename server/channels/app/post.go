@@ -1744,6 +1744,18 @@ func (a *App) AppendABACEtag(rctx request.CTX, base string, channelID string) st
 				mlog.String("session_id", sessionID),
 				mlog.Err(err))
 		}
+
+		// Request-scoped attributes are never cached, so the epoch above doesn't move when they change.
+		if a.sessionAttributesEnabled() {
+			if requestAttrs, err := a.requestScopedSessionAttributes(rctx); err != nil {
+				a.Log().Warn("ABAC ETag: failed to validate request session attributes; session component will be unknown",
+					mlog.String("session_id", sessionID),
+					mlog.Err(err))
+				sessionEpoch = degradedABACEtagEpoch()
+			} else if fingerprint := requestScopedSessionAttributesFingerprint(requestAttrs); fingerprint != "" {
+				sessionEpoch += "-" + fingerprint
+			}
+		}
 	}
 
 	return fmt.Sprintf("%s.%s.%s.%s", base, policyEpoch, cpaEpoch, sessionEpoch)
