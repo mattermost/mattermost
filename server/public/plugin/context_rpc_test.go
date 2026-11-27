@@ -675,3 +675,107 @@ func TestLegacyHooksRPCClientServeHTTP(t *testing.T) {
 	require.Equal(t, "true", recorder.Header().Get("X-Legacy-Plugin"))
 	require.Equal(t, "legacy:request", recorder.Body.String())
 }
+
+type cancelAfterStartResult struct {
+	ctxErr      error
+	header      http.Header
+	headerValue string
+	writeN      int
+	writeErr    error
+	panicVal    any
+}
+
+type cancelAfterStartPlugin struct {
+	started      chan struct{}
+	streamClosed chan struct{}
+	done         chan cancelAfterStartResult
+}
+
+func (p *cancelAfterStartPlugin) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
+	result := cancelAfterStartResult{}
+	defer func() {
+		result.panicVal = recover()
+		p.done <- result
+	}()
+
+	close(p.started)
+	<-r.Context().Done()
+	result.ctxErr = r.Context().Err()
+	<-p.streamClosed
+
+	header := w.Header()
+	result.header = header
+	header.Set("Content-Type", "application/json")
+	result.headerValue = w.Header().Get("Content-Type")
+	w.WriteHeader(http.StatusInternalServerError)
+	result.writeN, result.writeErr = w.Write([]byte(`{"error":"canceled"}`))
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func TestHooksRPCServeHTTPResponseWriterAfterCancellation(t *testing.T) {
+	muxBroker := newTestHooksRPCMuxBroker()
+	handler := &cancelAfterStartPlugin{
+		started:      make(chan struct{}),
+		streamClosed: make(chan struct{}),
+		done:         make(chan cancelAfterStartResult, 1),
+	}
+
+	serverConnection, clientConnection := net.Pipe()
+	server := rpc.NewServer()
+	require.NoError(t, server.RegisterName("Plugin", &hooksRPCServer{
+		impl:      handler,
+		muxBroker: muxBroker,
+	}))
+	go server.ServeConn(serverConnection)
+
+	client := rpc.NewClient(clientConnection)
+	defer client.Close()
+	hooks := &hooksRPCClient{
+		client:      client,
+		log:         mlog.CreateConsoleTestLogger(t),
+		muxBroker:   muxBroker,
+		contextHTTP: true,
+	}
+	hooks.implemented[ServeHTTPID] = true
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/plugin/path", nil)
+	require.NoError(t, err)
+
+	serveHTTPDone := make(chan struct{})
+	go func() {
+		hooks.ServeHTTP(&Context{}, httptest.NewRecorder(), request)
+		close(serveHTTPDone)
+	}()
+
+	select {
+	case <-handler.started:
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "plugin ServeHTTP did not start")
+	}
+
+	cancel()
+	select {
+	case <-serveHTTPDone:
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "ServeHTTP did not return after cancellation")
+	}
+	close(handler.streamClosed)
+
+	var result cancelAfterStartResult
+	select {
+	case result = <-handler.done:
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "plugin ServeHTTP did not finish after cancellation")
+	}
+
+	require.ErrorIs(t, result.ctxErr, context.Canceled)
+	require.Nil(t, result.panicVal, "response writer panicked after cancellation")
+	require.NotNil(t, result.header)
+	require.Equal(t, "application/json", result.headerValue)
+	require.Zero(t, result.writeN)
+	require.Error(t, result.writeErr)
+}
