@@ -32,7 +32,7 @@ When no usable Enterprise checkout is present (single-repo runs and git-triggere
 
 ### Plugins
 
-The core plugin list is the set of `github.com/mattermost/mattermost-plugin-*` entries in `repositoryDependencies`: mostly the plugins `server/Makefile` prepackages, with Boards v2 in place of Boards, plus Weave. `mattermost-plugin-dataminr` is left out because the Cloud Agent token cannot read it. Listing them there grants the git token access, and the install hook reads the same list, so there is a single place to add or remove a plugin.
+The core plugin list is the set of `github.com/mattermost/mattermost-plugin-*` entries in `repositoryDependencies`: mostly the plugins `server/Makefile` prepackages, with Boards v2 in place of Boards, plus Weave and the Google Calendar, Drive, and Meet plugins. `mattermost-plugin-dataminr` is left out because the Cloud Agent token cannot read it. Listing them there grants the git token access, and the install hook reads the same list, so there is a single place to add or remove a plugin.
 
 The install hook:
 

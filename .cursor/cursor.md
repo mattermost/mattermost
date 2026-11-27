@@ -103,6 +103,14 @@ Working in a plugin:
 
    `deploy` runs the plugin's `make deploy` over the local mode socket with `MM_SERVICESETTINGS_ENABLEDEVELOPER=true`, so only the current platform's binary is built. Set `MM_ADMIN_TOKEN` or `MM_ADMIN_USERNAME`/`MM_ADMIN_PASSWORD` to deploy over HTTP instead.
 
+   If a deployed plugin stays inactive, look for `Unable to activate plugin` in the server log. Some plugins refuse to start until their required settings are set; Google Calendar, for example, needs OAuth credentials and an encryption key. Placeholder values are enough for local development:
+
+   ```bash
+   curl -s --unix-socket /var/tmp/mattermost_local.socket -X PUT http://_/api/v4/config/patch \
+     -d '{"PluginSettings":{"Plugins":{"com.mattermost.gcal":{"OAuth2ClientId":"placeholder","OAuth2ClientSecret":"placeholder","EncryptionKey":"'"$(openssl rand -hex 16)"'"}}}}' >/dev/null
+   curl -s --unix-socket /var/tmp/mattermost_local.socket -X POST http://_/api/v4/plugins/com.mattermost.gcal/enable
+   ```
+
 4. For changes that span the plugin API (`server/public`) and a plugin, link the plugin to this checkout:
 
    ```bash
