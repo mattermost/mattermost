@@ -18,6 +18,154 @@ This changelog tracks User Interface (UI) and Accessibility (ADA) changes across
 </thead>
 <tbody>
 <tr>
+<td>v12.2</td>
+<td>(UI) Redesigned the <strong>Server Logs</strong> page in the System Console with search, level and time range filters, live tail, expandable log entries with copy buttons and System Console links, and keyboard navigation.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a node selector and a node column to <strong>System Console &gt; Reporting &gt; Server Logs</strong> on clusters, a <strong>Plugin</strong> filter, and a custom from/to time range option to the <strong>Duration</strong> filter.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added <strong>View logs</strong> links to System Console plugin pages that open the Server Logs viewer filtered to that plugin.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) The System Console Server Logs viewer now shows log entry times in the admin&apos;s timezone and clock format, keeps its filters in the URL, and holds new live tail entries behind a <strong>new entries</strong> button while the admin is reading elsewhere in the list.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a <strong>Re-run checks</strong> button to the System Console <strong>Site health</strong> page, and removed redundant State, First detected and Last checked rows from expanded findings.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added descriptions of what each built-in Support Packet option includes to the <strong>Commercial Support</strong> dialog.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added support for viewing and editing post attributes directly on a post and in the right-hand sidebar.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a <strong>Preview/Code</strong> toggle to Markdown file previews and Markdown code blocks so Markdown can be viewed rendered or as source, and updated the file preview header icons to Compass icon buttons.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a <strong>Quote selection</strong> button that appears when text is selected in a message and adds the selection as a quote to the message box.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a <strong>Quote</strong> option to the message actions menu that inserts the message as a quote into the message box.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added filters to <strong>Recent Mentions</strong> for team, channel, mention type and date. Recent Mentions now also includes mentions of groups you belong to.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a <strong>Collapse category with unread channels</strong> setting to <strong>Settings &gt; Display</strong>. When enabled, collapsing a sidebar category also hides its unread channels.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added an experimental product navigation rail beside the team sidebar, behind the <code>ProductRail</code> feature flag, for switching between Channels, Threads, Boards and products.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a size field to interactive dialogs for selecting the modal width (small, medium, or large), and a grid subtype on collapsible elements that lays child sections out as a table.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) While a child interactive dialog is open, the parent dialog is now hidden instead of shown underneath it. Select elements can render their options as separate submit buttons, and action button descriptions now render beside the button as Markdown.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Updated the custom profile attribute select and multiselect fields in user settings, the System Console user detail page, and the Bots attributes section to use a new dropdown.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Reworded the operator options for hierarchical attributes in the System Console membership policy editor and grouped them by direction in the hierarchy they match, with help text under each.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added an Advanced CEL editor for team membership rules on the System Console team page. Team and channel admins now see rules that require the Advanced Editor as read-only.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Added a <strong>Bot accounts</strong> role to attribute-based permission policies in the System Console.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Plugin search types with a positive priority are now shown before Messages and Files and are selected by default when search is opened. The Messages and Files search inputs now read &quot;Search messages by keyword&quot; and &quot;Search files by keyword&quot;.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Updated the Integrations and Custom Emoji pages to follow the current team&apos;s theme.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Migrated buttons across the web app to Compass UI, updated icons in buttons to the standard Compass icon slots, unified the Recaps empty states, and aligned the Denim theme link color with its button color (#1c58d9).</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Migrated the channel intro and channel info right-hand sidebar action tiles to Compass tile buttons.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(Accessibility) Migrated icon-only buttons across the web app to Compass icon buttons for consistent sizing, focus, and active states.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(Accessibility) Fixed double focus borders on Compass form fields and buttons.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) When creating a bot account or webhook, the username is now pre-filled from the display name or title. The bot form now asks for the display name before the username.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Updated guest magic link invitation handling.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Removed the Company Information edit page from the System Console.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Removed the link to the Mattermost Translation Server from <strong>Settings &gt; Display &gt; Language</strong> and <strong>System Console &gt; Localization</strong>.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Removed the experimental <strong>YouTube Referrer Policy</strong> setting from the System Console.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Removed the 30-second option for session attribute time-to-live and grace period from the System Console. The minimum is now 1 minute.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Fixed inline Markdown images being rendered as block elements, which made channel headers, header change system messages, and messages containing several images wrap after every image.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Fixed the pulsing tour-tip indicator intercepting clicks meant for the button under it, such as the burn-on-read toggle in the message box.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Fixed System Console page titles, such as plugin names, being split apart when the sidebar search highlighted part of the title.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Fixed the channel intro briefly showing the wrong action buttons and shifting the message list while loading on workspaces with fewer than 10 users.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Fixed a missing divider between the <strong>Enable Join/Leave Messages</strong> and <strong>Performance Debugging</strong> settings in <strong>Settings &gt; Advanced</strong>.</td>
+</tr>
+<tr>
+<td>v12.2</td>
+<td>(UI) Fixed the help text for the Test Push Notification Service option, and fixed mistranslated strings in several languages, including &quot;Updating...&quot; shown as &quot;Uploading...&quot; in Japanese, Korean and Brazilian Portuguese.</td>
+</tr>
+<tr>
 <td>v12.1</td>
 <td>(UI) Deprecated the ServiceNow plugin. It&apos;s no longer pre-packaged with the server, and it&apos;s no longer offered in the onboarding wizard.</td>
 </tr>

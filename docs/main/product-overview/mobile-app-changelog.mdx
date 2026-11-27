@@ -16,6 +16,40 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+## 2.47.0 Release \{#release-v2-47-0}
+ - Release Date: December 16, 2026
+ - Server Versions Supported: Server v11.7.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
+
+### Compatibility
+ - **Upgrade to server version v11.7.0 or later is required.** Support for server [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases) (ESR) v10.11.0 has ended and upgrading to server ESR v11.7.0 or later is required. As we innovate and offer newer versions of our mobile apps, we maintain backwards compatibility only with supported server versions. Users who upgrade to the newest mobile apps while being connected to an unsupported server version can be exposed to compatibility issues, which can cause crashes or severe bugs that break core functionality of the app.
+ - Android 11+ is required.
+ - iOS 18.0+ is required.
+
+### Improvements
+ - Added support for weekly recurring scheduled posts. When the feature is enabled on the server, scheduling or rescheduling a message offers a **Repeat weekly** toggle. Recurring posts show a **Repeats weekly** tag in the scheduled posts list and can't be sent immediately.
+ - Added support for outbound SIP phone calls in Mattermost Calls.
+ - Added support for the **Channel Read Access** [attribute-based permission policy](https://docs.mattermost.com/administration-guide/manage/admin/abac-system-wide-policies.html#permission-policies). When a policy removes a user's access to a channel, the channel's data is removed from the device, and it's restored if access is regained.
+ - Added support for the ``action_button`` interactive dialog element, which opens a second dialog from within a dialog.
+ - Added support for collapsible sections in interactive dialogs (Apps Forms).
+ - Added a chip to playbook checklist items showing who last checked, unchecked, skipped or restored the task, and when.
+ - Added diagnostic logging for websocket client creation failures, with the full websocket URL redacted.
+
+### Bug Fixes
+ - Fixed an issue where users with multi-factor authentication couldn't log in if their password contained a percent sign followed by two hexadecimal characters, such as ``%20``.
+ - Fixed an issue where the keyboard could stay open after leaving a thread or channel (reported on iOS).
+ - Fixed an issue where a new channel could show a loading spinner instead of the channel intro.
+ - Fixed an issue where datetime fields in interactive dialogs ignored the configured minute interval and always used 30 minutes (reported on Android).
+ - Fixed an issue where date fields in interactive dialogs could show the previous day on devices in timezones ahead of UTC.
+ - Fixed an issue where interactive dialog ``textarea`` elements rendered as single-line inputs.
+ - Fixed an issue where administrator-managed custom profile attributes appeared editable in profile settings.
+ - Fixed an issue where a fully transparent profile picture made the user's avatar invisible on posts, the profile popover and Direct Message screens (reported on iOS).
+ - Fixed an issue where **Delete Message** was cut off in the **Options** sheet for a message that failed to send on devices without a home indicator, such as iPhone SE.
+ - Fixed a rendering error caused by messages containing Unicode object replacement characters (reported on Android).
+
+### Known Issues
+ - Users are unable to adjust the font size via the OS font size setting.
+ - Some Google Pixel phones on Android 12+ might not continue past the login screen. This is a known issue with the OS, and the current workaround is to restart the device.
+
 ## 2.46.2 Release \{#release-v2-46-2}
  - Release Date: November 26, 2026
  - Server Versions Supported: Server v11.7.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
