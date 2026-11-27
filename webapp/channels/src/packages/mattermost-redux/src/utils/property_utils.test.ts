@@ -423,8 +423,9 @@ describe('channel field fillability', () => {
         it.each([
             ['admin', true],
             ['member', true],
+            ['creator', true],
+            ['everyone', true],
             ['sysadmin', false],
-            ['creator', false],
             ['none', false],
             ['', false],
         ] as const)('permission_values %s is fillable=%s', (level, expected) => {
@@ -457,7 +458,8 @@ describe('channel field fillability', () => {
     it('flags any value tier channel creators cannot fill as the only problem', () => {
         expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'sysadmin'}))).toBe(true);
         expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'none'}))).toBe(true);
-        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'creator'}))).toBe(true);
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'creator'}))).toBe(false);
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'everyone'}))).toBe(false);
         expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'admin'}))).toBe(false);
         expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'member'}))).toBe(false);
     });
@@ -471,8 +473,8 @@ describe('channel field fillability', () => {
         it.each([
             ['admin', true],
             ['member', true],
-            ['everyone', false],
-            ['creator', false],
+            ['everyone', true],
+            ['creator', true],
             ['sysadmin', false],
             ['none', false],
         ] as const)('value.write %s is fillable=%s and wins over the legacy keys', (write, expected) => {

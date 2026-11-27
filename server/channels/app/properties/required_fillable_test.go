@@ -81,6 +81,8 @@ func TestAccessControlAttributeValidationRequiredUnfillable(t *testing.T) {
 			{name: "synced is refused", values: level(model.PermissionLevelAdmin), attrs: model.StringInterface{model.PropertyFieldAttrLDAP: "department"}, refused: true},
 			{name: "admin level is allowed", values: level(model.PermissionLevelAdmin)},
 			{name: "member level is allowed", values: level(model.PermissionLevelMember)},
+			{name: "creator level is allowed", values: level(model.PermissionLevelCreator)},
+			{name: "everyone level is allowed", values: level(model.PermissionLevelEveryone)},
 			{name: "default level is allowed", values: nil},
 		}
 		for _, tc := range testCases {
@@ -103,6 +105,25 @@ func TestAccessControlAttributeValidationRequiredUnfillable(t *testing.T) {
 		field.Permissions.Masking = &model.Masking{}
 		_, createErr := th.service.CreatePropertyField(th.Context, field)
 		requireUnfillableErr(t, createErr)
+	})
+
+	t.Run("marking a linked field required is judged on its template's masking", func(t *testing.T) {
+		template := newField(model.PropertyFieldObjectTypeTemplate, level(model.PermissionLevelSysadmin), nil)
+		template.Type = model.PropertyFieldTypeSelect
+		template.Permissions = model.PermissionsFromLegacy(template, model.LegacyConversionOpts{ConvertAttrs: true})
+		template.Permissions.Masking = &model.Masking{}
+		template, storeErr := th.dbStore.PropertyField().Create(template)
+		require.NoError(t, storeErr)
+
+		linked := newField(model.PropertyFieldObjectTypeChannel, level(model.PermissionLevelAdmin), nil)
+		linked.Type = model.PropertyFieldTypeSelect
+		linked.LinkedFieldID = &template.ID
+		linked = seed(t, linked)
+		require.Nil(t, linked.Permissions.Masking)
+
+		linked.Attrs[model.PropertyFieldAttrRequired] = true
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, linked)
+		requireUnfillableErr(t, updateErr)
 	})
 
 	t.Run("marking an unfillable field required is refused", func(t *testing.T) {

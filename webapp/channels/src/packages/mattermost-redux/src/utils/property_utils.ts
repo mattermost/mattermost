@@ -253,11 +253,16 @@ function isManagedByAdmin(field: PropertyField): boolean {
     return field.attrs?.managed === 'admin';
 }
 
+// The value.write tiers the create endpoint lets a channel's creator fill; the
+// creator becomes the channel's admin.
+function isFillableAtCreation(level: PropertyPermissionLevel | undefined): boolean {
+    return level === 'admin' || level === 'creator' || level === 'member' || level === 'everyone';
+}
+
 // Mirrors model.IsChannelFieldFillableByCreators: whoever creates a channel can
-// give it a value for the field only when value.write is admin (the creator
-// becomes the channel's admin) or member, and members can read the field's
-// options and values. A required field failing this can never be satisfied by a
-// new channel.
+// give it a value for the field only when value.write is a tier creation fills,
+// and members can read the field's options and values. A required field failing
+// this can never be satisfied by a new channel.
 export function isChannelFieldFillableByCreators(field: PropertyField): boolean {
     if (field.object_type !== 'channel' || isManagedByAdmin(field)) {
         return false;
@@ -268,8 +273,7 @@ export function isChannelFieldFillableByCreators(field: PropertyField): boolean 
         return false;
     }
 
-    const write = restrictions.value?.write;
-    return (write === 'admin' || write === 'member') &&
+    return isFillableAtCreation(restrictions.value?.write) &&
         isReadableByMembers(restrictions.value?.read) &&
         isReadableByMembers(restrictions.option?.read);
 }
@@ -287,9 +291,8 @@ export function isChannelFieldLevelOnlyUnfillable(field: PropertyField): boolean
         return false;
     }
 
-    // Any tier but the two a creator can fill is fixed by moving it to admin.
-    const write = restrictions.value?.write;
-    return write !== 'admin' && write !== 'member';
+    // Any tier creation can't fill is fixed by moving it to admin.
+    return !isFillableAtCreation(restrictions.value?.write);
 }
 
 // The restrictions to PATCH to let channel admins set the field's values. The

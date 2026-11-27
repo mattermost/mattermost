@@ -35,14 +35,27 @@ func (ps *PropertyService) CheckRequiredChannelFieldFillable(rctx request.CTX, f
 	if objectType != model.PropertyFieldObjectTypeChannel || !isRequiredEnforcedOn(field) {
 		return nil
 	}
-	if existing != nil && isRequiredEnforcedOn(existing) && !model.IsChannelFieldFillableByCreators(existing) {
-		return nil
+	if existing != nil && isRequiredEnforcedOn(existing) {
+		fillable, err := ps.isFillableByCreators(rctx, existing)
+		if err != nil {
+			return err
+		}
+		if !fillable {
+			return nil
+		}
 	}
 
 	judged := *field
 	judged.ObjectType = objectType
 	judged.Permissions = ps.permissionsAfterSave(rctx, field, existing)
-	if model.IsChannelFieldFillableByCreators(&judged) {
+	if existing != nil && judged.GroupID == "" {
+		judged.GroupID = existing.GroupID
+	}
+	fillable, err := ps.isFillableByCreators(rctx, &judged)
+	if err != nil {
+		return err
+	}
+	if fillable {
 		return nil
 	}
 
@@ -75,4 +88,28 @@ func (ps *PropertyService) permissionsAfterSave(rctx request.CTX, field, existin
 		return translated.Permissions
 	}
 	return existing.Permissions
+}
+
+// isFillableByCreators runs model.IsChannelFieldFillableByCreators with the
+// masking that applies to field. A linked field never stores its own masking,
+// so its template's is used, as the value write hook does.
+func (ps *PropertyService) isFillableByCreators(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	templateID := field.LinkSourceID()
+	if templateID == "" {
+		return model.IsChannelFieldFillableByCreators(field), nil
+	}
+
+	template, err := ps.getPropertyField(rctx, field.GroupID, templateID)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve template %q for field %q: %w", templateID, field.ID, err)
+	}
+
+	permissions := *model.ChannelFieldEffectivePermissions(field)
+	permissions.Masking = nil
+	if template.Permissions != nil {
+		permissions.Masking = template.Permissions.Masking
+	}
+	judged := *field
+	judged.Permissions = &permissions
+	return model.IsChannelFieldFillableByCreators(&judged), nil
 }
