@@ -6,6 +6,19 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
+export type ExternalImageBlockingConfig = {
+    blockExternalImages: boolean;
+    siteURL: string | undefined;
+};
+
+export function getExternalImageBlockingConfig(state: GlobalState): ExternalImageBlockingConfig {
+    const config = getConfig(state);
+    return {
+        blockExternalImages: config?.HasImageProxy === 'true' && config?.ImageProxyType === 'block',
+        siteURL: config?.SiteURL,
+    };
+}
+
 declare global {
     interface Window {
         basename: string;

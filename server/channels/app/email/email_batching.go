@@ -354,7 +354,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
-				MessageAttachments:       ProcessMessageAttachments(notification.post, siteURL),
+				MessageAttachments:       ProcessMessageAttachments(notification.post, siteURL, es.config().ImageProxySettings.IsBlockMode()),
 			})
 		}
 	}

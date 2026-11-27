@@ -10,6 +10,7 @@ import (
 	"hash/fnv"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -232,4 +233,135 @@ func GenerateLinkMetadataHash(url string, timestamp int64) int64 {
 	hash.Write([]byte(url))
 
 	return int64(hash.Sum32())
+}
+
+func hasControlOrBackslash(s string) bool {
+	for i := range len(s) {
+		if s[i] == '\\' || s[i] < 0x20 || s[i] == 0x7f {
+			return true
+		}
+	}
+	return false
+}
+
+// NormalizedPort returns u's explicit port, or the default port for http ("80") and https ("443").
+func NormalizedPort(u *url.URL) string {
+	if p := u.Port(); p != "" {
+		return p
+	}
+	switch strings.ToLower(u.Scheme) {
+	case "https":
+		return "443"
+	case "http":
+		return "80"
+	default:
+		return ""
+	}
+}
+
+func hasSubpathPrefix(cleanPath, sitePath string) bool {
+	if sitePath == "" {
+		return true
+	}
+	return cleanPath == sitePath || strings.HasPrefix(cleanPath, sitePath+"/")
+}
+
+func isImageProxyPath(cleanPath, sitePath string) bool {
+	proxyPath := sitePath + "/api/v4/image"
+	return cleanPath == proxyPath || strings.HasPrefix(cleanPath, proxyPath+"/")
+}
+
+func resolveInternalImagePath(rawURL, siteURL string) (string, string, bool) {
+	if rawURL != strings.TrimSpace(rawURL) || hasControlOrBackslash(rawURL) || strings.HasPrefix(rawURL, "//") {
+		return "", "", false
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Opaque != "" || parsed.User != nil {
+		return "", "", false
+	}
+	if siteURL == "" {
+		if parsed.Scheme != "" || parsed.Host != "" {
+			return "", "", false
+		}
+		return path.Clean("/" + parsed.Path), "", true
+	}
+	siteParsed, err := url.Parse(siteURL)
+	if err != nil || siteParsed.Scheme == "" || siteParsed.Host == "" {
+		return "", "", false
+	}
+	sitePath := strings.TrimRight(siteParsed.Path, "/")
+	baseSiteParsed := *siteParsed
+	baseSiteParsed.Path = sitePath + "/"
+	resolved := baseSiteParsed.ResolveReference(parsed)
+	if !strings.EqualFold(resolved.Scheme, siteParsed.Scheme) ||
+		!strings.EqualFold(resolved.Hostname(), siteParsed.Hostname()) ||
+		NormalizedPort(resolved) != NormalizedPort(siteParsed) {
+		return "", "", false
+	}
+	return path.Clean("/" + resolved.Path), sitePath, true
+}
+
+// IsImageProxyURL reports whether rawURL targets Mattermost's /api/v4/image proxy endpoint.
+func IsImageProxyURL(rawURL, siteURL string) bool {
+	if rawURL == "" {
+		return false
+	}
+	cleanPath, sitePath, ok := resolveInternalImagePath(rawURL, siteURL)
+	if !ok {
+		return false
+	}
+	return isImageProxyPath(cleanPath, sitePath)
+}
+
+// IsExternalImageURL reports whether fetching rawURL could contact a host outside siteURL or hit /api/v4/image.
+func IsExternalImageURL(rawURL, siteURL string) bool {
+	if rawURL == "" {
+		return false
+	}
+	if rawURL != strings.TrimSpace(rawURL) {
+		return true
+	}
+	if strings.HasPrefix(strings.ToLower(rawURL), "data:image/") {
+		return false
+	}
+	cleanPath, sitePath, ok := resolveInternalImagePath(rawURL, siteURL)
+	if !ok || !hasSubpathPrefix(cleanPath, sitePath) {
+		return true
+	}
+	return isImageProxyPath(cleanPath, sitePath)
+}
+
+// IsSafeHTTPURL reports whether rawURL parses cleanly with an http or https scheme and non-empty host.
+func IsSafeHTTPURL(rawURL string) bool {
+	if rawURL == "" || rawURL != strings.TrimSpace(rawURL) || hasControlOrBackslash(rawURL) {
+		return false
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Opaque != "" || parsed.Host == "" {
+		return false
+	}
+	return strings.EqualFold(parsed.Scheme, "http") || strings.EqualFold(parsed.Scheme, "https")
+}
+
+// UnwrapImageProxyURL extracts the safe destination URL from an /api/v4/image proxy URL, or returns rawURL unchanged.
+func UnwrapImageProxyURL(rawURL, siteURL string) string {
+	if !IsImageProxyURL(rawURL, siteURL) {
+		return rawURL
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	target := parsed.Query().Get("url")
+	if target != "" && IsSafeHTTPURL(target) {
+		return target
+	}
+	return rawURL
+}
+
+// BlockedImageLinkTarget unwraps an /api/v4/image proxy URL and reports whether the result is safe to
+// render as a clickable link in place of a blocked image: an http(s) URL that is not itself a proxy URL.
+func BlockedImageLinkTarget(rawURL, siteURL string) (string, bool) {
+	target := UnwrapImageProxyURL(rawURL, siteURL)
+	return target, IsSafeHTTPURL(target) && !IsImageProxyURL(target, siteURL)
 }

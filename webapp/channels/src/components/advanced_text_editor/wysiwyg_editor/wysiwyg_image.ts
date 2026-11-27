@@ -5,6 +5,7 @@ import type {JSONContent, MarkdownToken} from '@tiptap/core';
 import {InputRule, Node, mergeAttributes} from '@tiptap/core';
 
 import {getImageSrc} from 'utils/post_utils';
+import {isExternalImageURL, unwrapImageProxyURL} from 'utils/url';
 
 declare module '@tiptap/core' {
     interface NodeConfig {
@@ -19,6 +20,8 @@ type MarkdownParseHelpers = {
 
 export type WysiwygImageOptions = {
     hasImageProxy: boolean;
+    blockExternalImages: boolean;
+    siteURL: string;
 };
 
 const INPUT_REGEX = /!\[([^\]]*)]\(((?:[^\s()]|\([^\s()]*\))+)(?:\s+["']([^"']*)["'])?\)$/;
@@ -30,7 +33,11 @@ const WysiwygImage = Node.create<WysiwygImageOptions>({
     draggable: true,
 
     addOptions() {
-        return {hasImageProxy: false};
+        return {
+            hasImageProxy: false,
+            blockExternalImages: false,
+            siteURL: '',
+        };
     },
 
     addAttributes() {
@@ -42,15 +49,48 @@ const WysiwygImage = Node.create<WysiwygImageOptions>({
     },
 
     parseHTML() {
-        return [{tag: 'img[src]'}];
+        return [
+            {
+                tag: 'span[data-blocked-image]',
+                getAttrs: (el) => {
+                    if (typeof el === 'string') {
+                        return false;
+                    }
+                    const src = el.getAttribute('data-src');
+                    if (!src) {
+                        return false;
+                    }
+                    return {
+                        src,
+                        alt: el.getAttribute('data-alt'),
+                        title: el.getAttribute('data-title'),
+                    };
+                },
+            },
+            {tag: 'img[src]'},
+        ];
     },
 
     renderHTML({HTMLAttributes}) {
-        const {src, ...rest} = HTMLAttributes;
+        const {src, alt, title, ...rest} = HTMLAttributes;
+        const rawSrc = String(src ?? '');
+
+        if (this.options.blockExternalImages && isExternalImageURL(rawSrc, this.options.siteURL)) {
+            const label = String(alt || unwrapImageProxyURL(rawSrc, this.options.siteURL));
+            return ['span', mergeAttributes(rest, {
+                'data-blocked-image': 'true',
+                'data-src': rawSrc,
+                'data-alt': alt ?? '',
+                'data-title': title ?? '',
+                class: 'markdown-inline-img--blocked',
+            }), label];
+        }
 
         return ['img', mergeAttributes(rest, {
+            alt,
+            title,
             class: 'markdown-inline-img',
-            src: getImageSrc(String(src ?? ''), this.options.hasImageProxy),
+            src: getImageSrc(rawSrc, this.options.hasImageProxy),
         })];
     },
 

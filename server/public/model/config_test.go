@@ -2535,6 +2535,12 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ImageProxyType: "local",
 			ExpectError:    false,
 		},
+		{
+			Name:           "block",
+			Enable:         true,
+			ImageProxyType: ImageProxyTypeBlock,
+			ExpectError:    false,
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			ips := &ImageProxySettings{
@@ -5809,4 +5815,14 @@ func TestElasticsearchSettingsIsValid(t *testing.T) {
 			require.Equal(t, tc.errorID, appErr.Id)
 		})
 	}
+}
+
+func TestImageProxySettingsIsBlockMode(t *testing.T) {
+	var nilSettings *ImageProxySettings
+	assert.False(t, nilSettings.IsBlockMode())
+
+	assert.False(t, (&ImageProxySettings{}).IsBlockMode())
+	assert.False(t, (&ImageProxySettings{Enable: new(false), ImageProxyType: new(ImageProxyTypeBlock)}).IsBlockMode())
+	assert.False(t, (&ImageProxySettings{Enable: new(true), ImageProxyType: new(ImageProxyTypeLocal)}).IsBlockMode())
+	assert.True(t, (&ImageProxySettings{Enable: new(true), ImageProxyType: new(ImageProxyTypeBlock)}).IsBlockMode())
 }

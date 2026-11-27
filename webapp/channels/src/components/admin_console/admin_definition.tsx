@@ -1730,7 +1730,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'ImageProxySettings.ImageProxyType',
                             label: defineMessage({id: 'admin.image.proxyType', defaultMessage: 'Image Proxy Type:'}),
-                            help_text: defineMessage({id: 'admin.image.proxyTypeDescription', defaultMessage: 'Configure an image proxy to load all Markdown images through a proxy. The image proxy prevents users from making insecure image requests, provides caching for increased performance, and automates image adjustments such as resizing. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.image.proxyTypeWithBlockDescription', defaultMessage: 'Configure an image proxy to load all Markdown images through a proxy, or set to "block" to prevent external image requests and render external images as links. For full outbound hardening, also set Enable website link previews, Enable integrations to override profile picture icons, and Enable GIF Picker to false. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -1746,6 +1746,10 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: 'local',
                                     display_name: defineMessage({id: 'local', defaultMessage: 'local'}),
+                                },
+                                {
+                                    value: 'block',
+                                    display_name: defineMessage({id: 'admin.image.proxyType.block', defaultMessage: 'block'}),
                                 },
                             ],
                             isDisabled: it.any(

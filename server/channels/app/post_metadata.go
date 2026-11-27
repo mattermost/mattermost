@@ -789,8 +789,22 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 		return nil, nil
 	}
 
+	externalBlocked := a.isExternalImageBlocked() && model.IsExternalImageURL(firstLink, a.GetSiteURL())
+	if externalBlocked && (hasImageFileExtension(firstLink) || model.IsImageProxyURL(firstLink, a.GetSiteURL())) {
+		return &model.PostEmbed{
+			Type: model.PostEmbedLink,
+			URL:  firstLink,
+		}, nil
+	}
+
 	og, image, permalink, err := a.getLinkMetadata(rctx, firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
 	if err != nil {
+		if errors.Is(err, errBlockedExternalImage) {
+			return &model.PostEmbed{
+				Type: model.PostEmbedLink,
+				URL:  firstLink,
+			}, nil
+		}
 		return nil, err
 	}
 
@@ -808,8 +822,8 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 
 	if image != nil {
 		// See MM-67372
-		if image.Format == "svg" || model.IsSVGImageURL(firstLink) {
-			rctx.Logger().Debug("Skipping SVG image embed",
+		if externalBlocked || image.Format == "svg" || model.IsSVGImageURL(firstLink) {
+			rctx.Logger().Debug("Skipping image embed",
 				mlog.String("post_id", post.Id),
 				mlog.String("url", firstLink))
 			// Return a link embed instead of an image embed
@@ -882,9 +896,16 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost boo
 		imageURLs = model.RemoveDuplicateStrings(imageURLs)
 	}
 
+	blockExternal := a.isExternalImageBlocked()
+	siteURL := a.GetSiteURL()
+
 	for _, imageURL := range imageURLs {
+		if blockExternal && model.IsExternalImageURL(imageURL, siteURL) {
+			continue
+		}
+
 		// prevent infinite loop if a OG image URL is the same post's permalink
-		resolvedURL := resolveMetadataURL(imageURL, a.GetSiteURL())
+		resolvedURL := resolveMetadataURL(imageURL, siteURL)
 		if looksLikeAPermalink(resolvedURL, a.GetSiteURL()) {
 			continue
 		}
@@ -1117,10 +1138,10 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 		og, err = a.getLinkMetadataFromOEmbed(rctx, requestURL, oEmbedProvider)
 	} else {
 		og, image, err = a.getLinkMetadataForURL(rctx, requestURL)
-
-		// We intentionally don't return early on an error because we want to save that there is no metadata for this link
-
-		a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
+		if !errors.Is(err, errBlockedExternalImage) {
+			// We intentionally don't return early on other errors because we want to save that there is no metadata for this link
+			a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
+		}
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil
@@ -1203,7 +1224,12 @@ func (a *App) getLinkMetadataFromOEmbed(rctx request.CTX, requestURL string, pro
 }
 
 func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*opengraph.OpenGraph, *model.PostImage, error) {
-	var request *http.Request
+	siteURL := a.GetSiteURL()
+	blockExternal := a.isExternalImageBlocked()
+	if blockExternal && model.IsImageProxyURL(requestURL, siteURL) {
+		return nil, nil, errBlockedExternalImage
+	}
+
 	// Make request for a web page or an image
 	request, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
@@ -1212,13 +1238,18 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 
 	var body io.ReadCloser
 	var contentType string
+	isExternal := blockExternal && model.IsExternalImageURL(requestURL, siteURL)
 
-	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+	if (request.URL.Scheme+"://"+request.URL.Host) == siteURL && request.URL.Path == "/api/v4/image" {
 		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
 		body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
 	} else {
-		request.Header.Add("Accept", "image/*")
-		request.Header.Add("Accept", "text/html;q=0.8")
+		if isExternal {
+			request.Header.Add("Accept", "text/html")
+		} else {
+			request.Header.Add("Accept", "image/*")
+			request.Header.Add("Accept", "text/html;q=0.8")
+		}
 		request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
 		client := a.makeLinkMetadataClient(rctx)
@@ -1234,9 +1265,17 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 	}
 
 	if body != nil {
+		if isExternal && strings.HasPrefix(strings.ToLower(strings.TrimSpace(contentType)), "image/") {
+			if closeErr := body.Close(); closeErr != nil {
+				rctx.Logger().Debug("error closing blocked OG image response body", mlog.Err(closeErr))
+			}
+			return nil, nil, errBlockedExternalImage
+		}
 		defer func() {
-			if _, err = io.Copy(io.Discard, body); err != nil {
-				rctx.Logger().Warn("error discarding OG image response body", mlog.Err(err))
+			if !errors.Is(err, errBlockedExternalImage) {
+				if _, copyErr := io.Copy(io.Discard, body); copyErr != nil {
+					rctx.Logger().Warn("error discarding OG image response body", mlog.Err(copyErr))
+				}
 			}
 			body.Close()
 		}()
@@ -1262,8 +1301,13 @@ func (a *App) makeLinkMetadataClient(rctx request.CTX) *http.Client {
 			return fmt.Errorf("stopped after %d redirects", len(via))
 		}
 
-		if !a.isLinkAllowedForPreview(rctx, req.URL.String()) {
+		targetURL := req.URL.String()
+		if !a.isLinkAllowedForPreview(rctx, targetURL) {
 			return fmt.Errorf("redirect target %q is disabled for link previews", req.URL.Redacted())
+		}
+
+		if a.isExternalImageBlocked() {
+			return checkBlockedRedirect(req, via, a.GetSiteURL())
 		}
 
 		return nil
@@ -1371,6 +1415,10 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 		// If the content-type is missing we try to detect it from the actual data.
 		contentType = peekContentType(bufRd)
 		body = bufRd
+	}
+
+	if a.isExternalImageBlocked() && strings.HasPrefix(strings.ToLower(strings.TrimSpace(contentType)), "image") && model.IsExternalImageURL(requestURL, a.GetSiteURL()) {
+		return nil, nil, errBlockedExternalImage
 	}
 
 	if strings.HasPrefix(contentType, "image/svg+xml") {

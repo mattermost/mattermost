@@ -74,6 +74,8 @@ func (proxy *ImageProxy) makeBackend(proxySettings model.ImageProxySettings) Ima
 	switch *proxySettings.ImageProxyType {
 	case model.ImageProxyTypeLocal:
 		return makeLocalBackend(proxy)
+	case model.ImageProxyTypeBlock:
+		return makeBlockBackend()
 	default:
 		return nil
 	}
@@ -136,17 +138,19 @@ func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
 	if err != nil || parsedURL.Opaque != "" {
 		return proxy.siteURL.String()
 	}
-	// If host is same as siteURL host, return.
-	if parsedURL.Host == proxy.siteURL.Host {
-		return parsedURL.String()
-	}
-
 	// Handle protocol-relative URLs.
 	parsedURL.Scheme = cmp.Or(parsedURL.Scheme, proxy.siteURL.Scheme)
 
 	// If it's a relative URL, fill up the hostname and return.
 	if parsedURL.Host == "" {
 		parsedURL.Host = proxy.siteURL.Host
+		return parsedURL.String()
+	}
+
+	if parsedURL.User == nil &&
+		strings.EqualFold(parsedURL.Scheme, proxy.siteURL.Scheme) &&
+		strings.EqualFold(parsedURL.Hostname(), proxy.siteURL.Hostname()) &&
+		model.NormalizedPort(parsedURL) == model.NormalizedPort(proxy.siteURL) {
 		return parsedURL.String()
 	}
 

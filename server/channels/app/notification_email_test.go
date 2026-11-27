@@ -1406,3 +1406,50 @@ func TestSendNotificationEmailDeliveryRecordFollowsSentContent(t *testing.T) {
 		}, 2*time.Second, 100*time.Millisecond, "the email carried no post content, so nothing may be recorded")
 	})
 }
+
+func TestEmailNotificationImageProxyBlockMode(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.SiteURL = new("https://chat.example.com")
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+	})
+
+	recipient := th.BasicUser2
+	sender := th.BasicUser
+	channel := th.BasicChannel
+	team := th.BasicTeam
+
+	post := &model.Post{
+		Id:      "Test_block_id",
+		Message: "![ext alt](https://external.example/pic.png) and ![int alt](https://chat.example.com/static/logo.png) and ![proxied](/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fproxied.png)",
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			AuthorName: "Author",
+			AuthorIcon: "https://external.example/author.png",
+			Pretext:    "![pretext](https://external.example/pretext.png)",
+			Text:       "![att text](https://external.example/text.png)",
+			ImageURL:   "https://external.example/att-image.png",
+			ThumbURL:   "https://external.example/att-thumb.png",
+			Footer:     "Footer",
+			FooterIcon: "https://external.example/footer.png",
+		},
+	})
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	got, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	require.NoError(t, err)
+
+	assert.NotContains(t, got, `<img src="https://external.example/`)
+	assert.NotContains(t, got, `src="https://external.example/`)
+	assert.NotContains(t, got, `/api/v4/image?url=`)
+	assert.Contains(t, got, `<a href="https://external.example/pic.png">ext alt</a>`)
+	assert.Contains(t, got, `<a href="https://external.example/proxied.png">proxied</a>`)
+	assert.Contains(t, got, `<img src="https://chat.example.com/static/logo.png" alt="int alt"`)
+	assert.Contains(t, got, `<a href="https://external.example/pretext.png">pretext</a>`)
+	assert.Contains(t, got, `<a href="https://external.example/text.png">att text</a>`)
+	assert.Contains(t, got, `<a href="https://external.example/att-image.png"`)
+	assert.Contains(t, got, `<a href="https://external.example/att-thumb.png"`)
+}

@@ -227,8 +227,12 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
+	cfg := c.App.Config()
 	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors 'self' %s", *c.App.Config().ServiceSettings.FrameAncestors))
+	w.Header().Set("Content-Security-Policy", appendImageBlockCSP(
+		fmt.Sprintf("frame-ancestors 'self' %s", *cfg.ServiceSettings.FrameAncestors),
+		cfg,
+	))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926")
 

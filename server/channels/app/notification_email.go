@@ -386,7 +386,7 @@ func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, re
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
 
 		// Process message attachments
-		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL())
+		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL(), a.isExternalImageBlocked())
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)

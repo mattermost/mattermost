@@ -1527,3 +1527,64 @@ type userLookupOuterStore struct {
 func (s *userLookupOuterStore) User() store.UserStore {
 	return s.users
 }
+
+func TestStaticHandlerImageProxyBlockCSP(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	web := New(th.Server)
+	handler := web.NewStaticHandler(func(c *Context, w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	for _, tc := range []struct {
+		name      string
+		enable    bool
+		proxyType string
+		wantImg   bool
+	}{
+		{"disabled", false, model.ImageProxyTypeBlock, false},
+		{"local", true, model.ImageProxyTypeLocal, false},
+		{"block", true, model.ImageProxyTypeBlock, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.ImageProxySettings.Enable = new(tc.enable)
+				cfg.ImageProxySettings.ImageProxyType = new(tc.proxyType)
+			})
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+
+			csp := rec.Header().Get("Content-Security-Policy")
+			if tc.wantImg {
+				assert.Contains(t, csp, "; img-src 'self' data: blob:")
+			} else {
+				assert.NotContains(t, csp, "img-src")
+			}
+		})
+	}
+
+	t.Run("oauth authorize page includes block-mode img-src CSP", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.Enable = new(true)
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+		})
+		oauthApp := &model.OAuthApp{
+			Name:         "test-app",
+			Homepage:     "https://example.com",
+			CreatorId:    model.NewId(),
+			CallbackUrls: []string{"https://example.com/callback"},
+		}
+		createdApp, appErr := th.App.CreateOAuthApp(oauthApp)
+		require.Nil(t, appErr)
+
+		req := httptest.NewRequest(http.MethodGet, "/oauth/authorize?client_id="+createdApp.Id+"&response_type=code&redirect_uri=https://example.com/callback", nil)
+		rec := httptest.NewRecorder()
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id}),
+		}
+		authorizeOAuthPage(c, rec, req)
+
+		assert.Contains(t, rec.Header().Get("Content-Security-Policy"), "; img-src 'self' data: blob:")
+	})
+}

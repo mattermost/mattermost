@@ -13,6 +13,7 @@ import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {openModal} from 'actions/views/modals';
 
 import ExternalImage from 'components/external_image';
+import BlockedImageLink from 'components/external_image/blocked_image_link';
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
@@ -102,32 +103,42 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
             className='mm-blocks-image'
             style={{display: 'flex', justifyContent}}
         >
-            <div
-                className='mm-blocks-image__frame'
-                style={{
-                    maxWidth: caps.maxWidth,
-                    maxHeight: caps.maxHeight,
-                }}
+            <ExternalImage
+                src={url}
+                imageMetadata={imageMetadata}
             >
-                <ExternalImage
-                    src={url}
-                    imageMetadata={imageMetadata}
-                >
-                    {(safeSrc) => (
-                        <SizeAwareImage
-                            src={safeSrc}
-                            dimensions={imageMetadata}
+                {(safeSrc, blockedReason) => (
+                    blockedReason === 'external' ? (
+                        <BlockedImageLink
+                            src={url}
                             alt={block.alt_text}
                             title={block.title}
-                            className={imgClass}
-                            style={imageConstraintStyle}
-                            onClick={showModal}
-                            showLoader={true}
-                            hideUtilities={true}
+                            location='image_block'
+                            inline={false}
                         />
-                    )}
-                </ExternalImage>
-            </div>
+                    ) : (
+                        <div
+                            className='mm-blocks-image__frame'
+                            style={{
+                                maxWidth: caps.maxWidth,
+                                maxHeight: caps.maxHeight,
+                            }}
+                        >
+                            <SizeAwareImage
+                                src={safeSrc}
+                                dimensions={imageMetadata}
+                                alt={block.alt_text}
+                                title={block.title}
+                                className={imgClass}
+                                style={imageConstraintStyle}
+                                onClick={showModal}
+                                showLoader={true}
+                                hideUtilities={true}
+                            />
+                        </div>
+                    )
+                )}
+            </ExternalImage>
         </div>
     );
 };

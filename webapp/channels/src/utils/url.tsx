@@ -243,6 +243,154 @@ export function isInternalURL(url: string, siteURL?: string): boolean {
     return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
+const IMAGE_PROXY_SUFFIX = '/api/v4/image';
+
+function isImageProxyPath(pathname: string, sitePath: string): boolean {
+    const proxyPath = sitePath + IMAGE_PROXY_SUFFIX;
+    return pathname === proxyPath || pathname.startsWith(proxyPath + '/');
+}
+
+function normalizePathname(pathname: string): string {
+    let decoded: string;
+    try {
+        decoded = decodeURIComponent(pathname);
+    } catch {
+        decoded = pathname.split('/').map((segment) => {
+            try {
+                return decodeURIComponent(segment);
+            } catch {
+                return segment;
+            }
+        }).join('/');
+    }
+    const parts = decoded.replace(/\/+/g, '/').split('/');
+    const stack: string[] = [];
+    for (const part of parts) {
+        if (!part || part === '.') {
+            continue;
+        }
+        if (part === '..') {
+            stack.pop();
+        } else {
+            stack.push(part);
+        }
+    }
+    return '/' + stack.join('/');
+}
+
+let cachedSiteURL: string | undefined;
+let cachedSiteBase: {base: URL; sitePath: string} | null = null;
+
+function parseSiteBase(siteURL: string): {base: URL; sitePath: string} | null {
+    if (cachedSiteURL === siteURL) {
+        return cachedSiteBase;
+    }
+    let parsed: {base: URL; sitePath: string} | null = null;
+    try {
+        const site = new URL(siteURL);
+        if ((site.protocol === 'http:' || site.protocol === 'https:') && site.username === '' && site.password === '') {
+            const cleanSitePath = normalizePathname(site.pathname);
+            const sitePath = cleanSitePath === '/' ? '' : cleanSitePath;
+            parsed = {base: new URL(site.origin + sitePath + '/'), sitePath};
+        }
+    } catch {
+        parsed = null;
+    }
+    cachedSiteURL = siteURL;
+    cachedSiteBase = parsed;
+    return parsed;
+}
+
+function hasControlOrBackslash(rawURL: string): boolean {
+    for (let i = 0; i < rawURL.length; i++) {
+        const code = rawURL.charCodeAt(i);
+        if (rawURL[i] === '\\' || code < 0x20 || code === 0x7f) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function resolveInternalImageURL(rawURL: string, siteURL?: string): {resolved: URL; cleanPath: string; sitePath: string} | null {
+    if (!rawURL || rawURL !== rawURL.trim() || hasControlOrBackslash(rawURL) || rawURL.startsWith('//')) {
+        return null;
+    }
+    try {
+        if (!siteURL) {
+            if ((/^[a-zA-Z][a-zA-Z0-9+.-]*:/).test(rawURL)) {
+                return null;
+            }
+            const resolved = new URL(rawURL, 'http://localhost/');
+            if (resolved.username !== '' || resolved.password !== '') {
+                return null;
+            }
+            return {resolved, cleanPath: normalizePathname(resolved.pathname), sitePath: ''};
+        }
+        if ((/^[a-zA-Z][a-zA-Z0-9+.-]*:/).test(rawURL) && !(/^https?:\/\//i).test(rawURL)) {
+            return null;
+        }
+        const parsedSite = parseSiteBase(siteURL);
+        if (!parsedSite) {
+            return null;
+        }
+        const {base, sitePath} = parsedSite;
+        const resolved = new URL(rawURL, base);
+        if (
+            resolved.protocol !== base.protocol ||
+            resolved.origin !== base.origin ||
+            resolved.username !== '' ||
+            resolved.password !== ''
+        ) {
+            return null;
+        }
+        return {resolved, cleanPath: normalizePathname(resolved.pathname), sitePath};
+    } catch {
+        return null;
+    }
+}
+
+function resolveImageProxyURL(rawURL: string, siteURL?: string): URL | null {
+    const info = resolveInternalImageURL(rawURL, siteURL);
+    if (!info || !isImageProxyPath(info.cleanPath, info.sitePath)) {
+        return null;
+    }
+    return info.resolved;
+}
+
+export function isImageProxyURL(rawURL: string, siteURL?: string): boolean {
+    return resolveImageProxyURL(rawURL, siteURL) !== null;
+}
+
+export function unwrapImageProxyURL(rawURL: string, siteURL?: string): string {
+    const resolved = resolveImageProxyURL(rawURL, siteURL);
+    if (!resolved) {
+        return rawURL;
+    }
+    const target = resolved.searchParams.get('url');
+    if (target && isUrlSafe(target)) {
+        return target;
+    }
+    return rawURL;
+}
+
+export function isExternalImageURL(rawURL: string, siteURL?: string): boolean {
+    if (!rawURL) {
+        return false;
+    }
+    if (rawURL.toLowerCase().startsWith('data:image/')) {
+        return false;
+    }
+    const info = resolveInternalImageURL(rawURL, siteURL);
+    if (!info) {
+        return true;
+    }
+    const {cleanPath, sitePath} = info;
+    if (sitePath && cleanPath !== sitePath && !cleanPath.startsWith(sitePath + '/')) {
+        return true;
+    }
+    return isImageProxyPath(cleanPath, sitePath);
+}
+
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
     if (!isInternalURL(url, siteURL)) {
         return true;

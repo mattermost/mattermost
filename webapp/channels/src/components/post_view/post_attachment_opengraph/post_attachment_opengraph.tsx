@@ -273,36 +273,40 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
 
     const imageDimensions = getScaledImageDimensions(imageMetadata, large);
 
-    const image = (
+    return (
         <ExternalImage
             src={src}
             imageMetadata={imageMetadata}
         >
-            {(source) => (
-                <>
-                    <SizeAwareImage
-                        src={source}
-                        dimensions={imageDimensions}
-                        showLoader={true}
-                        alt={title}
-                        hideUtilities={true}
-                    />
-                    {large && imageCollapseButton}
-                </>
-            )}
+            {(source) => {
+                if (!source) {
+                    return null;
+                }
+                const image = (
+                    <>
+                        <SizeAwareImage
+                            src={source}
+                            dimensions={imageDimensions}
+                            showLoader={true}
+                            alt={title}
+                            hideUtilities={true}
+                        />
+                        {large && imageCollapseButton}
+                    </>
+                );
+                return (
+                    <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
+                        {large ? (
+                            <AutoHeightSwitcher
+                                showSlot={isEmbedVisible ? 1 : 2}
+                                slot1={image}
+                                slot2={imageCollapseButton}
+                            />
+                        ) : image}
+                    </div>
+                );
+            }}
         </ExternalImage>
-    );
-
-    return (
-        <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
-            {large ? (
-                <AutoHeightSwitcher
-                    showSlot={isEmbedVisible ? 1 : 2}
-                    slot1={image}
-                    slot2={imageCollapseButton}
-                />
-            ) : image}
-        </div>
     );
 });
 

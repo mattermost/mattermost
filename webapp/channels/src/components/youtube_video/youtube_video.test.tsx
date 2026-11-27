@@ -70,28 +70,6 @@ describe('YoutubeVideo', () => {
         expect(iframe).toHaveAttribute('src', 'https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1');
     });
 
-    test('should use url if secure_url is not present', () => {
-        const props = {
-            ...baseProps,
-            metadata: {
-                title: 'Youtube title',
-                images: [{
-                    url: 'linkUrl',
-                }],
-            },
-        };
-        const {container} = renderWithContext(
-            <YoutubeVideo {...props}/>,
-            initialState,
-        );
-
-        // Verify that maxresdefault thumbnail is used by default (useMaxResThumbnail = true)
-        expect(container.querySelector('.video-thumbnail')).toHaveAttribute(
-            'src',
-            'https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg',
-        );
-    });
-
     describe('thumbnail fallback', () => {
         it('should fallback to hqdefault.jpg on image error', () => {
             const {container} = renderWithContext(
@@ -119,17 +97,26 @@ describe('YoutubeVideo', () => {
         });
     });
 
-    it('should initialize with useMaxResThumbnail set to true', () => {
+    it('omits thumbnail box when external images are blocked', () => {
         const {container} = renderWithContext(
             <YoutubeVideo {...baseProps}/>,
-            initialState,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        config: {
+                            SiteURL: 'https://chat.example.com',
+                            HasImageProxy: 'true',
+                            ImageProxyType: 'block',
+                        },
+                    },
+                },
+            },
         );
 
-        // Verify that the component initializes with useMaxResThumbnail = true by checking
-        // that maxresdefault.jpg is used for the thumbnail
-        expect(container.querySelector('.video-thumbnail')).toHaveAttribute(
-            'src',
-            'https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg',
-        );
+        expect(container.querySelector('.video-div')).toBeNull();
+        expect(container.querySelector('.video-thumbnail__container')).not.toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
     });
 });

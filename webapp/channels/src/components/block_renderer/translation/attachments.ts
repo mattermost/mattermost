@@ -14,7 +14,7 @@ import type {
 } from '@mattermost/types/mm_blocks';
 import {ensureString} from '@mattermost/types/utilities';
 
-import {isUrlSafe} from 'utils/url';
+import {isExternalImageURL, isUrlSafe} from 'utils/url';
 
 import {parseMmButtonStyle} from '../utils/button';
 
@@ -30,7 +30,12 @@ type ParsedAttachmentField = {
     short: boolean;
 };
 
-export function translateAttachments(attachments: unknown[], intl: IntlShape): MmBlock[] {
+export type AttachmentTranslationOptions = {
+    blockExternalImages?: boolean;
+    siteURL?: string;
+};
+
+export function translateAttachments(attachments: unknown[], intl: IntlShape, options?: AttachmentTranslationOptions): MmBlock[] {
     const result: MmBlock[] = [];
     for (const attachment of attachments) {
         if (typeof attachment !== 'object' || attachment === null) {
@@ -47,10 +52,13 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
 
         const items: MmBlock[] = [];
 
+        const rawAuthorIcon = ensureString(a.author_icon);
+        const authorIcon = options?.blockExternalImages && isExternalImageURL(rawAuthorIcon, options.siteURL) ? '' : rawAuthorIcon;
+
         const authorBlock = buildAttachmentAuthorBlocks(
             ensureString(a.author_name),
             ensureString(a.author_link),
-            ensureString(a.author_icon),
+            authorIcon,
         );
         if (authorBlock) {
             items.push(authorBlock);
@@ -76,7 +84,7 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
             mainBodyItems.push({
                 type: 'image',
                 url: a.image_url,
-                alt_text: 'Attachment image',
+                alt_text: isBlockedImage(a.image_url, options) ? undefined : 'Attachment image',
                 size: 'medium',
             });
         }
@@ -93,7 +101,8 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
         if (footer.trim()) {
             const footerIconUrl = ensureString(a.footer_icon);
             const footerPieces: MmBlock[] = [];
-            if (footerIconUrl) {
+            const hideFooterIcon = options?.blockExternalImages && isExternalImageURL(footerIconUrl, options.siteURL);
+            if (footerIconUrl && !hideFooterIcon) {
                 footerPieces.push({
                     type: 'image',
                     url: footerIconUrl,
@@ -128,7 +137,7 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
                 items: [{
                     type: 'image',
                     url: thumbUrl,
-                    alt_text: intl.formatMessage({id: 'attachment.imageAltText', defaultMessage: 'Attachment image'}),
+                    alt_text: isBlockedImage(thumbUrl, options) ? undefined : intl.formatMessage({id: 'attachment.imageAltText', defaultMessage: 'Attachment image'}),
                     size: 'small',
                 }],
             };
@@ -164,6 +173,11 @@ export function translateAttachments(attachments: unknown[], intl: IntlShape): M
         }
     }
     return result;
+}
+
+/** A blocked image renders as a link labelled by its alt text, so omit the placeholder to show the target url instead. */
+function isBlockedImage(url: string, options?: AttachmentTranslationOptions): boolean {
+    return Boolean(options?.blockExternalImages && isExternalImageURL(url, options.siteURL));
 }
 
 function buildAttachmentAuthorBlocks(
