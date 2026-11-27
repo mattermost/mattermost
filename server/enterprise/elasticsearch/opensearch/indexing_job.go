@@ -5,6 +5,8 @@ package opensearch
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"sync/atomic"
@@ -134,16 +136,26 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
 			// Count only sees refreshed documents.
-			_, err := client.Indices.Refresh(ctx, &opensearchapi.IndicesRefreshReq{Index: []string{indexName}})
+			refreshResp, err := client.Indices.Refresh(ctx, &opensearchapi.IndicesRefreshReq{Index: []string{indexName}})
 			if isIndexNotFound(err) {
 				return true, nil
 			}
 			if err != nil {
 				return false, err
 			}
+			var refreshShards opensearchapi.ResponseShards
+			if err = json.Unmarshal(refreshResp.Shards, &refreshShards); err != nil {
+				return false, err
+			}
+			if refreshShards.Failed > 0 {
+				return false, fmt.Errorf("incomplete refresh of index %s: %d shards failed", indexName, refreshShards.Failed)
+			}
 			resp, err := client.Indices.Count(ctx, &opensearchapi.IndicesCountReq{Indices: []string{indexName}})
 			if err != nil {
 				return false, err
+			}
+			if resp.Shards.Failed > 0 {
+				return false, fmt.Errorf("incomplete count for index %s: %d shards failed", indexName, resp.Shards.Failed)
 			}
 			return resp.Count == 0, nil
 		})

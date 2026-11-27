@@ -77,6 +77,8 @@ func setupElasticsearchIndexerThroughRecorder(t *testing.T, th *api4.TestHelper)
 	rec := common.NewBulkDeleteRecorder(t, connURL)
 	indexPrefix := "test" + model.NewId()[:8] + "_"
 
+	// CI sets the connection URL through the environment, which overrides UpdateConfig.
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", rec.URL)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ElasticsearchSettings.ConnectionURL = rec.URL
 		*cfg.ElasticsearchSettings.Sniff = false
