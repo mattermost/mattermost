@@ -17,6 +17,8 @@ type mockPluginAPI struct {
 	keyValues         map[string][]byte
 	failing           bool
 	failingWithPrefix string
+	refreshAttempts   int
+	errorLogs         int
 }
 
 func newMockPluginAPI(t *testing.T) *mockPluginAPI {
@@ -38,6 +40,14 @@ func (pluginAPI *mockPluginAPI) setFailingWithPrefix(prefix string) {
 	defer pluginAPI.lock.Unlock()
 
 	pluginAPI.failingWithPrefix = prefix
+}
+
+// refreshCount returns how many atomic writes expecting an existing value have been attempted.
+func (pluginAPI *mockPluginAPI) refreshCount() int {
+	pluginAPI.lock.Lock()
+	defer pluginAPI.lock.Unlock()
+
+	return pluginAPI.refreshAttempts
 }
 
 func (pluginAPI *mockPluginAPI) clear() {
@@ -106,6 +116,10 @@ func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, optio
 	pluginAPI.lock.Lock()
 	defer pluginAPI.lock.Unlock()
 
+	if options.Atomic && options.OldValue != nil {
+		pluginAPI.refreshAttempts++
+	}
+
 	if pluginAPI.failing {
 		return false, &model.AppError{Message: "fake error"}
 	}
@@ -129,7 +143,19 @@ func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, optio
 	return true, nil
 }
 
+// errorLogCount returns how many errors have been logged.
+func (pluginAPI *mockPluginAPI) errorLogCount() int {
+	pluginAPI.lock.Lock()
+	defer pluginAPI.lock.Unlock()
+
+	return pluginAPI.errorLogs
+}
+
 func (pluginAPI *mockPluginAPI) LogError(msg string, keyValuePairs ...any) {
+	pluginAPI.lock.Lock()
+	pluginAPI.errorLogs++
+	pluginAPI.lock.Unlock()
+
 	if pluginAPI.t == nil {
 		return
 	}

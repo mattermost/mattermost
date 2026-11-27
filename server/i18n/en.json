@@ -7523,6 +7523,10 @@
     "translation": "Unable to remove plugin bundle from file store."
   },
   {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin ID {{.ID}} is reserved for the core server and cannot be installed or loaded."
+  },
+  {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade."
   },
