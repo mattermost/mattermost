@@ -55,3 +55,13 @@ func LookupSystemSettingDefinition(key string) (SystemSettingDefinition, bool) {
 	def, ok := systemSettingDefinitions[key]
 	return def, ok
 }
+
+// EnsureSystemSettingKeys populates any absent policy-configurable keys with ""
+// so clients that shallow-merge ClientConfig overwrite cleared overrides.
+func EnsureSystemSettingKeys(config map[string]string) {
+	for key := range systemSettingDefinitions {
+		if _, ok := config[key]; !ok {
+			config[key] = ""
+		}
+	}
+}

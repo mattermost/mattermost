@@ -277,6 +277,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		}
 	}
 
+	model.EnsureSystemSettingKeys(props)
+
 	return props
 }
 
