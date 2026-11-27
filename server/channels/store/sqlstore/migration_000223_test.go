@@ -54,6 +54,8 @@ func TestMigration000223(t *testing.T) {
 	// The test runs the down migration, which drops PropertyOptions out from
 	// under the AttributeView that 000242 builds on it.
 	defer withoutLegacyAttributeView(t, store)()
+	// It also drops PropertyOptions, which 000245's live views read.
+	defer withoutAttributeLiveViews(t, store)()
 
 	// New() applies all migrations, so 000223 is already in effect.
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
