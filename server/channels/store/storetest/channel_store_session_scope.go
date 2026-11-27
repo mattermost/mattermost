@@ -1,0 +1,230 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package storetest
+
+import (
+	"fmt"
+	"slices"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+)
+
+// testChannelStoreGetChannelIDsInSessionScope checks that the SQL scope query
+// agrees with model.SessionScopeAllowsChannel for every kind of team the
+// public-channel grants have to tell apart.
+func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX, ss store.Store) {
+	savePolicy := func(t *testing.T, id, policyType string) {
+		version := model.AccessControlPolicyVersionV0_2
+		if policyType == model.AccessControlPolicyTypeTeam {
+			version = model.AccessControlPolicyVersionV0_3
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:      id,
+			Type:    policyType,
+			Version: version,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: `user.properties.program == "engineering"`,
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, id) })
+	}
+
+	saveTeam := func(t *testing.T, mutate func(*model.Team)) *model.Team {
+		team := &model.Team{
+			DisplayName:     "Scope",
+			Name:            NewTestID(),
+			Email:           MakeEmail(),
+			Type:            model.TeamOpen,
+			AllowOpenInvite: true,
+		}
+		if mutate != nil {
+			mutate(team)
+		}
+		team, err := ss.Team().Save(team)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = ss.Team().PermanentDelete(team.Id) })
+		return team
+	}
+
+	marker := "scopemarker" + NewTestID()[:8]
+	saveChannel := func(t *testing.T, teamID string, channelType model.ChannelType) *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: marker + " " + NewTestID(),
+			Name:        NewTestID(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) })
+		return channel
+	}
+
+	open := saveTeam(t, nil)
+	teams := []*model.Team{
+		open,
+		saveTeam(t, func(team *model.Team) { team.AllowOpenInvite = false; team.Type = model.TeamInvite }),
+		saveTeam(t, func(team *model.Team) { team.GroupConstrained = model.NewPointer(true) }),
+		saveTeam(t, func(team *model.Team) { team.AllowedDomains = "example.com" }),
+	}
+	deleted := saveTeam(t, nil)
+	deleted.DeleteAt = model.GetMillis()
+	_, err := ss.Team().Update(deleted)
+	require.NoError(t, err)
+	policyTeam := saveTeam(t, nil)
+	savePolicy(t, policyTeam.Id, model.AccessControlPolicyTypeTeam)
+	teams = append(teams, deleted, policyTeam)
+
+	var channelIDs []string
+	for _, team := range teams {
+		channelIDs = append(channelIDs, saveChannel(t, team.Id, model.ChannelTypeOpen).Id, saveChannel(t, team.Id, model.ChannelTypePrivate).Id)
+	}
+	archived := saveChannel(t, open.Id, model.ChannelTypeOpen)
+	err = ss.Channel().Delete(archived.Id, model.GetMillis())
+	require.NoError(t, err)
+	policyChannel := saveChannel(t, open.Id, model.ChannelTypeOpen)
+	savePolicy(t, policyChannel.Id, model.AccessControlPolicyTypeChannel)
+	channelIDs = append(channelIDs, archived.Id, policyChannel.Id)
+
+	for name, resources := range map[string]model.SessionScopeResources{
+		"open-team grant":            {OpenTeamPublicChannels: true},
+		"every channel listed":       {ChannelIDs: channelIDs},
+		"listed and open-team":       {ChannelIDs: channelIDs[:3], OpenTeamPublicChannels: true},
+		"empty scope":                {},
+		"listed teams":               {PublicChannelTeamIDs: []string{teams[1].Id, teams[2].Id, deleted.Id, policyTeam.Id}},
+		"listed teams and open-team": {ChannelIDs: channelIDs[:1], OpenTeamPublicChannels: true, PublicChannelTeamIDs: []string{open.Id, teams[1].Id}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			scope := &model.SessionScope{Resources: resources}
+			var want, wantOnOpen, wantPublic []string
+			for _, id := range channelIDs {
+				channel, err := ss.Channel().Get(id, false)
+				require.NoError(t, err)
+				team, err := ss.Team().Get(channel.TeamId)
+				require.NoError(t, err)
+				if model.SessionScopeAllowsChannel(scope, channel, team, model.SessionScopeLimits{}) {
+					want = append(want, id)
+					if channel.TeamId == open.Id {
+						wantOnOpen = append(wantOnOpen, id)
+					}
+					if channel.Type == model.ChannelTypeOpen {
+						wantPublic = append(wantPublic, id)
+					}
+				}
+			}
+
+			onlyOurs := func(ids []string) []string {
+				return slices.DeleteFunc(ids, func(id string) bool { return !slices.Contains(channelIDs, id) })
+			}
+
+			got, err := ss.Channel().GetChannelIDsInSessionScope("", &resources, false)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, want, onlyOurs(got))
+
+			got, err = ss.Channel().GetChannelIDsInSessionScope(open.Id, &resources, false)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, wantOnOpen, got, "limited to the team")
+
+			got, err = ss.Channel().GetChannelIDsInSessionScope("", &resources, true)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, wantPublic, onlyOurs(got), "public channels only")
+
+			found, err := ss.Channel().AutocompleteInSessionScope("", marker, &resources, nil)
+			require.NoError(t, err)
+			var foundIDs []string
+			for _, channel := range found {
+				foundIDs = append(foundIDs, channel.Id)
+				team, teamErr := ss.Team().Get(channel.TeamId)
+				require.NoError(t, teamErr)
+				assert.Equal(t, team.Name, channel.TeamName)
+			}
+			assert.ElementsMatch(t, want, foundIDs, "autocomplete across teams")
+
+			found, err = ss.Channel().AutocompleteInSessionScope(open.Id, marker, &resources, nil)
+			require.NoError(t, err)
+			foundIDs = nil
+			for _, channel := range found {
+				foundIDs = append(foundIDs, channel.Id)
+			}
+			assert.ElementsMatch(t, wantOnOpen, foundIDs, "autocomplete on one team")
+		})
+	}
+}
+
+// testChannelStoreAutocompleteInSessionScopeFilters checks that the private and
+// group-constrained filters apply before the result limit: the channels that
+// should be returned sort after more than a limit's worth that should not.
+func testChannelStoreAutocompleteInSessionScopeFilters(t *testing.T, rctx request.CTX, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName:     "Scope filters",
+		Name:            NewTestID(),
+		Email:           MakeEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ss.Team().PermanentDelete(team.Id) })
+
+	saveChannel := func(displayName string, channelType model.ChannelType, groupConstrained bool) *model.Channel {
+		channel, saveErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:           team.Id,
+			DisplayName:      displayName,
+			Name:             NewTestID(),
+			Type:             channelType,
+			GroupConstrained: model.NewPointer(groupConstrained),
+		}, -1)
+		require.NoError(t, saveErr)
+		t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) })
+		return channel
+	}
+
+	for i := range model.ChannelSearchDefaultLimit + 5 {
+		saveChannel(fmt.Sprintf("aaa filler %03d", i), model.ChannelTypeOpen, false)
+	}
+	private := saveChannel("zzz private", model.ChannelTypePrivate, false)
+	shared, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "zzz shared private",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+		Shared:      model.NewPointer(true),
+	}, -1)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, shared.Id) })
+	constrained := saveChannel("zzz constrained", model.ChannelTypeOpen, true)
+	unconstrained := saveChannel("zzz unconstrained", model.ChannelTypeOpen, false)
+
+	resources := &model.SessionScopeResources{
+		ChannelIDs:             []string{private.Id, shared.Id},
+		OpenTeamPublicChannels: true,
+	}
+	ids := func(channels model.ChannelListWithTeamData) []string {
+		var result []string
+		for _, channel := range channels {
+			result = append(result, channel.Id)
+		}
+		return result
+	}
+
+	found, err := ss.Channel().AutocompleteInSessionScope(team.Id, "", resources, &model.ChannelSearchOpts{Private: true})
+	require.NoError(t, err)
+	assert.Equal(t, []string{private.Id}, ids(found), "shared channels can't be picked for team-scoped policies")
+
+	found, err = ss.Channel().AutocompleteInSessionScope(team.Id, "zzz", resources, &model.ChannelSearchOpts{ExcludeGroupConstrained: true})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{private.Id, shared.Id, unconstrained.Id}, ids(found))
+	assert.NotContains(t, ids(found), constrained.Id)
+
+	found, err = ss.Channel().AutocompleteInSessionScope(team.Id, "", resources, &model.ChannelSearchOpts{ExcludeGroupConstrained: true})
+	require.NoError(t, err)
+	assert.Len(t, found, model.ChannelSearchDefaultLimit, "unfiltered results are still limited")
+	assert.NotContains(t, ids(found), constrained.Id)
+}

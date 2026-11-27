@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,6 +19,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -811,4 +814,55 @@ func TestScopedSessionIsUnauthenticatedOnPluginRoutes(t *testing.T) {
 			require.True(t, handlerCalled)
 		})
 	}
+}
+
+func TestSearchTeamsInSessionScopeListedChannelFailure(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	channelStore := &storemocks.ChannelStore{}
+	mockStore.On("Channel").Return(channelStore)
+	teamStore := &storemocks.TeamStore{}
+	mockStore.On("Team").Return(teamStore)
+	teamStore.On("SearchAll", mock.Anything).Return([]*model.Team{{Id: model.NewId(), Name: "team"}}, nil)
+	roleStore := &storemocks.RoleStore{}
+	mockStore.On("Role").Return(roleStore)
+	roleStore.On("GetByName", mock.Anything, model.SystemUserRoleId).Return(&model.Role{Permissions: []string{model.PermissionJoinPublicTeams.Id}}, nil)
+
+	scope := &model.SessionScope{
+		Permissions: model.ScopeReadPermissions,
+		Resources:   model.SessionScopeResources{ChannelIDs: []string{model.NewId()}},
+	}
+
+	t.Run("a failed lookup of the listed channels is an error, not an empty result", func(t *testing.T) {
+		channelStore.On("GetMany", mock.Anything, true).Return(nil, errors.New("db down")).Once()
+
+		teams, err := th.App.SearchTeamsInSessionScope(th.Context, scope, &model.TeamSearch{Term: "team"})
+		require.Error(t, err)
+		assert.Nil(t, teams)
+	})
+
+	t.Run("a listed channel doesn't make a policy-enforced team found", func(t *testing.T) {
+		policyTeam := &model.Team{Id: model.NewId(), Name: "policy", PolicyEnforced: true}
+		openTeam := &model.Team{Id: model.NewId(), Name: "listed"}
+		teamStore.ExpectedCalls = nil
+		teamStore.On("SearchAll", mock.Anything).Return([]*model.Team{policyTeam, openTeam}, nil)
+		channelStore.On("GetMany", mock.Anything, true).Return(model.ChannelList{
+			{Id: scope.Resources.ChannelIDs[0], TeamId: policyTeam.Id, Type: model.ChannelTypePrivate},
+		}, nil).Once()
+
+		teams, err := th.App.SearchTeamsInSessionScope(th.Context, scope, &model.TeamSearch{})
+		require.NoError(t, err)
+		assert.Empty(t, teams)
+	})
+
+	t.Run("listed channels that no longer exist are not an error", func(t *testing.T) {
+		teamStore.ExpectedCalls = nil
+		teamStore.On("SearchAll", mock.Anything).Return([]*model.Team{{Id: model.NewId(), Name: "team"}}, nil)
+		channelStore.On("GetMany", mock.Anything, true).Return(nil, store.NewErrNotFound("Channel", "x")).Once()
+
+		teams, err := th.App.SearchTeamsInSessionScope(th.Context, scope, &model.TeamSearch{Term: "team"})
+		require.NoError(t, err)
+		assert.Empty(t, teams)
+	})
 }
