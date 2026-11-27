@@ -142,6 +142,11 @@ type MetricsInterface interface {
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
+	// ObserveAccessControlRecipientFill records one fill of the per-node
+	// recipient-set cache for access_control_resource posts: how long the
+	// QueryUsersForResource paging took, whether it succeeded ("ok" or
+	// "failed"), and how many users the set holds.
+	ObserveAccessControlRecipientFill(status string, elapsed float64, setSize int)
 
 	// Auto-translation metrics
 	ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64)

@@ -758,6 +758,7 @@
         "ManagedChannelCategories": false,
         "SessionAttributes": false,
         "PostAttributes": false,
+        "PostAccessControlResource": false,
         "DiscoverableChannels": false,
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,

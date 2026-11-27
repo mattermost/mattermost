@@ -3095,6 +3095,12 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		options.IncludeIsUrgent = true
 	}
 
+	deniedResources, err := a.deniedThreadAccessControlResources(rctx, userID, teamID, options)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	options.ExcludeAccessControlResources = deniedResources
+
 	if !options.ThreadsOnly {
 		// The page below drops threads in denied channels, so the totals must too.
 		denied, err := a.channelReadAccessDeniedChannelIDs(rctx, userID)
@@ -3170,6 +3176,8 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	if options.Unread {
 		result.Total = result.TotalUnreadThreads
 	}
+
+	result.Threads = a.filterThreadsByAccessControlResource(rctx, userID, result.Threads)
 
 	list := &model.PostList{
 		Posts: make(map[string]*model.Post, len(result.Threads)),
@@ -3261,6 +3269,10 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 		default:
 			return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+	}
+
+	if !a.postAllowedByAccessControlResource(rctx, threadMembership.UserId, thread.Post) {
+		return nil, model.AsAppError(accessControlResourceDeniedError("GetThreadForUser"))
 	}
 
 	a.sanitizeProfiles(thread.Participants, false)

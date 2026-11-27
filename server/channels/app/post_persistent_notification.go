@@ -188,6 +188,8 @@ func (a *App) forEachPersistentNotificationPost(rctx request.CTX, posts []*model
 		}
 
 		profileMap := channelProfileMap[channel.Id]
+		keywords := channelKeywords[channel.Id]
+		notifyProps := channelNotifyProps
 
 		// Ensure the sender is always in the profile map: for example, system admins can post
 		// without being a member.
@@ -201,6 +203,18 @@ func (a *App) forEachPersistentNotificationPost(rctx request.CTX, posts []*model
 			profileMap[post.UserId] = sender
 		}
 
+		// A post marked with access_control_resource only reaches the users its
+		// policy admits. The maps are shared by every post in the channel, so a
+		// marked post prunes copies and unmarked posts keep the shared ones.
+		if allowed := a.accessControlRecipientFilter(rctx, post.GetAccessControlResource()); allowed != nil {
+			profileMap = maps.Clone(profileMap)
+			channelProps := maps.Clone(channelNotifyProps[channel.Id])
+			pruneNotificationRecipients(allowed, post.UserId, profileMap, channelProps, nil)
+			notifyProps = maps.Clone(channelNotifyProps)
+			notifyProps[channel.Id] = channelProps
+			keywords = persistentNotificationKeywords(profileMap)
+		}
+
 		mentions := &MentionResults{}
 		// In DMs, only the "other" user can be mentioned
 		if channel.Type == model.ChannelTypeDirect {
@@ -209,7 +223,6 @@ func (a *App) forEachPersistentNotificationPost(rctx request.CTX, posts []*model
 				mentions.addMention(otherUserId, DMMention)
 			}
 		} else {
-			keywords := channelKeywords[channel.Id]
 			keywords.AddGroupsMap(channelGroupMap[channel.Id])
 
 			mentions = getExplicitMentions(post, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
@@ -222,7 +235,7 @@ func (a *App) forEachPersistentNotificationPost(rctx request.CTX, posts []*model
 			}
 		}
 
-		if err := fn(post, channel, team, mentions, profileMap, channelNotifyProps); err != nil {
+		if err := fn(post, channel, team, mentions, profileMap, notifyProps); err != nil {
 			return err
 		}
 	}
@@ -269,15 +282,20 @@ func (a *App) persistentNotificationsAuxiliaryData(rctx request.CTX, channelsMap
 			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 		}
 
-		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
-		for userID, user := range profileMap {
-			if !user.IsBot {
-				channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
-			}
-		}
+		channelKeywords[c.Id] = persistentNotificationKeywords(profileMap)
 		channelProfileMap[c.Id] = profileMap
 	}
 	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
+}
+
+func persistentNotificationKeywords(profileMap model.UserMap) MentionKeywords {
+	keywords := make(MentionKeywords, len(profileMap))
+	for userID, user := range profileMap {
+		if !user.IsBot {
+			keywords.AddUserKeyword(userID, "@"+user.Username)
+		}
+	}
+	return keywords
 }
 
 func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Channel, map[string]*model.Team, error) {
@@ -415,6 +433,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 
 			message.Add("mentions", model.ArrayToJSON(desktopUsers))
 			a.setupBroadcastHookForAbacFiles(post, message)
+			a.setupBroadcastHookForAccessControlResource(post, message)
 			a.Publish(message)
 		}
 	}

@@ -88,6 +88,22 @@ func excludeThreadChannels(query sq.SelectBuilder, channelIDs []string) sq.Selec
 	return query.Where(sq.NotEq{"Threads.ChannelId": channelIDs})
 }
 
+// excludeThreadAccessControlResources leaves out threads whose root post carries one of
+// values in its access_control_resource prop, if there are any.
+func excludeThreadAccessControlResources(query sq.SelectBuilder, values []string) sq.SelectBuilder {
+	if len(values) == 0 {
+		return query
+	}
+	args := make([]any, len(values))
+	for i, value := range values {
+		args[i] = value
+	}
+	return query.Where(sq.Expr(
+		"NOT EXISTS (SELECT 1 FROM Posts RootPosts WHERE RootPosts.Id = ThreadMemberships.PostId AND RootPosts.Props->>'access_control_resource' IN ("+sq.Placeholders(len(values))+"))",
+		args...,
+	))
+}
+
 func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	s := SqlThreadStore{
 		SqlStore: sqlStore,
@@ -142,8 +158,12 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 }
 
 func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.GetUserThreadsOpts) sq.SelectBuilder {
+	return s.getFollowedThreadsQuery("COUNT(ThreadMemberships.PostId)", userId, teamId, opts)
+}
+
+func (s *SqlThreadStore) getFollowedThreadsQuery(column, userId, teamId string, opts model.GetUserThreadsOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
-		Select("COUNT(ThreadMemberships.PostId)").
+		Select(column).
 		From("ThreadMemberships").
 		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{
@@ -169,7 +189,25 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
 	}
 
-	return excludeThreadChannels(query, opts.ExcludeChannelIds)
+	query = excludeThreadChannels(query, opts.ExcludeChannelIds)
+	return excludeThreadAccessControlResources(query, opts.ExcludeAccessControlResources)
+}
+
+// GetThreadAccessControlResources returns the distinct access_control_resource values on the
+// root posts of the threads the given user follows, optionally constrained to the given team
+// + DMs/GMs.
+func (s *SqlThreadStore) GetThreadAccessControlResources(userId, teamId string, opts model.GetUserThreadsOpts) ([]string, error) {
+	opts.ExcludeAccessControlResources = nil
+	query := s.getFollowedThreadsQuery("DISTINCT Posts.Props->>'access_control_resource'", userId, teamId, opts).
+		Join("Posts ON Posts.Id = ThreadMemberships.PostId").
+		Where(sq.Expr("COALESCE(Posts.Props->>'access_control_resource', '') != ''"))
+
+	var values []string
+	if err := s.GetReplica().SelectBuilder(&values, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get thread access control resources for user id=%s", userId)
+	}
+
+	return values, nil
 }
 
 // GetTotalUnreadThreads counts the number of unread threads for the given user, optionally
@@ -238,6 +276,7 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 	}
 
 	query = excludeThreadChannels(query, opts.ExcludeChannelIds)
+	query = excludeThreadAccessControlResources(query, opts.ExcludeAccessControlResources)
 
 	err := s.GetReplica().GetBuilder(&totalUnreadMentions, query)
 	if err != nil {
@@ -283,6 +322,7 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 	}
 
 	query = excludeThreadChannels(query, opts.ExcludeChannelIds)
+	query = excludeThreadAccessControlResources(query, opts.ExcludeAccessControlResources)
 
 	err := s.GetReplica().GetBuilder(&totalUnreadUrgentMentions, query)
 	if err != nil {
@@ -322,6 +362,7 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Eq{"ThreadMemberships.Following": true}).
 		Where(channelMembershipPredicate())
+	query = excludeThreadAccessControlResources(query, opts.ExcludeAccessControlResources)
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -422,7 +463,7 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 
 // GetTeamsUnreadForUser returns the total unread threads and unread mentions
 // for a user from all teams, leaving out threads in excludeChannelIDs.
-func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
+func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs, excludeAccessControlResources []string) (map[string]*model.TeamUnread, error) {
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
@@ -460,6 +501,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 			Where(fetchConditions).
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Threads.ThreadTeamId")
+		repliesQuery = excludeThreadAccessControlResources(repliesQuery, excludeAccessControlResources)
 
 		return errors.Wrap(s.GetReplica().SelectBuilder(&unreadThreads, repliesQuery), "failed to get total unread threads")
 	})
@@ -471,6 +513,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			Where(fetchConditions).
 			GroupBy("Threads.ThreadTeamId")
+		mentionsQuery = excludeThreadAccessControlResources(mentionsQuery, excludeAccessControlResources)
 
 		return errors.Wrap(s.GetReplica().SelectBuilder(&unreadMentions, mentionsQuery), "failed to get total unread mentions")
 	})
@@ -485,6 +528,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 				Where(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}).
 				Where(fetchConditions).
 				GroupBy("Threads.ThreadTeamId")
+			urgentMentionsQuery = excludeThreadAccessControlResources(urgentMentionsQuery, excludeAccessControlResources)
 
 			return errors.Wrap(s.GetReplica().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery), "failed to get total unread urgent mentions")
 		})

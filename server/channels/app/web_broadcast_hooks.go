@@ -30,6 +30,10 @@ const (
 	broadcastChannelReadAccess  = "channel_read_access"
 
 	broadcastChannelReadAccessRedact = "channel_read_access_redact"
+
+	// broadcastAccessControlResource rejects post events for recipients the
+	// plugin policy behind props.access_control_resource does not admit.
+	broadcastAccessControlResource = "access_control_resource"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -47,7 +51,57 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
 
 		broadcastChannelReadAccessRedact: &channelReadAccessRedactBroadcastHook{},
+		broadcastAccessControlResource:   &accessControlResourceBroadcastHook{server: s},
 	}
+}
+
+type accessControlResourceBroadcastHook struct {
+	server *Server
+}
+
+// setupBroadcastHookForAccessControlResource registers the hook for a post
+// carrying access_control_resource. Only the prop value travels with the
+// event; each receiving node resolves recipients from its own cache.
+func (a *App) setupBroadcastHookForAccessControlResource(post *model.Post, message *model.WebSocketEvent) {
+	if post == nil || !a.postAccessControlResourceEnabled() {
+		return
+	}
+	if value := post.GetAccessControlResource(); value != "" {
+		message.GetBroadcast().AddHook(broadcastAccessControlResource, map[string]any{
+			"resource": value,
+		})
+	}
+}
+
+// Warm fills the recipient cache for the event's resource so Process, which
+// runs on the hub goroutine, only reads it.
+func (h *accessControlResourceBroadcastHook) Warm(args map[string]any) {
+	resource, err := getTypedArg[string](args, "resource")
+	if err != nil || h.server == nil || h.server.Channels() == nil {
+		return
+	}
+	New(ServerConnector(h.server.Channels())).WarmAccessControlRecipients(request.EmptyContext(h.server.Log()), resource)
+}
+
+// Process rejects the event for every connection whose user the policy does
+// not admit. A missing session fails secure, as does a recipient set that
+// Warm has not filled.
+func (h *accessControlResourceBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	resource, err := getTypedArg[string](args, "resource")
+	if err != nil {
+		return errors.Wrap(err, "Invalid resource value passed to accessControlResourceBroadcastHook")
+	}
+
+	session := webConn.GetSession()
+	if session == nil {
+		msg.Event().Reject()
+		return nil
+	}
+
+	if !webConn.Suite.HasAccessToAccessControlResource(request.EmptyContext(webConn.Platform.Log()).WithSession(session), webConn.UserId, resource) {
+		msg.Event().Reject()
+	}
+	return nil
 }
 
 type addMentionsBroadcastHook struct{}

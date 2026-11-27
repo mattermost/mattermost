@@ -221,3 +221,36 @@ func TestHookedWebSocketEventReject(t *testing.T) {
 	assert.False(t, allowed.Event().IsRejected())
 	assert.False(t, event.IsRejected())
 }
+
+type warmingBroadcastHook struct {
+	testBroadcastHook
+	warmed []map[string]any
+}
+
+func (h *warmingBroadcastHook) Warm(args map[string]any) {
+	h.warmed = append(h.warmed, args)
+}
+
+func TestWarmBroadcastHooks(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	warming := &warmingBroadcastHook{}
+	ps := &PlatformService{
+		broadcastHooks: map[string]BroadcastHook{
+			broadcastTest:  &testBroadcastHook{},
+			"warming_hook": warming,
+			"nil_hook":     nil,
+		},
+	}
+
+	event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+	event.GetBroadcast().AddHook(broadcastTest, map[string]any{"makes_changes": false})
+	event.GetBroadcast().AddHook("warming_hook", map[string]any{"resource": "r"})
+	event.GetBroadcast().AddHook("unknown_hook", map[string]any{})
+	event.GetBroadcast().AddHook("nil_hook", map[string]any{})
+
+	ps.warmBroadcastHooks(event)
+
+	require.Len(t, warming.warmed, 1)
+	assert.Equal(t, map[string]any{"resource": "r"}, warming.warmed[0])
+}

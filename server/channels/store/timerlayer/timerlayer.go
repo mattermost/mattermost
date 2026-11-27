@@ -13868,10 +13868,10 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userID string, teamID stri
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
+func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string, excludeAccessControlResources []string) (map[string]*model.TeamUnread, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
+	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -13880,6 +13880,22 @@ func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTeamsUnreadForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetThreadAccessControlResources(userID string, teamID string, opts model.GetUserThreadsOpts) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetThreadAccessControlResources(userID, teamID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadAccessControlResources", success, elapsed)
 	}
 	return result, err
 }

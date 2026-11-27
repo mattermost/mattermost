@@ -171,9 +171,9 @@ func (_m *ThreadStore) GetMembershipsForUser(userID string, teamID string) ([]*m
 	return r0, r1
 }
 
-// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs
-func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
-	ret := _m.Called(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
+// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources
+func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string, excludeAccessControlResources []string) (map[string]*model.TeamUnread, error) {
+	ret := _m.Called(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTeamsUnreadForUser")
@@ -181,19 +181,49 @@ func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, in
 
 	var r0 map[string]*model.TeamUnread
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []string, bool, []string) (map[string]*model.TeamUnread, error)); ok {
-		return rf(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
+	if rf, ok := ret.Get(0).(func(string, []string, bool, []string, []string) (map[string]*model.TeamUnread, error)); ok {
+		return rf(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources)
 	}
-	if rf, ok := ret.Get(0).(func(string, []string, bool, []string) map[string]*model.TeamUnread); ok {
-		r0 = rf(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
+	if rf, ok := ret.Get(0).(func(string, []string, bool, []string, []string) map[string]*model.TeamUnread); ok {
+		r0 = rf(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.TeamUnread)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, []string, bool, []string) error); ok {
-		r1 = rf(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
+	if rf, ok := ret.Get(1).(func(string, []string, bool, []string, []string) error); ok {
+		r1 = rf(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs, excludeAccessControlResources)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetThreadAccessControlResources provides a mock function with given fields: userID, teamID, opts
+func (_m *ThreadStore) GetThreadAccessControlResources(userID string, teamID string, opts model.GetUserThreadsOpts) ([]string, error) {
+	ret := _m.Called(userID, teamID, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadAccessControlResources")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) ([]string, error)); ok {
+		return rf(userID, teamID, opts)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) []string); ok {
+		r0 = rf(userID, teamID, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userID, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

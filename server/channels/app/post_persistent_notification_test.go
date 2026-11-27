@@ -412,6 +412,122 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 	})
 }
 
+func TestForEachPersistentNotificationPostAccessControlResource(t *testing.T) {
+	th := SetupConfig(t, enablePostAccessControlResource).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+	})
+
+	allowedUser := th.CreateUser(t)
+	deniedUser := th.BasicUser2
+	for _, u := range []*model.User{deniedUser, allowedUser} {
+		th.LinkUserToTeam(t, u, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, u, th.BasicChannel, false)
+		require.Nil(t, appErr)
+	}
+
+	th.App.Srv().Store().Channel().InvalidateCacheForChannelMembersNotifyProps(th.BasicChannel.Id)
+
+	groupName := "pngroup" + model.NewId()[:8]
+	group, appErr := th.App.CreateGroup(&model.Group{
+		Name:           &groupName,
+		DisplayName:    groupName,
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	})
+	require.Nil(t, appErr)
+	for _, u := range []*model.User{th.BasicUser, deniedUser, allowedUser} {
+		_, appErr = th.App.UpsertGroupMember(group.Id, u.Id)
+		require.Nil(t, appErr)
+	}
+
+	resourceID := model.NewId()
+	plantPostPolicy(t, th, resourceID)
+	value := testPostResource(resourceID)
+
+	enablePluginAccessControl(t, th)
+	mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+	mockACS.On("QueryUsersForResource", mock.Anything, resourceID, testPostAction, mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}, {Id: allowedUser.Id}}, int64(0), nil)
+
+	message := "@" + deniedUser.Username + " @" + allowedUser.Username + " @" + groupName
+	newPost := func(marked bool) *model.Post {
+		post := &model.Post{Id: model.NewId(), UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: message}
+		if marked {
+			post.AddProp(model.PostPropsAccessControlResource, value)
+		}
+		return post
+	}
+
+	type seen struct {
+		mentions    *MentionResults
+		profileMap  model.UserMap
+		notifyProps map[string]map[string]model.StringMap
+	}
+	collect := func(t *testing.T, posts ...*model.Post) map[string]seen {
+		t.Helper()
+		got := map[string]seen{}
+		err := th.App.forEachPersistentNotificationPost(th.Context, posts, func(post *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, profileMap model.UserMap, notifyProps map[string]map[string]model.StringMap) error {
+			got[post.Id] = seen{mentions: mentions, profileMap: profileMap, notifyProps: notifyProps}
+			return nil
+		})
+		require.NoError(t, err)
+		return got
+	}
+
+	t.Run("a marked post leaves out denied users and does not affect an unmarked post in the same channel", func(t *testing.T) {
+		marked, unmarked := newPost(true), newPost(false)
+		got := collect(t, marked, unmarked)
+
+		m := got[marked.Id]
+		assert.Contains(t, m.mentions.Mentions, allowedUser.Id)
+		assert.NotContains(t, m.mentions.Mentions, deniedUser.Id, "denied user is mentioned neither by name nor through the group")
+		assert.NotContains(t, m.profileMap, deniedUser.Id)
+		assert.NotContains(t, m.notifyProps[th.BasicChannel.Id], deniedUser.Id)
+		assert.Contains(t, m.profileMap, th.BasicUser.Id, "the sender is kept")
+		assert.Contains(t, m.profileMap, allowedUser.Id)
+
+		u := got[unmarked.Id]
+		assert.Contains(t, u.mentions.Mentions, allowedUser.Id)
+		assert.Contains(t, u.mentions.Mentions, deniedUser.Id)
+		assert.Contains(t, u.profileMap, deniedUser.Id)
+		assert.Contains(t, u.notifyProps[th.BasicChannel.Id], deniedUser.Id)
+	})
+
+	t.Run("the order of marked and unmarked posts does not matter", func(t *testing.T) {
+		unmarked, marked := newPost(false), newPost(true)
+		got := collect(t, unmarked, marked)
+
+		assert.Contains(t, got[unmarked.Id].mentions.Mentions, deniedUser.Id)
+		assert.NotContains(t, got[marked.Id].mentions.Mentions, deniedUser.Id)
+	})
+
+	t.Run("a post marked with a resource that has no policy notifies everyone", func(t *testing.T) {
+		post := newPost(false)
+		post.AddProp(model.PostPropsAccessControlResource, testPostResource(model.NewId()))
+		got := collect(t, post)
+
+		assert.Contains(t, got[post.Id].mentions.Mentions, deniedUser.Id)
+		assert.Contains(t, got[post.Id].mentions.Mentions, allowedUser.Id)
+	})
+
+	t.Run("with the feature flag off the marker is ignored", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PostAccessControlResource = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PostAccessControlResource = true })
+		})
+
+		post := newPost(true)
+		got := collect(t, post)
+
+		assert.Contains(t, got[post.Id].mentions.Mentions, deniedUser.Id)
+		assert.Contains(t, got[post.Id].profileMap, deniedUser.Id)
+	})
+}
+
 func TestSendPersistentNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

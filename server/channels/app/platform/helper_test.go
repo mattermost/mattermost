@@ -76,6 +76,10 @@ func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, c
 	return true
 }
 
+func (ms *mockSuite) HasAccessToAccessControlResource(rctx request.CTX, userID string, resource string) bool {
+	return true
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }

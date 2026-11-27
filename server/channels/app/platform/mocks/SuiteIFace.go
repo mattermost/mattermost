@@ -80,6 +80,24 @@ func (_m *SuiteIFace) GetViewUsersRestrictions(rctx request.CTX, userID string) 
 	return r0, r1
 }
 
+// HasAccessToAccessControlResource provides a mock function with given fields: rctx, userID, resource
+func (_m *SuiteIFace) HasAccessToAccessControlResource(rctx request.CTX, userID string, resource string) bool {
+	ret := _m.Called(rctx, userID, resource)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasAccessToAccessControlResource")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
+		r0 = rf(rctx, userID, resource)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // HasChannelReadAccessByID provides a mock function with given fields: rctx, userID, channelID
 func (_m *SuiteIFace) HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool {
 	ret := _m.Called(rctx, userID, channelID)

@@ -173,6 +173,14 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
+	// A post marked with access_control_resource only reaches the users its
+	// policy admits. Pruning the candidate maps here keeps every downstream
+	// path (mentions, push, email, thread auto-follow) within that set.
+	var accessControlPrunedUsernames map[string]struct{}
+	if allowed := a.accessControlRecipientFilter(rctx, post.GetAccessControlResource()); allowed != nil {
+		accessControlPrunedUsernames = pruneNotificationRecipients(allowed, sender.Id, profileMap, channelMemberNotifyPropsMap, followers)
+	}
+
 	mentionedUsersList := make(model.StringArray, 0)
 	notificationsForCRT := &CRTNotifiers{}
 	mentions := &MentionResults{
@@ -216,6 +224,10 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					a.sendNoUsersNotifiedByGroupInChannel(rctx, sender, post, channel, groups[groupID])
 				}
 			}
+
+			// Pruned users are channel members, so they must not be reported as
+			// "not in the channel". Group insertion above adds them by username too.
+			mentions.OtherPotentialMentions = dropPrunedPotentialMentions(mentions.OtherPotentialMentions, accessControlPrunedUsernames)
 
 			go func() {
 				_, err := a.sendOutOfChannelMentions(rctx, sender, post, channel, mentions.OtherPotentialMentions)

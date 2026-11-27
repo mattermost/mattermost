@@ -14,6 +14,22 @@ type BroadcastHook interface {
 	Process(msg *HookedWebSocketEvent, webConn *WebConn, args map[string]any) error
 }
 
+// BroadcastHookWarmer is implemented by hooks that need data prepared before the hubs run them. Warm is
+// called once per event on every node, on the publishing goroutine and not a hub's, so a hook can do
+// blocking work there that Process must not do.
+type BroadcastHookWarmer interface {
+	Warm(args map[string]any)
+}
+
+func (ps *PlatformService) warmBroadcastHooks(event *model.WebSocketEvent) {
+	broadcast := event.GetBroadcast()
+	for i, hookID := range broadcast.BroadcastHooks {
+		if warmer, ok := ps.broadcastHooks[hookID].(BroadcastHookWarmer); ok && i < len(broadcast.BroadcastHookArgs) {
+			warmer.Warm(broadcast.BroadcastHookArgs[i])
+		}
+	}
+}
+
 func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hookIDs []string, hookArgs []map[string]any) *model.WebSocketEvent {
 	if len(hookIDs) == 0 {
 		return msg

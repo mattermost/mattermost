@@ -1508,6 +1508,10 @@ func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*
 
 	rawLen = len(fileInfoSearchResults.Order)
 
+	if filterErr := a.filterFilesByAccessControlResource(rctx, userId, fileInfoSearchResults); filterErr != nil {
+		return nil, 0, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(filterErr)
+	}
+
 	allFilesHaveMembership, appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
 	if appErr != nil {
 		return nil, 0, false, appErr

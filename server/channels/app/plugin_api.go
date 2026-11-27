@@ -937,6 +937,7 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	silent := post.HasSilentNotification()
+	accessControlResource := api.ownedAccessControlResource(post)
 	// Display-identity props (override_username/override_icon_url/
 	// override_icon_emoji/webhook_display_name) are not captured here: plugins
 	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
@@ -963,12 +964,22 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 		}
 	}
 
-	post, _, appErr = api.app.CreatePost(rctx, post, channel, model.CreatePostFlags{
+	// access_control_resource was stripped above with everything else; put it
+	// back and grant it only when it names this plugin. A reply is never
+	// granted: CreatePost copies the root's marker onto it, so the thread keeps
+	// the root's policy.
+	flags := model.CreatePostFlags{
 		TriggerWebhooks:    true,
 		SetOnline:          true,
 		FromPlugin:         true,
 		SilentNotification: silent,
-	})
+	}
+	if accessControlResource != "" && post.RootId == "" {
+		post.AddProp(model.PostPropsAccessControlResource, accessControlResource)
+		flags.AllowAccessControlResource = true
+	}
+
+	post, _, appErr = api.app.CreatePost(rctx, post, channel, flags)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1146,6 +1157,25 @@ func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.Upd
 	}
 
 	return api.updatePostForPlugin(post, options)
+}
+
+// ownedAccessControlResource returns the post's access_control_resource when
+// it parses and names the calling plugin, and "" otherwise. A plugin cannot
+// mark a post with another plugin's resource. It returns "" while the
+// PostAccessControlResource feature flag is off.
+func (api *PluginAPI) ownedAccessControlResource(post *model.Post) string {
+	if !api.app.postAccessControlResourceEnabled() {
+		return ""
+	}
+	value := post.GetAccessControlResource()
+	if value == "" {
+		return ""
+	}
+	parsed, err := model.ParsePostAccessControlResource(value)
+	if err != nil || parsed.PluginID != api.id {
+		return ""
+	}
+	return value
 }
 
 // grantPluginMmBlocksActionsUpdate sets the grant when the post carries a

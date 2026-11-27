@@ -1973,7 +1973,11 @@ func (a *App) GetTeamsUnreadForUser(rctx request.CTX, excludeTeamId string, user
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled(), slices.Collect(maps.Keys(denied)))
+		deniedResources, err := a.deniedThreadAccessControlResources(rctx, userID, "", model.GetUserThreadsOpts{})
+		if err != nil {
+			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled(), slices.Collect(maps.Keys(denied)), deniedResources)
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

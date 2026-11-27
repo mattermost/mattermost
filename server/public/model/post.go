@@ -127,6 +127,15 @@ const (
 	PostPropsAdaptiveCards   = "cards"
 	PostPropsMmBlocksActions = "mm_blocks_actions"
 
+	// PostPropsAccessControlResource marks a post as governed by a plugin-owned
+	// access control policy. Its value is
+	// "<pluginID>:<resourceType>:<resourceID>:<action>" (see
+	// ParsePostAccessControlResource). Only the owning plugin can set it; the
+	// server copies it from a root onto its replies, filters the post out of
+	// reads, notifications, and websocket broadcasts for users the policy
+	// denies, and refuses moving a marked thread.
+	PostPropsAccessControlResource = "access_control_resource"
+
 	PostPriorityUrgent = "urgent"
 
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
@@ -429,6 +438,11 @@ type CreatePostFlags struct {
 	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
 	AllowMmBlocksActions bool
 
+	// AllowAccessControlResource keeps props.access_control_resource on
+	// create. Set only by PluginAPI.CreatePost after verifying the value names
+	// the calling plugin; SanitizeProps strips it for every other caller.
+	AllowAccessControlResource bool
+
 	// Display-identity overrides applied by trusted integration entry points
 	// (incoming webhooks, slash commands). SanitizeProps strips the matching
 	// post.Props keys by default so clients cannot forge them; the CreatePost
@@ -685,6 +699,14 @@ func (o *Post) SanitizeProps() {
 		)
 	}
 
+	// access_control_resource is stripped for every origin, federation
+	// included: a remote cluster's policies do not exist here, so the marker
+	// could only ever collide with a local plugin's resource IDs. The plugin
+	// API re-injects it under verified ownership on create
+	// (CreatePostFlags.AllowAccessControlResource), and UpdatePost restores
+	// the stored value, so no edit can add or change it.
+	membersToSanitize = append(membersToSanitize, PostPropsAccessControlResource)
+
 	for _, member := range membersToSanitize {
 		if _, ok := o.GetProps()[member]; ok {
 			o.DelProp(member)
@@ -746,6 +768,7 @@ var postIdentityPropsPreservedOnUpdate = []string{
 	PostPropsOverrideIconURL,
 	PostPropsOverrideIconEmoji,
 	PostPropsWebhookDisplayName,
+	PostPropsAccessControlResource,
 }
 
 func (o *Post) PreserveIdentityPropsFrom(old *Post) {
@@ -794,6 +817,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
 			PostPropsMmBlocksActions,
+			PostPropsAccessControlResource,
 		}
 
 		for _, key := range reservedProps {
