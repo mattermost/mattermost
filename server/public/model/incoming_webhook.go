@@ -200,6 +200,22 @@ func escapeControlCharsFromPayload(by []byte) []byte {
 	return re.ReplaceAllFunc(by, repl)
 }
 
+var escapedNullCharacterRegexp = regexp.MustCompile(`\\+u0000`)
+
+// removeEscapedNullCharacters removes escaped NULL characters (\u0000) from a JSON
+// payload. A run of backslashes followed by u0000 is a NULL character only when the
+// number of backslashes is odd; otherwise the last backslash is itself escaped and
+// u0000 is plain text, which is kept.
+func removeEscapedNullCharacters(by []byte) []byte {
+	return escapedNullCharacterRegexp.ReplaceAllFunc(by, func(match []byte) []byte {
+		backslashes := len(match) - len("u0000")
+		if backslashes%2 == 0 {
+			return match
+		}
+		return match[:backslashes-1]
+	})
+}
+
 func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	decoder := json.NewDecoder(bytes.NewReader(by))
 	var o IncomingWebhookRequest
@@ -214,6 +230,20 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
 	by := buf.Bytes()
+
+	// The database cannot store NULL characters, so a payload containing an
+	// escaped NULL character (\u0000) would otherwise fail with an internal
+	// server error when the post is saved. A raw NULL byte is already rejected
+	// by the JSON decoder, so only the escaped form needs to be handled here.
+	if bytes.Contains(by, []byte(`\u0000`)) {
+		by = removeEscapedNullCharacters(by)
+
+		// In valid JSON every escape is complete, so removing NULL characters cannot
+		// create a new one. If it did, as in "\u00\u000000", the payload is malformed.
+		if !bytes.Equal(removeEscapedNullCharacters(by), by) {
+			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "malformed unicode escape", http.StatusBadRequest)
+		}
+	}
 
 	// Try to decode the JSON data. Only if it fails, try to escape control
 	// characters from the strings contained in the JSON data.
