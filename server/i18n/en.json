@@ -6988,6 +6988,11 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.actions_too_large.app_error",
+    "translation": "Too many actions in one access control evaluation; the limit is {{.Max}}.",
+    "description": "API error (400) returned to a plugin when an access control evaluation for a single resource asks for decisions on more distinct actions than the server allows in one call. {{.Max}} is the maximum number of actions."
+  },
+  {
     "id": "app.access_control.plugin.batch_too_large.app_error",
     "translation": "Too many resources in one access control evaluation; the limit is {{.Max}}.",
     "description": "API error (400) returned to a plugin when a batch access control evaluation asks for decisions on more distinct resource IDs than the server allows in one call. {{.Max}} is the maximum number of resource IDs."

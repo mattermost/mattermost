@@ -1868,6 +1868,13 @@ func (api *apiTimerLayer) EvaluateAccessControlBatch(userID, resourceType, actio
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) EvaluateAccessControlActions(userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControlActions(userID, resourceType, resourceID, actions)
+	api.recordTime(startTime, "EvaluateAccessControlActions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)

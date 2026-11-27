@@ -9920,6 +9920,38 @@ func (s *apiRPCServer) EvaluateAccessControlBatch(args *Z_EvaluateAccessControlB
 	return nil
 }
 
+type Z_EvaluateAccessControlActionsArgs struct {
+	A string
+	B string
+	C string
+	D []string
+}
+
+type Z_EvaluateAccessControlActionsReturns struct {
+	A map[string]*model.AccessDecision
+	B *model.AppError
+}
+
+func (g *apiRPCClient) EvaluateAccessControlActions(userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, *model.AppError) {
+	_args := &Z_EvaluateAccessControlActionsArgs{userID, resourceType, resourceID, actions}
+	_returns := &Z_EvaluateAccessControlActionsReturns{}
+	if err := g.client.Call("Plugin.EvaluateAccessControlActions", _args, _returns); err != nil {
+		log.Printf("RPC call to EvaluateAccessControlActions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EvaluateAccessControlActions(args *Z_EvaluateAccessControlActionsArgs, returns *Z_EvaluateAccessControlActionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		EvaluateAccessControlActions(userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.EvaluateAccessControlActions(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API EvaluateAccessControlActions called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SaveAccessControlPolicyArgs struct {
 	A string
 	B *model.AccessControlPolicy

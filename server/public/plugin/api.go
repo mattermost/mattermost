@@ -1898,6 +1898,40 @@ type API interface {
 	// Minimum server version: 12.3
 	EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError)
 
+	// EvaluateAccessControlActions evaluates whether userID may perform each of
+	// actions on the single plugin-owned resource (resourceType, resourceID)
+	// and returns one decision per action, keyed by action. The user's subject
+	// is built once for the whole call, so this is the method to use when
+	// deciding which of many actions a single user may take on one resource.
+	// It is the per-action counterpart of EvaluateAccessControlBatch and shares
+	// its semantics (an omitted action is a deny, IsNoPolicy() is a vacuous
+	// allow).
+	//
+	// The subject is built once but each action is evaluated on its own, so a
+	// policy or attribute change during a call can give a mixed view across
+	// the actions.
+	//
+	// Each decision has the same semantics as EvaluateAccessControl, including
+	// IsNoPolicy(): it reports that no policy of resourceType exists for the
+	// resource, so the plugin can apply its own defaults. When an action could
+	// not be evaluated, the server checks whether such a policy exists and
+	// reports IsNoPolicy() only if none does. An action that is missing from
+	// the returned map has a policy that could not be evaluated, or its
+	// existence could not be determined, and the plugin MUST treat it as a
+	// deny. Duplicate actions are collapsed. The returned error covers
+	// failures that affect the whole call (invalid arguments, more than 256
+	// distinct actions, or the access control engine being unavailable while
+	// the resource has a policy or the store is unreachable); the plugin MUST
+	// treat it as a deny for every action.
+	//
+	// A successful call returns a non-nil map, even when it is empty. A nil
+	// map with a nil error means the server predates this method or the RPC
+	// call failed; treat it as a deny for every action.
+	//
+	// @tag AccessControl
+	// Minimum server version: 12.3
+	EvaluateAccessControlActions(userID, resourceType, resourceID string, actions []string) (map[string]*model.AccessDecision, *model.AppError)
+
 	// SaveAccessControlPolicy creates or updates a policy whose Type is
 	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
 	// true. policy.ID must be the resource's stable 26-char ID.
