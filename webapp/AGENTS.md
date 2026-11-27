@@ -24,6 +24,13 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 - **Standards**: `webapp/STYLE_GUIDE.md`.
 - Always import via the full package name (`@mattermost/compass-ui/...`, `@mattermost/shared/...`), never via relative paths into the package (e.g. `platform/shared/` or `node_modules/@mattermost/compass-ui/`).
 
+## React and i18n conventions
+
+- Do not add `isMounted` refs only to avoid setState after unmount; React ignores those updates. To drop stale async results, use a request sequence check or an `AbortController`.
+- To adjust state when a prop changes, compare it with a stored previous value and set state during render instead of syncing it in a `useEffect`.
+- A small English wording fix to a `defaultMessage` keeps its message ID when the meaning is unchanged. Use a new ID only when the meaning changes.
+- In mobile view, `components/menu` copies its children, header and footer into a modal when it opens, and later renders of the owner do not update them. Render content that must update while the menu is open (such as a search input) as its own connected component.
+
 ## Plugin-facing surface on `window.WebappUtils`
 
 **Do not add new top-level `window.*` globals for plugins.** Publish new plugin-facing APIs as sub-namespaces of `window.WebappUtils` instead.
@@ -32,6 +39,8 @@ Two existing top-level globals are frozen legacy — do not extend them and do n
 
 - `window.Components` — internal-plugin-only, marked at `webapp/channels/src/plugins/export.ts` as subject to breaking changes outside major releases.
 - `window.ProductApi` — a prototype for internal plugins pending module-federation migration, per the comment at the same file.
+
+The host library globals in `channels/src/plugins/export.ts` (`window.React`, `ReactDOM`, `ReactJSXRuntime`, `ReactJSXDevRuntime`, `ReactIntl`, `Redux`, and so on) are top-level on purpose so plugins can use them as webpack externals. Keep new React runtime entry points alongside them. The `window.WebappUtils` rule applies to new plugin-facing APIs, not to these library exports.
 
 **Published sub-namespaces**
 

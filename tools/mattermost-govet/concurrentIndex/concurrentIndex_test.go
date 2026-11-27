@@ -42,21 +42,30 @@ func TestSQLDir(t *testing.T) {
 
 	createCount := 0
 	dropCount := 0
+	createIfNotExistsCount := 0
+	dropIfExistsCount := 0
 	for _, f := range files {
 		switch {
 		case strings.Contains(f, diagCreateIndex):
 			createCount++
 		case strings.Contains(f, diagDropIndex):
 			dropCount++
+		case strings.Contains(f, diagCreateIfNotExists):
+			createIfNotExistsCount++
+		case strings.Contains(f, diagDropIfExists):
+			dropIfExistsCount++
 		}
 	}
 	assert.Equal(t, 4, createCount, "expected 4 CREATE INDEX diagnostics")
 	assert.Equal(t, 2, dropCount, "expected 2 DROP INDEX diagnostics")
+	assert.Equal(t, 1, createIfNotExistsCount, "expected 1 CREATE INDEX IF NOT EXISTS diagnostic")
+	assert.Equal(t, 1, dropIfExistsCount, "expected 1 DROP INDEX IF EXISTS diagnostic")
 
 	badCount := 0
 	nestedCount := 0
 	multilineCount := 0
 	multistmtCount := 0
+	notIdempotentCount := 0
 	for _, f := range files {
 		switch {
 		case strings.HasPrefix(f, "000002_bad"):
@@ -67,12 +76,15 @@ func TestSQLDir(t *testing.T) {
 			multilineCount++
 		case strings.HasPrefix(f, "000005_multistmt"):
 			multistmtCount++
+		case strings.HasPrefix(f, "000007_not_idempotent"):
+			notIdempotentCount++
 		}
 	}
 	assert.Equal(t, 3, badCount, "expected 3 diagnostics from 000002_bad.up.sql")
 	assert.Equal(t, 1, nestedCount, "expected 1 diagnostic from sub/000003_nested.up.sql")
 	assert.Equal(t, 1, multilineCount, "expected 1 diagnostic from 000004_multiline.up.sql")
 	assert.Equal(t, 1, multistmtCount, "expected 1 diagnostic from 000005_multistmt.up.sql")
+	assert.Equal(t, 2, notIdempotentCount, "expected 2 diagnostics from 000007_not_idempotent.up.sql")
 
 	for _, f := range files {
 		assert.NotContains(t, f, "000001_good",
@@ -121,7 +133,7 @@ func TestSQLDirMinMigration(t *testing.T) {
 		assert.GreaterOrEqual(t, n, 5,
 			"expected only migrations >= 5, got diagnostic from %s", base)
 	}
-	assert.Equal(t, 1, len(diags), "expected 1 diagnostic from migration 5+")
+	assert.Equal(t, 3, len(diags), "expected 3 diagnostics from migration 5+")
 }
 
 func TestCheckLine(t *testing.T) {
@@ -200,7 +212,22 @@ func TestCheckLine(t *testing.T) {
 		},
 		{
 			name: "multi-statement all safe",
-			line: "CREATE INDEX CONCURRENTLY idx_a ON t (c); DROP INDEX CONCURRENTLY IF EXISTS idx_b;",
+			line: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_a ON t (c); DROP INDEX CONCURRENTLY IF EXISTS idx_b;",
+		},
+		{
+			name:    "CREATE INDEX CONCURRENTLY without IF NOT EXISTS",
+			line:    "CREATE INDEX CONCURRENTLY idx_foo_bar ON foo (bar);",
+			wantMsg: diagCreateIfNotExists,
+		},
+		{
+			name:    "CREATE UNIQUE INDEX CONCURRENTLY without IF NOT EXISTS",
+			line:    "create unique index concurrently idx_foo_bar on foo (bar);",
+			wantMsg: diagCreateIfNotExists,
+		},
+		{
+			name:    "DROP INDEX CONCURRENTLY without IF EXISTS",
+			line:    "DROP INDEX CONCURRENTLY idx_foo_bar;",
+			wantMsg: diagDropIfExists,
 		},
 	}
 

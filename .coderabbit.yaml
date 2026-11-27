@@ -58,17 +58,51 @@ reviews:
         - Store methods take `request.CTX`, not `context.Context` (see server/AGENTS.md).
         - Do not flag premature optimizations or allocation micro-tuning unless the code is
           on a hot path (post creation, websocket broadcast, permission checks).
+        - `rctx.Session()` returns a pointer to an embedded value and is never nil, even for
+          `request.EmptyContext`. Do not flag dereferences of it as possible nil panics.
+        - `Config.IsValid` validates a non-empty `ServiceSettings.SiteURL` with
+          `url.ParseRequestURI`. Do not ask for extra error handling when parsing it; only
+          flag code that breaks when it is empty.
+        - `new(expr)` (for example `new(false)` or `new(s.Field)`) is valid for the Go version
+          in `go.mod`. Do not flag it or suggest a pointer helper instead.
 
-    - path: "server/{go.mod,go.sum}"
+    - path: "server/**/{go.mod,go.sum}"
       instructions: |
         Dependency-bump PRs: review only for breaking API changes and known CVEs, not
-        upstream library design.
+        upstream library design. The `go` and `toolchain` directives are upgraded
+        separately; do not ask a dependency bump to change them. `go.sum` keeps `/go.mod`
+        checksums for older versions of transitive dependencies; that is expected, not an
+        incomplete upgrade.
 
     - path: "server/**/*_test.go"
       instructions: |
         Only flag tests that can pass while the code is broken, are flaky (timing, shared
         global state, ordering), or leak resources. Do not suggest extra assertions,
         table-driven refactors, or naming changes.
+        - testify: `On("Method").Unset()` also removes expectations registered with
+          `mock.Anything`. Do not flag it as leaving a stale expectation.
+        - Packages using `testlib.NewMainHelper` run from a temp directory with `tests/`,
+          `i18n/`, `templates/` and `fonts/` symlinked in, so relative paths such as
+          `tests/test.png` are valid.
+        - Server tests do not run on Windows. Do not request changes only for Windows.
+
+    - path: "server/channels/app/*access_control*.go"
+      instructions: |
+        Policy searches that must filter results in memory by evaluating CEL expressions
+        fetch up to 1000 policies (the store's `MaxPerPage`); do not flag that cap on those
+        searches. Lookups that must process every requested policy or channel still need
+        complete pagination, so flag a single capped page there.
+
+    - path: "server/public/model/permission.go"
+      instructions: |
+        Permission name and description IDs are rendered by the System Console from the
+        webapp catalogue (`admin.permissions.permission.<id>.name/description`). Do not flag
+        missing `server/i18n/en.json` entries for them.
+
+    - path: "server/public/pluginapi/experimental/**"
+      instructions: |
+        Packages under `pluginapi/experimental` are not a stable API contract. Do not flag
+        renamed or changed exported identifiers there as breaking changes.
 
     - path: "webapp/**/*.{ts,tsx}"
       instructions: |
@@ -77,6 +111,20 @@ reviews:
           those existing paths lack.
         - Formatting, import order, and lint rules are enforced by ESLint/Prettier in CI.
           Do not comment on them.
+        - Fields in `@mattermost/types` that mirror a fixed server JSON type (for example an
+          int64 serialized as a number) can be trusted. Do not suggest string coercion or
+          type fallbacks for them; only free-form values such as `post.props` entries may
+          need parsing.
+
+    - path: "webapp/**/*.{scss,css,tsx}"
+      instructions: |
+        The webapp does not mirror layouts for right-to-left languages. Do not flag physical
+        CSS properties (`left`, `margin-right`, ...) or suggest logical-property replacements.
+
+    - path: "webapp/**/package.json"
+      instructions: |
+        ESLint scripts of the form `eslint ./src eslint.config.mjs` are intentional: the flat
+        config is auto-detected and is passed positionally so it is linted too.
 
     - path: "e2e-tests/**"
       instructions: |
@@ -85,6 +133,18 @@ reviews:
         cross-test interference. Follow e2e-tests/playwright/AGENTS.md for whether tests
         must restore server config they change. Do not comment on formatting. Focus on flaky waits,
         missing assertions, and tests that can pass without exercising the feature.
+        Test helpers and setup code do not need production-grade validation: do not ask for
+        NaN or type guards on values read from the UI, or for per-error-type handling where a
+        helper deliberately catches errors while fetching an optional resource. Credentials
+        for generated test users (including in storage-state file names) are test data, not
+        secrets.
+
+    - path: "e2e-tests/playwright/**"
+      instructions: |
+        `locator.filter({hasText: name})` is the accepted way to find rows, cards and options
+        for uniquely named test data; do not suggest exact text or new `data-testid`
+        attributes for it. Where a page object asserts identity or result order, exact
+        `data-testid` matching is correct; do not suggest replacing it with `hasText`.
 
     - path: "docs/**"
       instructions: |
@@ -100,6 +160,9 @@ reviews:
         wrong pass/fail result, or expose secrets/tokens (injection via untrusted
         `github.event` fields, over-broad permissions). Do not review edge-case text
         handling in helper scripts beyond that.
+        Do not flag these valid patterns: status-check functions with a job-id argument
+        (`success('job-name')`), and a workflow that manages only its own PR conversation
+        comments with `pull-requests: write` and no `issues: write`.
 
     - path: "tools/**"
       instructions: |
@@ -111,3 +174,9 @@ reviews:
       instructions: |
         Check that the OpenAPI spec matches the server handler in this PR: parameters,
         response codes, and required fields. Ignore wording.
+
+    - path: "api/v4/source/access_control.yaml"
+      instructions: |
+        `POST /api/v4/access_control/decisions/actions/search` never returns 501: when
+        access control is inactive it returns 200 with every action allowed. Do not flag a
+        missing 501 response.
