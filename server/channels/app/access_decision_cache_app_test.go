@@ -128,7 +128,7 @@ func TestAccessDecisionCacheChannelReadAccess(t *testing.T) {
 		require.Equal(t, 1, h.evaluations())
 	})
 
-	t.Run("write access is not cached yet", func(t *testing.T) {
+	t.Run("write access is cached under its own entry", func(t *testing.T) {
 		h := setupAccessDecisionCacheTest(t)
 		h.acs.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelWriteAccess).Return(true, nil)
 		h.acs.On("ResourcePolicyGovernsAction", mock.Anything, h.th.BasicChannel.Id, model.AccessControlPolicyActionChannelWriteAccess).Return(false, nil)
@@ -138,6 +138,10 @@ func TestAccessDecisionCacheChannelReadAccess(t *testing.T) {
 		ref := accessSubjectRefFor(rctx, h.th.BasicUser.Id)
 		require.True(t, h.th.App.evaluateChannelAccess(rctx, ref, h.th.BasicChannel, model.AccessControlPolicyActionChannelWriteAccess))
 		require.True(t, h.th.App.evaluateChannelAccess(rctx, ref, h.th.BasicChannel, model.AccessControlPolicyActionChannelWriteAccess))
+		require.Equal(t, 1, h.evaluations())
+
+		// A cached write decision doesn't answer read access.
+		require.True(t, h.check(t))
 		require.Equal(t, 2, h.evaluations())
 	})
 }

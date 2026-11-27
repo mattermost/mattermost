@@ -547,14 +547,32 @@ func (b *accessDecisionBroadcaster) takeLocked() *accessDecisionInvalidation {
 	return batch
 }
 
+// cacheableAccessActions are the actions whose decisions the cache holds. Each is evaluated
+// against a channel with a subject that every invalidation source covers. Any other action,
+// including membership and plugin actions, bypasses the cache: a new action is uncached until
+// its inputs are checked against the invalidation sources and it is added here.
+var cacheableAccessActions = map[string]struct{}{
+	model.AccessControlPolicyActionChannelReadAccess:       {},
+	model.AccessControlPolicyActionChannelWriteAccess:      {},
+	model.AccessControlPolicyActionChannelManagementAccess: {},
+	model.AccessControlPolicyActionUploadFileAttachment:    {},
+	model.AccessControlPolicyActionDownloadFileAttachment:  {},
+	model.AccessControlPolicyActionCreateBurnOnReadPost:    {},
+}
+
+func accessActionCacheable(action string) bool {
+	_, ok := cacheableAccessActions[action]
+	return ok
+}
+
 // evaluateAccessCached returns the PDP decision, from the cache when current. build runs only on a
-// miss. Errors aren't cached. A zero ref bypasses the cache. Callers keep RBAC, bypasses and
-// governance checks outside.
+// miss. Errors aren't cached. A zero ref, or an action not in cacheableAccessActions, bypasses the
+// cache. Callers keep RBAC, bypasses and governance checks outside.
 func (a *App) evaluateAccessCached(rctx request.CTX, ref accessSubjectRef, resource model.Resource, action string, build func() (model.Subject, error)) (model.AccessDecision, error) {
 	c := a.ch.accessDecisions
 	var lookup accessDecisionLookup
 	cacheable := false
-	if c != nil && ref.kind != 0 {
+	if c != nil && ref.kind != 0 && accessActionCacheable(action) {
 		lookup, cacheable = c.prepare(ref.kind, ref.subjectID, ref.userID, resource.Type, resource.ID, action)
 	}
 	if cacheable {
@@ -634,20 +652,11 @@ func accessSubjectRefFor(rctx request.CTX, userID string) accessSubjectRef {
 	return accessSubjectRef{kind: accessSubjectUser, subjectID: userID, userID: userID}
 }
 
-// channelAccessCacheRef returns ref for the channel actions the cache holds, and a zero ref
-// (bypass) otherwise. Only read access, the hottest check, is cached so far.
-func channelAccessCacheRef(ref accessSubjectRef, action string) accessSubjectRef {
-	if action != model.AccessControlPolicyActionChannelReadAccess {
-		return accessSubjectRef{}
-	}
-	return ref
-}
-
 // peekAccessDecision returns a current cached decision without evaluating on a miss, and
 // without counting one: the caller evaluates later and that miss is counted then.
 func (a *App) peekAccessDecision(ref accessSubjectRef, resourceType, resourceID, action string) (allowed bool, hit bool) {
 	c := a.ch.accessDecisions
-	if c == nil || ref.kind == 0 {
+	if c == nil || ref.kind == 0 || !accessActionCacheable(action) {
 		return false, false
 	}
 	lookup, cacheable := c.prepare(ref.kind, ref.subjectID, ref.userID, resourceType, resourceID, action)
