@@ -27,7 +27,7 @@ require (
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 // indirect
 	github.com/mattermost/gosaml2 v0.10.0 // indirect
-	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 // indirect
+	github.com/mattermost/ldap v0.0.0-20261127163108-9606c04d9e53 // indirect
 	github.com/mattermost/logr/v2 v2.0.26 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.16 // indirect

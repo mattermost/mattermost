@@ -15,7 +15,7 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
-	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
+	github.com/mattermost/ldap v0.0.0-20261127163108-9606c04d9e53
 	github.com/mattermost/logr/v2 v2.0.26
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2
