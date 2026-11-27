@@ -1131,6 +1131,28 @@ func TestValueWriteVisibility(t *testing.T) {
 		require.NoError(t, upErr)
 	})
 
+	t.Run("a dry-run write is refused on the same terms and stores nothing", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-DryRun", model.PropertyFieldTypeText, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		target := model.NewId()
+		existing := writeValueDirect(t, th, field.ID, "channel", target, "secret")
+		next := &model.PropertyValue{GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "channel", TargetID: target, Value: json.RawMessage(`"changed"`)}
+
+		valErr := th.service.ValidatePropertyValueWrite(RequestContextWithCallerID(th.Context, caller), []*model.PropertyValue{next})
+		require.Error(t, valErr)
+		assert.ErrorIs(t, valErr, ErrAccessDenied)
+
+		stored, getErr := th.dbStore.PropertyValue().Get(th.CPAGroupID, existing.ID)
+		require.NoError(t, getErr)
+		assert.JSONEq(t, `"secret"`, string(stored.Value))
+
+		writeValueDirect(t, th, field.ID, "user", caller, "secret")
+		require.NoError(t, th.service.ValidatePropertyValueWrite(RequestContextWithCallerID(th.Context, caller), []*model.PropertyValue{next}),
+			"a caller who sees the whole stored value passes")
+	})
+
 	t.Run("an unmasked field is unaffected", func(t *testing.T) {
 		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-Unmasked", model.PropertyFieldTypeText, nil))
 		require.NoError(t, err)

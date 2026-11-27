@@ -33,7 +33,7 @@ import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, getConfig, getLicense, isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -76,6 +76,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     // (see useChannelAttributes) -- independent of abacSupported, which is
     // specifically about the ABAC access-rules toggle above.
     const channelAttributesEnabled = getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isLicensed && isMinimumEnterpriseAdvancedLicense(license);
+    const channelAttributesRequiredEnabled = channelAttributesEnabled && isChannelAttributesRequiredEnabled(state);
 
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;
@@ -100,6 +101,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         channelGroupsEnabled,
         abacSupported,
         channelAttributesEnabled,
+        channelAttributesRequiredEnabled,
     };
 }
 

@@ -24,6 +24,7 @@ export default class ChannelMenu {
     readonly leaveChannel: Locator;
     readonly archiveToggle: Locator;
     readonly closeConversation: Locator;
+    readonly convertToPrivate: Locator;
     readonly settings: Locator;
     readonly editHeader: Locator;
 
@@ -45,6 +46,8 @@ export default class ChannelMenu {
         this.leaveChannel = this.item('Leave Channel');
         this.archiveToggle = this.item(/^(Archive|Unarchive) Channel$/);
         this.closeConversation = this.item(/^Close (Direct Message|Group Message|Conversation)$/);
+        // Under the Settings submenu, which renders in a portal outside this menu's container.
+        this.convertToPrivate = container.page().getByRole('menuitem', {name: 'Convert to Private Channel'});
         this.settings = this.item('Settings');
         this.editHeader = container.page().getByRole('menuitem', {name: 'Edit Header'});
     }
@@ -66,6 +69,12 @@ export default class ChannelMenu {
     async openBookmarksSubmenu() {
         await this.bookmarksBar.hover();
         await expect(this.addBookmarkLink).toBeVisible();
+    }
+
+    async openConvertToPrivate() {
+        await this.settings.hover();
+        await expect(this.convertToPrivate).toBeVisible();
+        await this.convertToPrivate.click();
     }
 
     async openEditHeader() {

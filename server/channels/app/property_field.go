@@ -37,10 +37,10 @@ func propertyFieldOptionsEqual(a, b any) bool {
 // checkRequiredAttributeTransition blocks flipping a channel attribute to
 // required while active, local channels still lack a value. Edge-triggered on
 // false->true only: required can legitimately be true while channels are
-// non-compliant (it is hard-enforced at channel creation only, and an
-// unarchived channel can re-enter the population without a value -- see
-// MM-70717), so a level-triggered check would trap admins on unrelated edits
-// to an already-required field.
+// non-compliant (people are asked for values at creation, conversion and
+// unarchive, but a plugin restore, or a person who can't set a value, still
+// brings a channel back without one), so a level-triggered check would trap
+// admins on unrelated edits to an already-required field.
 func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) error {
 	if !a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
 		return nil

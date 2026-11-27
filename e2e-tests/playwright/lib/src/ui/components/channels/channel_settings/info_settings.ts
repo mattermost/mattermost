@@ -5,6 +5,7 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {ChannelInfoAttributes} from '../channel_attributes';
+import ConvertPrivateConfirmModal from '../convert_private_confirm_modal';
 
 export default class InfoSettings {
     readonly container: Locator;
@@ -18,6 +19,8 @@ export default class InfoSettings {
     readonly saveButton: Locator;
     readonly resetButton: Locator;
     readonly attributes: ChannelInfoAttributes;
+    readonly privateTypeButton: Locator;
+    readonly convertConfirmModal: ConvertPrivateConfirmModal;
 
     constructor(container: Locator) {
         this.container = container;
@@ -34,6 +37,11 @@ export default class InfoSettings {
         // Same component as the Channel Info RHS, but staged here: edits only
         // reach the server on this tab's own Save (see saveChangesPanel).
         this.attributes = new ChannelInfoAttributes(container.getByTestId('channelInfoAttributes'));
+
+        this.privateTypeButton = container.locator('#public-private-selector-button-P');
+
+        // Rendered in a portal outside the tab, so it is located on the page.
+        this.convertConfirmModal = new ConvertPrivateConfirmModal(container.page().locator('#confirmModal'));
     }
 
     async toBeVisible() {
@@ -62,6 +70,11 @@ export default class InfoSettings {
     async updatePurpose(purpose: string) {
         await expect(this.purposeInput).toBeVisible();
         await this.purposeInput.fill(purpose);
+    }
+
+    async selectPrivate() {
+        await expect(this.privateTypeButton).toBeEnabled();
+        await this.privateTypeButton.click();
     }
 
     async save() {

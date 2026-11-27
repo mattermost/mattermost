@@ -4,7 +4,12 @@
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import type {ChannelPropertyValuePatchItems} from '@mattermost/types/channels';
+
 import ConfirmModal from 'components/confirm_modal';
+
+import ConvertRequiredAttributes from './convert_required_attributes';
+import type {PendingChannelAttributeValues} from './convert_required_attributes';
 
 type Props = {
 
@@ -16,7 +21,7 @@ type Props = {
     /*
      * Action to call on confirm
      */
-    onConfirm: (checked: boolean) => void;
+    onConfirm: (values?: ChannelPropertyValuePatchItems) => void;
 
     /*
      * Action to call on cancel
@@ -37,31 +42,40 @@ type Props = {
      * Number of users to be removed
      */
     removeAmount: number;
+
+    /*
+     * The channel being converted. Without it, no required attributes are asked for
+     */
+    channelId?: string;
+
+    /*
+     * Attribute values the caller is already saving alongside the conversion
+     */
+    pendingValues?: PendingChannelAttributeValues;
 };
 
-const ConvertAndRemoveConfirmModal = ({
+type ContentProps = Omit<Props, 'channelId' | 'pendingValues'> & {
+    extraContent?: React.ReactNode;
+    confirmDisabled?: boolean;
+};
+
+const ConvertAndRemoveConfirmModalContent = ({
     show,
     onConfirm,
     onCancel,
     displayName,
     toPublic,
     removeAmount,
-}: Props) => {
-    const titleMessage = toPublic ?
-        messages.toPublicTitle :
-        messages.toPrivateTitle;
+    extraContent,
+    confirmDisabled,
+}: ContentProps) => {
+    const titleMessage = toPublic ? messages.toPublicTitle : messages.toPrivateTitle;
 
-    const convertMessage = toPublic ?
-        messages.toPublicMessage :
-        messages.toPrivateMessage;
+    const convertMessage = toPublic ? messages.toPublicMessage : messages.toPrivateMessage;
 
-    const convertMessageSecondLine = toPublic ?
-        messages.toPublicMessageSecondLine :
-        messages.toPrivateMessageSecondLine;
+    const convertMessageSecondLine = toPublic ? messages.toPublicMessageSecondLine : messages.toPrivateMessageSecondLine;
 
-    const confirmMessage = toPublic ?
-        messages.toPublicConfirm :
-        messages.toPrivateConfirm;
+    const confirmMessage = toPublic ? messages.toPublicConfirm : messages.toPrivateConfirm;
 
     const title = (
         <FormattedMessage
@@ -101,6 +115,7 @@ const ConvertAndRemoveConfirmModal = ({
                     defaultMessage='Are you sure you wish to remove these users?'
                 />
             </p>
+            {extraContent}
         </>
     );
 
@@ -128,9 +143,31 @@ const ConvertAndRemoveConfirmModal = ({
             modalClass={modalClass}
             confirmButtonText={confirmButton}
             cancelButtonText={cancelButton}
-            onConfirm={onConfirm}
+            onConfirm={() => onConfirm()}
             onCancel={onCancel}
+            {...(confirmDisabled ? {confirmDisabled} : {})}
         />
+    );
+};
+
+// One tree whether or not attributes are asked, so opening and closing never
+// remounts the dialog.
+const ConvertAndRemoveConfirmModal = ({channelId, pendingValues, ...props}: Props) => {
+    return (
+        <ConvertRequiredAttributes
+            channelId={channelId ?? ''}
+            active={props.show && !props.toPublic && Boolean(channelId)}
+            pendingValues={pendingValues}
+        >
+            {({content, confirmDisabled, values}) => (
+                <ConvertAndRemoveConfirmModalContent
+                    {...props}
+                    onConfirm={() => props.onConfirm(values)}
+                    extraContent={content}
+                    confirmDisabled={confirmDisabled}
+                />
+            )}
+        </ConvertRequiredAttributes>
     );
 };
 

@@ -2919,9 +2919,31 @@ func (c *Client4) UpdateChannelPrivacy(ctx context.Context, channelId string, pr
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// UpdateChannelPrivacyWithPropertyValues updates channel privacy and stores the given channel attribute values.
+func (c *Client4) UpdateChannelPrivacyWithPropertyValues(ctx context.Context, channelId string, privacy ChannelType, values []PropertyValuePatchItem) (*Channel, *Response, error) {
+	requestBody := &ChannelPrivacyUpdateRequest{Privacy: string(privacy), PropertyValues: values}
+	r, err := c.doAPIPutJSON(ctx, c.channelRoute(channelId).Join("privacy"), requestBody)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
 // RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
 func (c *Client4) RestoreChannel(ctx context.Context, channelId string) (*Channel, *Response, error) {
 	r, err := c.doAPIPost(ctx, c.channelRoute(channelId).Join("restore"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// RestoreChannelWithPropertyValues restores a previously deleted channel and stores the given channel attribute values.
+func (c *Client4) RestoreChannelWithPropertyValues(ctx context.Context, channelId string, values []PropertyValuePatchItem) (*Channel, *Response, error) {
+	requestBody := &ChannelRestoreRequest{PropertyValues: values}
+	r, err := c.doAPIPostJSON(ctx, c.channelRoute(channelId).Join("restore"), requestBody)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

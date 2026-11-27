@@ -403,6 +403,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	directChannelChecker := func(rctx request.CTX, channelID string) (bool, error) {
+		if store.HasMaster(rctx.Context()) {
+			return app.isDirectChannelOnMaster(rctx, channelID)
+		}
 		channel, appErr := app.GetChannel(rctx, channelID)
 		if appErr != nil {
 			return false, appErr

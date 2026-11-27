@@ -810,7 +810,7 @@ func normalizeSourceValues(raw []string) []string {
 
 // propertyValueChanged reports whether writing desired would change what the
 // user holds. Empty forms (missing row, null, "", []) are all "unset";
-// multiselect values compare as sets.
+// multiselect and graph values compare as sets.
 func propertyValueChanged(fieldType model.PropertyFieldType, current *model.PropertyValue, desired json.RawMessage) bool {
 	var currentRaw json.RawMessage
 	if current != nil {
@@ -821,7 +821,7 @@ func propertyValueChanged(fieldType model.PropertyFieldType, current *model.Prop
 		return currentEmpty != desiredEmpty
 	}
 
-	if fieldType == model.PropertyFieldTypeMultiselect {
+	if fieldType == model.PropertyFieldTypeMultiselect || fieldType == model.PropertyFieldTypeGraph {
 		currentIDs, err1 := optionIDsFromValue(currentRaw)
 		desiredIDs, err2 := optionIDsFromValue(desired)
 		if err1 != nil || err2 != nil {

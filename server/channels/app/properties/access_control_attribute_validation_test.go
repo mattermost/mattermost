@@ -4008,6 +4008,79 @@ func TestAccessControlAttributeValidationHookRefusesUnsupportedTypes(t *testing.
 	}
 }
 
+func TestAccessControlAttributeValidationHookValidateValueWrite(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_validate_write", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	// Every channel answers as a group message, so a write is refused for that
+	// alone and the dry run shows what else it would refuse.
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		DirectChannelChecker: func(_ request.CTX, _ string) (bool, error) { return true, nil },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	newField := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs:      attrs,
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	channelValue := func(field *model.PropertyField, channelID, raw string) *model.PropertyValue {
+		return &model.PropertyValue{GroupID: group.ID, FieldID: field.ID, TargetID: channelID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(raw)}
+	}
+
+	requireAppErrorID := func(t *testing.T, err error, wantID string) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, wantID, appErr.Id)
+	}
+
+	t.Run("the direct-channel refusal is left to the write", func(t *testing.T) {
+		field := newField(t, nil)
+		value := channelValue(field, model.NewId(), `"ALPHA"`)
+
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		requireAppErrorID(t, upsertErr, "app.property_value.direct_channel.app_error")
+
+		require.NoError(t, th.service.ValidatePropertyValueWrite(th.Context, []*model.PropertyValue{value}))
+	})
+
+	t.Run("a change the field's policy forbids is refused against the stored value, and nothing is written", func(t *testing.T) {
+		field := newField(t, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever})
+		channelID := model.NewId()
+		stored, createErr := th.dbStore.PropertyValue().Create(channelValue(field, channelID, `"SECRET"`))
+		require.NoError(t, createErr)
+
+		valErr := th.service.ValidatePropertyValueWrite(th.Context, []*model.PropertyValue{channelValue(field, channelID, `"OTHER"`)})
+		requireAppErrorID(t, valErr, "app.property_value.change_policy.never.app_error")
+
+		current, getErr := th.dbStore.PropertyValue().Get(group.ID, stored.ID)
+		require.NoError(t, getErr)
+		assert.JSONEq(t, `"SECRET"`, string(current.Value))
+
+		require.NoError(t, th.service.ValidatePropertyValueWrite(th.Context, []*model.PropertyValue{channelValue(field, model.NewId(), `"OTHER"`)}),
+			"a target with nothing stored may be set")
+	})
+
+	t.Run("an invalid value is refused", func(t *testing.T) {
+		field := newField(t, nil)
+
+		valErr := th.service.ValidatePropertyValueWrite(th.Context, []*model.PropertyValue{channelValue(field, model.NewId(), `123`)})
+		assert.ErrorIs(t, valErr, ErrInvalidValue)
+	})
+}
+
 func TestAccessControlAttributeValidationHook_PostFields(t *testing.T) {
 	th := Setup(t)
 

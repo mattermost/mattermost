@@ -261,6 +261,31 @@ func (ps *PropertyService) AddHook(hook PropertyHook) {
 	ps.hooks = append(ps.hooks, hook)
 }
 
+// valueWriteValidator is implemented by hooks that can run, without writing,
+// the checks a value write makes that don't depend on whether the target takes
+// values or on the caller's permission tier there.
+type valueWriteValidator interface {
+	ValidateValueWrite(rctx request.CTX, values []*model.PropertyValue) error
+}
+
+// ValidatePropertyValueWrite runs those checks of every hook against values,
+// in hook order and writing nothing, so a write that has to follow another step
+// can be refused before that step. Values must carry their target. It returns
+// the error the write would.
+func (ps *PropertyService) ValidatePropertyValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
+	if len(values) == 0 {
+		return nil
+	}
+	for _, hook := range ps.hooks {
+		if v, ok := hook.(valueWriteValidator); ok {
+			if err := v.ValidateValueWrite(rctx, values); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // runPreCreatePropertyField runs all registered pre-hooks for CreatePropertyField.
 func (ps *PropertyService) runPreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	var err error

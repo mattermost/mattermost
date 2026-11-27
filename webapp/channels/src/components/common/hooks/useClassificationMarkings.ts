@@ -48,7 +48,7 @@ export type ClassificationMarkingsState = {
  *
  * Also fetches the channel-scoped classification linked field for consumers that need it.
  */
-export default function useClassificationMarkings(): ClassificationMarkingsState {
+export default function useClassificationMarkings({skipFetch = false}: {skipFetch?: boolean} = {}): ClassificationMarkingsState {
     const dispatch = useDispatch();
 
     const featureEnabled = useSelector(
@@ -59,7 +59,7 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
     const channelField = useSelector(selectChannelClassificationField) ?? null;
 
     useEffect(() => {
-        if (!featureEnabled || !hasAdvancedLicense) {
+        if (skipFetch || !featureEnabled || !hasAdvancedLicense) {
             return;
         }
         if (!channelField) {
@@ -69,7 +69,7 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
                 {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             )).catch(() => {});
         }
-    }, [featureEnabled, hasAdvancedLicense, channelField, dispatch]);
+    }, [skipFetch, featureEnabled, hasAdvancedLicense, channelField, dispatch]);
 
     const levels = useMemo((): ClassificationLevel[] => {
         if (!channelField) {

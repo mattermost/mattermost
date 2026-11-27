@@ -748,7 +748,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 	privateChannel.Type = model.ChannelTypeOpen
 
-	publicChannel, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser)
+	publicChannel, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser, UpdateChannelPrivacyOptions{})
 	require.Nil(t, appErr, "Failed to update channel privacy.")
 	assert.Equal(t, publicChannel.Id, privateChannel.Id)
 	assert.Equal(t, publicChannel.Type, model.ChannelTypeOpen)
@@ -766,7 +766,7 @@ func TestUpdateChannelPrivacyRejectsSpace(t *testing.T) {
 	}, -1)
 	require.NoError(t, err)
 
-	_, appErr := th.App.UpdateChannelPrivacy(th.Context, space, th.BasicUser)
+	_, appErr := th.App.UpdateChannelPrivacy(th.Context, space, th.BasicUser, UpdateChannelPrivacyOptions{})
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel.update_channel_privacy.space.app_error", appErr.Id)
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -783,7 +783,7 @@ func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
 		defer closeWS()
 
 		privateChannel.Type = model.ChannelTypeOpen
-		_, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser)
+		_, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser, UpdateChannelPrivacyOptions{})
 		require.Nil(t, appErr)
 
 		select {
@@ -803,7 +803,7 @@ func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
 		defer closeWS()
 
 		publicChannel.Type = model.ChannelTypePrivate
-		_, appErr := th.App.UpdateChannelPrivacy(th.Context, publicChannel, th.BasicUser)
+		_, appErr := th.App.UpdateChannelPrivacy(th.Context, publicChannel, th.BasicUser, UpdateChannelPrivacyOptions{})
 		require.Nil(t, appErr)
 
 		select {

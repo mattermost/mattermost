@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import type {Dispatch} from 'redux';
 import {bindActionCreators} from 'redux';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelPropertyValuePatchItems} from '@mattermost/types/channels';
 
 import {convertGroupMessageToPrivateChannel} from 'mattermost-redux/actions/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -43,7 +43,7 @@ function makeMapStateToProps() {
 
 export type Actions = {
     closeModal: (modalID: string) => void;
-    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => Promise<ActionResult>;
+    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string, propertyValues?: ChannelPropertyValuePatchItems) => Promise<ActionResult>;
     moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
 };
 

@@ -7,7 +7,7 @@
  * With the sub-flag off the server enforces Required on no channel attribute,
  * so a channel missing a value for a field still marked Required has nothing
  * to be warned about. Its own file because it needs the sub-flag off, unlike
- * unarchive_required_attribute_warning.spec.ts.
+ * unarchive_required_attribute.spec.ts.
  *
  * This file calls ensureFeatureFlag with two combinations on purpose. The server
  * reads the sub-flag at runtime, but the Testcontainers server sets it through an
@@ -90,7 +90,7 @@ test.describe(
 
                 // * Nothing to warn about while Required is not enforced
                 await expect(modal.confirmButton).toHaveText('Unarchive');
-                await expect(modal.missingAttributesBanner).toHaveCount(0);
+                await expect(modal.requiredAttributes).toHaveCount(0);
 
                 await modal.confirm();
                 await expect(channelsPage.archivedChannelMessage).toHaveCount(0);

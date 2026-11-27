@@ -31,9 +31,9 @@ func channelCanMissRequiredAttributes(channel *model.Channel) bool {
 	return channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate
 }
 
-// requiredChannelAttributeFields loads the access_control group's channel
-// fields once and keeps the required ones that are available on this server.
-func (a *App) requiredChannelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, error) {
+// channelAttributeFields loads every channel field of the access_control group
+// in one call.
+func (a *App) channelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, error) {
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return "", nil, appErr
@@ -49,7 +49,23 @@ func (a *App) requiredChannelAttributeFields(rctx request.CTX) (string, []*model
 	if appErr != nil {
 		return "", nil, appErr
 	}
+	return group.ID, fields, nil
+}
 
+// requiredChannelAttributeFields loads the access_control group's channel
+// fields once and keeps the required ones that are available on this server.
+func (a *App) requiredChannelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, error) {
+	groupID, fields, appErr := a.channelAttributeFields(rctx)
+	if appErr != nil {
+		return "", nil, appErr
+	}
+
+	return groupID, a.requiredAvailableChannelAttributeFields(fields), nil
+}
+
+// requiredAvailableChannelAttributeFields keeps the fields that are required
+// and whose own feature is on.
+func (a *App) requiredAvailableChannelAttributeFields(fields []*model.PropertyField) []*model.PropertyField {
 	channelAttributesAvailable, classificationAvailable := a.channelAttributeAvailability()
 	required := make([]*model.PropertyField, 0, len(fields))
 	for _, field := range fields {
@@ -57,7 +73,7 @@ func (a *App) requiredChannelAttributeFields(rctx request.CTX) (string, []*model
 			required = append(required, field)
 		}
 	}
-	return group.ID, required, nil
+	return required
 }
 
 // missingRequiredFieldsOf returns the fields of required that channel has no

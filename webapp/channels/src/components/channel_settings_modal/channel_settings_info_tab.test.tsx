@@ -17,6 +17,25 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     updateChannelPrivacy: jest.fn(),
 }));
 
+// The inline attribute editor is replaced by a stub handle so a test can stage edits.
+const mockAttributeCalls: string[] = [];
+let mockStagedAttributeValues: Record<string, string | string[] | null> = {};
+jest.mock('components/channel_attributes/channel_info_attributes', () => {
+    const ReactModule = require('react');
+    return ReactModule.forwardRef((_props: unknown, ref: React.Ref<unknown>) => {
+        ReactModule.useImperativeHandle(ref, () => ({
+            hasPendingChanges: () => Object.keys(mockStagedAttributeValues).length > 0,
+            getPendingValues: () => mockStagedAttributeValues,
+            flush: async () => {
+                mockAttributeCalls.push('flush');
+                return true;
+            },
+            discard: () => {},
+        }));
+        return null;
+    });
+});
+
 // Mock the ConvertConfirmModal component
 jest.mock('components/admin_console/team_channel_settings/convert_confirm_modal', () => {
     return jest.fn().mockImplementation(({show, onCancel, onConfirm, displayName}) => {
@@ -27,7 +46,8 @@ jest.mock('components/admin_console/team_channel_settings/convert_confirm_modal'
             <div data-testid='convert-confirm-modal'>
                 <div>{'Converting '}{displayName}{' to private'}</div>
                 <button onClick={onCancel}>{'Cancel'}</button>
-                <button onClick={onConfirm}>{'Yes, Convert Channel'}</button>
+                <button onClick={() => onConfirm()}>{'Yes, Convert Channel'}</button>
+                <button onClick={() => onConfirm([{field_id: 'field1', value: 'option1'}])}>{'Yes, Convert With Values'}</button>
             </div>
         );
     });
@@ -127,6 +147,17 @@ const mockDirectMessageChannel = TestHelper.getChannelMock({
 const baseProps = {
     channel: mockChannel,
     setAreThereUnsavedChanges: jest.fn(),
+};
+
+const requiredAttributesState = {
+    entities: {
+        general: {
+            config: {
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequired: 'true',
+            },
+        },
+    },
 };
 
 describe('ChannelSettingsInfoTab', () => {
@@ -667,6 +698,71 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Verify updateChannelPrivacy was called
         expect(updateChannelPrivacy).toHaveBeenCalledWith('channel1', 'P');
+    });
+
+    it('should pass the channel id to ConvertConfirmModal and send the collected values with the privacy change', async () => {
+        mockConvertToPrivatePermission = true;
+
+        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        updateChannelPrivacy.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+        const ConvertConfirmModal = require('components/admin_console/team_channel_settings/convert_confirm_modal');
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        await userEvent.click(screen.getByRole('button', {name: /Private Channel/}));
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(ConvertConfirmModal).toHaveBeenLastCalledWith(expect.objectContaining({channelId: 'channel1'}), undefined);
+
+        await userEvent.click(screen.getByText(/Yes, Convert With Values/i));
+
+        expect(updateChannelPrivacy).toHaveBeenCalledWith('channel1', 'P', [{field_id: 'field1', value: 'option1'}]);
+    });
+
+    it('should flush staged attribute edits before the privacy change and pass them to the dialog as pending values', async () => {
+        mockConvertToPrivatePermission = true;
+        mockAttributeCalls.length = 0;
+        mockStagedAttributeValues = {program: 'o1'};
+
+        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        updateChannelPrivacy.mockImplementation(() => {
+            mockAttributeCalls.push('privacy');
+            return {type: 'MOCK_ACTION', data: {}};
+        });
+        const ConvertConfirmModal = require('components/admin_console/team_channel_settings/convert_confirm_modal');
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>, requiredAttributesState);
+
+        await userEvent.click(screen.getByRole('button', {name: /Private Channel/}));
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(ConvertConfirmModal).toHaveBeenLastCalledWith(expect.objectContaining({pendingValues: {program: 'o1'}}), undefined);
+
+        await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
+
+        expect(mockAttributeCalls.slice(0, 2)).toEqual(['flush', 'privacy']);
+        mockStagedAttributeValues = {};
+    });
+
+    it('should change privacy before flushing attribute edits while required attributes are off', async () => {
+        mockConvertToPrivatePermission = true;
+        mockAttributeCalls.length = 0;
+        mockStagedAttributeValues = {program: 'o1'};
+
+        const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
+        updateChannelPrivacy.mockImplementation(() => {
+            mockAttributeCalls.push('privacy');
+            return {type: 'MOCK_ACTION', data: {}};
+        });
+
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        await userEvent.click(screen.getByRole('button', {name: /Private Channel/}));
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        await userEvent.click(screen.getByText(/Yes, Convert Channel/i));
+
+        expect(mockAttributeCalls.slice(0, 2)).toEqual(['privacy', 'flush']);
+        mockStagedAttributeValues = {};
     });
 
     it('should not convert channel when canceling in ConvertConfirmModal', async () => {

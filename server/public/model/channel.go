@@ -658,6 +658,23 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+
+	// PropertyValues are the channel attribute values to store with the converted channel.
+	PropertyValues []PropertyValuePatchItem `json:"property_values,omitempty"`
+}
+
+// ChannelPrivacyUpdateRequest is the body of a channel privacy change.
+type ChannelPrivacyUpdateRequest struct {
+	Privacy string `json:"privacy"`
+
+	// PropertyValues are the channel attribute values to store with the channel.
+	PropertyValues []PropertyValuePatchItem `json:"property_values,omitempty"`
+}
+
+// ChannelRestoreRequest is the optional body of a channel restore.
+type ChannelRestoreRequest struct {
+	// PropertyValues are the channel attribute values to store with the restored channel.
+	PropertyValues []PropertyValuePatchItem `json:"property_values,omitempty"`
 }
 
 // ChannelMembersGetOptions provides parameters for getting channel members

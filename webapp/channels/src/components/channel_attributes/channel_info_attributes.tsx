@@ -107,6 +107,7 @@ type Props = {
 
 export type ChannelInfoAttributesHandle = {
     hasPendingChanges: () => boolean;
+    getPendingValues: () => Record<string, ChannelAttributeValue>;
     flush: () => Promise<boolean>;
     discard: () => void;
 };
@@ -300,6 +301,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
 
     useImperativeHandle(ref, () => ({
         hasPendingChanges: () => pendingValues.size > 0,
+        getPendingValues: () => Object.fromEntries(pendingValues),
         discard: () => {
             setPendingValues(new Map());
             setFailedFieldId(undefined);

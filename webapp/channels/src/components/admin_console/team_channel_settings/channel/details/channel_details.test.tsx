@@ -7,6 +7,8 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Scheme} from '@mattermost/types/schemes';
 
+import useRequiredChannelAttributesToAsk from 'components/common/hooks/useRequiredChannelAttributesToAsk';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -15,6 +17,26 @@ import ChannelDetails from './channel_details';
 jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(() => ({push: jest.fn(), listen: jest.fn()})),
 }));
+
+jest.mock('components/common/hooks/useRequiredChannelAttributesToAsk');
+const mockUseRequiredChannelAttributesToAsk = jest.mocked(useRequiredChannelAttributesToAsk);
+
+type FormProps = {
+    fields: Array<{id: string}>;
+    onChange: (fieldId: string, value: string | string[] | undefined) => void;
+};
+jest.mock('components/channel_attributes/channel_attributes_form', () => (props: FormProps) => (
+    <div>
+        {props.fields.map((field) => (
+            <button
+                key={field.id}
+                onClick={() => props.onChange(field.id, 'dialogValue')}
+            >
+                {`Fill ${field.id}`}
+            </button>
+        ))}
+    </div>
+));
 
 jest.mock('./channel_members', () => () => <div>{'ChannelMembers'}</div>);
 
@@ -64,6 +86,10 @@ jest.mock('./channel_level_access_rules', () => {
 });
 
 describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
+    beforeEach(() => {
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({fields: [], cannotSet: [], enabled: false, loading: false});
+    });
+
     const groups: Group[] = [{
         id: '123',
         name: 'name',
@@ -239,7 +265,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     });
 
     describe('required channel attributes', () => {
-        const renderDetails = (channel: Channel & {team_name: string}, overrides: Partial<typeof actions> = {}) => {
+        const renderDetails = (channel: Channel & {team_name: string}, overrides: Partial<typeof actions> = {}, requiredEnabled = true) => {
             const patchChannelAttributeValues = jest.fn().mockResolvedValue({data: []});
             const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
             const patchChannel = jest.fn().mockResolvedValue({data: {}});
@@ -260,6 +286,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
                     channelGroupsEnabled={false}
                     abacSupported={false}
                     channelAttributesEnabled={true}
+                    channelAttributesRequiredEnabled={requiredEnabled}
                     isDisabled={false}
                 />,
             );
@@ -315,8 +342,55 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
             await userEvent.click(screen.getByTestId('saveSetting'));
 
-            await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id));
+            await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+
+            // The values went with the restore, so they are not written a second time.
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
+
+        test('keeps the page\'s values and the error when the restore with values fails', async () => {
+            const unarchiveChannel = jest.fn().mockResolvedValue({error: {message: 'restore refused'}});
+            const {patchChannelAttributeValues} = renderDetails({...testChannel, delete_at: 1}, {unarchiveChannel});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+            await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(screen.getByText('restore refused')).toBeInTheDocument());
+            expect(unarchiveChannel).toHaveBeenCalledTimes(1);
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+        });
+
+        test('retries the restore with the values after it failed', async () => {
+            const unarchiveChannel = jest.fn().
+                mockResolvedValueOnce({error: {message: 'restore refused'}}).
+                mockResolvedValueOnce({data: true});
+            const {patchChannelAttributeValues} = renderDetails({...testChannel, delete_at: 1}, {unarchiveChannel});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+            await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(screen.getByText('restore refused')).toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledTimes(2));
+            expect(unarchiveChannel).toHaveBeenLastCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]);
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
+
+        test('restores without values and patches them after while required attributes are off', async () => {
+            const {patchChannelAttributeValues, unarchiveChannel} = renderDetails({...testChannel, delete_at: 1}, {}, false);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
             await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+            expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id);
         });
 
         test('holds back unarchive while the required-value check has failed', async () => {
@@ -363,6 +437,135 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
 
             expect(screen.getByText('attribute save failed')).toBeInTheDocument();
             expect(screen.getByText(missingMessage)).toBeInTheDocument();
+        });
+    });
+
+    describe('converting to private with required channel attributes', () => {
+        const dialogIntro = 'This channel has no value for these required attributes:';
+
+        const renderDetails = () => {
+            const updateChannelPrivacy = jest.fn().mockResolvedValue({data: {}});
+            const patchChannelAttributeValues = jest.fn().mockResolvedValue({data: []});
+            const patchChannel = jest.fn().mockResolvedValue({data: {}});
+            renderWithContext(
+                <ChannelDetails
+                    teamScheme={teamScheme}
+                    groups={groups}
+                    team={team}
+                    totalGroups={groups.length}
+                    actions={{...actions, updateChannelPrivacy, patchChannelAttributeValues, patchChannel, deleteAccessControlPolicy: jest.fn().mockResolvedValue({data: {}})}}
+                    channel={testChannel}
+                    channelID={testChannel.id}
+                    allGroups={allGroups}
+                    channelPermissions={[]}
+                    guestAccountsEnabled={true}
+                    channelModerationEnabled={false}
+                    channelGroupsEnabled={false}
+                    abacSupported={false}
+                    channelAttributesEnabled={true}
+                    channelAttributesRequiredEnabled={true}
+                    isDisabled={false}
+                />,
+            );
+            return {updateChannelPrivacy, patchChannelAttributeValues};
+        };
+
+        const field = (id: string) => ({
+            id,
+            group_id: 'group1',
+            name: id,
+            type: 'select' as const,
+            target_id: '',
+            target_type: 'system',
+            object_type: 'channel',
+            attrs: {required: true, options: [{id: 'o1', name: 'One'}]},
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+        });
+
+        const startConversion = async () => {
+            await userEvent.click(screen.getByRole('button', {name: /private/i}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+        };
+
+        beforeEach(() => {
+            mockUseRequiredChannelAttributesToAsk.mockReset();
+        });
+
+        test('keeps the privacy call and dialog as they are when nothing is missing', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({fields: [], cannotSet: [], enabled: true, loading: false});
+            const {updateChannelPrivacy} = renderDetails();
+
+            await startConversion();
+            expect(screen.queryByText(dialogIntro)).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', {name: 'Yes, convert to private channel'}));
+
+            await waitFor(() => expect(updateChannelPrivacy).toHaveBeenCalledWith(testChannel.id, 'P'));
+        });
+
+        test('counts the page\'s pending attribute edits as filled and saves them only once', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({fields: [field('field1')], cannotSet: [], enabled: true, loading: false});
+            const {updateChannelPrivacy, patchChannelAttributeValues} = renderDetails();
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            await startConversion();
+
+            expect(screen.queryByText(dialogIntro)).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', {name: 'Yes, convert to private channel'}));
+
+            await waitFor(() => expect(updateChannelPrivacy).toHaveBeenCalledWith(testChannel.id, 'P'));
+            expect(patchChannelAttributeValues).toHaveBeenCalledTimes(1);
+            expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]);
+        });
+
+        test('asks for the attributes the page has no edit for and sends them with the privacy call', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({fields: [field('field1'), field('field2')], cannotSet: [], enabled: true, loading: false});
+            const {updateChannelPrivacy, patchChannelAttributeValues} = renderDetails();
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            await startConversion();
+
+            expect(screen.getByText(dialogIntro)).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Fill field1'})).not.toBeInTheDocument();
+            const confirm = screen.getByRole('button', {name: 'Yes, convert to private channel'});
+            expect(confirm).toBeDisabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Fill field2'}));
+            await userEvent.click(confirm);
+
+            await waitFor(() => expect(updateChannelPrivacy).toHaveBeenCalledWith(testChannel.id, 'P', [{field_id: 'field2', value: 'dialogValue'}]));
+            expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]);
+        });
+
+        test('asks again after a refused conversion, without resending the earlier values', async () => {
+            mockUseRequiredChannelAttributesToAsk.mockReturnValue({fields: [field('field2')], cannotSet: [], enabled: true, loading: false});
+            const {updateChannelPrivacy} = renderDetails();
+            updateChannelPrivacy.mockResolvedValueOnce({error: {message: 'conversion refused'}});
+
+            await startConversion();
+            await userEvent.click(screen.getByRole('button', {name: 'Fill field2'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Yes, convert to private channel'}));
+            await waitFor(() => expect(screen.getByText('conversion refused')).toBeInTheDocument());
+
+            // The conversion is still pending and the error still shown when the
+            // admin changes something else and saves again.
+            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            expect(screen.getByText('conversion refused')).toBeInTheDocument();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByText(dialogIntro)).toBeInTheDocument();
+            const confirm = screen.getByRole('button', {name: 'Yes, convert to private channel'});
+            expect(confirm).toBeDisabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Fill field2'}));
+            await userEvent.click(confirm);
+
+            await waitFor(() => expect(updateChannelPrivacy).toHaveBeenCalledTimes(2));
+            expect(updateChannelPrivacy).toHaveBeenLastCalledWith(testChannel.id, 'P', [{field_id: 'field2', value: 'dialogValue'}]);
         });
     });
 });

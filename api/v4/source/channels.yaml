@@ -778,6 +778,34 @@
                   type: string
                   description: "Channel privacy setting: 'O' for a public channel, 'P' for
                     a private channel"
+                property_values:
+                  type: array
+                  description: >
+                    Channel attribute values to set with the new privacy
+                    (minimum server version 12.2). Each `field_id` must be a
+                    channel attribute: a field in the `access_control` property
+                    group with `object_type` `channel` and `target_type`
+                    `system`. A required attribute the caller can set needs a
+                    value, either already on the channel or supplied here.
+                    Returns 400 for an unknown or repeated `field_id`, an
+                    attribute that isn't enabled or licensed on the server, or
+                    a required attribute left without a value, and 403 for a
+                    field the caller isn't allowed to set.
+                  items:
+                    type: object
+                    required:
+                      - field_id
+                      - value
+                    properties:
+                      field_id:
+                        type: string
+                        description: The ID of the channel attribute field
+                      value:
+                        description: >
+                          The value to set: an option ID for a select or
+                          ranked attribute, an array of option IDs for a
+                          multiselect or hierarchical attribute, or a string
+                          for a text attribute.
         required: true
       responses:
         "200":
@@ -814,6 +842,41 @@
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                property_values:
+                  type: array
+                  description: >
+                    Channel attribute values to set with the restored channel
+                    (minimum server version 12.2). Each `field_id` must be a
+                    channel attribute: a field in the `access_control` property
+                    group with `object_type` `channel` and `target_type`
+                    `system`. A required attribute the caller can set needs a
+                    value, either already on the channel or supplied here.
+                    Returns 400 for an unknown or repeated `field_id`, an
+                    attribute that isn't enabled or licensed on the server, or
+                    a required attribute left without a value, and 403 for a
+                    field the caller isn't allowed to set.
+                  items:
+                    type: object
+                    required:
+                      - field_id
+                      - value
+                    properties:
+                      field_id:
+                        type: string
+                        description: The ID of the channel attribute field
+                      value:
+                        description: >
+                          The value to set: an option ID for a select or
+                          ranked attribute, an array of option IDs for a
+                          multiselect or hierarchical attribute, or a string
+                          for a text attribute.
       responses:
         "200":
           description: Channel restore successful
@@ -821,6 +884,8 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/Channel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -3063,6 +3128,40 @@
                   type: string
                 team_id:
                   type: string
+                name:
+                  type: string
+                  description: The unique handle for the converted channel
+                display_name:
+                  type: string
+                  description: The display name of the converted channel
+                property_values:
+                  type: array
+                  description: >
+                    Channel attribute values to set with the converted channel
+                    (minimum server version 12.2). Each `field_id` must be a
+                    channel attribute: a field in the `access_control` property
+                    group with `object_type` `channel` and `target_type`
+                    `system`. A required attribute the caller can set needs a
+                    value, either already on the channel or supplied here.
+                    Returns 400 for an unknown or repeated `field_id`, an
+                    attribute that isn't enabled or licensed on the server, or
+                    a required attribute left without a value, and 403 for a
+                    field the caller isn't allowed to set.
+                  items:
+                    type: object
+                    required:
+                      - field_id
+                      - value
+                    properties:
+                      field_id:
+                        type: string
+                        description: The ID of the channel attribute field
+                      value:
+                        description: >
+                          The value to set: an option ID for a select or
+                          ranked attribute, an array of option IDs for a
+                          multiselect or hierarchical attribute, or a string
+                          for a text attribute.
       responses:
         "200":
           description: Conversion successful

@@ -951,9 +951,53 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 	return a.UpdateChannel(rctx, oldChannel)
 }
 
-func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+// UpdateChannelPrivacyOptions are what a person's privacy change carries beyond
+// the channel itself. The zero value is a machine path: no values, nothing asked.
+type UpdateChannelPrivacyOptions struct {
+	// PropertyValues are channel attribute values to store before the channel
+	// becomes private.
+	PropertyValues []model.PropertyValuePatchItem
+	// ByPerson marks a request made by a person, who is asked for the required
+	// attribute values the channel lacks when it becomes private.
+	ByPerson bool
+	// WasPrivate is true when the stored channel is already private, so the
+	// request changes nothing a required attribute could gate. The handlers set
+	// the new type on the channel before calling, so the stored one is passed.
+	WasPrivate bool
+}
+
+// UpdateChannelPrivacy saves the type that oldChannel already carries. When a
+// person makes a public channel private, the required attributes they can set
+// must have a value, supplied in opts, first: they are stored before the channel
+// changes, so a missing or invalid value leaves it public. Values already
+// written are kept if a later step fails; they are valid for the channel either
+// way, so that is harmless.
+func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, user *model.User, opts UpdateChannelPrivacyOptions) (*model.Channel, *model.AppError) {
 	if oldChannel.IsSpace() {
 		return nil, model.NewAppError("UpdateChannelPrivacy", "app.channel.update_channel_privacy.space.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var skipped []*model.PropertyField
+	if opts.ByPerson && !opts.WasPrivate && oldChannel.Type == model.ChannelTypePrivate {
+		// Local mode has no user, and its values are stamped with none, as the
+		// property API stamps them.
+		userID := rctx.Session().UserId
+		if userID == "" && user != nil {
+			userID = user.Id
+		}
+		actorID := requiredChannelAttributeActorID(rctx, userID)
+
+		resolution, err := a.resolveRequiredChannelAttributes(rctx, actorID, oldChannel, false, opts.PropertyValues)
+		if err != nil {
+			return nil, model.AsAppError(err)
+		}
+		if len(resolution.Missing) > 0 {
+			return nil, model.NewAppError("UpdateChannelPrivacy", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
+		}
+		if err := a.writeChannelAttributeValues(rctx, oldChannel, userID, resolution.ValuesToWrite); err != nil {
+			return nil, model.AsAppError(err)
+		}
+		skipped = resolution.Skipped
 	}
 
 	wasDiscoverable := oldChannel.Discoverable
@@ -1008,6 +1052,10 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	messageWs.Add("channel_type", string(channel.Type))
 	a.Publish(messageWs)
 
+	if len(skipped) > 0 {
+		a.notifyChannelAdminsOfMissingRequiredAttributes(rctx, channel)
+	}
+
 	return channel, nil
 }
 
@@ -1048,9 +1096,42 @@ func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, chan
 	return nil
 }
 
-func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+// RestoreChannelOptions are what a person's unarchive carries beyond the channel
+// itself. The zero value is a machine path: no values, nothing asked.
+type RestoreChannelOptions struct {
+	// PropertyValues are channel attribute values to store before the channel
+	// is restored.
+	PropertyValues []model.PropertyValuePatchItem
+	// ByPerson marks a request made by a person, who is asked for the required
+	// attribute values the channel lacks when it comes back.
+	ByPerson bool
+}
+
+// RestoreChannel unarchives channel. When a person restores it, the required
+// attributes they can set must have a value, supplied in opts, first: they are
+// stored while the channel is still archived, so a failed write restores
+// nothing. A plugin veto after that write leaves the values on the archived
+// channel.
+func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID string, opts RestoreChannelOptions) (*model.Channel, *model.AppError) {
 	if channel.DeleteAt == 0 {
 		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var skipped []*model.PropertyField
+	if opts.ByPerson && !channel.IsSpace() {
+		actorID := requiredChannelAttributeActorID(rctx, userID)
+
+		resolution, err := a.resolveRequiredChannelAttributes(rctx, actorID, channel, false, opts.PropertyValues)
+		if err != nil {
+			return nil, model.AsAppError(err)
+		}
+		if len(resolution.Missing) > 0 {
+			return nil, model.NewAppError("RestoreChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
+		}
+		if err := a.writeChannelAttributeValues(rctx, channel, userID, resolution.ValuesToWrite); err != nil {
+			return nil, model.AsAppError(err)
+		}
+		skipped = resolution.Skipped
 	}
 
 	// Space backing channels are internal; plugin ChannelWillBeRestored hooks are skipped.
@@ -1079,6 +1160,10 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 	}
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
+
+	if len(skipped) > 0 {
+		a.notifyChannelAdminsOfMissingRequiredAttributes(rctx, channel)
+	}
 
 	var user *model.User
 	if userID != "" {
@@ -2402,6 +2487,23 @@ func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel,
 		}
 	}
 	return channel, nil
+}
+
+// isDirectChannelOnMaster answers whether a channel is a DM or GM from the
+// primary, bypassing the channel cache. GetChannel reads a replica and caches
+// the row, so right after a type change it can report and keep the old type.
+func (a *App) isDirectChannelOnMaster(rctx request.CTX, channelID string) (bool, error) {
+	// The common case after a conversion is a private channel, so those come first.
+	for _, channelType := range []model.ChannelType{model.ChannelTypePrivate, model.ChannelTypeOpen, model.ChannelTypeGroup, model.ChannelTypeDirect} {
+		_, err := a.Srv().Store().Channel().GetChannelOfType(rctx, channelID, channelType)
+		if err == nil {
+			return channelType == model.ChannelTypeGroup || channelType == model.ChannelTypeDirect, nil
+		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return false, err
+		}
+	}
+	return false, model.NewAppError("isDirectChannelOnMaster", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound)
 }
 
 func (a *App) GetChannels(rctx request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
@@ -4505,13 +4607,29 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 	toUpdate.Name = gmConversionRequest.Name
 	toUpdate.DisplayName = gmConversionRequest.DisplayName
 
-	updatedChannel, appErr := a.UpdateChannel(rctx, toUpdate)
-	if appErr != nil {
-		return nil, appErr
+	// The converter becomes the channel's admin, so the values are checked as for
+	// a channel about to be created in the chosen team.
+	resolution, err := a.resolveRequiredChannelAttributes(rctx, convertedByUserId, toUpdate, true, gmConversionRequest.PropertyValues)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	if len(resolution.Missing) > 0 {
+		return nil, model.NewAppError("ConvertGroupMessageToChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+	// Only a value write can fail after the role change, so the converter's role
+	// is only remembered when there is something to write.
+	converterWasAdmin := false
+	if len(resolution.ValuesToWrite) > 0 {
+		converter, memberErr := a.GetChannelMember(rctx, gmConversionRequest.ChannelID, convertedByUserId)
+		if memberErr != nil {
+			return nil, memberErr
+		}
+		converterWasAdmin = converter.SchemeAdmin
+	}
 
+	// Loaded before anything changes, so a failed lookup leaves the group message
+	// as it was and the conversion can be retried.
 	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
 		InChannelId: gmConversionRequest.ChannelID,
 		Page:        0,
@@ -4521,16 +4639,99 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 		return nil, appErr
 	}
 
-	_ = a.setSidebarCategoriesForConvertedGroupMessage(rctx, gmConversionRequest, users)
-	_ = a.postMessageForConvertGroupMessageToChannel(rctx, gmConversionRequest.ChannelID, convertedByUserId, users)
+	// The write has to follow the type change, so a value the write would refuse
+	// is refused now, while nothing has been published yet. The checks read what
+	// the group message already holds, which conversion rewrites, from the
+	// primary like the write.
+	if err = a.validateChannelAttributeValues(RequestContextWithMaster(rctx), originalChannel, convertedByUserId, resolution.ValuesToWrite); err != nil {
+		return nil, model.AsAppError(err)
+	}
 
-	// the user conversion the GM becomes the channel admin.
-	_, appErr = a.UpdateChannelMemberSchemeRoles(rctx, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+	updatedChannel, appErr := a.UpdateChannel(rctx, toUpdate)
 	if appErr != nil {
 		return nil, appErr
 	}
 
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+
+	// the user conversion the GM becomes the channel admin.
+	_, promoted, err := a.updateChannelMemberSchemeRoles(rctx, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+	appErr = model.AsAppError(err)
+	if appErr != nil {
+		if !a.requiredChannelAttributesEnabled() {
+			// As before required attributes existed: the channel stays converted.
+			a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest, users)
+			return nil, appErr
+		}
+		a.revertConvertedGroupMessage(rctx, originalChannel, updatedChannel, nil, appErr)
+		return nil, appErr
+	}
+
+	// The value write is refused on a group message, so it follows the type change.
+	// On the primary: the direct-channel check in the write must not see a replica
+	// that hasn't caught up with the type change.
+	appErr = model.AsAppError(a.writeChannelAttributeValues(RequestContextWithMaster(rctx), updatedChannel, convertedByUserId, resolution.ValuesToWrite))
+	if appErr != nil {
+		a.revertConvertedGroupMessage(rctx, originalChannel, updatedChannel, &channelRoleRestore{userID: convertedByUserId, wasAdmin: converterWasAdmin}, appErr)
+		return nil, appErr
+	}
+
+	if promoted {
+		// Only now, so the message doesn't list a value that was just written.
+		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, convertedByUserId, gmConversionRequest.ChannelID)
+	}
+
+	a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest, users)
+
 	return updatedChannel, nil
+}
+
+// finishGroupMessageConversion puts the converted channel in its members'
+// sidebars and posts the conversion message.
+func (a *App) finishGroupMessageConversion(rctx request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody, users []*model.User) {
+	_ = a.setSidebarCategoriesForConvertedGroupMessage(rctx, gmConversionRequest, users)
+	_ = a.postMessageForConvertGroupMessageToChannel(rctx, gmConversionRequest.ChannelID, convertedByUserId, users)
+}
+
+// channelRoleRestore is the admin role a member had before a conversion changed it.
+type channelRoleRestore struct {
+	userID   string
+	wasAdmin bool
+}
+
+// revertConvertedGroupMessage puts a channel that was just converted back to the
+// group message it was after a step that had to follow the conversion failed,
+// and the converter back to their role when roles is set (it is nil when the
+// role was never changed). The revert is best effort: if it fails too, both
+// errors are logged so the half-converted channel is findable.
+func (a *App) revertConvertedGroupMessage(rctx request.CTX, original, converted *model.Channel, roles *channelRoleRestore, cause *model.AppError) {
+	toRestore := converted.DeepCopy()
+	toRestore.Type = original.Type
+	toRestore.TeamId = original.TeamId
+	toRestore.Name = original.Name
+	toRestore.DisplayName = original.DisplayName
+
+	var revertErr *model.AppError
+	if _, revertErr = a.UpdateChannel(rctx, toRestore); revertErr == nil {
+		a.Srv().Platform().InvalidateCacheForChannel(original)
+		if roles != nil {
+			_, _, err := a.updateChannelMemberSchemeRoles(rctx, original.Id, roles.userID, false, true, roles.wasAdmin)
+			revertErr = model.AsAppError(err)
+		}
+	}
+
+	if revertErr != nil {
+		rctx.Logger().Error("Failed to revert a group message conversion that did not complete",
+			mlog.String("channel_id", original.Id),
+			mlog.NamedErr("conversion_error", cause),
+			mlog.NamedErr("revert_error", revertErr),
+		)
+		return
+	}
+	rctx.Logger().Error("A group message conversion did not complete and was reverted",
+		mlog.String("channel_id", original.Id),
+		mlog.Err(cause),
+	)
 }
 
 func (a *App) setSidebarCategoriesForConvertedGroupMessage(rctx request.CTX, gmConversionRequest *model.GroupMessageConversionRequestBody, channelUsers []*model.User) *model.AppError {
