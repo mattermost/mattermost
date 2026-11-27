@@ -35,6 +35,10 @@ type SearchParams struct {
 	// True if this search doesn't originate from a "current user".
 	SearchWithoutUserId bool   `json:"search_without_user_id,omitempty"`
 	Modifier            string `json:"modifier"`
+
+	// ScopedChannels restricts the search to the channels of a session scope
+	// instead of the user's memberships. Only the server sets it.
+	ScopedChannels *SessionScopeResources `json:"-"`
 }
 
 // Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
