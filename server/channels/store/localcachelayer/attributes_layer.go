@@ -7,12 +7,20 @@ import (
 	"bytes"
 	"errors"
 	"maps"
+	"sync/atomic"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+type userAttributesCacheState struct {
+	invalidatedHook atomic.Pointer[func()]
+	// Bumped before every drop of user attributes entries, so a read that started earlier knows
+	// its result may predate the drop and must not be cached.
+	generation atomic.Uint64
+}
 
 type LocalCacheAttributesStore struct {
 	store.AttributesStore
@@ -61,6 +69,11 @@ func (s LocalCacheAttributesStore) ClearUserPropertyValuesEpochCache() {
 }
 
 func (s *LocalCacheAttributesStore) handleClusterInvalidateUserAttributes(msg *model.ClusterMessage) {
+	if hook := s.rootStore.userAttributes.invalidatedHook.Load(); hook != nil {
+		(*hook)()
+	}
+
+	s.rootStore.userAttributes.generation.Add(1)
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		if err := s.rootStore.userAttributesCache.Purge(); err != nil {
 			s.rootStore.logger.Warn("failed to purge user attributes cache", mlog.Err(err))
@@ -87,6 +100,7 @@ func (s LocalCacheAttributesStore) GetSubject(rctx request.CTX, ID, groupID, obj
 		return &cached, nil
 	}
 
+	generation := s.rootStore.userAttributes.generation.Load()
 	subject, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 	if err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
@@ -95,20 +109,48 @@ func (s LocalCacheAttributesStore) GetSubject(rctx request.CTX, ID, groupID, obj
 		subject = &model.Subject{ID: ID, Type: objectType, Attributes: map[string]any{}}
 	}
 
+	// A drop that lands during the read may have removed the entry this result would replace.
+	// Checking again after the add covers a drop that lands between the check and the add.
+	if s.rootStore.userAttributes.generation.Load() != generation {
+		return subject, nil
+	}
 	s.rootStore.doStandardAddToCache(s.rootStore.userAttributesCache, ID, subject)
+	if s.rootStore.userAttributes.generation.Load() != generation {
+		if err := s.rootStore.userAttributesCache.Remove(ID); err != nil {
+			s.rootStore.logger.Warn("failed to remove user attributes cache entry", mlog.Err(err))
+		}
+	}
 	return subject, nil
 }
 
 func (s LocalCacheAttributesStore) InvalidateUserAttributes(userID string) {
+	s.rootStore.userAttributes.generation.Add(1)
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAttributesCache, userID, nil)
+	s.notifyPeersOfSharedCacheInvalidation([]byte(userID))
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAttributesCache.Name())
 	}
 }
 
 func (s LocalCacheAttributesStore) ClearUserAttributesCache() {
+	s.rootStore.userAttributes.generation.Add(1)
 	s.rootStore.doClearCacheCluster(s.rootStore.userAttributesCache)
+	s.notifyPeersOfSharedCacheInvalidation(clearCacheMessageData)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAttributesCache.Name())
 	}
+}
+
+// A shared cache sends no invalidation message of its own, but peers still need one: it marks
+// their attribute view stale, and removing the shared entry again drops anything a peer re-filled
+// from that view before the message reached it.
+func (s LocalCacheAttributesStore) notifyPeersOfSharedCacheInvalidation(data []byte) {
+	if s.rootStore.cluster == nil || s.rootStore.userAttributesCache.GetInvalidateClusterEvent() != model.ClusterEventNone {
+		return
+	}
+	s.rootStore.cluster.SendClusterMessage(&model.ClusterMessage{
+		Event:    model.ClusterEventInvalidateCacheForUserAttributes,
+		SendType: model.ClusterSendBestEffort,
+		Data:     data,
+	})
 }

@@ -195,6 +195,9 @@ type LocalCacheStore struct {
 	attributes                   LocalCacheAttributesStore
 	userPropertyValuesEpochCache cache.Cache
 	userAttributesCache          cache.Cache
+	// Behind a pointer because NewLocalCacheLayer returns the store by value while the cluster
+	// handlers stay bound to the original, so state set later must be shared by both.
+	userAttributes *userAttributesCacheState
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -204,6 +207,8 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		metrics:   metrics,
 		cacheType: cacheProvider.Type(),
 		logger:    logger,
+
+		userAttributes: &userAttributesCacheState{},
 	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
@@ -701,6 +706,28 @@ func (s LocalCacheStore) Attributes() store.AttributesStore {
 	return s.attributes
 }
 
+// SetUserAttributesInvalidatedHook sets a callback run when a peer node invalidates user
+// attributes, before this node drops the affected cache entries, so whatever the hook marks stale
+// is already stale by the time a reader misses the cache. It runs on the cluster message
+// goroutine and must not block.
+func (s LocalCacheStore) SetUserAttributesInvalidatedHook(hook func()) {
+	if hook == nil {
+		s.userAttributes.invalidatedHook.Store(nil)
+		return
+	}
+	s.userAttributes.invalidatedHook.Store(&hook)
+}
+
+// PurgeUserAttributesCacheWithoutBroadcast drops every cached user subject without sending a
+// cluster message, for callers that know entries may have been filled from data that has since
+// been replaced. With a shared cache provider this still empties the cache for every node.
+func (s LocalCacheStore) PurgeUserAttributesCacheWithoutBroadcast() {
+	s.userAttributes.generation.Add(1)
+	if err := s.userAttributesCache.Purge(); err != nil {
+		s.logger.Warn("failed to purge user attributes cache", mlog.Err(err))
+	}
+}
+
 func (s LocalCacheStore) DropAllTables() {
 	s.Invalidate()
 	s.Store.DropAllTables()
@@ -852,6 +879,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.propertyFieldCache)
 	s.doClearCacheCluster(s.accessControlPolicyEtagCache)
 	s.doClearCacheCluster(s.userPropertyValuesEpochCache)
+	s.userAttributes.generation.Add(1)
 	s.doClearCacheCluster(s.userAttributesCache)
 }
 

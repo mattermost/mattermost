@@ -347,6 +347,12 @@ func NewServer(options ...Option) (*Server, error) {
 	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
 	s.platform.SetPrePublishHook(app.attachChannelReadAccessHook)
 
+	// A peer node's user attribute change only reaches this node as a cache invalidation, so it
+	// must also mark this node's attribute view stale or the change waits for the periodic refresh.
+	if st, ok := s.Store().(interface{ SetUserAttributesInvalidatedHook(func()) }); ok {
+		st.SetUserAttributesInvalidatedHook(app.invalidateAttributeViewCache)
+	}
+
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
 	// s.ch for plugin-status and permission lookups; registering them
