@@ -1506,10 +1506,11 @@ For clarity, the object is shown using regular JSON formatting, but in the data 
 
 A scoped import (an import produced by a team- or channel-scoped export) can reference users, team memberships, or channel memberships that don't exist on the destination server. When this happens the import doesn't fail: a user that can't be matched to an existing account gets a shell account created (active or deactivated, depending on the `--imported-users` option), and a membership for a team or channel that isn't present on the destination is skipped. Each of these outcomes is recorded so you can review what didn't carry over.
 
-`mmctl import process` runs asynchronously and only returns the job ID. Once the job finishes, run [mmctl import job show](/administration-guide/manage/mmctl-command-line-tool#mmctl-import-job-show) to see the count and the path to a CSV report:
+`mmctl import process` runs asynchronously and only returns the job ID. Once the job finishes, run [mmctl import job show](/administration-guide/manage/mmctl-command-line-tool#mmctl-import-job-show) to see the counts and the path to a CSV report. Users and bots linked to an existing account by username (the `linked_existing` action) are listed in the same report but counted separately from entries that couldn't be matched:
 
 ``` sh
 3 import entries could not be matched on this server (unmatched users and skipped team or channel memberships).
+5 import users or bots matched existing accounts on this server by username and were linked without changing those accounts.
 See the report for details: <import-file>.unmatched-users.csv
 ```
 
@@ -1528,6 +1529,9 @@ Possible `reason` values:
 
 - `username_not_found`: no account on the destination matched the source username.
 - `sso_auth_data_not_found`: no account on the destination matched the user's SSO identity (`auth_data`).
+- `username_matched_existing`: an existing account on the destination has the same username, but nothing else confirms it's the same person.
+- `bot_username_matched_existing`: an existing bot on the destination has the same username as a bot in the export.
+- `bot_username_matched_user`: the username of a bot in the export belongs to an existing user account (not a bot) on the destination.
 - `team_not_found`: the membership referenced a team that doesn't exist on the destination.
 - `channel_not_found`: the membership referenced a channel that doesn't exist on the destination.
 
@@ -1536,8 +1540,13 @@ Possible `action` values:
 - `created_active`: a shell account was created and left able to sign in (`--imported-users=active`).
 - `created_inactive`: a shell account was created but deactivated pending administrator review (`--imported-users=inactive`).
 - `membership_skipped`: the membership was skipped because its team or channel wasn't present on the destination.
+- `linked_existing`: the user's or bot's posts were attributed to the existing account with the same username, and the user's team and channel memberships were added to it with default roles. The account's email, roles, password, profile, and preferences, its existing team and channel memberships, and an existing bot's owner and description were left unchanged, and a user account was never converted into a bot. Review these accounts to confirm they belong to the same person.
 
-The report reflects a single run. If you re-import the same file, a user created as a shell on the first run is matched on the second and no longer appears in the report, while a membership for a team or channel that's still missing is reported again. The count and report path recorded on the import job are specific to each run, and a run that finds no unmatched users records no report. An earlier `.unmatched-users.csv` file isn't removed or overwritten when a later run has nothing to report, so a file left on disk may reflect a previous run rather than the latest one. Check the count on the import job to see whether the current run produced a report.
+The report reflects a single run. If an import fails or is interrupted and you run the same import job file again, the accounts without an SSO identity that the failed run created are recognized as its own and setting them up continues: their profile, preferences, and memberships are applied, and they're reported again as `created_active` or `created_inactive`. They're recognized only while their email still matches the export. Once an import completes, these accounts are treated like any other existing account, so importing the file again reports each of them as `username_matched_existing` with the `linked_existing` action and leaves the account unchanged.
+
+Accounts created for SSO users (users with `auth_service` and `auth_data` in the export) are matched by `auth_data` on every later run instead. Both a retry and a later import of the file update them with the exported account data, overwriting changes made to them since, and don't list them in the report.
+
+If an import finishes but can't remove the temporary records that mark its accounts as its own, the job fails. It still tries to write its report, but if that also fails, the error is only logged, so check the server logs if no report is available. Run the same import job file again to finish removing them; that run doesn't import the data again, changes no accounts, and writes no report. If the server also can't record that the import finished, the job fails with an error saying so, and running the file again sets up its accounts again, overwriting changes made to them since. A file uploaded again is stored under a new name and counts as a different import, and so does an import of the same file into a different destination team or channel. A local import of a file with different import data at the same path also counts as a different import, as does an account whose shell was created but couldn't be recorded as the import's own. A membership for a team or channel that's still missing is reported again on every run. The counts and report path recorded on the import job are specific to each run, and a run with nothing to report records no report. An earlier `.unmatched-users.csv` file isn't removed or overwritten when a later run has nothing to report, so a file left on disk may reflect a previous run rather than the latest one. Check the counts on the import job to see whether the current run produced a report.
 
 ## Shared Channels remote users
 

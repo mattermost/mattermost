@@ -364,6 +364,99 @@ func createdUserAction(createDeactivated bool) imports.UnmatchedUserAction {
 	return imports.UnmatchedUserCreatedActive
 }
 
+// hasImportMarker reports whether an earlier, unfinished attempt at this import
+// file created the account. A failed lookup counts as no: the account is then
+// treated as a username collision.
+func (a *App) hasImportMarker(rctx request.CTX, userID string, report *imports.ImportReport) bool {
+	if report == nil || report.RunMarker == "" || a.ch.importMarkerFieldID == "" {
+		return false
+	}
+	matches, err := a.Srv().propertyService.ImportMarkerMatches(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, userID, report.RunMarker)
+	if err != nil {
+		rctx.Logger().Warn("Failed to read import marker; treating the account as an existing one", mlog.String("user_id", userID), mlog.Err(err))
+		return false
+	}
+	if !matches {
+		return false
+	}
+	// A concurrent run of the same file may have completed after this run
+	// started, leaving markers that only await removal.
+	pending, err := a.importMarkerCleanupPending(rctx, report.RunMarker)
+	if err != nil {
+		rctx.Logger().Warn("Failed to read the import's cleanup state; treating the account as an existing one", mlog.String("user_id", userID), mlog.Err(err))
+		return false
+	}
+	return !pending
+}
+
+// setImportMarker marks an account this import created so that a retry of the
+// same file recognizes it. A failure only costs the retry that recognition.
+func (a *App) setImportMarker(rctx request.CTX, userID string, report *imports.ImportReport) {
+	if report == nil || report.RunMarker == "" || a.ch.importMarkerFieldID == "" {
+		return
+	}
+	if err := a.Srv().propertyService.SetImportMarker(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, userID, report.RunMarker); err != nil {
+		rctx.Logger().Warn("Failed to mark account as created by this import; a retry will treat it as an existing account", mlog.String("user_id", userID), mlog.Err(err))
+	}
+}
+
+// importMarkerCleanupKey names the system row that records a completed import
+// whose markers still have to be removed. The hash is truncated to fit the key.
+func importMarkerCleanupKey(runMarker string) string {
+	return "ImportMarkerCleanup_" + runMarker[:min(len(runMarker), 40)]
+}
+
+// importMarkerCleanupPending reports whether an earlier attempt at this import
+// completed its import work but didn't finish removing its markers.
+func (a *App) importMarkerCleanupPending(rctx request.CTX, runMarker string) (bool, error) {
+	if a.ch.importMarkerFieldID == "" {
+		return false, nil
+	}
+	_, err := a.Srv().Store().System().GetByNameWithContext(store.RequestContextWithMaster(rctx), importMarkerCleanupKey(runMarker))
+	if err == nil {
+		return true, nil
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+		return false, nil
+	}
+	return false, model.NewAppError("BulkImport", "app.import.bulk_import.import_marker_cleanup_state.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+}
+
+// finishImportMarkers removes the markers of a completed import, after which
+// its accounts are treated like any other existing account. The pending row is
+// written first so that, if removal fails, a retry only finishes the removal
+// instead of setting the accounts up again. Without that row, removing the
+// markers is the only way to record that the import completed.
+func (a *App) finishImportMarkers(rctx request.CTX, runMarker string) error {
+	if a.ch.importMarkerFieldID == "" {
+		return nil
+	}
+	newErr := func(err error) *model.AppError {
+		return model.NewAppError("BulkImport", "app.import.bulk_import.import_marker_cleanup.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	key := importMarkerCleanupKey(runMarker)
+	saveErr := a.Srv().Store().System().SaveOrUpdate(&model.System{Name: key, Value: "true"})
+	cleared, err := a.Srv().propertyService.ClearImportMarkers(rctx, a.ch.importMarkerGroupID, a.ch.importMarkerFieldID, runMarker)
+	if err != nil {
+		if saveErr != nil {
+			rctx.Logger().Error("Failed to record the completed import and to remove its markers; running it again sets up its accounts again", mlog.Int("cleared", cleared), mlog.NamedErr("save_error", saveErr), mlog.Err(err))
+			return model.NewAppError("BulkImport", "app.import.bulk_import.import_marker_cleanup_unrecorded.app_error", nil, "", http.StatusInternalServerError).Wrap(errors.Join(saveErr, err))
+		}
+		rctx.Logger().Error("Failed to remove import markers; run the same import again to finish removing them", mlog.Int("cleared", cleared), mlog.Err(err))
+		return newErr(err)
+	}
+	if saveErr != nil {
+		rctx.Logger().Warn("Failed to record the pending marker removal, but the markers were removed", mlog.Int("cleared", cleared), mlog.Err(saveErr))
+	}
+	// An earlier attempt's row may exist even though this save failed.
+	if _, err := a.Srv().Store().System().PermanentDeleteByName(key); err != nil {
+		return newErr(err)
+	}
+	rctx.Logger().Info("Removed import markers", mlog.Int("cleared", cleared))
+	return nil
+}
+
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
@@ -494,6 +587,40 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			user.SetDefaultNotifications()
 			hasUserChanged = true
 		}
+	}
+
+	if deactivateMissingUsers && user.Id != "" && !matchedByAuthData &&
+		user.Email == strings.ToLower(*data.Email) && a.hasImportMarker(rctx, user.Id, report) {
+		// An earlier attempt at this same import file created the account and
+		// didn't complete, so this run carries on setting it up.
+		rctx.Logger().Info("Scoped import: continuing setup of an account an earlier attempt at this import created",
+			mlog.String("username", *data.Username))
+		if report != nil {
+			report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				Username: *data.Username,
+				Reason:   "username_not_found",
+				Action:   createdUserAction(user.DeleteAt != 0),
+			})
+		}
+	} else if deactivateMissingUsers && user.Id != "" && !matchedByAuthData {
+		// A username is not an identity across instances, so in a scoped import an
+		// account matched only by username may belong to someone else. Attribute the
+		// source user's content and memberships to it, as the username-collision path
+		// below does, but never apply the export's email, roles, credentials, profile,
+		// or preferences to it.
+		rctx.Logger().Warn(
+			"Scoped import: source user matched an existing destination account by username only; adding memberships without updating the account",
+			mlog.String("source_username", *data.Username),
+			mlog.String("matched_dest_username", user.Username),
+		)
+		if report != nil {
+			report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				Username: *data.Username,
+				Reason:   "username_matched_existing",
+				Action:   imports.UnmatchedUserLinkedExisting,
+			})
+		}
+		return a.importUserTeams(rctx, user, *data.Username, data.Teams, deactivateMissingUsers, true, report)
 	}
 
 	// When matched by auth_data, preserve the dest username — the whole point of
@@ -692,6 +819,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	if user.Id == "" {
 		if createDeactivated {
 			user.SetProp(model.UserPropsKeyImportedInactive, "true")
+			// A delete_at the source supplied is kept: someone deactivated well
+			// before the migration keeps their original date.
+			if user.DeleteAt == 0 {
+				user.DeleteAt = model.GetMillis()
+			}
 		}
 		if savedUser, err = a.ch.srv.userService.CreateUser(rctx, user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
@@ -757,6 +889,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			}
 		}
 
+		if deactivateMissingUsers {
+			a.setImportMarker(rctx, savedUser.Id, report)
+		}
+
 		// The shell account now exists, so it's safe to record the unmatched user. Doing
 		// this before CreateUser would leave a false created_* entry when a non-fatal
 		// email/username collision prevented the shell from being created.
@@ -774,16 +910,6 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
 		if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 			rctx.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
-		}
-
-		if createDeactivated && savedUser.DeleteAt == 0 {
-			// UpdateActive always stamps DeleteAt to the current time, which would
-			// clobber a legitimate historical DeleteAt the source already supplied
-			// (e.g. a user who was deactivated well before the migration). Only
-			// call it when the account isn't already deactivated.
-			if _, appErr := a.UpdateActive(rctx, savedUser, false); appErr != nil {
-				return appErr
-			}
 		}
 	} else {
 		var appErr *model.AppError
@@ -1059,10 +1185,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
-	return a.importUserTeams(rctx, savedUser, *data.Username, data.Teams, deactivateMissingUsers, report)
+	return a.importUserTeams(rctx, savedUser, *data.Username, data.Teams, deactivateMissingUsers, false, report)
 }
 
-func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool) *model.AppError {
+func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
@@ -1092,6 +1218,24 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 		}
 		bot = &model.Bot{}
 		hasBotChanged = true
+	} else if deactivateMissingUsers && a.hasImportMarker(rctx, bot.UserId, report) {
+		rctx.Logger().Info("Scoped import: continuing setup of a bot an earlier attempt at this import created",
+			mlog.String("bot_username", *data.Username))
+	} else if deactivateMissingUsers {
+		// As with users, a username is not an identity across instances, so in a
+		// scoped import an existing bot is used for attribution only.
+		rctx.Logger().Warn(
+			"Scoped import: source bot matched an existing destination bot by username only; leaving the destination bot unchanged",
+			mlog.String("bot_username", *data.Username),
+		)
+		if report != nil {
+			report.UnmatchedUsers.Add(imports.UnmatchedUser{
+				Username: *data.Username,
+				Reason:   "bot_username_matched_existing",
+				Action:   imports.UnmatchedUserLinkedExisting,
+			})
+		}
+		return nil
 	}
 
 	bot.Username = *data.Username
@@ -1140,6 +1284,24 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 				return appErr
 			}
 
+			if deactivateMissingUsers {
+				// The username belongs to a destination account that isn't a bot, so
+				// nothing confirms it's the account the export refers to. Never convert
+				// it; the export's content still resolves to it by username.
+				rctx.Logger().Warn(
+					"Scoped import: source bot's username belongs to an existing destination user; not converting that account into a bot",
+					mlog.String("bot_username", *data.Username),
+				)
+				if report != nil {
+					report.UnmatchedUsers.Add(imports.UnmatchedUser{
+						Username: *data.Username,
+						Reason:   "bot_username_matched_user",
+						Action:   imports.UnmatchedUserLinkedExisting,
+					})
+				}
+				return nil
+			}
+
 			rctx.Logger().Info("CreateBot failed with username conflict during import, recovering by linking existing user",
 				mlog.String("bot_username", *data.Username))
 
@@ -1184,6 +1346,8 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 				}
 			}
+		} else if deactivateMissingUsers {
+			a.setImportMarker(rctx, savedBot.UserId, report)
 		}
 	} else if hasBotChanged {
 		var err error
@@ -1273,7 +1437,12 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 	return nil
 }
 
-func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername string, data *[]imports.UserTeamImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
+// importUserTeams adds the user to the given teams and their channels. When
+// unverifiedMatch is set, user is an existing account matched only by username
+// during a scoped import: new memberships are created with default roles so the
+// user's content can be attributed, but the export's roles and preferences are
+// not applied and existing memberships are left untouched.
+func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername string, data *[]imports.UserTeamImportData, deactivateMissingUsers bool, unverifiedMatch bool, report *imports.ImportReport) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1333,8 +1502,14 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, "", http.StatusInternalServerError)
 		}
 
+		if existing, ok := existingMembershipsByTeamId[team.Id]; unverifiedMatch && ok && existing.DeleteAt > 0 {
+			rctx.Logger().Warn("Scoped import: not restoring a removed team membership of a destination account matched only by username",
+				mlog.String("team", team.Name), mlog.String("user", sourceUsername))
+			continue
+		}
+
 		// Team-specific theme Preferences.
-		if tdata.Theme != nil {
+		if tdata.Theme != nil && !unverifiedMatch {
 			teamThemePreferencesByID[team.Id] = append(teamThemePreferencesByID[team.Id], model.Preference{
 				UserId:   user.Id,
 				Category: model.PreferenceCategoryTheme,
@@ -1347,7 +1522,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 		isUserByTeamId[team.Id] = true
 		isAdminByTeamID[team.Id] = false
 
-		if tdata.Roles == nil {
+		if tdata.Roles == nil || unverifiedMatch {
 			isUserByTeamId[team.Id] = true
 		} else {
 			rawRoles := *tdata.Roles
@@ -1396,7 +1571,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 		if existing, ok := existingMembershipsByTeamId[team.Id]; !ok {
 			newTeamMembers = append(newTeamMembers, member)
 			joinedTeamIDs = append(joinedTeamIDs, team.Id)
-		} else {
+		} else if !unverifiedMatch {
 			oldTeamMembers = append(oldTeamMembers, member)
 			if existing.DeleteAt > 0 {
 				joinedTeamIDs = append(joinedTeamIDs, team.Id)
@@ -1435,17 +1610,23 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 	}
 	a.warnIfTeamsOverMemberLimit(rctx, joinedTeamIDs, teamsByID)
 
-	for _, member := range append(newMembers, oldMembers...) {
-		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
-			// Bulk import uses internal function to support two-phase role updates.
-			if _, appErr = a.updateTeamMemberRolesInternal(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId], true); appErr != nil {
-				return appErr
+	// New members of an unverified match keep the default scheme roles they were
+	// saved with.
+	if !unverifiedMatch {
+		for _, member := range append(newMembers, oldMembers...) {
+			if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
+				// Bulk import uses internal function to support two-phase role updates.
+				if _, appErr = a.updateTeamMemberRolesInternal(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId], true); appErr != nil {
+					return appErr
+				}
+			}
+
+			if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
+				rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 			}
 		}
-
-		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
-			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
-		}
+	} else if len(newMembers) > 0 {
+		a.ClearSessionCacheForUser(user.Id)
 	}
 
 	for _, team := range allTeams {
@@ -1456,7 +1637,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, sourceUsername
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(rctx, user, sourceUsername, team, &channelsToImport, deactivateMissingUsers, report); err != nil {
+		if err := a.importUserChannels(rctx, user, sourceUsername, team, &channelsToImport, deactivateMissingUsers, unverifiedMatch, report); err != nil {
 			return err
 		}
 	}
@@ -1484,7 +1665,9 @@ func (a *App) warnIfTeamsOverMemberLimit(rctx request.CTX, joinedTeamIDs []strin
 	}
 }
 
-func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsername string, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
+// importUserChannels adds the user to the given channels of team. See
+// importUserTeams for the meaning of unverifiedMatch.
+func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsername string, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool, unverifiedMatch bool, report *imports.ImportReport) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1550,6 +1733,14 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 		isGuestByChannelId[channel.Id] = false
 		isUserByChannelId[channel.Id] = true
 		isAdminByChannelId[channel.Id] = false
+
+		if unverifiedMatch {
+			if _, ok := existingMembershipsByChannelId[channel.Id]; ok {
+				channelsByID[channel.Id] = channel
+				continue
+			}
+			cdata = imports.UserChannelImportData{Name: cdata.Name}
+		}
 
 		if cdata.Roles != nil {
 			rawRoles := *cdata.Roles
@@ -1667,17 +1858,23 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 		}
 	}
 
-	for _, member := range append(newMembers, oldMembers...) {
-		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
-			// Bulk import uses internal function to support two-phase role updates.
-			if _, _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
-				return err
+	// New members of an unverified match keep the default scheme roles they were
+	// saved with.
+	if !unverifiedMatch {
+		for _, member := range append(newMembers, oldMembers...) {
+			if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
+				// Bulk import uses internal function to support two-phase role updates.
+				if _, _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
+					return err
+				}
+			}
+
+			if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); appErr != nil {
+				rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 			}
 		}
-
-		if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId]); appErr != nil {
-			rctx.Logger().Warn("Error updating channel member scheme roles", mlog.String("channel_id", member.ChannelId), mlog.String("user_id", user.Id), mlog.Err(appErr))
-		}
+	} else if len(newMembers) > 0 {
+		a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	}
 
 	for _, channel := range allChannels {

@@ -49,7 +49,16 @@ const (
 	// UnmatchedUserMembershipSkipped: a membership was skipped because the referenced
 	// destination team or channel did not exist (deleted/renamed between runs).
 	UnmatchedUserMembershipSkipped UnmatchedUserAction = "membership_skipped"
+	// UnmatchedUserLinkedExisting: an existing destination account matched only by
+	// username received the user's memberships and content, but none of the export's
+	// account data (email, roles, credentials, profile, preferences) was applied.
+	UnmatchedUserLinkedExisting UnmatchedUserAction = "linked_existing"
 )
+
+// ImportMarkerCleanupErrorID fails an import whose work completed but whose
+// markers couldn't all be removed. Its report is final; a retry only removes the
+// remaining markers.
+const ImportMarkerCleanupErrorID = "app.import.bulk_import.import_marker_cleanup.app_error"
 
 // UnmatchedUser is one entry in the scoped-import report: a user from the export who
 // was not found as an existing account on the destination server, plus what the
@@ -66,14 +75,39 @@ type UnmatchedUser struct {
 
 // unmatchedUsers is a concurrency-safe accumulator; import workers run in parallel.
 type unmatchedUsers struct {
-	mu sync.Mutex
-	s  []UnmatchedUser
+	mu   sync.Mutex
+	s    []UnmatchedUser
+	seen map[UnmatchedUser]struct{}
 }
 
+// Add records rec unless an identical entry, ignoring username letter case, was
+// already recorded: a username repeated in an archive resolves to the same account.
 func (u *unmatchedUsers) Add(rec UnmatchedUser) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	key := rec
+	key.Username = strings.ToLower(rec.Username)
+	if _, ok := u.seen[key]; ok {
+		return
+	}
+	if u.seen == nil {
+		u.seen = make(map[UnmatchedUser]struct{})
+	}
+	u.seen[key] = struct{}{}
 	u.s = append(u.s, rec)
+}
+
+// CountAction returns the number of recorded entries with the given action.
+func (u *unmatchedUsers) CountAction(action UnmatchedUserAction) int {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	n := 0
+	for _, rec := range u.s {
+		if rec.Action == action {
+			n++
+		}
+	}
+	return n
 }
 
 // All returns a copy of the accumulated entries, safe to read after the import.
@@ -95,6 +129,10 @@ type ImportReport struct {
 	// UnmatchedUsers accumulates one entry per user from the export who was not found
 	// as an existing account on the destination, with the action the import took.
 	UnmatchedUsers unmatchedUsers
+
+	// RunMarker is the hash of the import's run ID that a scoped import leaves on
+	// the accounts it creates until it completes. Empty disables the markers.
+	RunMarker string
 
 	// missingTeams memoizes team names confirmed absent on the destination during a
 	// scoped import. getTeamsByNames consults it so a team referenced by many users

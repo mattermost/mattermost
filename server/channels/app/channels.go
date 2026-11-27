@@ -76,6 +76,9 @@ type Channels struct {
 	managedCategoryGroupID string
 	managedCategoryFieldID string
 
+	importMarkerGroupID string
+	importMarkerFieldID string
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface

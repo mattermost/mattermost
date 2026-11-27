@@ -1404,6 +1404,22 @@ func (s *Server) cacheManagedCategoryIDs() error {
 	return nil
 }
 
+func (s *Server) doSetupImportMarkerProperties() error {
+	// Import workers may already be reading the IDs; rewriting them would race.
+	if s.Channels().importMarkerFieldID != "" {
+		return nil
+	}
+	field, err := s.propertyService.EnsureImportMarkerField(request.EmptyContext(s.Log()))
+	if err != nil {
+		return fmt.Errorf("failed to set up bulk import marker field: %w", err)
+	}
+
+	s.Channels().importMarkerGroupID = field.GroupID
+	s.Channels().importMarkerFieldID = field.ID
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -1600,6 +1616,9 @@ func (s *Server) doAppMigrations() {
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		// Only assigns the IDs when post-initialization was skipped; NewServer
+		// assigns them before job workers start otherwise.
+		{"Import Marker Properties Setup", s.doSetupImportMarkerProperties},
 		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
 		{"Session Attributes Minimum Duration Migration", s.doSessionAttributesMinDurationMigration},
 	}

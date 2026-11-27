@@ -9187,6 +9187,21 @@
     "description": "Error reported by the bulk import tool (CLI/admin) when reading the import data file fails."
   },
   {
+    "id": "app.import.bulk_import.import_marker_cleanup.app_error",
+    "translation": "The import finished, but some temporary markers on the accounts it created couldn't be removed. Run the same import again to remove them. The data won't be imported again.",
+    "description": "Bulk import error shown to the admin when the import work completed but removing temporary per-account markers failed. Retrying the same import only removes the markers."
+  },
+  {
+    "id": "app.import.bulk_import.import_marker_cleanup_state.app_error",
+    "translation": "Unable to check whether an earlier attempt at this import still needs to remove its temporary markers.",
+    "description": "Bulk import error shown to the admin when the server can't read whether a previous attempt at the same import left temporary per-account markers to remove."
+  },
+  {
+    "id": "app.import.bulk_import.import_marker_cleanup_unrecorded.app_error",
+    "translation": "The import finished, but its temporary account markers couldn't be removed and its completion couldn't be recorded. Running the same import again sets up the accounts it created again, which overwrites any changes made to them since.",
+    "description": "Bulk import error shown to the admin when the import work completed but the server could neither record that nor remove temporary per-account markers. Retrying the same import re-applies the export data to the accounts it created."
+  },
+  {
     "id": "app.import.bulk_import.imported_users_choice_required.error",
     "translation": "This is a scoped export, so --imported-users must be set to either \"active\" or \"inactive\"; there is no safe default. Use --imported-users=active when importing into a new instance that these users are moving to, so they can sign in — otherwise every account the import creates is deactivated and nobody, including SSO users, can log in until an administrator reactivates them one by one. Use --imported-users=inactive when importing into an existing instance that already holds other people's content, so accounts created from weak username or email matches stay deactivated until an administrator reviews them. Either way, users who were deactivated on the source server stay deactivated, and accounts that already exist on the destination are matched rather than created and so are not affected by this choice.",
     "description": "Bulk import error shown to the admin running mmctl import on a team- or channel-scoped export without choosing how newly created accounts are handled. '--imported-users', '--imported-users=active', '--imported-users=inactive', \"active\" and \"inactive\" are literal command-line flags/values; keep them in English. 'SSO' is Single Sign-On."

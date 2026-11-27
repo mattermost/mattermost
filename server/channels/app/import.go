@@ -6,6 +6,8 @@ package app
 import (
 	"archive/zip"
 	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -251,7 +253,26 @@ func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attach
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *imports.ImportReport, *model.AppError) {
 	report := &imports.ImportReport{}
+	if !dryRun && opts.RunID != "" {
+		sum := sha256.Sum256([]byte(opts.RunID))
+		report.RunMarker = hex.EncodeToString(sum[:])
+
+		pending, err := a.importMarkerCleanupPending(rctx, report.RunMarker)
+		if err != nil {
+			return 0, report, model.AsAppError(err)
+		}
+		if pending {
+			// The accounts were fully set up by the earlier attempt; importing
+			// again would overwrite whatever changed on them since.
+			rctx.Logger().Info("An earlier attempt at this import completed but didn't remove its markers; removing them without importing again")
+			return 0, report, model.AsAppError(a.finishImportMarkers(rctx, report.RunMarker))
+		}
+	}
+
 	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ImportedUsers, opts.ResumeFromLine, opts.OnCheckpoint, report)
+	if err == nil && report.RunMarker != "" {
+		err = model.AsAppError(a.finishImportMarkers(rctx, report.RunMarker))
+	}
 	return lineNumber, report, err
 }
 
@@ -343,6 +364,9 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					}
 				}
 			}
+			if !deactivateMissingUsers {
+				report.RunMarker = ""
+			}
 
 			// Fail fast: if --destination-channel-name was specified but no channel
 			// scope was found in the export metadata (absent, malformed, or team-scoped),
@@ -399,7 +423,9 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		// Skip post/direct_post lines already processed before the checkpoint.
 		// Non-post segments (roles, teams, channels, users, bots) are always
 		// re-processed to ensure consistent state — remap rebuilt, teams/channels
-		// exist, etc. This is safe because all non-post operations are idempotent.
+		// exist, etc. Non-post operations are idempotent, except that a scoped
+		// import treats a username match as a collision; the accounts this file
+		// already created are recognized by their run marker instead.
 		if resumeFromLine > 0 && lineNumber <= resumeFromLine &&
 			(line.Type == "post" || line.Type == "direct_post") {
 			continue
@@ -618,7 +644,7 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 		if line.Bot == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importBot(rctx, line.Bot, dryRun)
+		return a.importBot(rctx, line.Bot, dryRun, deactivateMissingUsers, report)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)

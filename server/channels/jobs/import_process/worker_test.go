@@ -183,6 +183,39 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 		require.False(t, app.removeFileCalled, "local_mode imports must not delete the source file")
 	})
 
+	t.Run("run ID is stable for the same import and changes with its contents or destination", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		runJob := func(team, channel string) string {
+			job := &model.Job{
+				Id: model.NewId(),
+				Data: map[string]string{
+					"import_file":              zipPath,
+					"local_mode":               "true",
+					"destination_team_name":    team,
+					"destination_channel_name": channel,
+				},
+			}
+			expectWorkerJobCompletion(mockStore, job)
+			worker.DoJob(job)
+			return app.receivedOpts.RunID
+		}
+
+		first := runJob("engineering", "town-square")
+		require.NotEmpty(t, first)
+		require.Equal(t, first, runJob("engineering", "town-square"), "a retry of the same import must keep its run ID")
+		require.NotEqual(t, first, runJob("sales", "town-square"), "an import into another team must get a new run ID")
+		require.NotEqual(t, first, runJob("engineering", "off-topic"), "an import into another channel must get a new run ID")
+
+		require.NoError(t, os.Rename(makeImportZip(t, 10), zipPath))
+		require.NotEqual(t, first, runJob("engineering", "town-square"), "a different archive at the same path must get a new run ID")
+	})
+
 	// The job-data key is the only thing tying the mmctl flag to the importer. A
 	// typo here would silently drop the operator's choice, and a scoped import
 	// would then fail with "choice required" despite the flag having been passed.
@@ -454,6 +487,109 @@ func TestMakeWorkerUnmatchedUsersReport(t *testing.T) {
 		require.Contains(t, string(content), "username,auth_service,team,channel,reason,action")
 		require.Contains(t, string(content), "alice,,,,username_not_found,created_inactive")
 		require.Contains(t, string(content), "bob,,eng,off-topic,channel_not_found,membership_skipped")
+		_, ok := job.Data["linked_existing_users_count"]
+		require.False(t, ok, "no linked count should be recorded when nothing was linked")
+	})
+
+	t.Run("counts accounts linked by username separately from unmatched entries", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting,
+		})
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "botty", Reason: "bot_username_matched_existing", Action: imports.UnmatchedUserLinkedExisting,
+		})
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "bob", Reason: "username_not_found", Action: imports.UnmatchedUserCreatedInactive,
+		})
+		app.bulkImportReport = report
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"import_file":    zipPath,
+				"local_mode":     "true",
+				"imported_users": "inactive",
+			},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		require.Equal(t, "1", job.Data["unmatched_users_count"])
+		require.Equal(t, "2", job.Data["linked_existing_users_count"])
+		content, err := os.ReadFile(job.Data["unmatched_users_report"])
+		require.NoError(t, err)
+		require.Contains(t, string(content), "alice,,,,username_matched_existing,linked_existing")
+		require.Contains(t, string(content), "botty,,,,bot_username_matched_existing,linked_existing")
+		require.Contains(t, string(content), "bob,,,,username_not_found,created_inactive")
+	})
+
+	t.Run("only linked accounts records no unmatched count but still writes the report", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting,
+		})
+		app.bulkImportReport = report
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id:   model.NewId(),
+			Data: map[string]string{"import_file": zipPath, "local_mode": "true"},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		_, ok := job.Data["unmatched_users_count"]
+		require.False(t, ok, "linked accounts must not be counted as unmatched")
+		require.Equal(t, "1", job.Data["linked_existing_users_count"])
+		require.Equal(t, zipPath+".unmatched-users.csv", job.Data["unmatched_users_report"])
+		require.FileExists(t, job.Data["unmatched_users_report"])
+	})
+
+	t.Run("a failed marker cleanup still writes the report and fails the job", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_not_found", Action: imports.UnmatchedUserCreatedInactive,
+		})
+		app.bulkImportReport = report
+		app.bulkImportErr = model.NewAppError("BulkImport", imports.ImportMarkerCleanupErrorID, nil, "", 500)
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id:   model.NewId(),
+			Data: map[string]string{"import_file": zipPath, "local_mode": "true"},
+		}
+		claimed := *job
+		claimed.Status = model.JobStatusInProgress
+		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(&claimed, nil)
+
+		worker.DoJob(job)
+
+		require.Equal(t, "1", job.Data["unmatched_users_count"])
+		require.FileExists(t, job.Data["unmatched_users_report"])
+		mockStore.JobStore.AssertNotCalled(t, "UpdateStatus", job.Id, model.JobStatusSuccess)
+		require.False(t, app.removeFileCalled)
 	})
 
 	t.Run("no report file and no job data when all users matched", func(t *testing.T) {
@@ -476,6 +612,8 @@ func TestMakeWorkerUnmatchedUsersReport(t *testing.T) {
 
 		_, ok := job.Data["unmatched_users_count"]
 		require.False(t, ok, "no count should be recorded when nothing was unmatched")
+		_, ok = job.Data["linked_existing_users_count"]
+		require.False(t, ok, "no linked count should be recorded when nothing was linked")
 		_, err := os.Stat(zipPath + ".unmatched-users.csv")
 		require.True(t, os.IsNotExist(err), "no report file should be written when nothing was unmatched")
 	})

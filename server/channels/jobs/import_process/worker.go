@@ -184,33 +184,25 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			ImportedUsers:          model.ImportedUsersPosture(job.Data["imported_users"]),
 			ResumeFromLine:         resumeFromLine,
 			OnCheckpoint:           onCheckpoint,
+			// In local mode the file name is a reused path, so the JSONL entry's
+			// checksum and size tell a different export at that path apart. The
+			// destination keeps an import of the same file elsewhere from matching
+			// this one's markers.
+			RunID: fmt.Sprintf("%s:%08x:%d:%s:%s", importFileName, jsonZipFile.CRC32, jsonZipFile.UncompressedSize64,
+				job.Data["destination_team_name"], job.Data["destination_channel_name"]),
 		}
 		lineNumber, report, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
+			// The import work itself completed, and the retry that removes the
+			// remaining markers doesn't import again, so this run's report is final.
+			if appErr.Id == imports.ImportMarkerCleanupErrorID {
+				persistUnmatchedUsersReport(logger, jobServer, app, job, report, importFileName)
+			}
 			return appErr
 		}
 
-		// Persist the log of users who could not be matched to an existing account on
-		// the destination (scoped migrations). Best-effort: a failure to write the
-		// report must not fail an otherwise-successful import, so we only warn.
-		if report != nil {
-			localMode := job.Data["local_mode"] == "true"
-			if count, reportPath, rErr := writeUnmatchedUsersReport(app, report, importFileName, localMode); rErr != nil {
-				logger.Warn("Failed to write unmatched-users report", mlog.Err(rErr))
-			} else if count > 0 {
-				job.Data["unmatched_users_count"] = strconv.Itoa(count)
-				job.Data["unmatched_users_report"] = reportPath
-				// SetJobSuccess only updates status, not Data, so persist here while the
-				// job is still in_progress (same approach as the checkpoint writer).
-				if _, uErr := jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); uErr != nil {
-					logger.Warn("Failed to persist unmatched-users report metadata", mlog.Err(uErr))
-				}
-				logger.Info("Scoped import: some users were not matched on the destination",
-					mlog.Int("unmatched_users", count),
-					mlog.String("report", reportPath))
-			}
-		}
+		persistUnmatchedUsersReport(logger, jobServer, app, job, report, importFileName)
 
 		// No need to remove the file in local mode.
 		if job.Data["local_mode"] != "true" {
@@ -223,6 +215,51 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	}
 	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
+}
+
+// persistUnmatchedUsersReport persists the log of users who could not be matched
+// to an existing account on the destination (scoped migrations). Best-effort: a
+// failure to write the report must not fail an otherwise-successful import, so
+// it only warns.
+func persistUnmatchedUsersReport(logger mlog.LoggerIFace, jobServer *jobs.JobServer, app AppIface, job *model.Job, report *imports.ImportReport, importFileName string) {
+	if report == nil {
+		return
+	}
+	localMode := job.Data["local_mode"] == "true"
+	count, reportPath, rErr := writeUnmatchedUsersReport(app, report, importFileName, localMode)
+	if rErr != nil {
+		logger.Warn("Failed to write unmatched-users report", mlog.Err(rErr))
+		return
+	}
+	if count == 0 {
+		return
+	}
+	// Accounts linked by username share the report but are counted separately,
+	// since they were matched rather than missing.
+	linked := report.UnmatchedUsers.CountAction(imports.UnmatchedUserLinkedExisting)
+	unmatched := count - linked
+	if unmatched > 0 {
+		job.Data["unmatched_users_count"] = strconv.Itoa(unmatched)
+	}
+	if linked > 0 {
+		job.Data["linked_existing_users_count"] = strconv.Itoa(linked)
+	}
+	job.Data["unmatched_users_report"] = reportPath
+	// SetJobSuccess only updates status, not Data, so persist here while the
+	// job is still in_progress (same approach as the checkpoint writer).
+	if _, uErr := jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); uErr != nil {
+		logger.Warn("Failed to persist unmatched-users report metadata", mlog.Err(uErr))
+	}
+	if unmatched > 0 {
+		logger.Info("Scoped import: some users were not matched on the destination",
+			mlog.Int("unmatched_users", unmatched),
+			mlog.String("report", reportPath))
+	}
+	if linked > 0 {
+		logger.Info("Scoped import: some users or bots were linked to existing destination accounts by username",
+			mlog.Int("linked_existing_users", linked),
+			mlog.String("report", reportPath))
+	}
 }
 
 // writeUnmatchedUsersReport serializes the scoped-import unmatched-user log to CSV and

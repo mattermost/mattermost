@@ -317,6 +317,7 @@ func NewServer(options ...Option) (*Server, error) {
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
+		{Name: model.BulkImportPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.PostAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.PostAttributesPropertyGroupSchemaVersion},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
@@ -724,6 +725,12 @@ func NewServer(options ...Option) (*Server, error) {
 		if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
 		}
+	}
+
+	// Import workers mark the accounts they create, so the marker field must be
+	// known before any worker can claim a job.
+	if err = s.doSetupImportMarkerProperties(); err != nil {
+		return nil, err
 	}
 
 	if s.runEssentialJobs {
