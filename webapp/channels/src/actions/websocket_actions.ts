@@ -1336,6 +1336,7 @@ export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam)
 
     const channelsPerTeam = getChannelsInTeam(state);
     const channels = (channelsPerTeam && channelsPerTeam[msg.data.team_id]) || [];
+    const currentUser = getCurrentUser(state);
 
     for (const channel of channels) {
         actions.push({
@@ -1344,13 +1345,24 @@ export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam)
         });
     }
 
+    if (currentUser.id === msg.data.user_id) {
+        for (const channelId of channels) {
+            const channel = getChannel(state, channelId);
+            if (channel && channel.team_id === msg.data.team_id) {
+                actions.push({
+                    type: ChannelTypes.LEAVE_CHANNEL,
+                    data: channel,
+                });
+            }
+        }
+    }
+
     const config = getConfig(state);
     if (config.RestrictDirectMessage === 'team') {
         actions.push({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
     }
 
     dispatch(batchActions(actions));
-    const currentUser = getCurrentUser(state);
 
     if (currentUser.id === msg.data.user_id) {
         // Include channel IDs so reducers can clean up posts/embeds for those channels
