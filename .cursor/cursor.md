@@ -8,6 +8,7 @@ These instructions apply to Cursor Cloud Agents after `.cursor/scripts/cloud-age
 - The image includes Go, Node/npm, Docker Compose, and AWS CLI v2.
 - Prefer Cursor's multi-repo layout for `mattermost/enterprise` when it is available: sibling repositories such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, matching `server/Makefile`'s default `../../enterprise` path.
 - Git-triggered automations start as a single-repo checkout. If enterprise is missing, `cloud-agent-install.sh` clones it with the token scoped by `repositoryDependencies`, preferring an exact like-named branch and falling back to Enterprise's default branch. If that clone lands somewhere other than `../enterprise`, `BUILD_ENTERPRISE_DIR` is written to `server/config.override.mk`, which `server/Makefile` reads before Enterprise detection.
+- If `cloud-agent-install.sh` logs `WARNING: plugin hydration failed`, the rest of the environment is fine. Rerun the hydration for that plugin (`super-env.sh exec <plugin> -- make webapp/node_modules`) before working in it.
 
 ## Running Mattermost
 
@@ -41,6 +42,7 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 
   ```bash
   cd server
+  export MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true
   ENABLED_DOCKER_SERVICES='postgres redis' RUN_SERVER_IN_BACKGROUND=true make run
   ```
 
@@ -48,8 +50,11 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 
   ```bash
   cd server
+  export MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true
   ENABLED_DOCKER_SERVICES='postgres redis' make run-server
   ```
+
+- `MM_SERVICESETTINGS_ENABLELOCALMODE=true` opens the local mode socket (`/var/tmp/mattermost_local.socket`) that `mmctl --local` and plugin deploys use; it is off by default. `MM_PLUGINSETTINGS_ENABLEUPLOADS=true` lets `make deploy` upload plugin bundles.
 
   and then:
 
@@ -74,6 +79,44 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
   ```bash
   curl http://127.0.0.1:8065/api/v4/system/ping
   ```
+
+## Super Environment (Mattermost + Plugins)
+
+This repository is the base of a pseudo-monorepo: the same image and hooks can also bring up the core plugins so one agent can change the server, webapp, Enterprise, and plugins together.
+
+- Plugin checkouts live next to this one as `../mattermost-plugin-<name>` (falling back to `$HOME/mattermost-plugin-<name>`). Run `.cursor/scripts/super-env.sh list` to see which are present, their branch, and their Node pin.
+- The install hook hydrates every `mattermost-plugin-*` checkout it finds (`go mod download` plus `make webapp/node_modules`, each with the plugin's own `.nvmrc` Node through nvm; the default Node stays on this repo's `.nvmrc`).
+- With `CLOUD_AGENT_SUPER_ENV=true`, the install hook also clones every core plugin listed in `repositoryDependencies` that is missing. `CLOUD_AGENT_PLUGINS=boards,agents` clones only those. Clones prefer a branch with the same name as this checkout's branch (or `CLOUD_AGENT_PLUGIN_BRANCH`) and fall back to the plugin's default branch.
+- To add a plugin mid-run: `CLOUD_AGENT_PLUGINS=<name> CLOUD_AGENT_SKIP_GO_DEPS=true CLOUD_AGENT_SKIP_WEBAPP_DEPS=true CLOUD_AGENT_SKIP_PLAYWRIGHT_DEPS=true bash .cursor/scripts/cloud-agent-install.sh`.
+- Clones made by the hook are shallow and single-branch. Run `git fetch --unshallow` or `git remote set-branches origin '*'` in that plugin before work that needs history or other branches. `super-env.sh sync` fast-forwards clean, hook-made clones.
+
+Working in a plugin:
+
+1. Read that plugin's `AGENTS.md` before editing it and follow its conventions. Ignore the plugin's own `.cursor/` instructions here; they describe a standalone environment running a prebuilt Mattermost image, while this environment runs Mattermost from source.
+2. Start the server with local mode and plugin uploads enabled (see Running Mattermost).
+3. Run plugin commands through the helper so the right Node is on `PATH`:
+
+   ```bash
+   .cursor/scripts/super-env.sh exec boards -- make test
+   .cursor/scripts/super-env.sh deploy boards agents   # or: deploy all
+   ```
+
+   `deploy` runs the plugin's `make deploy` over the local mode socket with `MM_SERVICESETTINGS_ENABLEDEVELOPER=true`, so only the current platform's binary is built. Set `MM_ADMIN_TOKEN` or `MM_ADMIN_USERNAME`/`MM_ADMIN_PASSWORD` to deploy over HTTP instead.
+
+4. For changes that span the plugin API (`server/public`) and a plugin, link the plugin to this checkout:
+
+   ```bash
+   .cursor/scripts/super-env.sh link boards     # also links server/v8 if the plugin requires it
+   .cursor/scripts/super-env.sh deploy boards   # builds against the local server/public
+   .cursor/scripts/super-env.sh unlink boards
+   ```
+
+   The link is an out-of-tree `go.work` under `~/.cache/mattermost-super-env/`; nothing is written to the plugin repo, so it can never be committed by accident. Don't change a plugin's `go.mod` to point at the local server. Plugin webapps still use published `@mattermost/*` npm packages.
+
+Cross-repo changes:
+
+- Use the same branch name in every repo you change, and open one PR per repo. Each repo has its own PR template and `AGENTS.md`; follow them. Mention the related PRs in each description.
+- Merge order matters when a plugin depends on a new `server/public` API: the server PR lands first, then the plugin bumps its `github.com/mattermost/mattermost/server/public` requirement.
 
 ## Tests And Setup
 
