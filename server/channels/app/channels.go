@@ -90,6 +90,8 @@ type Channels struct {
 	accessDecisionStop        chan struct{}
 	accessDecisionDone        chan struct{}
 
+	attributeViews *attributeViewRefresher
+
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
 	// and data corruption.
@@ -120,6 +122,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		interruptQuitChan: make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
+	ch.attributeViews = ch.newAttributeViewRefresher()
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
@@ -311,6 +314,9 @@ func (ch *Channels) Start() error {
 
 	ch.startAccessDecisionMaintenance()
 
+	ch.AddConfigListener(ch.markAttributeViewsOnABACEnable)
+	ch.attributeViews.start()
+
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -335,6 +341,7 @@ func (ch *Channels) Stop() error {
 	ch.scheduledPostTask.stop()
 	ch.stopHealthCheckWorkers()
 	ch.stopAccessDecisionMaintenance()
+	ch.attributeViews.stopAndWait()
 
 	close(ch.interruptQuitChan)
 

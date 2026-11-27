@@ -590,6 +590,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	if anyUserObjectType(updated) || anyUserObjectType(propagated) {
 		a.invalidateAllUserAttributeCaches()
 	}
+	a.markAttributeViewsForFields(updated...)
+	a.markAttributeViewsForFields(propagated...)
 	a.invalidateAccessDecisionsForSessionAttributeFields(groupID)
 
 	// Broadcast websocket events for the requested fields and for the linked
@@ -676,6 +678,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 	if existing.ObjectType == model.PropertyFieldObjectTypeUser {
 		a.invalidateAllUserAttributeCaches()
 	}
+	a.markAttributeViewsForFields(existing)
 	a.invalidateAccessDecisionsForSessionAttributeFields(groupID)
 
 	// Without this a deleted rank field's stale options would linger in the
