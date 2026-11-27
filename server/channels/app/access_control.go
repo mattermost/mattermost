@@ -2519,8 +2519,16 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 	// Unlike other channel events this one has to reach members the channel's read rules
 	// deny, because it is how their client learns to drop the channel. They get it
 	// without the channel itself.
+	// The publisher decides read-access governance once, so the hook can skip the channel
+	// load and the governance check for every recipient. A DM or GM is never governed.
+	// It bypasses the request's memo, which may hold the governance from before the policy
+	// change this event announces.
 	if a.ChannelAccessEnforcementActive() {
-		useChannelReadAccessRedactHook(messageWs, channel.Id)
+		governance := channelGovernance{}
+		if !channelAccessExempt(channel) {
+			governance = a.evaluateChannelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)
+		}
+		useChannelReadAccessRedactHook(messageWs, channel.Id, &governance)
 	}
 	a.Publish(messageWs)
 }

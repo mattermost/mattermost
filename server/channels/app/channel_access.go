@@ -314,14 +314,21 @@ func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *
 	}
 
 	rctx := request.EmptyContext(a.Log())
-	// A channel that can't be loaded here keeps the hook, which loads it again per recipient.
 	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr == nil && (channelAccessExempt(channel) ||
-		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)) {
+	if appErr != nil {
+		// A channel that can't be loaded here keeps the hook without its governance, so the
+		// hook loads the channel and decides governance again per recipient.
+		useChannelReadAccessHook(message, channelID, nil)
+		return
+	}
+	if channelAccessExempt(channel) {
 		return
 	}
 
-	useChannelReadAccessHook(message, channelID)
+	governed, byChannelPolicy := a.channelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)
+	if governed {
+		useChannelReadAccessHook(message, channelID, &byChannelPolicy)
+	}
 }
 
 // attachChannelReadAccessHook is the platform's pre-publish hook: it filters every
@@ -359,7 +366,7 @@ func (a *App) attachChannelReadAccessHook(message *model.WebSocketEvent) {
 			mlog.String("event", string(eventType)),
 			mlog.Err(appErr),
 		)
-		useChannelReadAccessHook(message, broadcast.ChannelId)
+		useChannelReadAccessHook(message, broadcast.ChannelId, nil)
 		return
 	}
 
@@ -367,8 +374,9 @@ func (a *App) attachChannelReadAccessHook(message *model.WebSocketEvent) {
 		return
 	}
 
-	if a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess) {
-		useChannelReadAccessHook(message, broadcast.ChannelId)
+	governed, byChannelPolicy := a.channelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)
+	if governed {
+		useChannelReadAccessHook(message, broadcast.ChannelId, &byChannelPolicy)
 	}
 }
 
@@ -528,13 +536,22 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 		return true
 	}
 
+	return a.evaluateGovernedChannelAccess(rctx, ref, channel.Id, action, byChannelPolicy)
+}
+
+// evaluateGovernedChannelAccess decides action for ref in a channel already known to be
+// governed. byChannelPolicy says whether the channel's own policy governs the action, which
+// is when the subject carries the user's channel role. It is the one place the decision-cache
+// key for channel access is built, so request paths and the read-access broadcast hooks share
+// entries. Any error denies.
+func (a *App) evaluateGovernedChannelAccess(rctx request.CTX, ref accessSubjectRef, channelID, action string, byChannelPolicy bool) bool {
 	userID := ref.userID
 	var buildErr error
 	decision, evalErr := a.evaluateAccessCached(rctx, ref,
-		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channel.Id},
+		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
 		action,
 		func() (model.Subject, error) {
-			subject, err := a.channelAccessSubject(rctx, ref, channel.Id, byChannelPolicy)
+			subject, err := a.channelAccessSubject(rctx, ref, channelID, byChannelPolicy)
 			buildErr = err
 			return subject, err
 		},
@@ -543,7 +560,7 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 		rctx.Logger().Info("Failed to build ABAC subject for channel-access evaluation; denying",
 			mlog.String("action", action),
 			mlog.String("user_id", userID),
-			mlog.String("channel_id", channel.Id),
+			mlog.String("channel_id", channelID),
 			mlog.Err(buildErr),
 		)
 		return false
@@ -552,7 +569,7 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 		rctx.Logger().Warn("ABAC channel-access evaluation failed; denying",
 			mlog.String("action", action),
 			mlog.String("user_id", userID),
-			mlog.String("channel_id", channel.Id),
+			mlog.String("channel_id", channelID),
 			mlog.Err(evalErr),
 		)
 		return false
@@ -854,19 +871,35 @@ func (a *App) HasChannelReadAccessByID(rctx request.CTX, userID, channelID strin
 	})
 }
 
+// HasChannelReadAccessGoverned decides channel_read_access for a channel whose governance
+// the caller already knows: the read-access broadcast hooks, whose publisher decided it when
+// attaching the hook. It skips the channel load and the governance check, and does not
+// re-check ChannelAccessEnforcementActive or the DM/GM exemption, since the publisher did
+// both. byChannelPolicy says whether the channel's own policy governs read access.
+func (a *App) HasChannelReadAccessGoverned(rctx request.CTX, userID, channelID string, byChannelPolicy bool) bool {
+	if channelID == "" || userID == "" {
+		return true
+	}
+
+	ref := accessSubjectRefFor(rctx, userID)
+	return a.evaluateGovernedChannelAccess(rctx, ref, channelID, model.AccessControlPolicyActionChannelReadAccess, byChannelPolicy)
+}
+
 func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, check func(*model.Channel) bool) bool {
 	if channelID == "" || !a.ChannelAccessEnforcementActive() {
 		return true
 	}
 
-	channel, appErr := a.GetChannel(rctx, channelID)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
+	// The bare cached read: the checks read only the channel's id, type and
+	// PolicyEnforced, so the hydrated policy actions GetChannel adds aren't needed.
+	channel, err := a.Srv().getChannel(rctx, channelID)
+	if err != nil {
+		if appErr := model.AsAppError(err); appErr.StatusCode == http.StatusNotFound {
 			return true
 		}
 		rctx.Logger().Warn("Failed to resolve channel for channel-access evaluation; denying",
 			mlog.String("channel_id", channelID),
-			mlog.Err(appErr),
+			mlog.Err(err),
 		)
 		return false
 	}
