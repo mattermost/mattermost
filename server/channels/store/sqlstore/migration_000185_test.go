@@ -146,9 +146,14 @@ func TestMigration000185(t *testing.T) {
 	// Verify: the user attribute matview exists and includes the ObjectType
 	// filter (user-type fields only). Since migration 000216 the single
 	// AttributeView is split per object type; the user row lives in UserAttributeView.
+	// Since migration 000245 the matview selects from UserAttributeLiveView, which
+	// holds the query and so the filter.
 	var viewDef string
 	err = master.Get(&viewDef, "SELECT definition FROM pg_matviews WHERE matviewname = 'userattributeview'")
 	require.NoError(t, err, "UserAttributeView should exist")
+	assert.Contains(t, viewDef, "userattributeliveview", "the matview should select from the live view")
+	err = master.Get(&viewDef, "SELECT definition FROM pg_views WHERE viewname = 'userattributeliveview'")
+	require.NoError(t, err, "UserAttributeLiveView should exist")
 	assert.Contains(t, viewDef, "pf.objecttype", "view definition should filter by pf.ObjectType")
 
 	// Verify: materialized view contains expected data after refresh.

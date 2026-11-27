@@ -10,7 +10,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -6530,30 +6529,6 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 			assert.False(t, isNative, "native attribute %q must not repeat on later pages", f.Name)
 		}
 	})
-}
-
-func TestInvalidateAttributeViewCache(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	ch := th.App.Srv().Channels()
-
-	th.App.invalidateAttributeViewCache()
-	require.True(t, ch.attributeViewRefreshLast.IsZero(), "a write should mark the view stale")
-
-	// No rate limit: a deferred write is a lost one, because a client asks for a render decision
-	// once per change event and never re-asks.
-	ch.attributeViewRefreshLast = time.Now()
-	for range 100 {
-		th.App.invalidateAttributeViewCache()
-	}
-	require.True(t, ch.attributeViewRefreshLast.IsZero(), "later writes should still mark the view stale")
-
-	// A write landing during an in-flight refresh cannot reset the timer, so it flags a follow-up.
-	ch.attributeViewRefreshLast = time.Now()
-	ch.attributeViewRefreshMut.Lock()
-	th.App.invalidateAttributeViewCache()
-	ch.attributeViewRefreshMut.Unlock()
-	require.False(t, ch.attributeViewRefreshLast.IsZero())
-	require.True(t, ch.attributeViewNeedsRefresh.Load(), "a write during a refresh should flag a follow-up")
 }
 
 func TestAttributeBasedAccessControlEnabled(t *testing.T) {

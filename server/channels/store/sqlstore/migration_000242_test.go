@@ -31,6 +31,21 @@ func withoutLegacyAttributeView(t *testing.T, s *SqlStore) func() {
 	}
 }
 
+// withoutAttributeLiveViews reverts 000245 for a test that runs an earlier view
+// migration's down: 000245's live views read PropertyOptions, so 000223's down
+// can't drop that table while they exist. The returned function re-applies
+// 000245, so later tests sharing the database find the views as a migrated
+// server has them.
+func withoutAttributeLiveViews(t *testing.T, s *SqlStore) func() {
+	t.Helper()
+	_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000245_create_attribute_live_views.down.sql"))
+	require.NoError(t, err, "reverting 000245")
+	return func() {
+		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000245_create_attribute_live_views.up.sql"))
+		assert.NoError(t, err, "re-applying 000245")
+	}
+}
+
 // TestMigration000242 verifies the AttributeView kept for servers from before
 // 000216: that it exists alongside the per-object-type views, that an 11.10
 // server's refresh of it succeeds, and that it resolves every option-bearing

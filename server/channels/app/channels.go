@@ -13,7 +13,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -90,10 +89,6 @@ type Channels struct {
 	accessDecisionBroadcaster *accessDecisionBroadcaster
 	accessDecisionStop        chan struct{}
 	accessDecisionDone        chan struct{}
-
-	attributeViewRefreshMut   sync.Mutex
-	attributeViewRefreshLast  time.Time
-	attributeViewNeedsRefresh atomic.Bool
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies

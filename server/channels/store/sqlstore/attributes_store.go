@@ -25,22 +25,30 @@ type SqlAttributesStore struct {
 }
 
 // attributeViewsByObjectType is the single source of truth for the
-// object-type-to-materialized-view mapping: both the per-type lookup and the
-// refresh sweep read it, so adding an object type cannot leave a new view
-// perpetually stale.
+// object-type-to-materialized-view mapping: the refresh sweep reads it, so
+// adding an object type cannot leave a new view perpetually stale.
 var attributeViewsByObjectType = map[string]string{
 	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
 	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
 }
 
-// attributeViewFor maps a property-field object type to its materialized view.
+// attributeLiveViewsByObjectType maps each object type to the plain view the
+// materialized view above is built on (migration 000245). Single-subject reads
+// use it: filtered on TargetID and GroupID it is an index lookup on
+// PropertyValues, and it is never stale, so it needs no refresh.
+var attributeLiveViewsByObjectType = map[string]string{
+	model.PropertyFieldObjectTypeChannel: "ChannelAttributeLiveView",
+	model.PropertyFieldObjectTypeUser:    "UserAttributeLiveView",
+}
+
+// attributeLiveViewFor maps a property-field object type to its live view.
 // An unrecognized type is an error rather than a fallback to the user view: a
 // silent coercion would surface a future miswire as a wrong-but-successful user
 // lookup.
-func attributeViewFor(objectType string) (string, error) {
-	view, ok := attributeViewsByObjectType[objectType]
+func attributeLiveViewFor(objectType string) (string, error) {
+	view, ok := attributeLiveViewsByObjectType[objectType]
 	if !ok {
-		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
+		return "", errors.Errorf("unknown object type %q for attribute live view", objectType)
 	}
 	return view, nil
 }
@@ -103,19 +111,30 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 	return nil
 }
 
+// subjectQuery renders GetSubject's query: one subject's row of the live view for its object type.
+func (s *SqlAttributesStore) subjectQuery(ID, groupID, objectType string) (string, []any, error) {
+	view, err := attributeLiveViewFor(objectType)
+	if err != nil {
+		return "", nil, err
+	}
+	q, args, err := s.selectQueryBuilder.From(view).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}}).ToSql()
+	if err != nil {
+		return "", nil, errors.Wrap(err, "failed to build query for subject")
+	}
+	return q, args, nil
+}
+
+// GetSubject reads one subject's attributes from the live view for its object
+// type, so a value is visible as soon as its write commits, with no refresh. It
+// reads the master: a replica could still hold the row from before a write
+// whose invalidation has already dropped the cached copy.
 func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error) {
-	view, err := attributeViewFor(objectType)
+	q, args, err := s.subjectQuery(ID, groupID, objectType)
 	if err != nil {
 		return nil, err
 	}
-	query := s.selectQueryBuilder.From(view).Where(sq.And{sq.Eq{"TargetID": ID}, sq.Eq{"GroupID": groupID}})
 
-	q, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to build query for subject")
-	}
-
-	row := s.GetReplica().QueryRowContext(rctx.Context(), q, args...)
+	row := s.GetMaster().QueryRowContext(rctx.Context(), q, args...)
 
 	var subject model.Subject
 	var properties []byte
@@ -135,11 +154,20 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectTyp
 }
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
+	// A search for one subject (the requester checks run before a policy save) reads that
+	// user's attributes live, so a value written just before is matched. Aliased to the
+	// materialized view's name, so the CEL-generated SQL resolves the same way. Every other
+	// search reads the materialized view.
+	attributesJoin := "UserAttributeView ON Users.Id = UserAttributeView.TargetID"
+	if opts.SubjectID != "" {
+		attributesJoin = "UserAttributeLiveView AS UserAttributeView ON Users.Id = UserAttributeView.TargetID"
+	}
+
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").LeftJoin(attributesJoin).
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin(attributesJoin)
 
 	if opts.Query != "" {
 		// Wrap the CEL-derived expression in parentheses so that any top-level

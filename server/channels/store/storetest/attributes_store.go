@@ -38,6 +38,7 @@ func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
 	t.Run("GetTeamMembersToRemove", func(t *testing.T) { testAttributesStoreGetTeamMembersToRemove(t, rctx, ss, s) })
+	t.Run("LiveViewMatchesMaterializedView", func(t *testing.T) { testAttributesStoreLiveViewMatchesMaterializedView(t, rctx, ss, s) })
 }
 
 // To help mental model of the test users created by this function:
@@ -716,12 +717,51 @@ func testAttributesStoreGetTeamMembersToRemove(t *testing.T, rctx request.CTX, s
 }
 
 func testAttributesStoreSearchUsersBySubjectID(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	users, _, cleanup := createTestUsers(t, rctx, ss)
+	users, groupID, cleanup := createTestUsers(t, rctx, ss)
 	t.Cleanup(cleanup)
 	require.Len(t, users, 3, "expected 3 users")
 
 	err := ss.Attributes().RefreshAttributes()
 	require.NoError(t, err, "couldn't refresh attributes")
+
+	// A value written after the refresh: only a search for that one subject reads it live.
+	t.Run("SubjectID search sees a value written after the last refresh", func(t *testing.T) {
+		fieldB, fErr := ss.PropertyField().GetFieldByName(rctx, groupID, "", testPropertyB)
+		require.NoError(t, fErr)
+		raw, mErr := json.Marshal(testPropertyValueB1)
+		require.NoError(t, mErr)
+		value, cErr := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   users[1].Id,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    groupID,
+			FieldID:    fieldB.ID,
+			Value:      raw,
+		})
+		require.NoError(t, cErr)
+		t.Cleanup(func() { require.NoError(t, ss.PropertyValue().Delete(groupID, value.ID)) })
+
+		query := "Attributes ->> '" + testPropertyB + "' = $1::text"
+
+		subjects, count, sErr := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			SubjectID: users[1].Id,
+			Query:     query,
+			Args:      []any{testPropertyValueB1},
+		})
+		require.NoError(t, sErr)
+		require.Len(t, subjects, 1, "the subject's just-written value is matched")
+		require.Equal(t, int64(1), count)
+		require.Equal(t, users[1].Id, subjects[0].Id)
+
+		// Without SubjectID the search reads the materialized view, which hasn't been refreshed.
+		subjects, _, sErr = ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			Query: query,
+			Args:  []any{testPropertyValueB1},
+		})
+		require.NoError(t, sErr)
+		for _, u := range subjects {
+			require.NotEqual(t, users[1].Id, u.Id, "the materialized view only sees the write after a refresh")
+		}
+	})
 
 	t.Run("Search users by specific SubjectID", func(t *testing.T) {
 		// Test searching for the first user by their ID

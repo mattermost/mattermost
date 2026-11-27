@@ -107,7 +107,12 @@ const (
 	UserPropertyValuesEpochCacheSec  = 15 * 60
 
 	UserAttributesCacheSize = 25000 // Per-user CPA attribute blobs (Subject.Attributes)
-	UserAttributesCacheSec  = 15 * 60
+	// UserAttributesCacheSec bounds how long a user's attributes can be served stale. A read
+	// that starts before an attribute write commits can add the old row to the cache after the
+	// write's invalidation has run; this expiry is what ends that. It matches the default
+	// AccessControlSettings.DecisionCacheMaxAgeSeconds, the bound decisions already have. It is
+	// a constant because the cache layer receives no config.
+	UserAttributesCacheSec = 60
 )
 
 var clearCacheMessageData = []byte("")

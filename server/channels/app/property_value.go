@@ -76,8 +76,6 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	}
 	a.invalidateAccessDecisionsForUsers(userIDs)
 
-	a.invalidateAttributeViewCache()
-
 	// Only the epoch half is gated: nothing reads it while ABAC is off, and each invalidation
 	// costs a cluster message. A flip clears both caches wholesale, so nothing skipped here
 	// survives as a stale entry.
@@ -101,7 +99,6 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 		return
 	}
 
-	a.invalidateAttributeViewCache()
 	a.invalidateAccessDecisionsForUsers([]string{targetID})
 
 	if !a.attributeBasedAccessControlEnabled() {
@@ -111,11 +108,10 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 }
 
-// invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
+// invalidateAllUserAttributeCaches drops every cached decision, CPA epoch and user attribute blob.
 // For field mutations, which change what every subject resolves to without touching a single
 // PropertyValues row, and so are invisible to an epoch computed from that table.
 func (a *App) invalidateAllUserAttributeCaches() {
-	a.invalidateAttributeViewCache()
 	a.invalidateAllAccessDecisions()
 
 	if !a.attributeBasedAccessControlEnabled() {
