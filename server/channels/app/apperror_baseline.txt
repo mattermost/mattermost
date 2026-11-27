@@ -912,11 +912,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateChannelAc
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateChannelEligibilityForAccessControl
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateDesktopToken
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateExpressionAgainstRequester
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateIncomingWebhookUser
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateIncomingWebhookUserChannelAccess
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateOutgoingWebhookUser
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateOutgoingWebhookUserChannelAccess
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateOutgoingWebhookUserTeamAccess
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidatePolicySimulationUsersInScope
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateTeamAdminPolicyOwnership
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ValidateTeamAdminSelfInclusion
@@ -1248,7 +1243,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.UploadFileTask.newAppErr
 github.com/mattermost/mattermost/server/v8/channels/app.appErrHookFailed
 github.com/mattermost/mattermost/server/v8/channels/app.buildBoardKanbanView
 github.com/mattermost/mattermost/server/v8/channels/app.connectionTestErrorToAppError
-github.com/mattermost/mattermost/server/v8/channels/app.distributeWebhookJSONArrayProp
 github.com/mattermost/mattermost/server/v8/channels/app.extractPlugin
 github.com/mattermost/mattermost/server/v8/channels/app.fileExists
 github.com/mattermost/mattermost/server/v8/channels/app.fileModTime
@@ -1270,8 +1264,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.recapMaxRecapsReachedErr
 github.com/mattermost/mattermost/server/v8/channels/app.recurringScheduledPostsDisabledError
 github.com/mattermost/mattermost/server/v8/channels/app.removeFile
 github.com/mattermost/mattermost/server/v8/channels/app.saveForbiddenError
-github.com/mattermost/mattermost/server/v8/channels/app.splitWebhookPost
-github.com/mattermost/mattermost/server/v8/channels/app.splitWebhookPostPropsTooLarge
 github.com/mattermost/mattermost/server/v8/channels/app.userCreatePostPermissionCheckWithApp
 github.com/mattermost/mattermost/server/v8/channels/app.writeFile
 github.com/mattermost/mattermost/server/v8/channels/app.writeFileContext
