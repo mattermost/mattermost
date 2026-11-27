@@ -694,7 +694,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 func (a *App) sendDeletionReportToReviewers(rctx request.CTX, flaggedPostId string, report *model.PostDeletionReport, contentFlaggingGroupId string) {
 	reportFileName := fmt.Sprintf("deletion_report_%s.md", flaggedPostId)
 
-	_, appErr := a.postReviewerMessage(rctx, "", contentFlaggingGroupId, flaggedPostId, report, reportFileName, "")
+	_, appErr := a.postReviewerMessage(rctx, report.RenderSummary, contentFlaggingGroupId, flaggedPostId, report, reportFileName, "")
 	if appErr != nil {
 		rctx.Logger().Error("Failed to send deletion report to reviewers", mlog.Err(appErr), mlog.String("post_id", flaggedPostId))
 	}
@@ -1239,8 +1239,13 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 		}
 	}
 
-	message := fmt.Sprintf("@%s was assigned as a reviewer by @%s", reviewerUser.Username, assignedByUser.Username)
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", "")
+	renderMessage := func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.reviewer_message.assigned", map[string]any{
+			"ReviewerUsername":   reviewerUser.Username,
+			"AssignedByUsername": assignedByUser.Username,
+		})
+	}
+	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1249,12 +1254,10 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		return nil, appErr
 	}
 
-	message := fmt.Sprintf("The quarantined message was removed by @%s", actorUser.Username)
-	if comment != "" {
-		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
-	}
-
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", "")
+	renderMessage := actorDecisionMessage(func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.reviewer_message.removed", map[string]any{"Username": actorUser.Username})
+	}, comment)
+	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1263,12 +1266,10 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		return nil, appErr
 	}
 
-	message := fmt.Sprintf("The quarantined message was retained by @%s", actorUser.Username)
-	if comment != "" {
-		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
-	}
-
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", "")
+	renderMessage := actorDecisionMessage(func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.reviewer_message.retained", map[string]any{"Username": actorUser.Username})
+	}, comment)
+	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) getReporterUserId(rctx request.CTX, flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
@@ -1339,7 +1340,10 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 
 // postReviewerMessage replies on the content review thread of every reviewer that has
 // one for flaggedPostId, or only on targetReviewerId's thread when that is non-empty.
-func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName, targetReviewerId string) ([]*model.Post, *model.AppError) {
+// postReviewerMessage replies on each reviewer's content review thread for the flagged post.
+// renderMessage is called with the reviewer's translations so each reviewer reads the message
+// in their own locale.
+func (a *App) postReviewerMessage(rctx request.CTX, renderMessage func(T i18n.TranslateFunc) string, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName, targetReviewerId string) ([]*model.Post, *model.AppError) {
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(rctx, contentFlaggingGroupId)
 	if appErr != nil {
 		return nil, appErr
@@ -1380,22 +1384,18 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			continue
 		}
 
-		// Determine the post message and file data, localizing per-reviewer if a report is provided
-		postMessage := message
+		T := i18n.GetUserTranslations("")
+		reviewer, userErr := a.GetUser(rctx, reviewerUserId)
+		if userErr != nil {
+			rctx.Logger().Error("Failed to get reviewer user for localization, falling back to default locale", mlog.Err(userErr), mlog.String("user_id", reviewerUserId))
+		} else {
+			T = i18n.GetUserTranslations(reviewer.Locale)
+		}
+
+		postMessage := renderMessage(T)
 		var postFileData []byte
 		var postFileName string
-
 		if report != nil {
-			T := i18n.GetUserTranslations("")
-			// Fetch reviewer user to get their locale
-			reviewer, userErr := a.GetUser(rctx, reviewerUserId)
-			if userErr != nil {
-				rctx.Logger().Error("Failed to get reviewer user for localization, falling back to default locale", mlog.Err(userErr), mlog.String("user_id", reviewerPost.UserId))
-			} else {
-				T = i18n.GetUserTranslations(reviewer.Locale)
-			}
-
-			postMessage = report.RenderSummary(T)
 			postFileData = []byte(report.Render(T))
 			postFileName = reportFileName
 		}
@@ -1594,4 +1594,17 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 	}
 
 	return createdPosts
+}
+
+// actorDecisionMessage renders a reviewer's keep or remove decision, followed by their
+// comment when one was given. The comment is passed as template data, which text/template
+// inserts verbatim. renderDecision calls T with a literal ID so i18n-extract can find it.
+func actorDecisionMessage(renderDecision func(i18n.TranslateFunc) string, comment string) func(i18n.TranslateFunc) string {
+	return func(T i18n.TranslateFunc) string {
+		message := renderDecision(T)
+		if comment == "" {
+			return message
+		}
+		return message + "\n\n" + T("app.data_spillage.reviewer_message.with_comment", map[string]any{"Comment": comment})
+	}
 }

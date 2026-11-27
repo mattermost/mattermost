@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -480,36 +479,52 @@ func decodePropertyInt64(rctx request.CTX, byName map[string]json.RawMessage, fi
 	return n
 }
 
-// NotifyReviewersOfFlaggedPostReportGeneration posts a notification reply on each
-// reviewer's content review thread to record that a report was generated.
-// Best-effort: errors are logged, never returned.
-func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
-	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s generated a report for the quarantined message.")
+// NotifyReviewersOfFlaggedPostReportGeneration posts a reply on each reviewer's
+// content review thread recording that a report was generated, along with the
+// report's file name and SHA-256 checksum. Each reviewer thread lives in that
+// reviewer's own DM with the content review bot, so the generating reviewer
+// cannot alter the checksum seen by other reviewers, letting them verify any
+// copy of the report shared with them.
+func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) error {
+	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, fileName, sha256Hex, func(T i18n.TranslateFunc, data map[string]any) string {
+		return T("app.data_spillage.report.checksum_notification", data)
+	})
 }
 
 // NotifyReviewersOfPostExposureReportGeneration is the exposure report counterpart of
 // NotifyReviewersOfFlaggedPostReportGeneration.
-func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
-	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s downloaded an exposure report for the quarantined message.")
+func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) error {
+	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, fileName, sha256Hex, func(T i18n.TranslateFunc, data map[string]any) string {
+		return T("app.data_spillage.exposure.checksum_notification", data)
+	})
 }
 
-func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageFormat string) {
-	groupID, err := a.ContentFlaggingGroupId()
-	if err != nil {
-		rctx.Logger().Warn("Failed to get content flagging group id for report generation notification", mlog.Err(err))
-		return
+// notifyReviewersOfReportGeneration's translate callback calls T with a literal ID so
+// i18n-extract can find it.
+func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string, translate func(T i18n.TranslateFunc, data map[string]any) string) error {
+	groupID, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return appErr
 	}
 
 	generator, appErr := a.GetUser(rctx, generatedByUserID)
 	if appErr != nil {
-		rctx.Logger().Warn("Failed to fetch generating user for report generation notification", mlog.Err(appErr))
-		return
+		return appErr
 	}
 
-	message := fmt.Sprintf(messageFormat, generator.Username)
-	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", ""); appErr != nil {
-		rctx.Logger().Warn("Failed to post report generation notification to reviewers", mlog.String("flagged_post_id", flaggedPostID), mlog.Err(appErr))
+	renderMessage := func(T i18n.TranslateFunc) string {
+		return translate(T, map[string]any{
+			"Username": generator.Username,
+			"FileName": fileName,
+			"Checksum": sha256Hex,
+		})
 	}
+
+	// Return a literal nil on success: a nil *model.AppError returned as error is non-nil.
+	if _, appErr := a.postReviewerMessage(rctx, renderMessage, groupID, flaggedPostID, nil, "", ""); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, flaggedPostID, requestingUserID string) {
@@ -519,16 +534,10 @@ func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, fla
 		return
 	}
 
-	var locale string
-	if reviewer, appErr := a.GetUser(rctx, requestingUserID); appErr != nil {
-		rctx.Logger().Warn("Failed to fetch requesting reviewer, using default locale", mlog.String("user_id", requestingUserID), mlog.Err(appErr))
-	} else {
-		locale = reviewer.Locale
+	renderMessage := func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.report.attachments_omitted.notification")
 	}
-
-	T := i18n.GetUserTranslations(locale)
-	message := T("app.data_spillage.report.attachments_omitted.notification")
-	posts, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", requestingUserID)
+	posts, appErr := a.postReviewerMessage(rctx, renderMessage, groupID, flaggedPostID, nil, "", requestingUserID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to notify the requesting reviewer of skipped attachments", mlog.String("flagged_post_id", flaggedPostID), mlog.String("user_id", requestingUserID), mlog.Err(appErr))
 		return

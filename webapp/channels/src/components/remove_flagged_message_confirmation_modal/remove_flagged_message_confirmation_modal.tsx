@@ -157,7 +157,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
         (async () => {
             try {
-                const blob = await Client4.generateFlaggedPostReport(flaggedPost.id, comment, action, controller.signal);
+                const {blob, filename} = await Client4.generateFlaggedPostReport(flaggedPost.id, comment, action, controller.signal);
                 if (controller.signal.aborted) {
                     return;
                 }
@@ -165,7 +165,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
                 const downloadUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = downloadUrl;
-                a.download = `flagged-post-${flaggedPost.id}-${Date.now()}.zip`;
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();

@@ -660,12 +660,41 @@ describe('Client4', () => {
                 post(`/content_flagging/post/${postId}/report`, {comment: 'investigation note'}).
                 reply(200, zipData, {'Content-Type': 'application/zip'});
 
-            const result = await client.generateFlaggedPostReport(postId, 'investigation note');
+            const {blob} = await client.generateFlaggedPostReport(postId, 'investigation note');
 
-            expect(typeof result.text).toBe('function');
-            expect(result.size).toEqual(zipData.length);
-            expect(result.type).toEqual('application/zip');
-            expect(await result.text()).toEqual('zip contents');
+            expect(typeof blob.text).toBe('function');
+            expect(blob.size).toEqual(zipData.length);
+            expect(blob.type).toEqual('application/zip');
+            expect(await blob.text()).toEqual('zip contents');
+        });
+
+        test('generateFlaggedPostReport should return the filename from Content-Disposition', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/report').
+                reply(200, Buffer.from('zip contents'), {
+                    'Content-Type': 'application/zip',
+                    'Content-Disposition': 'attachment; filename="flagged-post-post123-1700000000000.zip"',
+                });
+
+            const result = await client.generateFlaggedPostReport('post123', '');
+
+            expect(result.filename).toEqual('flagged-post-post123-1700000000000.zip');
+        });
+
+        test('generateFlaggedPostReport should fall back to a generated filename when the header is absent', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/report').
+                reply(200, Buffer.from('zip contents'), {'Content-Type': 'application/zip'});
+
+            const result = await client.generateFlaggedPostReport('post123', '');
+
+            expect(result.filename).toMatch(/^flagged-post-post123-\d+\.zip$/);
         });
     });
 });

@@ -54,11 +54,16 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
     const onExited = jest.fn();
 
+    const serverReportFilename = `flagged-post-${flaggedPost.id}-1700000000000.zip`;
+
     let originalCreateObjectURL: typeof URL.createObjectURL;
     let originalRevokeObjectURL: typeof URL.revokeObjectURL;
 
     const mockReportSuccess = () => {
-        Client4.generateFlaggedPostReport = jest.fn().mockResolvedValue(new Blob(['report'], {type: 'application/zip'}));
+        Client4.generateFlaggedPostReport = jest.fn().mockResolvedValue({
+            blob: new Blob(['report'], {type: 'application/zip'}),
+            filename: serverReportFilename,
+        });
     };
 
     const mockReportFailure = () => {
@@ -177,6 +182,31 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
             expect(onExited).toHaveBeenCalled();
+        });
+
+        test('should save the report under the filename the server sent', async () => {
+            const downloadedNames: string[] = [];
+            const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function(this: HTMLAnchorElement) {
+                downloadedNames.push(this.download);
+            });
+
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+            expect(downloadedNames).toEqual([serverReportFilename]);
+
+            clickSpy.mockRestore();
         });
 
         test('should go through skip-confirm when checkbox is unchecked', async () => {
