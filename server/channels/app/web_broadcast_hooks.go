@@ -733,12 +733,44 @@ var channelReadAccessExemptEvents = map[model.WebsocketEventType]struct{}{
 	model.WebsocketEventTyping: {},
 }
 
-func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string) {
-	message.GetBroadcast().AddHook(broadcastChannelReadAccess, map[string]any{
+// useChannelReadAccessHook attaches channelReadAccessBroadcastHook for channelID.
+// byChannelPolicy carries the publisher's governance decision: non-nil means the publisher
+// found channel_read_access governed in the channel, and the value says whether the
+// channel's own policy is what governs it. The hook then evaluates each recipient straight
+// away, with no channel load or governance check. nil leaves the arg out, and the hook
+// loads the channel and decides governance per recipient (as for an event from an older
+// node, or one whose publisher couldn't load the channel).
+func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string, byChannelPolicy *bool) {
+	args := map[string]any{
 		"channel_id": channelID,
-	})
+	}
+	if byChannelPolicy != nil {
+		args[channelReadAccessArgByChannelPolicy] = *byChannelPolicy
+	}
+	message.GetBroadcast().AddHook(broadcastChannelReadAccess, args)
 }
 
+const channelReadAccessArgByChannelPolicy = "by_channel_policy"
+
+// boolHookArg reads an optional bool hook arg. present is false when the key is absent;
+// err is set when it is present but not a bool. getTypedArg alone can't tell the two
+// apart: it returns the same kind of error for both. It also reads a null as false, so a
+// null is refused here.
+func boolHookArg(args map[string]any, key string) (value, present bool, err error) {
+	raw, ok := args[key]
+	if !ok {
+		return false, false, nil
+	}
+	if raw == nil {
+		return false, true, fmt.Errorf("hook argument %s is null", key)
+	}
+	value, err = getTypedArg[bool](args, key)
+	return value, true, err
+}
+
+// Process drops the event for a recipient the channel's read rules deny. Governance comes
+// from the publisher through by_channel_policy and may be a few milliseconds stale by the
+// time the hub runs the hook, which is accepted.
 func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	channelID, err := getTypedArg[string](args, "channel_id")
 	if err != nil {
@@ -756,8 +788,20 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 		return nil
 	}
 
+	byChannelPolicy, governanceKnown, err := boolHookArg(args, channelReadAccessArgByChannelPolicy)
+	if err != nil {
+		msg.Reject()
+		return errors.Wrap(err, "Invalid by_channel_policy value passed to channelReadAccessBroadcastHook")
+	}
+
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
+	var allowed bool
+	if governanceKnown {
+		allowed = webConn.Suite.HasChannelReadAccessGoverned(rctx, webConn.UserId, channelID, byChannelPolicy)
+	} else {
+		allowed = webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID)
+	}
+	if !allowed {
 		msg.Reject()
 	}
 	return nil

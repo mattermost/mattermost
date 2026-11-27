@@ -1387,8 +1387,9 @@ func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
 	requireHooked := func(t *testing.T, event *model.WebSocketEvent, channelID string) {
 		t.Helper()
 		require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", event.EventType())
+		// Only a permission policy governs read access here, so the channel role is left out.
 		require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
-			map[string]any{"channel_id": channelID}, "%s", event.EventType())
+			map[string]any{"channel_id": channelID, "by_channel_policy": false}, "%s", event.EventType())
 	}
 
 	requireNotHooked := func(t *testing.T, event *model.WebSocketEvent) {
@@ -1682,7 +1683,7 @@ func requireReadAccessHook(t *testing.T, h *channelReadAccessHarness, eventTypes
 		for _, event := range events[eventType] {
 			require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
 			require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
-				map[string]any{"channel_id": h.th.BasicChannel.Id}, "%s", eventType)
+				map[string]any{"channel_id": h.th.BasicChannel.Id, "by_channel_policy": false}, "%s", eventType)
 		}
 	}
 
@@ -1848,7 +1849,7 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 	requireHooked := func(t *testing.T, message *model.WebSocketEvent, channelID string) {
 		t.Helper()
 		require.Equal(t, []string{broadcastChannelReadAccess}, message.GetBroadcast().BroadcastHooks)
-		require.Equal(t, []map[string]any{{"channel_id": channelID}}, message.GetBroadcast().BroadcastHookArgs)
+		require.Equal(t, []map[string]any{{"channel_id": channelID, "by_channel_policy": false}}, message.GetBroadcast().BroadcastHookArgs)
 	}
 
 	t.Run("hooks a content event in a governed channel", func(t *testing.T) {
@@ -1962,7 +1963,9 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		channelID := model.NewId()
 		message := event(model.WebsocketEventReactionAdded, channelID, "")
 		h.th.App.attachChannelReadAccessHook(message)
-		requireHooked(t, message, channelID)
+		// Without by_channel_policy: the hook loads the channel and decides governance itself.
+		require.Equal(t, []string{broadcastChannelReadAccess}, message.GetBroadcast().BroadcastHooks)
+		require.Equal(t, []map[string]any{{"channel_id": channelID}}, message.GetBroadcast().BroadcastHookArgs)
 	})
 }
 

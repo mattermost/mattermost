@@ -1379,6 +1379,50 @@ func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
 		assert.True(t, msg.Event().IsRejected())
 	})
+
+	// governedConn answers only through HasChannelReadAccessGoverned, so a test can tell
+	// which path the hook took.
+	governedConn := func(t *testing.T, allowed bool, wantByChannelPolicy bool) (*platform.WebConn, *platform_mocks.SuiteIFace) {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessGoverned", mock.Anything, userID, channelID, wantByChannelPolicy).Return(allowed)
+		wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: mockSuite}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		return wc, mockSuite
+	}
+
+	t.Run("by_channel_policy takes the governed path with its value", func(t *testing.T) {
+		for _, byChannelPolicy := range []bool{true, false} {
+			for _, allowed := range []bool{true, false} {
+				msg := makeMessage()
+				wc, mockSuite := governedConn(t, allowed, byChannelPolicy)
+				require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID, "by_channel_policy": byChannelPolicy}))
+				assert.Equal(t, !allowed, msg.Event().IsRejected())
+				mockSuite.AssertNotCalled(t, "HasChannelReadAccessByID", mock.Anything, mock.Anything, mock.Anything)
+			}
+		}
+	})
+
+	t.Run("a missing by_channel_policy takes the fallback, not the bad-arg path", func(t *testing.T) {
+		msg := makeMessage()
+		wc := makeWebConn(t, true, true)
+		require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+		wc.Suite.(*platform_mocks.SuiteIFace).AssertCalled(t, "HasChannelReadAccessByID", mock.Anything, userID, channelID)
+	})
+
+	t.Run("a by_channel_policy that isn't a bool rejects the event", func(t *testing.T) {
+		for _, bad := range []any{"true", 1, nil, map[string]any{}} {
+			msg := makeMessage()
+			mockSuite := &platform_mocks.SuiteIFace{}
+			wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: mockSuite}
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+			require.Error(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID, "by_channel_policy": bad}), "%#v", bad)
+			assert.True(t, msg.Event().IsRejected(), "%#v", bad)
+			// No expectations were set: neither check may run.
+			mockSuite.AssertExpectations(t)
+		}
+	})
 }
 
 func TestChannelReadAccessRedactBroadcastHook_Process(t *testing.T) {
