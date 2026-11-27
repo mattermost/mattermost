@@ -215,7 +215,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(previous, policy))
 	case model.AccessControlPolicyTypeSystemSetting:
 		a.invalidateSystemSettingPolicyCache()
-		a.publishSystemSettingPolicyChange(systemSettingChange, systemSettingPolicyChangeRef{PolicyID: policy.ID, Revision: policy.Revision})
+		a.publishSystemSettingPolicyChange(systemSettingChange)
 	}
 
 	return policy, nil
@@ -776,7 +776,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(policy))
 	case policy.Type == model.AccessControlPolicyTypeSystemSetting:
 		a.invalidateSystemSettingPolicyCache()
-		a.publishSystemSettingPolicyChange(systemSettingChange, systemSettingPolicyChangeRef{PolicyID: id})
+		a.publishSystemSettingPolicyChange(systemSettingChange)
 	}
 
 	return nil

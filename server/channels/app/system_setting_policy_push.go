@@ -46,7 +46,7 @@ func (a *App) attachSystemSettingPolicyHook(message *model.WebSocketEvent) {
 	if len(a.systemSettingPoliciesForPush(request.EmptyContext(a.Log()))) == 0 {
 		return
 	}
-	useSystemSettingPolicyHook(message, nil, nil)
+	useSystemSettingPolicyHook(message, nil)
 }
 
 // force also pushes to sessions whose role chain no policy targets, so a role
@@ -99,7 +99,7 @@ func (a *App) pushClientConfigOverridesForFields(rctx request.CTX, fieldIDs []st
 	}
 
 	slices.Sort(targetRoles)
-	a.publishSystemSettingPolicyUpdate(slices.Compact(targetRoles), nil)
+	a.publishSystemSettingPolicyUpdate(slices.Compact(targetRoles))
 }
 
 func (a *App) goPushClientConfigOverrides(userID, sessionID string, force bool) {
@@ -220,11 +220,11 @@ func newSystemSettingPolicyChange(stored *model.AccessControlPolicy, storedKnown
 }
 
 // Must run after the policy cache is invalidated.
-func (a *App) publishSystemSettingPolicyChange(change *systemSettingPolicyChange, stored systemSettingPolicyChangeRef) {
+func (a *App) publishSystemSettingPolicyChange(change *systemSettingPolicyChange) {
 	if change == nil {
 		return
 	}
-	a.publishSystemSettingPolicyUpdate(change.targetRoles, &stored)
+	a.publishSystemSettingPolicyUpdate(change.targetRoles)
 }
 
 type systemSettingRuleVersion struct {

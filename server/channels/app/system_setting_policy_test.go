@@ -5,10 +5,8 @@ package app
 
 import (
 	"net/http"
-	"slices"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -105,8 +103,6 @@ type staticPolicyStore struct {
 
 	mu       sync.Mutex
 	policies []*model.AccessControlPolicy
-	loads    int
-	delay    time.Duration
 }
 
 func (s *staticPolicyStore) set(policies ...*model.AccessControlPolicy) {
@@ -115,18 +111,10 @@ func (s *staticPolicyStore) set(policies ...*model.AccessControlPolicy) {
 	s.policies = policies
 }
 
-func (s *staticPolicyStore) loadCount() int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.loads
-}
-
 func (s *staticPolicyStore) GetByType(_ request.CTX, policyType string, _ model.AccessControlPolicyCursor, _ int) ([]*model.AccessControlPolicy, error) {
 	s.mu.Lock()
-	s.loads++
-	policies, delay := policiesOfType(s.policies, policyType), s.delay
+	policies := policiesOfType(s.policies, policyType)
 	s.mu.Unlock()
-	time.Sleep(delay)
 	return policies, nil
 }
 
@@ -209,86 +197,6 @@ func TestSystemSettingPolicyCache(t *testing.T) {
 		policies, err := cache.Get(rctx, primary)
 		require.NoError(t, err)
 		assert.Equal(t, []string{id + "=false"}, values(policies))
-	})
-
-	atRevision := func(p *model.AccessControlPolicy, revision int) *model.AccessControlPolicy {
-		p.Revision = revision
-		return p
-	}
-
-	t.Run("a cache loaded before a save reloads once for every caller", func(t *testing.T) {
-		id := model.NewId()
-		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 1)}}
-		cache := newSystemSettingPolicyCache()
-		_, err := cache.Get(rctx, primary)
-		require.NoError(t, err)
-
-		primary.set(atRevision(policy(id, "false"), 2))
-		primary.delay = 50 * time.Millisecond
-		var wg sync.WaitGroup
-		results := make([][]string, 8)
-		for i := range results {
-			wg.Go(func() {
-				policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id, Revision: 2})
-				assert.NoError(t, getErr)
-				results[i] = values(policies)
-			})
-		}
-		wg.Wait()
-
-		for _, result := range results {
-			assert.Equal(t, []string{id + "=false"}, result)
-		}
-		assert.Equal(t, 2, primary.loadCount(), "the stale cache is reloaded once")
-	})
-
-	t.Run("a cache that includes the change does not reload", func(t *testing.T) {
-		id := model.NewId()
-		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 2)}}
-		cache := newSystemSettingPolicyCache()
-		_, err := cache.Get(rctx, primary)
-		require.NoError(t, err)
-
-		for _, revision := range []int{1, 2} {
-			policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id, Revision: revision})
-			require.NoError(t, getErr)
-			assert.Equal(t, []string{id + "=true"}, values(policies))
-		}
-		_, err = cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: model.NewId()})
-		require.NoError(t, err)
-		assert.Equal(t, 1, primary.loadCount())
-	})
-
-	t.Run("a cache still holding a deleted policy reloads once", func(t *testing.T) {
-		id := model.NewId()
-		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 1)}}
-		cache := newSystemSettingPolicyCache()
-		_, err := cache.Get(rctx, primary)
-		require.NoError(t, err)
-
-		primary.set()
-		for range 3 {
-			policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id})
-			require.NoError(t, getErr)
-			assert.Empty(t, policies)
-		}
-		assert.Equal(t, 2, primary.loadCount())
-	})
-
-	t.Run("a later change superseding the stored one still reloads once", func(t *testing.T) {
-		id := model.NewId()
-		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 1)}}
-		cache := newSystemSettingPolicyCache()
-		_, err := cache.Get(rctx, primary)
-		require.NoError(t, err)
-
-		primary.set()
-		for range 3 {
-			policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id, Revision: 2})
-			require.NoError(t, getErr)
-			assert.Empty(t, policies)
-		}
-		assert.Equal(t, 2, primary.loadCount())
 	})
 }
 
@@ -432,7 +340,7 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("system_bot policies apply only to bots, which also receive system_user policies", func(t *testing.T) {
+	t.Run("bot sessions never match human role policies", func(t *testing.T) {
 		mockACS := enableSystemSettingABAC(t)
 		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
 			Username: "settingpolicybot" + model.NewId()[:6],
@@ -443,46 +351,26 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
-		biometricsFor := func(role, value string) *model.AccessControlPolicy {
-			return &model.AccessControlPolicy{
-				ID:      model.NewId(),
-				Name:    "Biometrics for " + role,
-				Type:    model.AccessControlPolicyTypeSystemSetting,
-				Version: model.AccessControlPolicyVersionV0_3,
-				Roles:   []string{role},
-				Rules: []model.AccessControlPolicyRule{{
-					Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
-					Expression: "true",
-					Value:      value,
-				}},
-			}
-		}
-		evaluatedFor := func(policyID string, userIDs ...string) {
-			mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-				return req.Resource.ID == policyID && slices.Contains(userIDs, req.Subject.ID)
-			})).Return(model.AccessDecision{Decision: true}, nil).Times(len(userIDs))
-		}
+		userPolicy := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Biometrics for users",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
+				Expression: "true",
+				Value:      "true",
+			}},
+		})
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == userPolicy.ID && req.Subject.ID == th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: true}, nil).Once()
 
-		botPolicy := saveStoredPolicy(t, biometricsFor(model.AccessControlPolicyRoleSystemBot, "false"))
-		evaluatedFor(botPolicy.ID, bot.UserId)
-
-		overrides, appErr := th.App.EvaluateClientConfigOverrides(sessionCtx(botUser))
+		overrides, hasCandidate, appErr := th.App.evaluateClientConfigOverrides(sessionCtx(botUser))
 		require.Nil(t, appErr)
-		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "false"}, overrides)
-
-		overrides, hasCandidate, appErr := th.App.evaluateClientConfigOverrides(sessionCtx(th.BasicUser))
-		require.Nil(t, appErr)
-		assert.False(t, hasCandidate, "human sessions must skip subject construction when only system_bot policies exist")
-		assert.Empty(t, overrides, "system_bot policies do not apply to users")
-
-		require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, botPolicy.ID))
-		th.App.invalidateSystemSettingPolicyCache()
-		userPolicy := saveStoredPolicy(t, biometricsFor(model.SystemUserRoleId, "true"))
-		evaluatedFor(userPolicy.ID, bot.UserId, th.BasicUser.Id)
-
-		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(botUser))
-		require.Nil(t, appErr)
-		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, overrides)
+		assert.False(t, hasCandidate, "bot sessions must skip subject construction even when system_user policies exist")
+		assert.Empty(t, overrides)
 
 		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser))
 		require.Nil(t, appErr)

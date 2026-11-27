@@ -799,7 +799,7 @@ func (p *AccessControlPolicy) validateSystemSettingPolicyRules() *AppError {
 		return err
 	}
 	switch p.Roles[0] {
-	case SystemUserRoleId, SystemAdminRoleId, SystemGuestRoleId, AccessControlPolicyRoleSystemBot:
+	case SystemUserRoleId, SystemAdminRoleId, SystemGuestRoleId:
 	default:
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.system_setting_role.app_error", nil, fmt.Sprintf("invalid system_setting role: %s", p.Roles[0]), 400)
 	}

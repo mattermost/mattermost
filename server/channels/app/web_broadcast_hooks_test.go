@@ -1837,7 +1837,7 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 
 	t.Run("target_roles rejects connections whose role chain no policy targets", func(t *testing.T) {
 		baseEvent := newSystemSettingConfigEvent("", baseConfig)
-		useSystemSettingPolicyHook(baseEvent, []string{model.SystemAdminRoleId}, nil)
+		useSystemSettingPolicyHook(baseEvent, []string{model.SystemAdminRoleId})
 		require.Len(t, baseEvent.GetBroadcast().BroadcastHookArgs, 1)
 		args := baseEvent.GetBroadcast().BroadcastHookArgs[0]
 
@@ -1873,7 +1873,7 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 
 		t.Run("system_user policies reach admins without a system_admin policy", func(t *testing.T) {
 			event := newSystemSettingConfigEvent("", baseConfig)
-			useSystemSettingPolicyHook(event, []string{model.SystemUserRoleId}, nil)
+			useSystemSettingPolicyHook(event, []string{model.SystemUserRoleId})
 
 			suite := &platform_mocks.SuiteIFace{}
 			suite.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
@@ -1883,20 +1883,13 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 			suite.AssertExpectations(t)
 		})
 
-		t.Run("system_bot policies skip human sessions and reach bot sessions", func(t *testing.T) {
+		t.Run("bot sessions skip role-scoped broadcasts", func(t *testing.T) {
 			event := newSystemSettingConfigEvent("", baseConfig)
-			useSystemSettingPolicyHook(event, []string{model.AccessControlPolicyRoleSystemBot}, nil)
+			useSystemSettingPolicyHook(event, []string{model.SystemUserRoleId})
 			hookArgs := event.GetBroadcast().BroadcastHookArgs[0]
-
-			humanSuite := &platform_mocks.SuiteIFace{}
-			humanMsg := platform.MakeHookedWebSocketEvent(event)
-			require.NoError(t, hook.Process(humanMsg, connection(model.SystemUserRoleId, humanSuite), hookArgs))
-			assert.True(t, humanMsg.Event().IsRejected())
-			humanSuite.AssertNotCalled(t, "EvaluateClientConfigOverrides", mock.Anything)
 
 			botUserID := model.NewId()
 			botSuite := &platform_mocks.SuiteIFace{}
-			botSuite.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
 			botWC := &platform.WebConn{UserId: botUserID, Platform: &platform.PlatformService{}, Suite: botSuite}
 			botWC.SetSession(&model.Session{
 				Id:     model.NewId(),
@@ -1906,8 +1899,8 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 			})
 			botMsg := platform.MakeHookedWebSocketEvent(event)
 			require.NoError(t, hook.Process(botMsg, botWC, hookArgs))
-			assert.False(t, botMsg.Event().IsRejected())
-			botSuite.AssertExpectations(t)
+			assert.True(t, botMsg.Event().IsRejected())
+			botSuite.AssertNotCalled(t, "EvaluateClientConfigOverrides", mock.Anything)
 		})
 
 		t.Run("an invalid value rejects the event", func(t *testing.T) {
@@ -1919,32 +1912,9 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 
 		t.Run("no target_roles evaluates every connection", func(t *testing.T) {
 			event := newSystemSettingConfigEvent("", baseConfig)
-			useSystemSettingPolicyHook(event, nil, nil)
+			useSystemSettingPolicyHook(event, nil)
 			assert.NotContains(t, event.GetBroadcast().BroadcastHookArgs[0], "target_roles")
-			assert.NotContains(t, event.GetBroadcast().BroadcastHookArgs[0], "policy_change")
 		})
-	})
-
-	t.Run("policy_change survives the cluster round trip", func(t *testing.T) {
-		change := systemSettingPolicyChangeRef{PolicyID: model.NewId(), Revision: 3}
-		event := newSystemSettingConfigEvent("", baseConfig)
-		useSystemSettingPolicyHook(event, nil, &change)
-
-		var clusterArgs map[string]any
-		buf, err := json.Marshal(event.GetBroadcast().BroadcastHookArgs[0])
-		require.NoError(t, err)
-		require.NoError(t, json.Unmarshal(buf, &clusterArgs))
-
-		decoded, err := getTypedArg[systemSettingPolicyChangeRef](clusterArgs, "policy_change")
-		require.NoError(t, err)
-		assert.Equal(t, change, decoded)
-
-		userID := model.NewId()
-		wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: &platform_mocks.SuiteIFace{}}
-		wc.SetSession(&model.Session{Id: model.NewId(), UserId: userID, Roles: model.SystemUserRoleId})
-		msg := platform.MakeHookedWebSocketEvent(event)
-		require.Error(t, hook.Process(msg, wc, map[string]any{"policy_change": "invalid"}))
-		assert.True(t, msg.Event().IsRejected())
 	})
 }
 

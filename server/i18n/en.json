@@ -17061,8 +17061,8 @@
   },
   {
     "id": "model.access_policy.is_valid.system_setting_role.app_error",
-    "translation": "System setting policies can only apply to the System User, System Guest, System Admin, or Bot role.",
-    "description": "API validation error shown to system admins saving a system setting policy whose role is not one of the supported built-in system roles."
+    "translation": "System setting policies can only apply to the System User, System Guest, or System Admin role.",
+    "description": "API validation error shown to system admins saving a system setting policy whose role is not one of the supported built-in human system roles."
   },
   {
     "id": "model.access_policy.is_valid.system_setting_value.app_error",

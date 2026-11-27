@@ -2280,14 +2280,14 @@ func TestSystemSettingPolicyValidation(t *testing.T) {
 		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
 	})
 
-	t.Run("accepts only supported system roles", func(t *testing.T) {
-		for _, role := range []string{SystemUserRoleId, SystemAdminRoleId, SystemGuestRoleId, AccessControlPolicyRoleSystemBot} {
+	t.Run("accepts only supported human system roles", func(t *testing.T) {
+		for _, role := range []string{SystemUserRoleId, SystemAdminRoleId, SystemGuestRoleId} {
 			p := validPolicy()
 			p.Roles = []string{role}
 			require.Nil(t, p.IsValid(), "expected role %q to be valid", role)
 		}
 
-		for _, badRole := range []string{"custom_system_role", ChannelUserRoleId, TeamAdminRoleId} {
+		for _, badRole := range []string{AccessControlPolicyRoleSystemBot, "custom_system_role", ChannelUserRoleId, TeamAdminRoleId} {
 			p := validPolicy()
 			p.Roles = []string{badRole}
 			err := p.IsValid()

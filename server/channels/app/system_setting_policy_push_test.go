@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"slices"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -20,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -693,7 +691,7 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 		}
 	}
 
-	expectBroadcast := func(t *testing.T, roles ...string) map[string]any {
+	expectBroadcast := func(t *testing.T, roles ...string) {
 		t.Helper()
 		require.Eventually(t, func() bool { return len(publishedSystemSettingPolicyArgs(cluster)) > 0 }, 5*time.Second, 10*time.Millisecond)
 		published := publishedSystemSettingPolicyArgs(cluster)
@@ -703,8 +701,6 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 			targetRoles = append(targetRoles, role)
 		}
 		assert.Equal(t, targetRoles, published[0]["target_roles"])
-		require.Contains(t, published[0], "policy_change")
-		return published[0]
 	}
 	expectNothingPublished := func(t *testing.T) {
 		t.Helper()
@@ -914,8 +910,7 @@ func TestSystemSettingPolicyChangePush(t *testing.T) {
 
 		remove(t, policy.ID)
 
-		args := expectBroadcast(t, model.SystemUserRoleId)
-		assert.Equal(t, map[string]any{"policy_id": policy.ID, "revision": float64(0)}, args["policy_change"])
+		expectBroadcast(t, model.SystemUserRoleId)
 		expectSystemSettingOverrides(t, th, conns.a, map[string]any{})
 		expectSystemSettingOverrides(t, th, conns.b, map[string]any{})
 		expectSystemSettingOverrides(t, th, conns.c, map[string]any{})
@@ -1026,137 +1021,6 @@ func TestSystemSettingPolicyChangePushReadsPoliciesFromMaster(t *testing.T) {
 	require.Nil(t, appErr)
 	expectSystemSettingOverrides(t, th, a, map[string]any{})
 	expectSystemSettingOverrides(t, th, b, biometrics)
-}
-
-type countingPolicyLoadStore struct {
-	store.AccessControlPolicyStore
-	loads atomic.Int32
-}
-
-func (s *countingPolicyLoadStore) GetByType(rctx request.CTX, policyType string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.AccessControlPolicy, error) {
-	s.loads.Add(1)
-	return s.AccessControlPolicyStore.GetByType(rctx, policyType, cursor, limit)
-}
-
-type countingPolicyLoadsStore struct {
-	store.Store
-	policies *countingPolicyLoadStore
-}
-
-func (s *countingPolicyLoadsStore) AccessControlPolicy() store.AccessControlPolicyStore {
-	return s.policies
-}
-
-func TestSystemSettingPolicyBroadcastReloadsStaleCache(t *testing.T) {
-	cluster := &testlib.FakeClusterInterface{}
-	th := Setup(t, SetCluster(cluster)).InitBasic(t)
-	th.ConfigStore.SetReadOnlyFF(false)
-
-	originalStore := th.App.Srv().Store()
-	policyStore := &countingPolicyLoadStore{AccessControlPolicyStore: originalStore.AccessControlPolicy()}
-	th.App.Srv().SetStore(&countingPolicyLoadsStore{Store: originalStore, policies: policyStore})
-	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
-
-	engine, adminCtx := enableSystemSettingPolicyEngine(t, th)
-	expression := `user.attributes.dept == "a" || user.session.vpn_active == "true"`
-	engine.match(expression, th.BasicUser.Id)
-	cache := th.App.Srv().Channels().systemSettingPoliciesCache
-	hook := &systemSettingPolicyBroadcastHook{srv: th.Server}
-
-	overrides := func(t *testing.T, args map[string]any) map[string]string {
-		t.Helper()
-		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId})
-		require.Nil(t, appErr)
-		webConn := &platform.WebConn{UserId: th.BasicUser.Id, Platform: th.Server.Platform(), Suite: th.App}
-		webConn.SetSession(session)
-
-		// With an empty base config the delivered config holds only the overrides.
-		msg := platform.MakeHookedWebSocketEvent(newSystemSettingConfigEvent("", map[string]string{}))
-		require.NoError(t, hook.Process(msg, webConn, args))
-		require.False(t, msg.Event().IsRejected())
-		return msg.Get("config").(map[string]string)
-	}
-	// Returns the published hook args as another node decodes them, leaving
-	// this node's cache as that node's would be before the invalidation arrives.
-	change := func(t *testing.T, apply func()) map[string]any {
-		t.Helper()
-		_, err := cache.Get(th.Context, policyStore)
-		require.NoError(t, err)
-		stale := cache.entries.Load()
-		cluster.ClearMessages()
-
-		apply()
-
-		cache.entries.Store(&systemSettingPolicyCacheEntries{generation: cache.generation.Load(), policies: stale.policies})
-		for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool { return msg.Event == model.ClusterEventPublish }) {
-			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
-			require.NoError(t, err)
-			if event.EventType() != model.WebsocketEventConfigChanged {
-				continue
-			}
-			i := slices.Index(event.GetBroadcast().BroadcastHooks, broadcastSystemSetting)
-			require.GreaterOrEqual(t, i, 0)
-			return event.GetBroadcast().BroadcastHookArgs[i]
-		}
-		require.FailNow(t, "no system setting policy broadcast was published")
-		return nil
-	}
-	biometrics := func(value string) map[string]string {
-		return map[string]string{model.ClientConfigKeyMobileEnableBiometrics: value}
-	}
-
-	saved, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, biometricsPolicy(expression))
-	require.Nil(t, appErr)
-	t.Cleanup(func() {
-		_ = originalStore.AccessControlPolicy().Delete(th.Context, saved.ID)
-		th.App.invalidateSystemSettingPolicyCache()
-	})
-
-	var savedArgs map[string]any
-	t.Run("a stale cache reloads once and evaluates the saved policy", func(t *testing.T) {
-		updated := *saved
-		updated.Rules = []model.AccessControlPolicyRule{{
-			Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
-			Expression: expression,
-			Value:      "false",
-		}}
-		savedArgs = change(t, func() {
-			saved, appErr = th.App.CreateOrUpdateAccessControlPolicy(adminCtx, &updated)
-			require.Nil(t, appErr)
-		})
-		assert.Equal(t, map[string]any{"policy_id": saved.ID, "revision": float64(saved.Revision)}, savedArgs["policy_change"])
-
-		withoutChange := maps.Clone(savedArgs)
-		delete(withoutChange, "policy_change")
-		assert.Equal(t, biometrics("true"), overrides(t, withoutChange), "the stale cache still holds the previous version")
-
-		loads := policyStore.loads.Load()
-		assert.Equal(t, biometrics("false"), overrides(t, savedArgs))
-		assert.Equal(t, biometrics("false"), overrides(t, savedArgs))
-		assert.Equal(t, loads+1, policyStore.loads.Load(), "the stale cache is reloaded once")
-	})
-
-	t.Run("a cache that includes the change does not reload", func(t *testing.T) {
-		require.NotNil(t, savedArgs)
-		loads := policyStore.loads.Load()
-		assert.Equal(t, biometrics("false"), overrides(t, savedArgs))
-		assert.Equal(t, loads, policyStore.loads.Load())
-	})
-
-	t.Run("a stale cache still holding a deleted policy reloads once", func(t *testing.T) {
-		args := change(t, func() {
-			require.Nil(t, th.App.DeleteAccessControlPolicy(adminCtx, saved.ID))
-		})
-		assert.Equal(t, map[string]any{"policy_id": saved.ID, "revision": float64(0)}, args["policy_change"])
-
-		loads := policyStore.loads.Load()
-		assert.Equal(t, map[string]string{}, overrides(t, args))
-		assert.Equal(t, map[string]string{}, overrides(t, args))
-		assert.Equal(t, loads+1, policyStore.loads.Load(), "the stale cache is reloaded once")
-		policies, err := cache.Get(th.Context, policyStore)
-		require.NoError(t, err)
-		assert.False(t, slices.ContainsFunc(policies, func(p cachedSystemSettingPolicy) bool { return p.ID == saved.ID }))
-	})
 }
 
 // The push reads the subject right after the write, so reading the view before

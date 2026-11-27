@@ -48,7 +48,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
-		broadcastSystemSetting:      &systemSettingPolicyBroadcastHook{srv: s},
+		broadcastSystemSetting:      &systemSettingPolicyBroadcastHook{},
 		broadcastSystemSettingByID:  &systemSettingOverridesBySessionBroadcastHook{},
 
 		broadcastChannelReadAccessRedact: &channelReadAccessRedactBroadcastHook{},
@@ -861,19 +861,12 @@ func getTypedArg[T any](args map[string]any, key string) (T, error) {
 	return value, err
 }
 
-type systemSettingPolicyBroadcastHook struct {
-	srv *Server
-}
+type systemSettingPolicyBroadcastHook struct{}
 
-// A non-nil change has each node evaluate against policies that include it,
-// since the event can reach a node before the cluster invalidation for it.
-func useSystemSettingPolicyHook(message *model.WebSocketEvent, targetRoles []string, change *systemSettingPolicyChangeRef) {
+func useSystemSettingPolicyHook(message *model.WebSocketEvent, targetRoles []string) {
 	args := map[string]any{}
 	if targetRoles != nil {
 		args["target_roles"] = model.StringArray(targetRoles)
-	}
-	if change != nil {
-		args["policy_change"] = *change
 	}
 	message.GetBroadcast().AddHook(broadcastSystemSetting, args)
 }
@@ -899,22 +892,6 @@ func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocket
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-	if _, ok := args["policy_change"]; ok {
-		change, err := getTypedArg[systemSettingPolicyChangeRef](args, "policy_change")
-		if err != nil {
-			msg.Reject()
-			return errors.Wrap(err, "Invalid policy_change value passed to systemSettingPolicyBroadcastHook")
-		}
-		if _, err := h.srv.Channels().systemSettingPoliciesCache.GetIncluding(rctx, h.srv.Store().AccessControlPolicy(), change); err != nil {
-			mlog.Warn("systemSettingPolicyBroadcastHook: failed to load system setting policies; rejecting event",
-				mlog.String("user_id", webConn.UserId),
-				mlog.Err(err),
-			)
-			msg.Reject()
-			return nil
-		}
-	}
-
 	overrides, appErr := webConn.Suite.EvaluateClientConfigOverrides(rctx)
 	if appErr != nil {
 		mlog.Warn("systemSettingPolicyBroadcastHook: failed to evaluate overrides; rejecting event",
