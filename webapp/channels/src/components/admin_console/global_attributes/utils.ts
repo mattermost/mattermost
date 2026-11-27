@@ -391,11 +391,15 @@ export function patchLinkedAttributeField(
     });
 }
 
-// Moves a channel field's value.write tier to admin. permission_values cannot
-// carry it (the server accepts only member or sysadmin there) and a patch may
-// not mix permissions with the legacy keys, so the whole restrictions object
-// goes in permissions; restrictions replace the stored ones wholesale.
+// Moves a channel field's value.write tier to admin. A field served without
+// permissions (the typed permissions flag is off) takes it as permission_values.
+// Otherwise the whole restrictions object goes in permissions, since a patch may
+// not mix permissions with the legacy keys and restrictions replace the stored
+// ones wholesale.
 export function patchChannelFieldValueWriteToAdmin(field: PropertyField): Promise<PropertyField> {
+    if (!field.permissions) {
+        return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, 'channel', field.id, {permission_values: 'admin'});
+    }
     return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, 'channel', field.id, {
         permissions: {restrictions: getRestrictionsWithChannelAdminValueWrite(field)},
     });

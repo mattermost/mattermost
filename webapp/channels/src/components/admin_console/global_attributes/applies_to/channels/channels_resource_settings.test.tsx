@@ -646,6 +646,16 @@ describe('ChannelsResourceSettings', () => {
             expect(Object.keys(patchSpy.mock.calls[0][3])).toEqual(['permissions']);
         });
 
+        it('patches permission_values when the field is served without permissions', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(savedField({permission_values: 'admin'}));
+            await renderWithSavedField(savedField());
+
+            await userEvent.click(await screen.findByRole('button', {name: 'Change to Channel admin'}));
+
+            await waitFor(() => expect(screen.queryByTestId('requiredUnfillableWarning')).not.toBeInTheDocument());
+            expect(patchSpy).toHaveBeenCalledWith('access_control', 'channel', 'channel-field-1', {permission_values: 'admin'});
+        });
+
         it('keeps the warning and says so when the change fails', async () => {
             jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(new Error('nope'));
             await renderWithSavedField(savedField());
