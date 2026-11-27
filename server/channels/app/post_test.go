@@ -6893,7 +6893,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify post appears in flagged posts before expiration
-		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: user2.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.NotNil(t, flaggedPosts)
 		require.Contains(t, flaggedPosts.Order, createdPost.Id)
@@ -6909,7 +6909,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get flagged posts again - expired post should be filtered out
-		flaggedPosts, appErr = th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		flaggedPosts, appErr = th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: user2.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.NotNil(t, flaggedPosts)
 		require.NotContains(t, flaggedPosts.Order, createdPost.Id, "Expired burn-on-read post should not be in flagged posts")
@@ -6953,7 +6953,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get flagged posts for team
-		flaggedPosts, appErr := th.App.GetFlaggedPostsForTeam(th.Context, user2.Id, th.BasicTeam.Id, 0, 10)
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: user2.Id, TeamId: th.BasicTeam.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.NotContains(t, flaggedPosts.Order, createdPost.Id)
 	})
@@ -6995,7 +6995,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get flagged posts for channel
-		flaggedPosts, appErr := th.App.GetFlaggedPostsForChannel(th.Context, user2.Id, th.BasicChannel.Id, 0, 10)
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: user2.Id, ChannelId: th.BasicChannel.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.NotContains(t, flaggedPosts.Order, createdPost.Id)
 	})
@@ -7030,7 +7030,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NoError(t, err)
 
 		// Get flagged posts - post should be present
-		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, user2.Id, 0, 10)
+		flaggedPosts, appErr := th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: user2.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.Contains(t, flaggedPosts.Order, createdPost.Id, "Non-expired burn-on-read post should be in flagged posts")
 		require.NotNil(t, flaggedPosts.Posts[createdPost.Id])

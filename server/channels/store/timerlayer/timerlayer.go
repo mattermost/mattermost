@@ -7521,10 +7521,10 @@ func (s *TimerLayerPostStore) GetEtag(channelID string, allowFromCache bool, col
 	return result
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetFlaggedPosts(options model.GetFlaggedPostsOptions) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit)
+	result, err := s.PostStore.GetFlaggedPosts(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7533,38 +7533,6 @@ func (s *TimerLayerPostStore) GetFlaggedPosts(userID string, offset int, limit i
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetFlaggedPosts", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userID string, channelID string, offset int, limit int) (*model.PostList, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetFlaggedPostsForChannel(userID, channelID, offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetFlaggedPostsForChannel", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int) (*model.PostList, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetFlaggedPostsForTeam", success, elapsed)
 	}
 	return result, err
 }

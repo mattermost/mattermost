@@ -45,6 +45,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, rctx, ss, s) })
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, rctx, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, rctx, ss) })
+	t.Run("GetFlaggedPostsBefore", func(t *testing.T) { testPostStoreGetFlaggedPostsBefore(t, rctx, ss) })
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, rctx, ss) })
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, rctx, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, rctx, ss) })
@@ -3517,7 +3518,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	require.NoError(t, err)
 	time.Sleep(2 * time.Millisecond)
 
-	r1, err := ss.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)
+	r1, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.ChannelId, PerPage: 2})
 	require.NoError(t, err)
 
 	require.Empty(t, r1.Order, "should be empty")
@@ -3534,7 +3535,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	r2, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r2, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r2.Order, 1, "should have 1 post")
 
@@ -3550,19 +3551,22 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	r3, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
+	r3, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 1})
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
+	assert.True(t, *r3.HasNext)
 
-	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
+	r3, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, Page: 1, PerPage: 1})
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
+	assert.False(t, *r3.HasNext)
 
-	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
+	r3, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, Page: 100, PerPage: 10})
 	require.NoError(t, err)
 	require.Empty(t, r3.Order, "should be empty")
+	assert.False(t, *r3.HasNext)
 
-	r4, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r4, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 
@@ -3578,7 +3582,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 
@@ -3593,11 +3597,11 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 
-	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: model.NewId(), PerPage: 2})
 	require.NoError(t, err)
 	require.Empty(t, r4.Order, "should have 0 posts")
 
@@ -3612,7 +3616,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 10})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 3, "should have 3 posts")
 
@@ -3627,9 +3631,40 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 10})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 3, "should have 3 posts")
+
+	// Post on a group message the user has left
+	gm, err := ss.Channel().Save(rctx, &model.Channel{
+		DisplayName: "GroupMessage",
+		Name:        "group" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}, -1)
+	require.NoError(t, err)
+
+	o7 := &model.Post{}
+	o7.ChannelId = gm.Id
+	o7.UserId = m2.UserId
+	o7.Message = NewTestID()
+	o7, err = ss.Post().Save(rctx, o7)
+	require.NoError(t, err)
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     o7.Id,
+			Value:    "true",
+		},
+	}
+	err = ss.Preference().Save(preferences)
+	require.NoError(t, err)
+
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, TeamId: c1.TeamId, PerPage: 10})
+	require.NoError(t, err)
+	require.Len(t, r4.Order, 3, "should have 3 posts")
+	assert.NotContains(t, r4.Order, o7.Id)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -3694,7 +3729,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	_, err = ss.Channel().SaveMember(rctx, m0)
 	require.NoError(t, err)
 
-	r1, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	r1, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, PerPage: 2})
 	require.NoError(t, err)
 	require.Empty(t, r1.Order, "should be empty")
 
@@ -3710,7 +3745,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	nErr := ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
-	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	r2, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r2.Order, 1, "should have 1 post")
 
@@ -3726,19 +3761,19 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	nErr = ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
-	r3, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)
+	r3, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, PerPage: 1})
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
 
-	r3, err = ss.Post().GetFlaggedPosts(o1.UserId, 1, 1)
+	r3, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, Page: 1, PerPage: 1})
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
 
-	r3, err = ss.Post().GetFlaggedPosts(o1.UserId, 1000, 10)
+	r3, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, Page: 100, PerPage: 10})
 	require.NoError(t, err)
 	require.Empty(t, r3.Order, "should be empty")
 
-	r4, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	r4, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 
@@ -3754,7 +3789,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	nErr = ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
-	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 
@@ -3770,7 +3805,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	nErr = ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
-	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	r4, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, PerPage: 2})
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 }
@@ -3866,7 +3901,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	_, err = ss.Channel().SaveMember(rctx, m2)
 	require.NoError(t, err)
 
-	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	r, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o1.ChannelId, PerPage: 10})
 	require.NoError(t, err)
 	require.Empty(t, r.Order, "should be empty")
 
@@ -3880,7 +3915,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	nErr := ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o1.ChannelId, PerPage: 10})
 	require.NoError(t, err)
 	require.Len(t, r.Order, 1, "should have 1 post")
 
@@ -3892,19 +3927,19 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	nErr = ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o1.ChannelId, PerPage: 1})
 	require.NoError(t, err)
 	require.Len(t, r.Order, 1, "should have 1 post")
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o1.ChannelId, Page: 1, PerPage: 1})
 	require.NoError(t, err)
 	require.Len(t, r.Order, 1, "should have 1 post")
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o1.ChannelId, Page: 100, PerPage: 10})
 	require.NoError(t, err)
 	require.Empty(t, r.Order, "should be empty")
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o1.ChannelId, PerPage: 10})
 	require.NoError(t, err)
 	require.Len(t, r.Order, 2, "should have 2 posts")
 
@@ -3912,7 +3947,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	nErr = ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o4.ChannelId, PerPage: 10})
 	require.NoError(t, err)
 	require.Len(t, r.Order, 1, "should have 1 posts")
 
@@ -3920,9 +3955,111 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	nErr = ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
-	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o5.ChannelId, 0, 10)
+	r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: o1.UserId, ChannelId: o5.ChannelId, PerPage: 10})
 	require.NoError(t, err)
 	require.Len(t, r.Order, 0, "should have 0 posts")
+}
+
+func testPostStoreGetFlaggedPostsBefore(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	createAt := model.GetMillis()
+	var posts []*model.Post
+	preferences := model.Preferences{}
+	for i := range 5 {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   NewTestID(),
+			CreateAt:  createAt + int64(i),
+		})
+		require.NoError(t, err)
+		posts = append(posts, post)
+		preferences = append(preferences, model.Preference{
+			UserId:   userID,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+	}
+	require.NoError(t, ss.Preference().Save(preferences))
+
+	t.Run("returns the posts after the cursor", func(t *testing.T) {
+		r, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, BeforePostId: posts[3].Id, PerPage: 2})
+		require.NoError(t, err)
+		assert.Equal(t, []string{posts[2].Id, posts[1].Id}, r.Order)
+		assert.True(t, *r.HasNext)
+
+		r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, BeforePostId: posts[1].Id, PerPage: 2})
+		require.NoError(t, err)
+		assert.Equal(t, []string{posts[0].Id}, r.Order)
+		assert.False(t, *r.HasNext)
+	})
+
+	t.Run("cursor post need not still be saved", func(t *testing.T) {
+		require.NoError(t, ss.Preference().Delete(userID, model.PreferenceCategoryFlaggedPost, posts[3].Id))
+		t.Cleanup(func() { require.NoError(t, ss.Preference().Save(preferences[3:4])) })
+
+		r, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, BeforePostId: posts[3].Id, PerPage: 10})
+		require.NoError(t, err)
+		assert.Equal(t, []string{posts[2].Id, posts[1].Id, posts[0].Id}, r.Order)
+	})
+
+	t.Run("cursor post may be deleted", func(t *testing.T) {
+		require.NoError(t, ss.Post().Delete(rctx, posts[3].Id, model.GetMillis(), userID))
+
+		r, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, BeforePostId: posts[3].Id, PerPage: 10})
+		require.NoError(t, err)
+		assert.Equal(t, []string{posts[2].Id, posts[1].Id, posts[0].Id}, r.Order)
+	})
+
+	t.Run("cursor post that no longer exists is not found", func(t *testing.T) {
+		_, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, BeforePostId: model.NewId(), PerPage: 10})
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
+	})
+
+	t.Run("excludes suppressed membership posts", func(t *testing.T) {
+		joinPost, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypeJoinChannel,
+			CreateAt:  createAt + 10,
+		})
+		require.NoError(t, err)
+		require.NoError(t, ss.Preference().Save(model.Preferences{{
+			UserId:   userID,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     joinPost.Id,
+			Value:    "true",
+		}}))
+
+		r, err := ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, PerPage: 1})
+		require.NoError(t, err)
+		assert.Equal(t, []string{joinPost.Id}, r.Order)
+
+		channel.DisableJoinLeaveMessages = true
+		_, err = ss.Channel().Update(rctx, channel)
+		require.NoError(t, err)
+
+		r, err = ss.Post().GetFlaggedPosts(model.GetFlaggedPostsOptions{UserId: userID, PerPage: 1})
+		require.NoError(t, err)
+		assert.Equal(t, []string{posts[4].Id}, r.Order)
+	})
 }
 
 func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -5,6 +5,7 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {SearchState} from '@mattermost/types/search';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -82,6 +83,9 @@ function matches(state: Record<string, string[]> = {}, action: MMReduxAction) {
 function flagged(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
+        if (action.isGettingMore) {
+            return [...new Set(state.concat(action.data.order))];
+        }
         return action.data.order;
     }
     case PostTypes.POST_REMOVED: {
@@ -115,19 +119,12 @@ function flagged(state: string[] = [], action: MMReduxAction) {
     }
     case PreferenceTypes.DELETED_PREFERENCES: {
         if (action.data) {
-            const nextState = [...state];
-            let flaggedPostsRemoved = false;
-            action.data.forEach((pref: PreferenceType) => {
-                if (pref.category === Preferences.CATEGORY_FLAGGED_POST) {
-                    const index = state.indexOf(pref.name);
-                    if (index !== -1) {
-                        flaggedPostsRemoved = true;
-                        nextState.splice(index, 1);
-                    }
-                }
-            });
+            const unsaved = new Set(action.data.
+                filter((pref: PreferenceType) => pref.category === Preferences.CATEGORY_FLAGGED_POST).
+                map((pref: PreferenceType) => pref.name));
+            const nextState = state.filter((id) => !unsaved.has(id));
 
-            return flaggedPostsRemoved ? nextState : state;
+            return nextState.length === state.length ? state : nextState;
         }
 
         return state;
@@ -135,6 +132,23 @@ function flagged(state: string[] = [], action: MMReduxAction) {
     case SearchTypes.REMOVE_SEARCH_POSTS:
     case UserTypes.LOGOUT_SUCCESS:
         return [];
+
+    default:
+        return state;
+    }
+}
+
+const initialFlaggedPaging: SearchState['flaggedPaging'] = {before: '', isEnd: true};
+
+function flaggedPaging(state = initialFlaggedPaging, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS:
+        return {
+            before: action.data.order.at(-1) ?? state.before,
+            isEnd: !action.data.has_next,
+        };
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialFlaggedPaging;
 
     default:
         return state;
@@ -240,8 +254,11 @@ function isSearchingTerm(state = false, action: MMReduxAction) {
 function isSearchGettingMore(state = false, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
-        return action.isGettingMore;
+    case SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST:
+        return Boolean(action.isGettingMore);
     case SearchTypes.SEARCH_POSTS_SUCCESS:
+    case SearchTypes.SEARCH_FLAGGED_POSTS_SUCCESS:
+    case SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE:
         return false;
     default:
         return state;
@@ -298,6 +315,9 @@ export default combineReducers({
 
     // An ordered array with posts ids of flagged posts
     flagged,
+
+    // The last page of flagged posts fetched, and whether more follow
+    flaggedPaging,
 
     // An Object where every key is a channel id mapping to an ordered array with posts ids of pinned posts
     pinned,

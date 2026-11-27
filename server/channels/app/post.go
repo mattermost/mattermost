@@ -1937,30 +1937,33 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 }
 
 // fillFlaggedPostPage keeps a page of saved posts a full page after channel_read_access
-// removes the ones the session may not read, refetching from the store until the page
-// is filled or the store runs dry. A short page would otherwise tell the client it had
-// reached the end, hiding every saved post past the first denied one.
-func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (*model.PostList, error)) (*model.PostList, error) {
-	if !a.ChannelAccessEnforcementActive() {
-		return fetch(offset, limit)
+// removes the ones the session may not read, continuing from the last post the store
+// returned until the page is filled or the store runs dry. A short page would otherwise
+// tell the client it had reached the end, hiding every saved post past the first denied one.
+func (a *App) fillFlaggedPostPage(rctx request.CTX, options model.GetFlaggedPostsOptions) (*model.PostList, error) {
+	postStore := a.Srv().Store().Post()
+	if options.PerPage <= 0 || !a.ChannelAccessEnforcementActive() {
+		return postStore.GetFlaggedPosts(options)
 	}
 
-	kept, truncated, err := putils.FetchUntil(offset, limit,
-		func(from int) ([]*model.Post, error) {
-			page, fetchErr := fetch(from, limit)
+	var storeHasNext bool
+	kept, rest, truncated, err := putils.FetchUntil(options, options.PerPage,
+		func(opts model.GetFlaggedPostsOptions) ([]*model.Post, error) {
+			page, fetchErr := postStore.GetFlaggedPosts(opts)
 			if fetchErr != nil {
 				return nil, fetchErr
 			}
+			storeHasNext = model.SafeDereference(page.HasNext)
 			return page.ToSlice(), nil
 		},
 		func(post *model.Post) bool {
-			return a.HasChannelReadAccessByID(rctx, userID, post.ChannelId)
+			return a.HasChannelReadAccessByID(rctx, options.UserId, post.ChannelId)
 		},
-		// FetchUntil hands advance only the page it just read, so the offset has to
-		// accumulate here rather than being derived from the cursor.
-		func(page []*model.Post) int {
-			offset += len(page)
-			return offset
+		func(page []*model.Post) model.GetFlaggedPostsOptions {
+			next := options
+			next.Page = 0
+			next.BeforePostId = page[len(page)-1].Id
+			return next
 		},
 	)
 	if err != nil {
@@ -1968,7 +1971,7 @@ func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit
 	}
 	if truncated {
 		rctx.Logger().Warn("Gave up filling a page of saved posts; the policy denies most of what this query returns",
-			mlog.String("user_id", userID),
+			mlog.String("user_id", options.UserId),
 			mlog.Int("rounds", putils.FetchUntilMaxRounds),
 		)
 	}
@@ -1978,85 +1981,28 @@ func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit
 		postList.AddPost(post)
 		postList.AddOrder(post.Id)
 	}
+	hasNext := storeHasNext || len(rest) > 0
+	postList.HasNext = &hasNext
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim)
-	})
+func (a *App) GetFlaggedPosts(rctx request.CTX, options model.GetFlaggedPostsOptions) (*model.PostList, *model.AppError) {
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
+	postList, err := a.fillFlaggedPostPage(rctx, options)
 	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("GetFlaggedPosts", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Process burn-on-read posts for the requesting user
 	var appErr *model.AppError
-	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
-		return nil, appErr
-	}
-
-	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
-
-	return postList, nil
-}
-
-func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim)
-	})
-	if err != nil {
-		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Process burn-on-read posts for the requesting user
-	var appErr *model.AppError
-	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
-		return nil, appErr
-	}
-
-	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
-
-	return postList, nil
-}
-
-func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, off, lim)
-	})
-	if err != nil {
-		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Process burn-on-read posts for the requesting user
-	var appErr *model.AppError
-	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, userID)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
 		return nil, appErr
 	}
 

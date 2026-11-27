@@ -511,6 +511,20 @@ type GetPostsOptions struct {
 	PropertyGroup string
 }
 
+// GetFlaggedPostsOptions selects a page of a user's saved posts, newest first.
+type GetFlaggedPostsOptions struct {
+	UserId    string
+	ChannelId string
+	TeamId    string
+	// BeforePostId returns only the saved posts that sort after this post, and is used instead of Page.
+	// The post need not still be saved.
+	BeforePostId string
+	Page         int
+	PerPage      int
+	// ExcludeExpiredBurnOnReadPosts is set by the app layer when the burn-on-read feature is enabled.
+	ExcludeExpiredBurnOnReadPosts bool
+}
+
 type PostCountOptions struct {
 	// Only include posts on a specific team. "" for any team.
 	TeamId             string

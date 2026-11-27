@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"slices"
 	"strconv"
@@ -529,17 +530,34 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	channelId := r.URL.Query().Get("channel_id")
 	teamId := r.URL.Query().Get("team_id")
+	beforePost := r.URL.Query().Get("before")
 
-	var posts *model.PostList
-	var err *model.AppError
-
-	if channelId != "" {
-		posts, err = c.App.GetFlaggedPostsForChannel(c.AppContext, c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
-	} else if teamId != "" {
-		posts, err = c.App.GetFlaggedPostsForTeam(c.AppContext, c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
-	} else {
-		posts, err = c.App.GetFlaggedPosts(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if c.Params.PerPage == 0 {
+		c.SetInvalidURLParam("per_page")
+		return
 	}
+	if c.Params.Page < 0 || c.Params.Page > math.MaxInt/c.Params.PerPage {
+		c.SetInvalidURLParam("page")
+		return
+	}
+	if beforePost != "" && (!model.IsValidId(beforePost) || c.Params.Page != 0) {
+		c.SetInvalidURLParam("before")
+		return
+	}
+
+	options := model.GetFlaggedPostsOptions{
+		UserId:       c.Params.UserId,
+		BeforePostId: beforePost,
+		Page:         c.Params.Page,
+		PerPage:      c.Params.PerPage,
+	}
+	if channelId != "" {
+		options.ChannelId = channelId
+	} else {
+		options.TeamId = teamId
+	}
+
+	posts, err := c.App.GetFlaggedPosts(c.AppContext, options)
 	if err != nil {
 		c.Err = err
 		return
@@ -563,7 +581,12 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	channelReadPermission := make(map[string]bool)
 	isMemberForAllPosts := true
 
-	for _, post := range posts.Posts {
+	for _, postID := range posts.Order {
+		post, ok := posts.Posts[postID]
+		if !ok {
+			continue
+		}
+
 		allowed, ok := channelReadPermission[post.ChannelId]
 
 		if !ok {
@@ -591,7 +614,12 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		pl.AddOrder(post.Id)
 	}
 
-	pl.SortByCreateAt()
+	// Saved posts are sorted newest first, so once the history limit hides one, every later page is hidden too.
+	// An empty page also ends the list, since a client paging with before has no post left to continue from.
+	hasNext := model.SafeDereference(posts.HasNext) && posts.FirstInaccessiblePostTime == 0 && len(pl.Order) > 0
+	pl.HasNext = &hasNext
+	pl.FirstInaccessiblePostTime = posts.FirstInaccessiblePostTime
+
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, pl, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {

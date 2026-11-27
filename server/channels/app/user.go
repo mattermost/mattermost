@@ -3215,7 +3215,7 @@ func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, option
 	if want == 0 {
 		want = defaultThreadsPageSize
 	}
-	threads, truncated, err := putils.FetchUntil(options, want, fetch,
+	threads, _, truncated, err := putils.FetchUntil(options, want, fetch,
 		func(thread *model.ThreadResponse) bool {
 			return thread.Post != nil && a.HasChannelReadAccessByID(rctx, userID, thread.Post.ChannelId)
 		},

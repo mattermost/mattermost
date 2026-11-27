@@ -23,6 +23,7 @@ import {
     performSearch,
     showSearchResults,
     showFlaggedPosts,
+    getMoreFlaggedPosts,
     showPinnedPosts,
     showMentions,
     showEntity,
@@ -84,6 +85,7 @@ jest.mock('mattermost-redux/actions/search', () => ({
     searchPostsWithParams: (...args: any) => ({type: 'MOCK_SEARCH_POSTS', args}),
     searchFilesWithParams: (...args: any) => ({type: 'MOCK_SEARCH_FILES', args}),
     clearSearch: (...args: any) => ({type: 'MOCK_CLEAR_SEARCH', args}),
+    FLAGGED_POSTS_PER_PAGE: 60,
     getFlaggedPosts: jest.fn(),
     getPinnedPosts: jest.fn(),
 }));
@@ -340,6 +342,89 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('getMoreFlaggedPosts', () => {
+        function savedPostsStore(paging: {before: string; isEnd: boolean}, isSearchGettingMore = false, flagged: string[] = []) {
+            const state = set(cloneDeep(initialState), 'entities.search', {
+                flagged,
+                flaggedPaging: paging,
+                isSearchGettingMore,
+            });
+            return mockStore(state);
+        }
+
+        const page = {order: ['post1'], posts: {post1: {id: 'post1'}}, has_next: true};
+
+        test('does nothing at the end of the list', async () => {
+            const savedStore = savedPostsStore({before: 'post0', isEnd: true});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
+            expect(savedStore.getActions()).toEqual([]);
+        });
+
+        test('does nothing while another page is loading', async () => {
+            const savedStore = savedPostsStore({before: 'post0', isEnd: false}, true);
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
+        });
+
+        test('fetches the page after the last one loaded', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: page}));
+            const savedStore = savedPostsStore({before: 'post0', isEnd: false});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(1);
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledWith('post0');
+        });
+
+        test('keeps loading past a page of posts already shown', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).
+                mockReturnValueOnce(() => ({data: page})).
+                mockReturnValueOnce(() => ({data: {order: ['post2'], posts: {post2: {id: 'post2'}}, has_next: true}}));
+            const savedStore = savedPostsStore({before: 'post0', isEnd: false}, false, ['post1']);
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(2);
+        });
+
+        test('reloads from the first page when the cursor post no longer exists', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).
+                mockReturnValueOnce(() => ({error: {status_code: 404}})).
+                mockReturnValueOnce(() => ({data: page}));
+            const savedStore = savedPostsStore({before: 'post0', isEnd: false});
+
+            const result = await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenNthCalledWith(1, 'post0');
+            expect(SearchActions.getFlaggedPosts).toHaveBeenNthCalledWith(2);
+            expect(result).toEqual({data: page});
+        });
+
+        test('reports other failures without reloading', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({error: {status_code: 500}}));
+            const savedStore = savedPostsStore({before: 'post0', isEnd: false});
+
+            const result = await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(1);
+            expect(result).toEqual({data: false});
+        });
+
+        test('stops at an empty page', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: {order: [], posts: {}, has_next: true}}));
+            const savedStore = savedPostsStore({before: 'post0', isEnd: false});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('showFlaggedPosts', () => {
         test('it dispatches the right actions', async () => {
             (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
@@ -361,24 +446,12 @@ describe('rhs view actions', () => {
                     type: 'MOCK_GET_FLAGGED_POSTS',
                 },
                 {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId: currentTeamId,
+                        terms: null,
+                        isOrSearch: false,
                     },
-                    payload: [
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                            data: 'data',
-                        },
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_TERM,
-                            data: {
-                                teamId: currentTeamId,
-                                terms: null,
-                                isOrSearch: false,
-                            },
-                        },
-                    ],
                 },
             ]);
         });
@@ -960,7 +1033,14 @@ describe('rhs view actions', () => {
                 {
                     type: 'MOCK_GET_FLAGGED_POSTS',
                 },
-                batchingReducerBatch,
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId: currentTeamId,
+                        terms: null,
+                        isOrSearch: false,
+                    },
+                },
             ]);
         });
 

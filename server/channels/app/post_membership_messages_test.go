@@ -140,7 +140,7 @@ func TestFlaggedPostsSuppression(t *testing.T) {
 	t.Run("excluded from flagged posts when suppressed", func(t *testing.T) {
 		setChannelDisableJoinLeaveMessages(t, th, channel, true)
 
-		flagged, appErr := th.App.GetFlaggedPosts(th.Context, th.BasicUser.Id, 0, 10)
+		flagged, appErr := th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: th.BasicUser.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.NotContains(t, flagged.Order, membershipPost.Id)
 	})
@@ -148,7 +148,7 @@ func TestFlaggedPostsSuppression(t *testing.T) {
 	t.Run("visible in flagged posts when re-enabled", func(t *testing.T) {
 		setChannelDisableJoinLeaveMessages(t, th, channel, false)
 
-		flagged, appErr := th.App.GetFlaggedPosts(th.Context, th.BasicUser.Id, 0, 10)
+		flagged, appErr := th.App.GetFlaggedPosts(th.Context, model.GetFlaggedPostsOptions{UserId: th.BasicUser.Id, PerPage: 10})
 		require.Nil(t, appErr)
 		require.Contains(t, flagged.Order, membershipPost.Id)
 	})
