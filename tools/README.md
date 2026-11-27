@@ -42,4 +42,14 @@ go run . --license /path/to/license.mattermost-license --server-dir ../../server
 # External mode (connect to already-running instances)
 go run . --license /path/to/license.mattermost-license --manage=false \
   --server-a http://localhost:9065 --server-b http://localhost:9066
+
+# HA mode (each server is a 3-node cluster)
+go run . --license /path/to/license.mattermost-license --server-dir ../../server --nodes 3
 ```
+
+**HA mode** (`--nodes` above 1, managed mode on Linux only) runs each server as a cluster of nodes sharing one database. Each node runs in its own Docker container (`--node-image`, default `alpine:latest`) with host networking, because the cluster names each node after its hostname. A round-robin proxy in the tool serves each server's SiteURL (`:9065` and `:9066`) the way a load balancer would. Nodes listen on `9071+` (Server A) and `9081+` (Server B), and gossip on `127.0.1.N:817N` and `127.0.2.N:818N`. The license must include the Cluster feature. Logs go to `server/logs/server_a1.log/mattermost.log`, `server/logs/server_a1_stdout.log`, and so on.
+
+On top of the regular suites, HA mode adds:
+- changes made on a Server A follower node (membership, post, reaction, delete) sync to Server B
+- posts from Server B are visible on every Server A node
+- after Server A's leader is killed, posts made on a surviving node sync to Server B, both before and after the new leader takes over

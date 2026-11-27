@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io"
+	"maps"
 	"math"
 	"net"
 	"net/http"
@@ -395,7 +396,7 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable,manage_system_write"`
 	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
 	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -430,11 +431,11 @@ type ServiceSettings struct {
 	EnableLinkPreviews                     *bool    `access:"site_posts"`
 	EnablePermalinkPreviews                *bool    `access:"site_posts"`
 	RestrictLinkPreviews                   *string  `access:"site_posts"`
-	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable,manage_system_write"`
 	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert                 *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert                 *bool    `access:"site_notices,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
@@ -1808,7 +1809,7 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.EnableWebhookDebugging == nil {
-		s.EnableWebhookDebugging = new(true)
+		s.EnableWebhookDebugging = new(false)
 	}
 
 	if s.EnableDiagnostics == nil {
@@ -2286,13 +2287,13 @@ type EmailSettings struct {
 	FeedbackEmail                     *string `access:"site_notifications,cloud_restrictable"`
 	ReplyToAddress                    *string `access:"site_notifications,cloud_restrictable"`
 	FeedbackOrganization              *string `access:"site_notifications"`
-	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPServer                        *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPPort                          *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
+	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPServer                        *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPPort                          *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
 	SMTPServerTimeout                 *int    `access:"cloud_restrictable"`
-	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	SendPushNotifications             *bool   `access:"environment_push_notification_server"`
 	PushNotificationServer            *string `access:"environment_push_notification_server"` // telemetry: none
 	PushNotificationContents          *string `access:"site_notifications"`
@@ -2301,7 +2302,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int    `access:"site_notifications"`
 	EmailBatchingInterval             *int    `access:"site_notifications"`
 	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
-	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	EmailNotificationContentsType     *string `access:"site_notifications"`
 }
 
@@ -2425,6 +2426,16 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.EmailNotificationContentsType == nil {
 		s.EmailNotificationContentsType = new(EmailNotificationContentsFull)
 	}
+}
+
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
+// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+func (s *EmailSettings) IsSMTPConfigured() bool {
+	server := SafeDereference(s.SMTPServer)
+	if server == "" {
+		return false
+	}
+	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
 }
 
 type RateLimitSettings struct {
@@ -3688,11 +3699,23 @@ func (s *JobSettings) SetDefaults() {
 	}
 }
 
+type SiteHealthSettings struct {
+	// EnableAutomaticChecks gates only the hourly scheduler. On-demand runs keep working when it is off.
+	EnableAutomaticChecks *bool `access:"reporting_site_statistics,manage_system_write,write_restrictable,cloud_restrictable"`
+}
+
+func (s *SiteHealthSettings) SetDefaults() {
+	if s.EnableAutomaticChecks == nil {
+		s.EnableAutomaticChecks = new(true)
+	}
+}
+
 type CloudSettings struct {
 	CWSURL                *string `access:"write_restrictable"`
 	CWSAPIURL             *string `access:"write_restrictable"`
 	Disable               *bool   `access:"write_restrictable,cloud_restrictable"`
 	PreviewModalBucketURL *string `access:"write_restrictable"`
+	PreviewLandingPath    *string `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3720,6 +3743,10 @@ func (s *CloudSettings) SetDefaults() {
 
 	if s.PreviewModalBucketURL == nil {
 		s.PreviewModalBucketURL = new("")
+	}
+
+	if s.PreviewLandingPath == nil {
+		s.PreviewLandingPath = new("")
 	}
 }
 
@@ -3779,6 +3806,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.PluginStates == nil {
 		s.PluginStates = make(map[string]*PluginState)
 	}
+
+	maps.DeleteFunc(s.PluginStates, func(_ string, state *PluginState) bool {
+		return state == nil
+	})
 
 	if s.PluginStates[PluginIdNPS] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
@@ -4317,6 +4348,7 @@ const (
 	ConfigAccessTagType              = "access"
 	ConfigAccessTagWriteRestrictable = "write_restrictable"
 	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+	ConfigAccessTagManageSystemWrite = "manage_system_write"
 )
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
@@ -4337,6 +4369,9 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access
 // unless the request is made using local mode.
+//
+// Config values with the access tag 'manage_system_write' can only be written with PermissionManageSystem or using
+// local mode, regardless of any PermissionSysconsoleWrite* granted by the other access tag values. Read access is unaffected.
 //
 // PermissionManageSystem always grants read access.
 //
@@ -4393,6 +4428,7 @@ type Config struct {
 	MobileEphemeralModeSettings MobileEphemeralModeSettings
 	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
+	SiteHealthSettings          SiteHealthSettings
 	PluginSettings              PluginSettings
 	DisplaySettings             DisplaySettings
 	GuestAccountsSettings       GuestAccountsSettings
@@ -4512,6 +4548,7 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
+	o.SiteHealthSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()

@@ -23,33 +23,29 @@ const (
 )
 
 var licenseExpired = healthcheck.Rule{
-	Code:     "LICENSE_EXPIRED",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.license_expired.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.license_expired.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    expiresAtSubject,
-	Eval:       healthcheck.Single(evalLicenseExpired),
+	Code:          "LICENSE_EXPIRED",
+	Area:          model.AreaLicense,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.license_expired.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.license_expired.remediation"),
+	ConsolePath:   licenseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       expiresAtSubject,
+	Eval:          healthcheck.Single(evalLicenseExpired),
 }
 
 var licenseExpiring = healthcheck.Rule{
-	Code:     "LICENSE_EXPIRING",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.license_expiring.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.license_expiring.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    expiresAtSubject,
-	Eval:       healthcheck.Single(evalLicenseExpiring),
+	Code:          "LICENSE_EXPIRING",
+	Area:          model.AreaLicense,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.license_expiring.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.license_expiring.remediation"),
+	ConsolePath:   licenseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       expiresAtSubject,
+	Eval:          healthcheck.Single(evalLicenseExpiring),
 }
 
 // Measured from CollectedAt, not now, so a packet read later reports what was true then.

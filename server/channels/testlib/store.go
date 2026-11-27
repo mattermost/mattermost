@@ -4,6 +4,7 @@
 package testlib
 
 import (
+	"cmp"
 	"net/http"
 	"strconv"
 
@@ -175,10 +176,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 				return existing
 			}
 
-			version := group.Version
-			if version == 0 {
-				version = model.PropertyGroupVersionV1
-			}
+			version := cmp.Or(group.Version, model.PropertyGroupVersionV1)
 
 			created := &model.PropertyGroup{
 				ID:      model.NewId(),

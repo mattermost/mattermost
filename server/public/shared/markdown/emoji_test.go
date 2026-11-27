@@ -93,7 +93,7 @@ func TestParseEmoji(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			p := newInlineParser(tc.Input, []Range{}, []*ReferenceDefinition{})
+			p := newInlineParser(tc.Input, []Range{}, nil)
 			p.raw = tc.Input
 			p.position = tc.Position
 

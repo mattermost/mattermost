@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -291,9 +292,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 		query = query.Where("(FileInfo.Content IS NULL OR FileInfo.Content = '')")
 	}
 
-	if opt.SortBy == "" {
-		opt.SortBy = model.FileinfoSortByCreated
-	}
+	opt.SortBy = cmp.Or(opt.SortBy, model.FileinfoSortByCreated)
 	sortDirection := "ASC"
 	if opt.SortDescending {
 		sortDirection = "DESC"

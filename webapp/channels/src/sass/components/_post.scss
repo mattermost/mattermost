@@ -530,6 +530,10 @@
             max-height: calc(50vh - 40px);
             background-color: var(--center-channel-bg);
 
+            &.textbox-preview-area {
+                overflow-y: auto;
+            }
+
             &.custom-textarea--emoji-picker {
                 padding-right: 50px;
             }
@@ -675,6 +679,10 @@
             .profile-icon {
                 display: none;
             }
+        }
+
+        .post-preview__header .col__name:has(.post__img) {
+            display: none;
         }
 
         .post__link {
@@ -977,7 +985,7 @@
 
     &.same--root {
         &.same--user {
-            padding: 0 0.5em 0 1.5em;
+            padding: 2px 0.5em 2px 1.5em;
 
             &:hover,
             &.post--hovered,
@@ -1038,6 +1046,10 @@
 
                     .col__name {
                         display: flex;
+                    }
+
+                    &.post--compact .post-preview__header .col__name:has(.post__img) {
+                        display: none;
                     }
 
                     .post__permalink {
@@ -1164,7 +1176,7 @@
             min-width: 0;
             flex: 0 auto;
             margin-right: 8px;
-            font-weight: 600;
+            font-weight: 630;
             gap: 8px;
             text-overflow: ellipsis;
 
@@ -1416,7 +1428,7 @@
         white-space: nowrap;
 
         a {
-            font-weight: bold;
+            font-weight: 600;
 
             &.user_name:hover {
                 text-decoration: none;
@@ -1861,7 +1873,7 @@
         margin: 0 8px;
         background: var(--center-channel-bg);
         font-size: 13px;
-        font-weight: bold;
+        font-weight: 600;
         line-height: 24px;
         transition: all 0.15s ease;
 
@@ -1874,7 +1886,7 @@
             top: 2px;
             margin-right: 5px;
             font-size: 1.4em;
-            font-weight: bold;
+            font-weight: 600;
 
             &.fa-angle-up {
                 top: 1px;

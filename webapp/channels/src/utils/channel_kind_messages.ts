@@ -78,5 +78,45 @@ export const channelKindMessages = {
             defaultMessage: 'The text entered exceeds the character limit. The board header is limited to {maxLength} characters.',
         }),
     },
+    addChannelsCta: {
+        channel: defineMessage({
+            id: 'sidebar_left.addChannelsCta',
+            defaultMessage: 'Add Channels',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.addChannelsCta.board',
+            defaultMessage: 'Add Boards',
+        }),
+    },
+    sidebarCategoryName: {
+        channel: defineMessage({
+            id: 'sidebar.types.channels',
+            defaultMessage: 'CHANNELS',
+        }),
+        board: defineMessage({
+            id: 'sidebar.types.channels.board',
+            defaultMessage: 'BOARDS',
+        }),
+    },
+    findChannel: {
+        channel: defineMessage({
+            id: 'sidebar_left.channel_navigator.jumpTo',
+            defaultMessage: 'Find channel',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.channel_navigator.jumpTo.board',
+            defaultMessage: 'Find board',
+        }),
+    },
+    channelSwitcherLabel: {
+        channel: defineMessage({
+            id: 'sidebar_left.channel_navigator.channelSwitcherLabel',
+            defaultMessage: 'Find Channels',
+        }),
+        board: defineMessage({
+            id: 'sidebar_left.channel_navigator.channelSwitcherLabel.board',
+            defaultMessage: 'Find Boards',
+        }),
+    },
 } satisfies Record<string, KindMessages>;
 /* eslint-enable formatjs/enforce-placeholders */

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/base64"
 	"fmt"
@@ -53,9 +54,7 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	// When SiteURL is empty, fall back to the legacy single-remote behavior
 	// using the "plugin_" prefix. This preserves compatibility for older plugins
 	// that haven't been updated to provide a SiteURL.
-	if opts.SiteURL == "" {
-		opts.SiteURL = model.SiteURLPlugin + opts.PluginID
-	}
+	opts.SiteURL = cmp.Or(opts.SiteURL, model.SiteURLPlugin+opts.PluginID)
 
 	// Check if this SiteURL is already registered.
 	rc, err := a.Srv().Store().RemoteCluster().GetBySiteURL(opts.SiteURL)

@@ -15,6 +15,18 @@
     "target": "Mattermost Cloud",
     "note": "Keep in English. Do not render 'Cloud' as 'Sky' (one legacy string does)."
   },
+  "Mattermost Entry": {
+    "target": "Mattermost Entry"
+  },
+  "Mattermost Professional": {
+    "target": "Mattermost Professional"
+  },
+  "Mattermost Enterprise": {
+    "target": "Mattermost Enterprise"
+  },
+  "Mattermost Enterprise Advanced": {
+    "target": "Mattermost Enterprise Advanced"
+  },
   "Channels": {
     "target": "Channels",
     "note": "Product name; keep in English. The common noun 'channels' is 'kanaler'."

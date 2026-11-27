@@ -167,8 +167,8 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
                 fields: {byId, byObjectType: {post: {[GROUP_ID]: byId}}},
                 values: {byTargetId, byFieldId: {}},
                 groups: {
-                    byId: {[GROUP_ID]: {id: GROUP_ID, name: 'post_attributes'}},
-                    byName: {post_attributes: {id: GROUP_ID, name: 'post_attributes'}},
+                    byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}},
+                    byName: {access_control: {id: GROUP_ID, name: 'access_control'}},
                 },
             },
         },
@@ -450,7 +450,7 @@ describe('PostAttributesModal', () => {
         await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
 
         expect(patchSpy).toHaveBeenCalledWith(
-            'post_attributes',
+            'access_control',
             'post',
             POST_ID,
             [{field_id: 'field_1', value: 'opt_unclassified'}],
@@ -591,7 +591,7 @@ describe('PostAttributesModal', () => {
         await userEvent.click(screen.getByTestId('post-attribute-clear-classification'));
 
         await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
-            'post_attributes',
+            'access_control',
             'post',
             POST_ID,
             [{field_id: 'field_1', value: ''}],
@@ -802,7 +802,7 @@ describe('PostAttributesModal', () => {
 
             await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
             expect(patchSpy).toHaveBeenCalledWith(
-                'post_attributes',
+                'access_control',
                 'post',
                 POST_ID,
                 [{field_id: 'field_user', value: 'user_carol'}],
@@ -818,7 +818,7 @@ describe('PostAttributesModal', () => {
 
             await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
             expect(patchSpy).toHaveBeenCalledWith(
-                'post_attributes',
+                'access_control',
                 'post',
                 POST_ID,
                 [{field_id: 'field_multiuser', value: ['user_alice', 'user_carol']}],
@@ -834,7 +834,7 @@ describe('PostAttributesModal', () => {
 
             await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
             expect(patchSpy).toHaveBeenCalledWith(
-                'post_attributes',
+                'access_control',
                 'post',
                 POST_ID,
                 [{field_id: 'field_multiuser', value: ['user_alice']}],
@@ -898,7 +898,7 @@ describe('PostAttributesModal', () => {
         await userEvent.click(screen.getByRole('menuitemcheckbox', {name: /UNCLASSIFIED/}));
 
         await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
-            'post_attributes',
+            'access_control',
             'post',
             POST_ID,
             [{field_id: 'field_multi', value: ['opt_secret', 'opt_unclassified']}],

@@ -97,7 +97,7 @@
         padding: 0.5em 0;
         border-bottom: 1px solid #ccc;
         font-size: 1.1em;
-        font-weight: bold;
+        font-weight: 600;
 
         .permission-name {
             min-width: 300px;
@@ -188,13 +188,17 @@
         }
 
         .permission-group-permissions {
-            overflow: hidden;
-            max-height: 0;
-            transition: max-height 300ms;
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 300ms;
 
             &.open {
-                max-height: 400px;
-                transition: max-height 300ms;
+                grid-template-rows: 1fr;
+            }
+
+            .permission-group-permissions-content {
+                overflow: hidden;
+                min-height: 0;
             }
 
             .permission-row {
@@ -311,7 +315,7 @@
         .title {
             flex-grow: 1;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .actions {
@@ -376,7 +380,7 @@
         padding: 0 0 0 10px;
 
         .title {
-            font-weight: bold;
+            font-weight: 600;
         }
     }
 

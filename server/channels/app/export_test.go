@@ -913,15 +913,9 @@ func TestExportFileWarnings(t *testing.T) {
 		{
 			"s3",
 			func(cfg *model.Config) {
-				s3Host := os.Getenv("CI_MINIO_HOST")
-				if s3Host == "" {
-					s3Host = "localhost"
-				}
+				s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-				s3Port := os.Getenv("CI_MINIO_PORT")
-				if s3Port == "" {
-					s3Port = "9000"
-				}
+				s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
@@ -1830,14 +1824,8 @@ func TestGeneratePresignURLForExport(t *testing.T) {
 	// Cloud server with a dedicated export store returns a working presigned URL.
 	// Skipped when minio isn't reachable.
 	t.Run("succeeds against a presign-capable export store", func(t *testing.T) {
-		s3Host := os.Getenv("CI_MINIO_HOST")
-		if s3Host == "" {
-			s3Host = "localhost"
-		}
-		s3Port := os.Getenv("CI_MINIO_PORT")
-		if s3Port == "" {
-			s3Port = "9000"
-		}
+		s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
+		s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 		s3Endpoint := net.JoinHostPort(s3Host, s3Port)
 
 		conn, err := net.DialTimeout("tcp", s3Endpoint, 2*time.Second)
@@ -3011,8 +2999,8 @@ func TestExportVersionScopeMetadata(t *testing.T) {
 	scopeOf := func(t *testing.T, teamNames, channelNames []string) *imports.VersionInfoImportData {
 		t.Helper()
 		var buf bytes.Buffer
-		appErr := th.App.exportVersion(&buf, teamNames, channelNames)
-		require.Nil(t, appErr)
+		err := th.App.exportVersion(&buf, teamNames, channelNames)
+		require.NoError(t, err)
 
 		var line imports.LineImportData
 		require.NoError(t, json.Unmarshal(buf.Bytes(), &line))

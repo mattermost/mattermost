@@ -18,46 +18,40 @@ func init() {
 const fdExhaustionRatio = 0.90
 
 var envUnsupportedOS = healthcheck.Rule{
-	Code:     "ENV_UNSUPPORTED_OS",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.env_unsupported_os.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.env_unsupported_os.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "Server.OS",
-	Eval:       healthcheck.Single(evalEnvUnsupportedOS),
+	Code:          "ENV_UNSUPPORTED_OS",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.env_unsupported_os.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.env_unsupported_os.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "Server.OS",
+	Eval:          healthcheck.Single(evalEnvUnsupportedOS),
 }
 
 var bindPrivilegedPort = healthcheck.Rule{
-	Code:     "BIND_PRIVILEGED_PORT",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.bind_privileged_port.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.bind_privileged_port.remediation"),
-		ConsolePath:   "/admin_console/environment/web_server",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ServiceSettings.ListenAddress",
-	Eval:       healthcheck.Single(evalBindPrivilegedPort),
+	Code:          "BIND_PRIVILEGED_PORT",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.bind_privileged_port.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.bind_privileged_port.remediation"),
+	ConsolePath:   "/admin_console/environment/web_server",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ServiceSettings.ListenAddress",
+	Eval:          healthcheck.Single(evalBindPrivilegedPort),
 }
 
 var nodeFDExhaustion = healthcheck.Rule{
-	Code:     "NODE_FD_EXHAUSTION",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_fd_exhaustion.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_fd_exhaustion.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Server.FileDescriptors",
-	EvalNode:   healthcheck.SingleNode(evalNodeFDExhaustion),
+	Code:          "NODE_FD_EXHAUSTION",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.node_fd_exhaustion.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_fd_exhaustion.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Server.FileDescriptors",
+	EvalNode:      healthcheck.SingleNode(evalNodeFDExhaustion),
 }
 
 // The OS is always collected, so a server_host error recorded for another value does not hide it.

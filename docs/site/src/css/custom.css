@@ -635,6 +635,21 @@ blockquote {
   font-size: 0.78rem;
   margin-bottom: 1rem;
 }
+/* OneTrust "Cookie settings" button (production builds only). OneTrust's own
+ * stylesheet gives it a bordered pill; restyle it as a plain footer link. */
+.footer #ot-sdk-btn.ot-sdk-show-settings {
+  background: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  color: var(--ifm-footer-link-color) !important;
+  font: inherit !important;
+  line-height: inherit !important;
+  cursor: pointer;
+}
+.footer #ot-sdk-btn.ot-sdk-show-settings:hover {
+  color: var(--ifm-footer-link-hover-color) !important;
+  background: none !important;
+}
 .footer__copyright {
   margin-top: 2rem;
   padding-top: 1.25rem;

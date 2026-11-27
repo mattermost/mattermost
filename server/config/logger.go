@@ -16,9 +16,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/logr/v2"
-	logrcfg "github.com/mattermost/logr/v2/config"
-	"github.com/mattermost/logr/v2/formatters"
-	"github.com/mattermost/logr/v2/targets"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -214,74 +211,34 @@ func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAd
 	return false
 }
 
-// validateAuditTargets applies the checks logr's ConfigureTargets makes when audit.Configure
-// builds cfg, so a target the server would reject is not counted as active. It validates each
-// target's type, options and format directly rather than building the targets, which would
-// allocate a logger and dial syslog servers on every check.
+// validateAuditTargets applies the structural target checks, so a target the server would
+// reject is not counted as active. The checks do not create targets or open their outputs.
 func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
+	if err := cfg.CheckTargets(); err != nil {
+		return err
+	}
+
+	// CheckTargets applies the same certificate rule. This call keeps validateInlineCert as
+	// the check used when a standard-base64 certificate is evaluated for a TLS syslog target.
 	for name, target := range cfg {
-		if strings.EqualFold(target.Type, "none") {
+		if !strings.EqualFold(target.Type, "syslog") || len(target.Options) == 0 {
 			continue
 		}
-		if err := validateAuditTargetOptions(target.Type, target.Options); err != nil {
+		var opts struct {
+			TLS  bool   `json:"tls"`
+			Cert string `json:"cert"`
+		}
+		if err := json.Unmarshal(target.Options, &opts); err != nil {
 			return fmt.Errorf("invalid audit target %s: %w", name, err)
 		}
-		if err := validateAuditTargetFormat(target.Format, target.FormatOptions); err != nil {
-			return fmt.Errorf("invalid format for audit target %s: %w", name, err)
+		if !opts.TLS {
+			continue
+		}
+		if err := validateInlineCert(opts.Cert); err != nil {
+			return fmt.Errorf("invalid audit target %s: %w", name, err)
 		}
 	}
 	return nil
-}
-
-func validateAuditTargetOptions(targetType string, options json.RawMessage) error {
-	switch strings.ToLower(targetType) {
-	case "console":
-		var opts logrcfg.ConsoleOptions
-		if len(options) != 0 {
-			if err := json.Unmarshal(options, &opts); err != nil {
-				return err
-			}
-		}
-		switch opts.Out {
-		case "", "stdout", "stderr":
-			return nil
-		default:
-			return fmt.Errorf("invalid console target option %q", opts.Out)
-		}
-	case "file":
-		var opts targets.FileOptions
-		if err := unmarshalTargetOptions(options, &opts); err != nil {
-			return err
-		}
-		return opts.CheckValid()
-	case "tcp":
-		var opts targets.TcpOptions
-		if err := unmarshalTargetOptions(options, &opts); err != nil {
-			return err
-		}
-		return opts.CheckValid()
-	case "syslog":
-		var opts targets.SyslogOptions
-		if err := unmarshalTargetOptions(options, &opts); err != nil {
-			return err
-		}
-		if err := opts.CheckValid(); err != nil {
-			return err
-		}
-		if opts.TLS {
-			return validateInlineCert(opts.Cert)
-		}
-		return nil
-	default:
-		return fmt.Errorf("target type %q is unrecognized", targetType)
-	}
-}
-
-func unmarshalTargetOptions(options json.RawMessage, opts any) error {
-	if len(options) == 0 {
-		return errors.New("missing target options")
-	}
-	return json.Unmarshal(options, opts)
 }
 
 // validateInlineCert rejects a base64 cert that does not hold a PEM certificate. Any other value
@@ -296,28 +253,6 @@ func validateInlineCert(cert string) error {
 		return errors.New("cannot parse cert")
 	}
 	return nil
-}
-
-func validateAuditTargetFormat(format string, options json.RawMessage) error {
-	var formatter interface{ CheckValid() error }
-	switch strings.ToLower(format) {
-	case "json":
-		formatter = &formatters.JSON{}
-	case "plain":
-		formatter = &formatters.Plain{}
-	case "gelf":
-		formatter = &formatters.Gelf{}
-	default:
-		return fmt.Errorf("format %q is unrecognized", format)
-	}
-
-	if len(options) == 0 {
-		return nil
-	}
-	if err := json.Unmarshal(options, formatter); err != nil {
-		return err
-	}
-	return formatter.CheckValid()
 }
 
 func GetLogFileLocation(fileLocation string) string {
@@ -449,6 +384,112 @@ const LogPathInvalidWarning = "Log file path in logging config is outside the lo
 // treated as fatal rather than merely logged. Nil-safe: cfg may carry no feature flags at all.
 func IsLogPathEnforcementEnabled(cfg *model.Config) bool {
 	return cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.EnforceLogPathRoot
+}
+
+// errAdvancedLoggingCert is returned when a TLS syslog or tcp target certificate is not a
+// base64-encoded PEM certificate and is not the value already stored for that target with TLS on.
+// The text does not include the certificate value.
+var errAdvancedLoggingCert = errors.New("advanced logging certificate must be a base64-encoded PEM certificate")
+
+// ValidateAdvancedLoggingCerts checks TLS syslog and tcp targets in
+// LogSettings.AdvancedLoggingJSON and ExperimentalAuditSettings.AdvancedLoggingJSON.
+// A certificate must be a standard-base64 PEM certificate that parses as PEM,
+// unless that same string is already stored on the target in active and that target has TLS on.
+func ValidateAdvancedLoggingCerts(cfg, active *model.Config) error {
+	if cfg == nil {
+		return nil
+	}
+
+	var activeLog, activeAudit json.RawMessage
+	if active != nil {
+		activeLog = active.LogSettings.AdvancedLoggingJSON
+		activeAudit = active.ExperimentalAuditSettings.AdvancedLoggingJSON
+	}
+
+	if err := validateLoggingJSONCerts(cfg.LogSettings.AdvancedLoggingJSON, activeLog); err != nil {
+		return err
+	}
+	return validateLoggingJSONCerts(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, activeAudit)
+}
+
+func validateLoggingJSONCerts(raw, activeRaw json.RawMessage) error {
+	if utils.IsEmptyJSON(raw) {
+		return nil
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		return nil
+	}
+
+	stored := storedLoggingCerts(activeRaw)
+	for name, target := range cfg {
+		cert, ok := tlsLoggingCert(target)
+		if !ok {
+			continue
+		}
+		if cert == "" || advancedLoggingCertIsInline(cert) {
+			continue
+		}
+		if prev, found := stored[name]; found && prev == cert {
+			continue
+		}
+		return errAdvancedLoggingCert
+	}
+	return nil
+}
+
+// storedLoggingCerts maps each TLS tcp or syslog target name to the certificate
+// string stored on that target. A target with TLS off is omitted, as is any other type.
+func storedLoggingCerts(raw json.RawMessage) map[string]string {
+	certs := make(map[string]string)
+	if utils.IsEmptyJSON(raw) {
+		return certs
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		return certs
+	}
+
+	for name, target := range cfg {
+		cert, ok := tlsLoggingCert(target)
+		if !ok {
+			continue
+		}
+		certs[name] = cert
+	}
+	return certs
+}
+
+// tlsLoggingCert returns the certificate of a TLS tcp or syslog target.
+func tlsLoggingCert(target mlog.TargetCfg) (string, bool) {
+	switch strings.ToLower(target.Type) {
+	case "tcp", "syslog":
+	default:
+		return "", false
+	}
+	if len(target.Options) == 0 {
+		return "", false
+	}
+
+	var opts struct {
+		TLS  bool   `json:"tls"`
+		Cert string `json:"cert"`
+	}
+	if err := json.Unmarshal(target.Options, &opts); err != nil || !opts.TLS {
+		return "", false
+	}
+	return opts.Cert, true
+}
+
+// advancedLoggingCertIsInline reports whether cert is a standard-base64 PEM certificate.
+func advancedLoggingCertIsInline(cert string) bool {
+	der, err := base64.StdEncoding.DecodeString(cert)
+	if err != nil || len(der) == 0 {
+		return false
+	}
+	return x509.NewCertPool().AppendCertsFromPEM(der)
 }
 
 // ValidateLogPaths checks every log and audit file path in cfg against loggingRoot, returning an

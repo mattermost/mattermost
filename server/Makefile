@@ -159,15 +159,14 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.6
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.7
 PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v5.1.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0
-PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-boards-v10.2.0
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
@@ -182,7 +181,7 @@ PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.1%2Bf370c05-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0%2Bc234d17-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0%2B23ece5d-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.2.0%2Bd046f7c-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -361,12 +360,13 @@ i18n-verify: ## Verify the non-English translation files against en.json
 	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
 
 .PHONY: i18n-verify-all
-i18n-verify-all: i18n-verify ## Run every translation check: both surfaces' catalogs, the glossary and the translation pipeline
+i18n-verify-all: i18n-verify ## Run every translation check: both surfaces' catalogs, the glossary, and the translation pipeline's tests and lint
 	cd ../tools/mmgotool && $(GO) test ./commands/ -run TestServerPluralTableMatchesGoI18n
 	@test -d $(BUILD_WEBAPP_DIR)/node_modules || { echo "$(BUILD_WEBAPP_DIR)/node_modules is missing; run make -C $(BUILD_WEBAPP_DIR) node_modules"; exit 1; }
 	cd $(BUILD_WEBAPP_DIR)/channels && npm run i18n-verify-translations -- --warn-missing-keys
-	cd .. && node --test i18n/scripts/*.test.mjs
+	cd .. && node --test 'i18n/scripts/**/*.test.mjs'
 	cd .. && node i18n/scripts/check_glossary.mjs
+	cd ../i18n && $(abspath $(BUILD_WEBAPP_DIR))/node_modules/.bin/eslint .
 
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
@@ -376,7 +376,7 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 .PHONY: install-mockery
 install-mockery:
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.53.8
 
 .PHONY: store-mocks
 store-mocks: setup-go-work install-mockery ## Creates mock files.
@@ -495,9 +495,11 @@ ifneq ($(SKIP_SETUP_GO_WORK),true)
 	fi
 endif
 
+# embedlit, errorsastype and stringscut are new in Go 1.27; they are adopted separately, not as part of the toolchain bump.
+# TODO(MM-71330): we plan to fix the findings and enable them in the near future.
 .PHONY: check-go-fix
 check-go-fix: setup-go-work ## Check if go fix would modify any files.
-	$(GO) fix -diff ./...
+	$(GO) fix -diff -embedlit=false -errorsastype=false -stringscut=false ./...
 
 .PHONY: check-style
 check-style: plugin-checker vet golangci-lint check-go-fix ## Runs style/lint checks
@@ -913,7 +915,7 @@ config-openid: ## Configures OpenID.
 config-reset: setup-go-work ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
 	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags production ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags '$(if $(filter true,$(FIPS_ENABLED)),requirefips )production' ./scripts/config_generator
 
 .PHONY: diff-config
 diff-config: ## Compares default configuration between two mattermost versions
@@ -976,6 +978,8 @@ endif
 install-govet:
 	cd ../tools/mattermost-govet && $(GO) install .
 
+APP_ERROR_BASELINE = $(CURDIR)/channels/app/apperror_baseline.txt
+
 .PHONY: vet
 vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
@@ -994,12 +998,23 @@ vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 		-concurrentIndex.path=./channels/db/migrations/ \
 		-concurrentIndex.minMigration=166 \
 		-sortSlices \
+		-appErrorReturn \
+		-appErrorReturn.baseline=$(APP_ERROR_BASELINE) \
+		-appErrorReturn.baselineDigest=$$( (sha256sum $(APP_ERROR_BASELINE) 2>/dev/null || shasum -a 256 $(APP_ERROR_BASELINE)) | cut -d' ' -f1) \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -sortSlices -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
+
+.PHONY: update-apperror-baseline
+update-apperror-baseline: setup-go-work install-govet ## Regenerate the baseline of channels/app functions still allowed to return *model.AppError
+	@out=$$($(GO) vet -vettool=$(GOBIN)/mattermost-govet -appErrorReturn -appErrorReturn.list ./channels/app/... 2>&1); \
+	if printf '%s\n' "$$out" | grep -v -e '^#' -e ': appErrorReturn baseline entry: ' | grep -q .; then \
+		printf '%s\n' "$$out"; exit 1; \
+	fi; \
+	printf '%s\n' "$$out" | sed -n 's/.*: appErrorReturn baseline entry: //p' | LC_ALL=C sort -u > $(APP_ERROR_BASELINE)
 
 .PHONY: vet-fix
 vet-fix: setup-go-work ## Apply the suggested fixes from mattermost go vet checks

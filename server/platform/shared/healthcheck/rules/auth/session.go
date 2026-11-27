@@ -14,19 +14,17 @@ func init() {
 
 // Only upgraded configs default this to false, so the rule mostly finds long-lived installs.
 var sessionExtendOff = healthcheck.Rule{
-	Code:     "SESSION_EXTEND_OFF",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.session_extend_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.session_extend_off.remediation"),
-		DocsURL:       "https://mattermost.com/pl/configure-session-lengths",
-		ConsolePath:   "/admin_console/environment/session_lengths",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ServiceSettings.ExtendSessionLengthWithActivity",
-	Eval:       healthcheck.Single(evalSessionExtendOff),
+	Code:          "SESSION_EXTEND_OFF",
+	Area:          model.AreaAuth,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.session_extend_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.session_extend_off.remediation"),
+	DocsURL:       "https://mattermost.com/pl/configure-session-lengths",
+	ConsolePath:   "/admin_console/environment/session_lengths",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ServiceSettings.ExtendSessionLengthWithActivity",
+	Eval:          healthcheck.Single(evalSessionExtendOff),
 }
 
 func evalSessionExtendOff(s *healthcheck.Snapshot) healthcheck.Result {

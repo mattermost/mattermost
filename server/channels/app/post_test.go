@@ -6509,9 +6509,11 @@ func TestRevealPost(t *testing.T) {
 	t.Run("post type non burn on read", func(t *testing.T) {
 		regularPost := createRegularPost()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, regularPost, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, regularPost, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.not_burn_on_read.app_error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -6534,9 +6536,10 @@ func TestRevealPost(t *testing.T) {
 		// Now manually remove the expire_at prop to test missing prop scenario
 		createdPost.SetProps(make(model.StringInterface))
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -6550,9 +6553,11 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, "invalid_string")
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 	})
 
@@ -6565,9 +6570,11 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, float64(0))
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 	})
 
@@ -6576,8 +6583,8 @@ func TestRevealPost(t *testing.T) {
 
 		post := createBurnOnReadPost()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 		require.Equal(t, "burn on read message", revealedPost.Message)
 		require.NotNil(t, revealedPost.Metadata)
@@ -6598,14 +6605,14 @@ func TestRevealPost(t *testing.T) {
 		post := createBurnOnReadPost()
 
 		// First reveal to create receipt
-		revealedPost1, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost1, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost1)
 		require.NotZero(t, revealedPost1.Metadata.ExpireAt)
 
 		// Reveal again - should succeed and return the same post
-		revealedPost2, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost2, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost2)
 		require.Equal(t, "burn on read message", revealedPost2.Message)
 		require.NotNil(t, revealedPost2.Metadata)
@@ -6626,9 +6633,11 @@ func TestRevealPost(t *testing.T) {
 		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, expiredReceipt)
 		require.NoError(t, err)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.read_receipt_expired.error", appErr.Id)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 	})
@@ -6640,9 +6649,11 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()-1000)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.post_expired.app_error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -6651,8 +6662,8 @@ func TestRevealPost(t *testing.T) {
 		enableBoRFeature(th)
 
 		fileBytes := []byte("test")
-		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
-		require.Nil(t, err)
+		fileInfo, appErr := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, appErr)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -6667,8 +6678,8 @@ func TestRevealPost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 		require.NotNil(t, revealedPost.Metadata)
 		require.NotZero(t, revealedPost.Metadata.ExpireAt)
@@ -6691,8 +6702,8 @@ func TestRevealPost(t *testing.T) {
 		initialExpireAt := tmpPostInitial.ExpireAt
 
 		// First reveal by user2 creates a read receipt
-		_, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		_, err = th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 
 		// Get the read receipt's ExpireAt (should be 5 minutes)
 		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
@@ -6707,8 +6718,8 @@ func TestRevealPost(t *testing.T) {
 		require.Equal(t, initialExpireAt, tmpPostAfterFirstReveal.ExpireAt)
 
 		// Now user3 reveals - this should trigger updateTemporaryPostIfAllRead
-		_, appErr = th.App.RevealPost(th.Context, post, user3.Id, "")
-		require.Nil(t, appErr)
+		_, err = th.App.RevealPost(th.Context, post, user3.Id, "")
+		require.NoError(t, err)
 
 		// Fetch the TemporaryPost with cache bypass to verify it was updated
 		tmpPostAfterAllReveal, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
@@ -6867,8 +6878,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NotNil(t, createdPost)
 
 		// User2 reveals the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		// User2 saves/flags the post
@@ -6878,7 +6889,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Verify post appears in flagged posts before expiration
@@ -6921,8 +6932,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		preference := model.Preference{
@@ -6931,7 +6942,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Expire the receipt
@@ -6963,8 +6974,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		preference := model.Preference{
@@ -6973,7 +6984,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Expire the receipt
@@ -7005,8 +7016,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		preference := model.Preference{
@@ -7015,7 +7026,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Get flagged posts - post should be present
@@ -7258,9 +7269,9 @@ func TestGetBurnOnReadPost(t *testing.T) {
 		_, err := th.App.Srv().Store().TemporaryPost().Save(th.Context, temporaryPost)
 		require.NoError(t, err)
 
-		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
+		resultPost, err := th.App.getBurnOnReadPost(th.Context, post)
 
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 		require.NotNil(t, resultPost)
 		assert.Equal(t, temporaryPost.Message, resultPost.Message)
 		assert.Equal(t, temporaryPost.FileIDs, resultPost.FileIds)
@@ -7280,10 +7291,12 @@ func TestGetBurnOnReadPost(t *testing.T) {
 			Type:      model.PostTypeBurnOnRead,
 		}
 
-		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
+		resultPost, err := th.App.getBurnOnReadPost(th.Context, post)
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
 		require.Nil(t, resultPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.post.get_post.app_error", appErr.Id)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
@@ -7655,4 +7668,18 @@ func TestPostMutationsReadFromMaster(t *testing.T) {
 		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
+}
+
+func TestCheckPostRemindersWithoutSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+
+	th.App.CheckPostReminders(th.Context)
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := th.LogBuffer.String()
+	testlib.AssertNoLog(t, strings.NewReader(logs), mlog.LvlError.Name, "Failed to get system bot")
+	testlib.AssertLog(t, strings.NewReader(logs), mlog.LvlDebug.Name, "Skipping post reminders because there is no system admin to own the system bot")
 }

@@ -20,9 +20,10 @@ This page contains most of the information required for a developer to work with
 
     Once you've done either of those, your server will be available at `http://localhost:8065` by default. Changes to the web app will be built automatically, but changes to the server will only be applied if you restart the server by running `make restart-server` from the server directory.
 
-5. If you added or changed any translatable text, you will need to update the English translation files to make them available to translators for other languages. You can do that by navigating to `channels` and running `make i18n-extract` to update `src/i18n/en.json`.
+5. If you added or changed any translatable text, you will need to update the English translation file to make it available for translation into other languages. You can do that by navigating to `channels` and running `make i18n-extract` to update `src/i18n/en.json`.
     * Remember to double check that any newly added strings have the correct values in case they weren't detected correctly.
-    * Generally, only `en.json` should be modified directly from this repository. Other languages' translation files are updated using [Weblate](https://translate.mattermost.com).
+    * Fill in the `description` of each newly added string: where it appears and what its variables refer to. Translators, human or AI, rely on it to produce a correct translation rather than a plausible one, and CI fails a string added without one.
+    * Generally, a feature or bug fix PR modifies only `en.json`. The other languages' translation files also live in this repository, and are filled separately by following the [translation guide](https://github.com/mattermost/mattermost/blob/master/i18n/README.md).
 
 6. Before submitting a PR, make sure to check your coding style and run the automated tests on your changes. These are checked automatically by CI, but they should be run manually before submitting changes to ensure the review process goes smoothly.
     * To check the code style and run the linter, run `make check-style`. If any problems are encountered, they may be able to be automatically fixed by using `make fix-style`.
@@ -37,4 +38,4 @@ This page contains most of the information required for a developer to work with
 
 ### Useful Mattermost commands
 
-During development you may want to reset the database and generate random data for testing your changes. See [the corresponding section of the server developer workflow](/developers/contribute/more-info/server/developer-workflow#useful-mattermost-commands) for how to do that.
+During development you may want to reset the database and generate random data for testing your changes. See [the corresponding section of the server developer workflow](/developers/contribute/more-info/server/developer-workflow#useful-mattermost-and-mmctl-commands) for how to do that.

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -525,9 +526,7 @@ func (u *User) PreSave(hasher UserPasswordHasher) *AppError {
 
 	u.MfaActive = false
 
-	if u.Locale == "" {
-		u.Locale = DefaultLocale
-	}
+	u.Locale = cmp.Or(u.Locale, DefaultLocale)
 
 	if u.Props == nil {
 		u.Props = make(map[string]string)

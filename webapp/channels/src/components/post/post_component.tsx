@@ -133,6 +133,9 @@ export type Props = {
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
     isPostAttributesEnabled?: boolean;
+
+    /** A board's card: its plugin shows the card's attributes inside its own preview, so core's chips stay off. */
+    isBoardCard?: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
@@ -910,7 +913,7 @@ function PostComponent(props: Props) {
                             />
                             }
                         </div>
-                        {props.isPostAttributesEnabled && !props.shouldDisplayBurnOnReadConcealed && post.state !== Posts.POST_DELETED && (
+                        {props.isPostAttributesEnabled && !props.isBoardCard && !isSystemMessage && !props.shouldDisplayBurnOnReadConcealed && post.state !== Posts.POST_DELETED && (
                             <PostAttributesChips
                                 post={post}
                                 channel={props.channel}

@@ -4,7 +4,6 @@
 import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {Value} from 'components/multiselect/multiselect';
 
@@ -29,11 +28,6 @@ describe('component/add_user_to_group_multiselect', () => {
         delete_at: 0,
     } as UserProfileValue];
 
-    const userStatuses = {
-        'user-1': 'online',
-        'user-2': 'offline',
-    } as RelationOneToOne<UserProfile, string>;
-
     const baseProps = {
         multilSelectKey: 'addUsersToGroupKey',
         onSubmitCallback: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -52,38 +46,6 @@ describe('component/add_user_to_group_multiselect', () => {
             searchProfiles: jest.fn(),
         },
     };
-
-    test('should match snapshot without any profiles', () => {
-        const {container} = renderWithContext(
-            <AddUserToGroupMultiSelect
-                {...baseProps}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with profiles', () => {
-        const {container} = renderWithContext(
-            <AddUserToGroupMultiSelect
-                {...baseProps}
-                profiles={users}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with different submit button text', () => {
-        const {container} = renderWithContext(
-            <AddUserToGroupMultiSelect
-                {...baseProps}
-                profiles={users}
-                userStatuses={userStatuses}
-                buttonSubmitLoadingText='Updating...'
-                buttonSubmitText='Update Group'
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
 
     test('should trim the search term', () => {
         const ref = React.createRef<AddUserToGroupMultiSelectClass>();

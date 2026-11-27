@@ -73,6 +73,16 @@ Things to know about saving:
 
 `GetAccessControlPolicy(id)` reads a policy back, and `DeleteAccessControlPolicy(actingUserID, resourceType, id)` deletes it. Both return a not-found error for a policy that doesn't exist or belongs to another plugin. Delete a resource's policy when you delete the resource.
 
+### When attribute-based access control is unavailable
+
+From Mattermost v12.3, `GetAccessControlPolicy` and `DeleteAccessControlPolicy` keep working when attribute-based access control is unavailable, for example after a license lapses or when an admin turns it off. This lets your plugin show an admin the restrictions on a resource, and remove them, even though they can't be enforced:
+
+- `GetAccessControlPolicy` returns the policy as stored, without normalization. Attribute references in rule expressions come back in their stored, ID-encoded form (for example `user.id_<groupID>.id_<fieldID>`) rather than as `user.attributes.<name>`, so a policy editor needs to expect that form while attribute-based access control is unavailable. Use this policy to display the restriction only, and don't pass it back to `SaveAccessControlPolicy`. Read it again once attribute-based access control is available.
+- `DeleteAccessControlPolicy` deletes the policy directly.
+- `SaveAccessControlPolicy` still needs attribute-based access control, and returns an error without it.
+
+Earlier versions return a not-implemented error from `GetAccessControlPolicy` and `DeleteAccessControlPolicy` in this situation. Your plugin can use that error to tell that the server predates this behavior.
+
 ## Check access
 
 Call `EvaluateAccessControl(userID, resourceType, resourceID, action)` before you let a user act on a resource. It returns a `*model.AccessDecision`:
@@ -100,6 +110,47 @@ func (p *Plugin) canAccessReport(userID, reportID, action string) bool {
 
 When attribute-based access control is unavailable, Mattermost still checks whether the resource has a policy. A resource without one gets the "no policy" decision, so your plugin keeps working on servers that don't use attribute-based access control.
 
+### Check many resources at once
+
+To filter a list of resources for one user, such as the reports on a page, call `EvaluateAccessControlBatch(userID, resourceType, action, resourceIDs)` instead of calling `EvaluateAccessControl` for each one. It needs Mattermost v12.3. Mattermost loads the user's attributes once for the whole batch, and returns a `map[string]*model.AccessDecision` keyed by resource ID.
+
+Each decision in the map means the same as a decision from `EvaluateAccessControl`, including `IsNoPolicy()`. A few rules apply to the batch as a whole:
+
+- You can pass up to 500 distinct resource IDs. Duplicates are ignored. More than 500 returns an error, so split a longer list into several calls.
+- **A resource ID that is missing from the map must be denied.** Mattermost leaves out a resource when its policy couldn't be evaluated, or when it couldn't tell whether the resource has a policy.
+- **If the call returns an error, deny every resource.** The error means the whole batch failed, for example because of an invalid argument or because the store couldn't be read. Also deny everything if the call returns a `nil` map without an error, which is what the plugin API returns on a server without this method.
+- When a resource can't be evaluated, Mattermost checks whether it has a policy, as `EvaluateAccessControl` does. A resource without a policy gets the "no policy" decision, and one with a policy is left out of the map.
+- Mattermost loads the user's attributes once, but evaluates each resource on its own. If a policy or the user's attributes change while the call is running, different resources in the same batch can reflect different states. The first call for a policy that isn't cached yet is slower than later ones, because Mattermost compiles the policy first.
+
+```go
+func (p *Plugin) filterReports(userID string, reportIDs []string, action string) []string {
+	decisions, appErr := p.API.EvaluateAccessControlBatch(userID, reportResourceType, action, reportIDs)
+	if appErr != nil {
+		p.API.LogWarn("Batch access check failed, denying all", "action", action)
+		return nil
+	}
+
+	var allowed []string
+	for _, reportID := range reportIDs {
+		decision, ok := decisions[reportID]
+		if !ok || decision == nil {
+			// Not evaluated: deny.
+			continue
+		}
+		if decision.IsNoPolicy() {
+			if p.defaultReportAccess(userID, reportID, action) {
+				allowed = append(allowed, reportID)
+			}
+			continue
+		}
+		if decision.Decision {
+			allowed = append(allowed, reportID)
+		}
+	}
+	return allowed
+}
+```
+
 ## Build a policy editor
 
 If your plugin lets admins write rules, these methods help its UI check an expression, test it against users and list the attributes a rule can use. Each takes an `actingUserID` and runs as that user. As with saving, Mattermost doesn't check that this user may make the call, so check permissions in your plugin first.
@@ -107,6 +158,7 @@ If your plugin lets admins write rules, these methods help its UI check an expre
 | Method | Use |
 |---|---|
 | `CheckAccessControlExpression(actingUserID, resourceType, expression)` | Checks an expression. Returns a list of errors, each with `Line`, `Column` and `Message`; an empty list means the expression is valid. |
+| `CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression)` | Checks an expression like `CheckAccessControlExpression`, and also reports anything that would stop Mattermost from using it to search for users, such as a session attribute or a function with no search equivalent. Needs Mattermost v12.3. Use it instead of `CheckAccessControlExpression` when your plugin also uses a policy to find the users who match it, for example to decide who receives a notification. An empty list means the expression is valid for both checking access and searching. |
 | `QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID, limit)` | Lists the users who match an expression, optionally filtered by a search term, so an admin can test a rule. Returns `Users` and `Total`. `limit` defaults to 50 and is capped at 100; pass the last user's ID as `cursorID` for the next page. |
 | `GetAccessControlFieldsAutocomplete(actingUserID, after, limit)` | Lists the attributes a rule can use: the built-in user fields first, then user attributes. Pass an empty `after` to start at the beginning. `limit` defaults to 50 and is capped at 100. |
 | `GetAccessControlVisualAST(actingUserID, resourceType, expression)` | Converts an expression to a list of conditions, each with an attribute, an operator and a value, so your UI can show it as a table. Returns an error for an expression that can't be shown that way, such as one that joins conditions on different attributes with OR. |

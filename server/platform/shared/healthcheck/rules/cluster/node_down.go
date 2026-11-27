@@ -13,19 +13,17 @@ func init() {
 }
 
 var nodeNotResponding = healthcheck.Rule{
-	Code:     "NODE_NOT_RESPONDING",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.node_not_responding.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.node_not_responding.remediation"),
-		DocsURL:       haDocsURL,
-		ConsolePath:   haConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityTopology,
-	Subject:    "cluster.node",
-	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode(haRunning, healthcheck.ReasonConfigUnavailable, evalNodeNotResponding)),
+	Code:          "NODE_NOT_RESPONDING",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.node_not_responding.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.node_not_responding.remediation"),
+	DocsURL:       haDocsURL,
+	ConsolePath:   haConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityTopology,
+	Subject:       "cluster.node",
+	EvalNode:      healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode(haRunning, healthcheck.ReasonConfigUnavailable, evalNodeNotResponding)),
 }
 
 func evalNodeNotResponding(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {

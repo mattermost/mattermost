@@ -11,58 +11,77 @@ import (
 )
 
 func init() {
-	healthcheck.Register(logDebugProd, logFileOff, metricsOff)
+	healthcheck.Register(logDebugProd, logFileOff, logWebhookPayloads, metricsOff)
 }
 
 const loggingConsolePath = "/admin_console/environment/logging"
 
 var logDebugProd = healthcheck.Rule{
-	Code:     "LOG_DEBUG_PROD",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.log_debug_prod.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.log_debug_prod.remediation"),
-		ConsolePath:   loggingConsolePath,
-	},
-	Surface:    healthcheck.SurfaceInternal,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "LogSettings.FileLevel",
-	Eval:       healthcheck.Gate(fileLogging, healthcheck.ReasonConfigUnavailable, evalLogDebugProd),
+	Code:          "LOG_DEBUG_PROD",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.log_debug_prod.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.log_debug_prod.remediation"),
+	ConsolePath:   loggingConsolePath,
+	Surface:       healthcheck.SurfaceInternal,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "LogSettings.FileLevel",
+	Eval:          healthcheck.Gate(fileLogging, healthcheck.ReasonConfigUnavailable, evalLogDebugProd),
 }
 
 var logFileOff = healthcheck.Rule{
-	Code:     "LOG_FILE_OFF",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.log_file_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.log_file_off.remediation"),
-		ConsolePath:   loggingConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "LogSettings.EnableFile",
-	Eval:       healthcheck.Single(evalLogFileOff),
+	Code:          "LOG_FILE_OFF",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.log_file_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.log_file_off.remediation"),
+	ConsolePath:   loggingConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "LogSettings.EnableFile",
+	Eval:          healthcheck.Single(evalLogFileOff),
+}
+
+var logWebhookPayloads = healthcheck.Rule{
+	Code:          "LOG_WEBHOOK_PAYLOADS",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.log_webhook_payloads.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.log_webhook_payloads.remediation"),
+	ConsolePath:   loggingConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "LogSettings.EnableWebhookDebugging",
+	Eval:          healthcheck.Single(evalLogWebhookPayloads),
 }
 
 var metricsOff = healthcheck.Rule{
-	Code:     "METRICS_OFF",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.metrics_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.metrics_off.remediation"),
-		ConsolePath:   "/admin_console/environment/performance_monitoring",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "MetricsSettings.Enable",
-	Eval:       healthcheck.Licensed(healthcheck.FeatureMetrics, healthcheck.Single(evalMetricsOff)),
+	Code:          "METRICS_OFF",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.metrics_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.metrics_off.remediation"),
+	ConsolePath:   "/admin_console/environment/performance_monitoring",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "MetricsSettings.Enable",
+	Eval:          healthcheck.Licensed(healthcheck.FeatureMetrics, healthcheck.Single(evalMetricsOff)),
 }
 
 func fileLogging(s *healthcheck.Snapshot) (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableFile })
+}
+
+func evalLogWebhookPayloads(s *healthcheck.Snapshot) healthcheck.Result {
+	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableWebhookDebugging })
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case enabled:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.log_webhook_payloads.message"))
+	default:
+		return healthcheck.Resolved()
+	}
 }
 
 func evalLogDebugProd(s *healthcheck.Snapshot) healthcheck.Result {

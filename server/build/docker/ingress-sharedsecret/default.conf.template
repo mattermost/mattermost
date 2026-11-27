@@ -1,0 +1,34 @@
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ""      "";
+}
+
+server {
+    listen 8090;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host $http_host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 86400;
+    proxy_send_timeout 86400;
+    client_max_body_size 100M;
+
+    # Paths reachable without the secret: pre-login config, SSO and OAuth flows.
+    location ~ ^/(static/|api/v4/config/client$|api/v4/notifications/ack$|login/sso/saml$|login/desktop$|oauth/[A-Za-z0-9]+/(complete|login|mobile_login|signup)$|api/v3/oauth/[A-Za-z0-9]+/complete$|(signup|login)/[A-Za-z0-9]+/complete$) {
+        proxy_pass http://host.docker.internal:8065;
+    }
+
+    location / {
+        if ($http_x_mattermost_preauth_secret != "${INGRESS_PREAUTH_SECRET}") {
+            add_header X-Reject-Reason pre-auth always;
+            add_header Cache-Control "no-store" always;
+            return 403;
+        }
+        proxy_pass http://host.docker.internal:8065;
+    }
+}

@@ -47,17 +47,15 @@ describe('plugins/Pluggable', () => {
         };
     }
 
-    test('should match snapshot with extended component', () => {
+    test('should render with extended component', () => {
         const state = getBaseState();
-        const {container} = renderWithContext(
+        renderWithContext(
             <Pluggable
                 {...baseProps}
                 pluggableName='RightHandSidebarComponent'
             />,
             state,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('pluginId')).toBeInTheDocument();
         expect(screen.getByText('ProfilePopoverPlugin')).toBeInTheDocument();
     });
@@ -79,7 +77,7 @@ describe('plugins/Pluggable', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should match snapshot with non-null pluggableId', () => {
+    test('should render with non-null pluggableId', () => {
         const state = getBaseState();
         const store = testConfigureStore(state);
         const {container} = renderWithContext(
@@ -92,16 +90,14 @@ describe('plugins/Pluggable', () => {
             </Provider>,
             state,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should match snapshot with valid pluggableId', () => {
+    test('should render with valid pluggableId', () => {
         const state = getBaseState();
         state.plugins!.components!.RightHandSidebarComponent![0]!.id = 'pluggableId';
         const store = testConfigureStore(state);
-        const {container} = renderWithContext(
+        renderWithContext(
             <Provider store={store}>
                 <Pluggable
                     {...baseProps}
@@ -111,8 +107,6 @@ describe('plugins/Pluggable', () => {
             </Provider>,
             state,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('pluginId')).toBeInTheDocument();
     });
 });

@@ -4,6 +4,7 @@
 package testlib
 
 import (
+	"cmp"
 	"flag"
 	"fmt"
 	"log"
@@ -123,10 +124,7 @@ func (h *MainHelper) Main(m *testing.M) {
 	}
 
 	if h.Options.RunParallel && h.Options.EnableStore {
-		driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-		if driverName == "" {
-			driverName = model.DatabaseDriverPostgres
-		}
+		driverName := cmp.Or(os.Getenv("MM_SQLSETTINGS_DRIVERNAME"), model.DatabaseDriverPostgres)
 		// NOTE: we use a poolSize higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
 		// for subtests that might also run in parallel and initialize a new store.
 		storePool, err := sqlstore.NewTestPool(h.Logger, driverName, h.Options.Parallelism*2)
@@ -159,10 +157,7 @@ func (h *MainHelper) Main(m *testing.M) {
 }
 
 func (h *MainHelper) GetNewStores(tb testing.TB) (store.Store, *sqlstore.SqlStore, *model.SqlSettings, *searchengine.Broker) {
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
+	driverName := cmp.Or(os.Getenv("MM_SQLSETTINGS_DRIVERNAME"), model.DatabaseDriverPostgres)
 
 	config := &model.Config{}
 	config.SetDefaults()
@@ -189,10 +184,7 @@ func (h *MainHelper) GetNewStores(tb testing.TB) (store.Store, *sqlstore.SqlStor
 }
 
 func (h *MainHelper) setupStore() {
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
+	driverName := cmp.Or(os.Getenv("MM_SQLSETTINGS_DRIVERNAME"), model.DatabaseDriverPostgres)
 
 	h.Settings = storetest.MakeSqlSettings(driverName)
 	h.replicas = h.Settings.DataSourceReplicas

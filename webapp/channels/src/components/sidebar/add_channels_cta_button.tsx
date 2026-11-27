@@ -3,7 +3,7 @@
 
 import type {ReactNode, JSX} from 'react';
 import React, {useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GlobeIcon, PlusIcon} from '@mattermost/compass-icons/components';
@@ -16,11 +16,15 @@ import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
+import {getBoardCreateMenuItems} from 'selectors/views/product_rail';
 
 import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
+import {useProductRailKind} from 'hooks/useProductRailKind';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -29,10 +33,19 @@ import type {GlobalState} from 'types/store';
 const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
 const transformOrigin = {vertical: 'top', horizontal: -20} as const;
 
+/* eslint-disable formatjs/enforce-placeholders -- no placeholders */
+const browseMessages: KindMessages = {
+    channel: defineMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'}),
+    board: defineMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels.board', defaultMessage: 'Browse boards'}),
+};
+/* eslint-enable formatjs/enforce-placeholders */
+
 const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
+    const productRailKind = useProductRailKind();
+    const boardMenuItems = useSelector(getBoardCreateMenuItems);
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
@@ -41,16 +54,24 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const canJoinPublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.JOIN_PUBLIC_CHANNELS));
     const currentUserId = useSelector(getCurrentUserId);
 
+    // On the Boards item, the menu creates boards through the board plugin's own "Create new board"
+    // item. Without one (or without permission to create), there's no way to make a board from here,
+    // so it keeps the channel wording rather than promise one.
+    const showBoardMenu = productRailKind === 'board' && canCreateChannel && boardMenuItems.length > 0;
+    const railKind = showBoardMenu ? 'board' : 'channel';
+
     let buttonClass = 'SidebarChannelNavigator__addChannelsCtaLhsButton';
 
     if (!touchedAddChannelsCtaButton) {
         buttonClass += ' SidebarChannelNavigator__addChannelsCtaLhsButton--untouched';
     }
 
+    // On the Boards item, browsing lists boards.
     const showMoreChannelsModal = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
+            dialogProps: {kind: productRailKind},
         }));
     };
 
@@ -70,17 +91,24 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
                     leadingElement={<GlobeIcon size={18}/>}
-                    labels={
-                        <FormattedMessage
-                            id='sidebar_left.add_channel_dropdown.browseChannels'
-                            defaultMessage='Browse channels'
-                        />
-                    }
+                    labels={<FormattedMessage {...browseMessages[productRailKind]}/>}
                 />,
             );
         }
 
-        if (canCreateChannel) {
+        if (showBoardMenu) {
+            for (const item of boardMenuItems) {
+                items.push(
+                    <Menu.Item
+                        key={item.id + '_pluginmenuitem'}
+                        id={item.id + '_pluginmenuitem'}
+                        onClick={() => item.action(currentTeamId)}
+                        leadingElement={item.icon}
+                        labels={<span>{item.text}</span>}
+                    />,
+                );
+            }
+        } else if (canCreateChannel) {
             items.push(
                 <Menu.Item
                     key='showNewChannel'
@@ -130,10 +158,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 className='icon-plus-box'
                 aria-hidden={true}
             />
-            <FormattedMessage
-                id='sidebar_left.addChannelsCta'
-                defaultMessage='Add Channels'
-            />
+            <FormattedMessage {...channelKindMessages.addChannelsCta[railKind]}/>
         </>
     );
 
@@ -166,7 +191,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             menu={{
                 id: 'AddChannelCtaDropdown',
                 className: 'AddChannelsCtaDropdown',
-                'aria-label': intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'}),
+                'aria-label': intl.formatMessage(channelKindMessages.addChannelsCta[railKind]),
                 onToggle: handleMenuToggle,
             }}
         >

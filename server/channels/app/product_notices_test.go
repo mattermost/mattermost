@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"net/http"
@@ -507,15 +508,9 @@ func TestNoticeValidation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clientVersion := tt.args.clientVersion
-			if clientVersion == "" {
-				clientVersion = "1.2.3"
-			}
+			clientVersion := cmp.Or(tt.args.clientVersion, "1.2.3")
 
-			serverVersion := tt.args.serverVersion
-			if serverVersion == "" {
-				serverVersion = "5.26.1"
-			}
+			serverVersion := cmp.Or(tt.args.serverVersion, "5.26.1")
 
 			if ok, err := noticeMatchesConditions(
 				th.App.Config(),

@@ -5,6 +5,7 @@ package mail
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -26,14 +27,8 @@ import (
 const embeddedFileMinSize = 1500
 
 func getConfig() *SMTPConfig {
-	server := os.Getenv("MM_EMAILSETTINGS_SMTPSERVER")
-	if server == "" {
-		server = "localhost"
-	}
-	port := os.Getenv("MM_EMAILSETTINGS_SMTPPORT")
-	if port == "" {
-		port = "10025"
-	}
+	server := cmp.Or(os.Getenv("MM_EMAILSETTINGS_SMTPSERVER"), "localhost")
+	port := cmp.Or(os.Getenv("MM_EMAILSETTINGS_SMTPPORT"), "10025")
 
 	return &SMTPConfig{
 		ConnectionSecurity:                "",
@@ -1050,4 +1045,51 @@ func TestNewSMTPClientAdvancedDeadlineDuringGreeting(t *testing.T) {
 
 	_, err = conn.Write([]byte("QUIT\r\n"))
 	assert.ErrorIs(t, err, net.ErrClosed, "the connection should be closed when the deadline ends the greeting")
+}
+
+func TestStartTLSError(t *testing.T) {
+	for name, tc := range map[string]struct {
+		reply string
+		want  string
+	}{
+		"STARTTLS refused":       {reply: "454 TLS not available", want: "unable to start TLS"},
+		"STARTTLS not supported": {reply: "502 not implemented", want: "SMTP server does not support STARTTLS"},
+		"STARTTLS unrecognized":  {reply: "500 unrecognized command", want: "SMTP server does not support STARTTLS"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := fakeSMTPServer(t, func(conn net.Conn) {
+				r := textproto.NewConn(conn)
+				_ = r.PrintfLine("220 localhost ESMTP")
+				for {
+					line, err := r.ReadLine()
+					if err != nil {
+						return
+					}
+					switch {
+					case strings.HasPrefix(line, "EHLO"):
+						_ = r.PrintfLine("250-localhost")
+						_ = r.PrintfLine("250 STARTTLS")
+					case strings.HasPrefix(line, "STARTTLS"):
+						_ = r.PrintfLine("%s", tc.reply)
+					case strings.HasPrefix(line, "MAIL FROM"):
+						t.Errorf("mail transaction started: %s", line)
+						_ = r.PrintfLine("250 OK")
+					case strings.HasPrefix(line, "QUIT"):
+						_ = r.PrintfLine("221 bye")
+						return
+					default:
+						_ = r.PrintfLine("250 OK")
+					}
+				}
+			})
+			cfg.ConnectionSecurity = StartTLS
+			cfg.FeedbackEmail = "sender@example.com"
+
+			err := TestConnection(context.Background(), cfg)
+			require.ErrorContains(t, err, tc.want)
+
+			err = SendMailUsingConfig("recipient@example.com", "subject", "body", cfg, false, "", "", "", "", "")
+			require.ErrorContains(t, err, tc.want)
+		})
+	}
 }

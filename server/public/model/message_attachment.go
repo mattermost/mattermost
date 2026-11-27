@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -260,9 +261,7 @@ func StringifyMessageAttachmentFieldValue(a []*MessageAttachment) []*MessageAtta
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
 func ParseMessageAttachment(post *Post, attachments []*MessageAttachment) {
-	if post.Type == "" {
-		post.Type = PostTypeMessageAttachment
-	}
+	post.Type = cmp.Or(post.Type, PostTypeMessageAttachment)
 
 	postAttachments := []*MessageAttachment{}
 

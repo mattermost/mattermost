@@ -462,17 +462,17 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	if includeAdditionalReviewers {
 		var additionalReviewers []*model.User
 		if *reviewerSettings.TeamAdminsAsReviewers {
-			teamAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, nil, []string{model.TeamAdminRoleId})
-			if appErr != nil {
-				return nil, appErr
+			teamAdminReviewers, err := a.getAllUsersInTeamForRoles(teamId, nil, []string{model.TeamAdminRoleId})
+			if err != nil {
+				return nil, model.AsAppError(err)
 			}
 			additionalReviewers = append(additionalReviewers, teamAdminReviewers...)
 		}
 
 		if *reviewerSettings.SystemAdminsAsReviewers {
-			sysAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId}, nil)
-			if appErr != nil {
-				return nil, appErr
+			sysAdminReviewers, err := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId}, nil)
+			if err != nil {
+				return nil, model.AsAppError(err)
 			}
 			additionalReviewers = append(additionalReviewers, sysAdminReviewers...)
 		}
@@ -490,7 +490,7 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	return reviewerUserIDs, nil
 }
 
-func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []string) ([]*model.User, *model.AppError) {
+func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []string) ([]*model.User, error) {
 	var additionalReviewers []*model.User
 
 	options := &model.UserGetOptions{

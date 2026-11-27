@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -191,15 +192,9 @@ func TestEmailTest(t *testing.T) {
 		CheckErrorID(t, err, "api.admin.test_email.missing_server")
 		CheckBadRequestStatus(t, resp)
 
-		inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-		if inbucket_host == "" {
-			inbucket_host = "localhost"
-		}
+		inbucket_host := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
 
-		inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
-		if inbucket_port == "" {
-			inbucket_port = "10025"
-		}
+		inbucket_port := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 
 		*config.EmailSettings.SMTPServer = inbucket_host
 		*config.EmailSettings.SMTPPort = inbucket_port
@@ -613,10 +608,75 @@ func TestQueryLogs(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("local mode returns matching entries", func(t *testing.T) {
+		filter := &model.LogFilter{Search: "querylogs_verify_" + testID}
+		require.Eventually(t, func() bool {
+			nodes, _, err := th.LocalClient.QueryLogs(context.Background(), 0, 200, filter)
+			return err == nil && len(nodes["default"]) == len(expectedMessages)
+		}, 5*time.Second, 25*time.Millisecond, "expected the local API to return the logged messages")
+	})
+
 	t.Run("non-admin is forbidden", func(t *testing.T) {
 		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestLogsAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "logs_audit.log")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, logFile.Close())
+		require.NoError(t, os.Remove(logFile.Name()))
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+	})
+
+	_, _, err = th.SystemAdminClient.GetLogs(context.Background(), 0, 1)
+	require.NoError(t, err)
+	_, _, err = th.SystemAdminClient.QueryLogs(context.Background(), 0, 1, &model.LogFilter{})
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.Audit.Flush())
+	require.NoError(t, logFile.Sync())
+	data, err := os.ReadFile(logFile.Name())
+	require.NoError(t, err)
+
+	for _, event := range []string{model.AuditEventGetLogs, model.AuditEventQueryLogs} {
+		var entries []*AuditEntry
+		for line := range strings.SplitSeq(string(data), "\n") {
+			if entry := FindAuditEntry(line, event, th.SystemAdminUser.Id); entry != nil {
+				entries = append(entries, entry)
+			}
+		}
+
+		require.Len(t, entries, 1, event)
+		assert.Equal(t, model.AuditStatusSuccess, entries[0].Status, event)
+	}
+}
+
+func TestDecodeLogLines(t *testing.T) {
+	t.Run("decodes JSON lines and skips the others", func(t *testing.T) {
+		entries := decodeLogLines([]string{
+			`{"level":"info","msg":"first"}`,
+			"2026-11-05T12:00:00.000Z info plain text",
+			`{"level":"warn","msg":"second"}`,
+			"another plain line",
+		})
+		require.Equal(t, []any{
+			map[string]any{"level": "info", "msg": "first"},
+			map[string]any{"level": "warn", "msg": "second"},
+		}, entries)
+	})
+
+	t.Run("no lines", func(t *testing.T) {
+		entries := decodeLogLines(nil)
+		require.NotNil(t, entries, "a node without lines is still sent as an empty array")
+		assert.Empty(t, entries)
 	})
 }
 
@@ -702,6 +762,32 @@ func TestPostLog(t *testing.T) {
 	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
+
+	t.Run("system admin error is logged with request context", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnableDeveloper = false
+		msg := "admin error " + model.NewId()
+		_, _, err := th.SystemAdminClient.PostLog(context.Background(), map[string]string{"level": "ERROR", "message": msg})
+		require.NoError(t, err)
+
+		entry, raw := requireLogEntry(t, th, "Client Logs API Endpoint Message: "+msg)
+		assert.Equal(t, "error", entry["level"])
+		assert.Equal(t, "client_message", entry["type"])
+		assert.NotEmpty(t, entry["session_id"])
+		assertRequestContext(t, entry, http.MethodPost, "/api/v4/logs", th.SystemAdminUser.Id)
+		assert.Equal(t, 1, strings.Count(raw, `"user_id":`), "user_id should be logged once")
+	})
+
+	t.Run("regular user error is downgraded to debug with request context", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnableDeveloper = false
+		th.LoginBasic(t)
+		msg := "user error " + model.NewId()
+		_, _, err := th.Client.PostLog(context.Background(), map[string]string{"level": "ERROR", "message": msg})
+		require.NoError(t, err)
+
+		entry, _ := requireLogEntry(t, th, "Client Logs API Endpoint Message: "+msg)
+		assert.Equal(t, "debug", entry["level"])
+		assertRequestContext(t, entry, http.MethodPost, "/api/v4/logs", th.BasicUser.Id)
+	})
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
@@ -782,15 +868,9 @@ func TestS3TestConnection(t *testing.T) {
 	th := Setup(t)
 	client := th.Client
 
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
@@ -1662,6 +1742,16 @@ func TestCompleteOnboarding(t *testing.T) {
 		}
 	})
 
+	t.Run("as a system admin with an invalid site URL", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.CompleteOnboarding(context.Background(), &model.CompleteOnboardingRequest{
+			Organization: "my-org",
+			SiteURL:      "ftp://mattermost.example.com",
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.error_invalid_site_url_provided_for_onboarding")
+	})
+
 	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = false
@@ -1738,4 +1828,27 @@ func TestCheckHasNilFields(t *testing.T) {
 		res := checkHasNilFields(&s)
 		require.True(t, res)
 	})
+}
+
+// requireLogEntry returns the first JSON entry in th.LogBuffer with the given message, parsed and raw.
+func requireLogEntry(t *testing.T, th *TestHelper, msg string) (map[string]any, string) {
+	t.Helper()
+	require.NoError(t, th.TestLogger.Flush())
+	for line := range strings.SplitSeq(th.LogBuffer.String(), "\n") {
+		var entry map[string]any
+		if json.Unmarshal([]byte(line), &entry) == nil && entry["msg"] == msg {
+			return entry, line
+		}
+	}
+	require.FailNowf(t, "log entry not found", "msg: %q", msg)
+	return nil, ""
+}
+
+func assertRequestContext(t *testing.T, entry map[string]any, method, path, userID string) {
+	t.Helper()
+	assert.NotEmpty(t, entry["request_id"])
+	assert.NotEmpty(t, entry["ip_addr"])
+	assert.Equal(t, method, entry["method"])
+	assert.Equal(t, path, entry["path"])
+	assert.Equal(t, userID, entry["user_id"])
 }

@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"io"
@@ -153,6 +154,14 @@ func (lt *LoadTestProvider) doCommand(a *app.App, rctx request.CTX, args *model.
 	//This command is only available when EnableTesting is true
 	if !*a.Config().ServiceSettings.EnableTesting {
 		return &model.CommandResponse{}, nil
+	}
+
+	if trimmed := strings.TrimSpace(message); trimmed == "" || strings.HasPrefix(trimmed, "help") {
+		return lt.HelpCommand(args, message), nil
+	}
+
+	if !a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem) {
+		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_test.permission.app_error")}, nil
 	}
 
 	if strings.HasPrefix(message, "setup") {
@@ -718,9 +727,7 @@ func (*LoadTestProvider) JSONCommand(a *app.App, rctx request.CTX, args *model.C
 	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
-	if post.Message == "" {
-		post.Message = message
-	}
+	post.Message = cmp.Or(post.Message, message)
 
 	if _, _, err := a.CreatePostMissingChannel(rctx, &post, false, true); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.CommandResponseTypeEphemeral}, err

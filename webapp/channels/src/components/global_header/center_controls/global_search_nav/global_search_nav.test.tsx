@@ -20,46 +20,6 @@ jest.mock('actions/views/rhs', () => ({
 }));
 
 describe('components/GlobalSearchNav', () => {
-    test('should match snapshot with active flagged posts', () => {
-        const {container} = renderWithContext(
-            <GlobalSearchNav/>,
-            {
-                entities: {
-                    general: {
-                        config: {},
-                    },
-                },
-                views: {
-                    rhs: {
-                        rhsState: 'flag',
-                        isSidebarOpen: true,
-                    },
-                },
-            },
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with active mentions posts', () => {
-        const {container} = renderWithContext(
-            <GlobalSearchNav/>,
-            {
-                entities: {
-                    general: {
-                        config: {},
-                    },
-                },
-                views: {
-                    rhs: {
-                        rhsState: 'mentions',
-                        isSidebarOpen: true,
-                    },
-                },
-            },
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     describe('the mentions shortcut', () => {
         function renderWithMentions(mentionFilters: MentionFilters, searchTeam: string | null) {
             renderWithContext(

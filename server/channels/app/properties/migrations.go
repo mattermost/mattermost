@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -213,8 +214,8 @@ func isPermanentPropertyFieldFailure(err error) bool {
 		errors.Is(err, ErrInvalidFieldAttrs) || errors.Is(err, ErrAdminRequired) || errors.Is(err, errPermissionsAuthored) {
 		return true
 	}
-	var appErr *model.AppError
-	return errors.As(err, &appErr)
+	_, ok := errors.AsType[*model.AppError](err)
+	return ok
 }
 
 // disambiguatedTemplateName appends the field's own globally-unique ID to
@@ -251,9 +252,7 @@ func slugifyForCEL(name string) string {
 	}
 	slug = celRepeatedUnderscore.ReplaceAllString(slug, "_")
 	slug = celTrailingUnderscore.ReplaceAllString(slug, "")
-	if slug == "" {
-		slug = "_copy"
-	}
+	slug = cmp.Or(slug, "_copy")
 	if _, reserved := model.CPAFieldNameReservedWords[slug]; reserved {
 		slug += "_attr"
 	}

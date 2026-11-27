@@ -321,18 +321,16 @@ func (ps *PropertyService) defaultPropertyFieldPermissions(field *model.Property
 // so a not-found lookup means false rather than a failed create or update.
 func (ps *PropertyService) groupConvertsAttrs(groupID string) (bool, error) {
 	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
-	var notFound *store.ErrNotFound
-	switch {
-	case err == nil:
+	if err == nil {
 		return groupID == accessControlGroup.ID, nil
-	case errors.As(err, &notFound):
+	}
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 		// ps.Group wraps the store error, so the not-found check has to see
 		// through that wrapping -- store.IsErrNotFound does a plain type
 		// assertion and would miss it.
 		return false, nil
-	default:
-		return false, fmt.Errorf("failed to get access control property group: %w", err)
 	}
+	return false, fmt.Errorf("failed to get access control property group: %w", err)
 }
 
 // templatePermissionsOrZero returns template's Permissions, or a zero-value

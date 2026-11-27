@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {
@@ -22,6 +22,9 @@ import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugin
 import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
+
+import {useProductRailKind} from 'hooks/useProductRailKind';
+import type {KindMessages} from 'utils/channel_kind';
 
 import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 
@@ -48,8 +51,16 @@ type Props = {
     onInvitePeopleClick: () => void;
 };
 
+/* eslint-disable formatjs/enforce-placeholders -- no placeholders */
+const browseMessages: KindMessages = {
+    channel: defineMessage({id: 'sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel', defaultMessage: 'Browse channels'}),
+    board: defineMessage({id: 'sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel.board', defaultMessage: 'Browse boards'}),
+};
+/* eslint-enable formatjs/enforce-placeholders */
+
 export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
+    const productRailKind = useProductRailKind();
     const currentTeamId = useSelector(getCurrentTeamId);
     const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents);
 
@@ -82,12 +93,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                 id='browseChannelsMenuItem'
                 onClick={props.onBrowseChannelClick}
                 leadingElement={<GlobeIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel'
-                        defaultMessage='Browse channels'
-                    />
-                )}
+                labels={<FormattedMessage {...browseMessages[productRailKind]}/>}
                 aria-haspopup='true'
             />
         );

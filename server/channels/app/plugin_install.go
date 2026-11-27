@@ -75,6 +75,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"fmt"
 	"io"
 	"net/http"
@@ -255,14 +256,8 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
 	// Installing only validates the plugin id, so the uploaded name and homepage may be missing.
 	// Fall back to the installed plugin's metadata to keep the plugin identifiable.
-	name := uploadedManifest.Name
-	if name == "" {
-		name = existingManifest.Name
-	}
-	homepageURL := uploadedManifest.HomepageURL
-	if homepageURL == "" {
-		homepageURL = existingManifest.HomepageURL
-	}
+	name := cmp.Or(uploadedManifest.Name, existingManifest.Name)
+	homepageURL := cmp.Or(uploadedManifest.HomepageURL, existingManifest.HomepageURL)
 
 	direction := model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest)
 
@@ -447,6 +442,10 @@ func extractPlugin(bundle io.ReadSeeker, extractDir string) (*model.Manifest, st
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.manifest.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	if model.IsReservedPluginID(manifest.Id) {
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.reserved_id.app_error", map[string]any{"ID": manifest.Id}, "", http.StatusBadRequest)
+	}
+
 	if !model.IsValidPluginId(manifest.Id) {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.invalid_id.app_error", map[string]any{"Min": model.MinIdLength, "Max": model.MaxIdLength, "Regex": model.ValidIdRegex}, "", http.StatusBadRequest)
 	}
@@ -553,7 +552,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := ch.disablePlugin(id); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := ch.removePluginLocally(id); err != nil {
@@ -616,7 +615,6 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 
 	pluginsEnvironment.Deactivate(id)
 	pluginsEnvironment.RemovePlugin(id)
-	ch.unregisterPluginCommands(id)
 
 	if err := os.RemoveAll(unpackedBundlePath); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

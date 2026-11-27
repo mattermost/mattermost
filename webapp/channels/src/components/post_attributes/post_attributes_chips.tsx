@@ -16,20 +16,19 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Chip} from '@mattermost/compass-ui/components/chip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
 import {usePostAttributeFields, usePostAttributeValues} from 'components/common/hooks/usePostAttributes';
-import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
 
 import {ModalIdentifiers, RootHtmlPortalId} from 'utils/constants';
 
+import PostAttributeChip from './post_attribute_chip';
 import PostAttributesHoverCard from './post_attributes_hover_card';
 import PostAttributesModal from './post_attributes_modal';
-import {usePropertyValueMetadata} from './use_property_value_metadata';
 import {allocateChipBudget, useVisibleAttributes} from './utils';
 
 import './post_attributes_chips.scss';
@@ -150,9 +149,11 @@ function PostAttributesChips({post, channel}: Props) {
                      * `generic` role, which ARIA prohibits naming — `aria-label` on one is
                      * non-conforming and announced inconsistently. The role also makes the
                      * badge opaque to assistive technology, so the label replaces "+2"
-                     * rather than being read alongside it.
+                     * rather than being read alongside it. `Chip` passes both through:
+                     * without `onRemove` it sets no role of its own.
                      */
-                    <span
+                    <Chip
+                        size='small'
                         className='PostAttributesChips__overflow'
                         data-testid='post-attributes-overflow'
                         role='img'
@@ -171,7 +172,7 @@ function PostAttributesChips({post, channel}: Props) {
                             description='Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes.'
                             values={{count: overflow}}
                         />
-                    </span>
+                    </Chip>
                 )}
             </div>
             {open && (
@@ -191,27 +192,6 @@ function PostAttributesChips({post, channel}: Props) {
                 </FloatingPortal>
             )}
         </>
-    );
-}
-
-/**
- * One chip's worth of value.
- *
- * A component rather than an inline `PropertyValueRenderer` because the
- * subtype metadata comes from a hook, and the row maps over a list whose
- * length changes. The hover card resolves it through the same hook, so the two
- * surfaces cannot name the same channel differently.
- */
-function PostAttributeChip({field, value, maxItems}: {field: PropertyField; value: PropertyValue<unknown>; maxItems?: number}) {
-    const metadata = usePropertyValueMetadata(field, value);
-
-    return (
-        <PropertyValueRenderer
-            field={field}
-            value={value}
-            metadata={metadata}
-            maxItems={maxItems}
-        />
     );
 }
 

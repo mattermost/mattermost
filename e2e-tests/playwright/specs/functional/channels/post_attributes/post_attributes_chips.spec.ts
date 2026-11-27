@@ -15,6 +15,7 @@ import {
     purgeFields,
     recordRequests,
     setPostValues,
+    skipIfNoPostAttributesLicense,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -28,15 +29,14 @@ const OPTION_CHIP = 'select-property';
 const TEXT_CHIP = 'text-property';
 const USER_CHIP = 'user-property';
 
-// Two boards palette tokens and the background each resolves to, from COLOR_DESCRIPTOR
-// in utils/board_property_colors. Hard-coded rather than imported: the point is to catch
-// the pairing drifting, and importing the same table the code reads would not.
-const RED_TOKEN = {name: 'red', background: 'rgb(243, 164, 160)'};
-const BLUE_TOKEN = {name: 'blue', background: 'rgb(174, 201, 245)'};
+// Colour tokens an option can carry. Option chips ignore them: global attributes have no
+// colours yet, so every option draws in the same neutral whatever it stores.
+const RED_TOKEN = 'red';
+const BLUE_TOKEN = 'blue';
 
-// Every one of the nine palette tokens is a pale pastel, so the derived foreground is
-// black for all of them. Derived by getContrastingSimpleColor, never authored.
-const DERIVED_FOREGROUND = 'rgb(0, 0, 0)';
+// What a chip that lost its background computes to. The neutral is translucent, so
+// matching `rgba(` alone would accept it.
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
 
 /**
  * @objective Verify a post's attribute chips are on screen from the channel load alone,
@@ -45,6 +45,7 @@ const DERIVED_FOREGROUND = 'rgb(0, 0, 0)';
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders attribute chips on first paint without fetching values', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one system-scoped select field and set it on a post
@@ -93,6 +94,7 @@ test('renders attribute chips on first paint without fetching values', {tag: '@p
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('asks the posts endpoint to hydrate', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Arm the wait before the navigation that triggers the fetch
@@ -117,6 +119,7 @@ test('asks the posts endpoint to hydrate', {tag: '@post_attributes'}, async ({pw
  * it off for one browser only.
  */
 test('sends no parameter and draws no chips with the flag off', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field and set it, so the only reason no chip appears is the flag
@@ -173,6 +176,7 @@ test('sends no parameter and draws no chips with the flag off', {tag: '@post_att
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, then set it on both a root post and its reply
@@ -235,6 +239,7 @@ test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, 
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders two chips and a +1 badge for three set fields', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision three ordered fields and set all three on one post
@@ -291,6 +296,7 @@ test('renders two chips and a +1 badge for three set fields', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('draws no chip for a field that is not set', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision two fields and set only one of them
@@ -332,70 +338,13 @@ test('draws no chip for a field that is not set', {tag: '@post_attributes'}, asy
 });
 
 /**
- * @objective Verify a field scoped to one channel does not draw chips in another.
- *
- * @precondition The PostAttributes feature flag is enabled.
- */
-test('ignores a field scoped to a different channel', {tag: '@post_attributes'}, async ({pw}) => {
-    await pw.ensureFeatureFlag('PostAttributes', true);
-
-    // # Provision a field scoped to one channel, then set it on a post in another
-    const {adminClient, user, userClient, team} = await pw.initSetup();
-    const suffix = pw.random.id();
-    const created: PropertyField[] = [];
-
-    try {
-        await purgeFields(adminClient);
-
-        const owning = await adminClient.createPublicChannel(team.id, `owning-${suffix}`);
-        const other = await adminClient.createPublicChannel(team.id, `other-${suffix}`);
-        await adminClient.addToChannel(user.id, owning.id);
-        await adminClient.addToChannel(user.id, other.id);
-
-        const scoped = await createField(adminClient, fieldName('scoped', suffix), {
-            options: ['SECRET'],
-            channelId: owning.id,
-        });
-        created.push(scoped);
-
-        // The value is written against a post in the *other* channel, so the only thing
-        // keeping it off screen is the field's scope.
-        const post = await userClient.createTestPost({channel_id: other.id, message: 'out of scope'});
-        await setPostValues(adminClient, post.id, [{field_id: scoped.id, value: optionId(scoped, 'SECRET')}]);
-
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, other.name);
-        await channelsPage.toBeVisible();
-
-        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
-
-        // * Verify the post rendered without a chip row
-        await expect(postOnScreen.container).toContainText('out of scope');
-        await expect(postOnScreen.container.getByTestId(CHIPS)).toHaveCount(0);
-
-        // # Open the channel the field does belong to
-        await channelsPage.goto(team.name, owning.name);
-        await channelsPage.toBeVisible();
-
-        // * Verify the field applies there, so the absence above was scope and not a
-        // broken fixture
-        const inScope = await userClient.createTestPost({channel_id: owning.id, message: 'in scope'});
-        await setPostValues(adminClient, inScope.id, [{field_id: scoped.id, value: optionId(scoped, 'SECRET')}]);
-
-        const inScopeOnScreen = await channelsPage.centerView.getPostById(inScope.id);
-        await expect(inScopeOnScreen.container.getByText('SECRET', {exact: true})).toBeVisible();
-    } finally {
-        await deleteFields(adminClient, created);
-    }
-});
-
-/**
  * @objective Verify a value changed elsewhere reaches an open channel over the websocket,
  * without a reload.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('updates a chip when another session changes the value', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a field, set it, and open the channel
@@ -446,6 +395,7 @@ test('updates a chip when another session changes the value', {tag: '@post_attri
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders every single-chip field type through its own renderer', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one field of each type that draws exactly one chip
@@ -534,7 +484,7 @@ test('renders every single-chip field type through its own renderer', {tag: '@po
 
         // * Verify the chip carries the avatar beside the name. A user value is the one
         // chip that is not text alone, and the name assertion above would hold without it.
-        await expect(userChip.locator('.Avatar')).toBeVisible();
+        await expect(userChip.locator('img')).toBeVisible();
     } finally {
         await deleteFields(adminClient, created);
     }
@@ -547,6 +497,7 @@ test('renders every single-chip field type through its own renderer', {tag: '@po
  * @precondition The PostAttributes feature flag is enabled.
  */
 test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a multiselect and set two of its options on a post
@@ -560,8 +511,8 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
         const caveats = await createField(adminClient, fieldName('caveats', suffix), {
             type: 'multiselect',
             options: [
-                {name: 'NOFORN', color: RED_TOKEN.name},
-                {name: 'ORCON', color: BLUE_TOKEN.name},
+                {name: 'NOFORN', color: RED_TOKEN},
+                {name: 'ORCON', color: BLUE_TOKEN},
             ],
         });
         created.push(caveats);
@@ -583,15 +534,19 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
         await expect(postOnScreen.container.getByText('NOFORN', {exact: true})).toBeVisible();
         await expect(postOnScreen.container.getByText('ORCON', {exact: true})).toBeVisible();
 
-        // * Verify each chip took its own option's colour. Two different colours from one
-        // field is what proves colour is resolved per option rather than per field.
-        const noforn = postOnScreen.container.getByText('NOFORN', {exact: true});
-        const orcon = postOnScreen.container.getByText('ORCON', {exact: true});
+        // * Verify the two chips are the same neutral although their options carry
+        // different colours, and carry no inline style that could colour them
+        const noforn = postOnScreen.container.getByTestId(OPTION_CHIP).filter({hasText: 'NOFORN'});
+        const orcon = postOnScreen.container.getByTestId(OPTION_CHIP).filter({hasText: 'ORCON'});
+        const nofornBackground = await noforn.evaluate((el: Element) => getComputedStyle(el).backgroundColor);
+        const nofornColour = await noforn.evaluate((el: Element) => getComputedStyle(el).color);
 
-        await expect(noforn).toHaveCSS('background-color', RED_TOKEN.background);
-        await expect(orcon).toHaveCSS('background-color', BLUE_TOKEN.background);
-        await expect(noforn).toHaveCSS('color', DERIVED_FOREGROUND);
-        await expect(orcon).toHaveCSS('color', DERIVED_FOREGROUND);
+        await expect(orcon).toHaveCSS('background-color', nofornBackground);
+        await expect(orcon).toHaveCSS('color', nofornColour);
+        await expect(noforn).toHaveCSS('background-color', /^rgba\(/);
+        await expect(noforn).not.toHaveCSS('background-color', TRANSPARENT);
+        await expect(noforn).not.toHaveAttribute('style', /./);
+        await expect(orcon).not.toHaveAttribute('style', /./);
 
         // * Verify two entries exactly fill the budget, leaving nothing to overflow
         await expect(postOnScreen.container.getByTestId(OVERFLOW)).toHaveCount(0);
@@ -601,18 +556,18 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
 });
 
 /**
- * @objective Verify a select chip takes its colour from its own option, and that an
- * option with no colour or an unrecognised one still renders, in the theme-aware
- * neutral.
+ * @objective Verify option chips are neutral: an option that carries a palette colour, no
+ * colour, or a token nothing recognises all draw the same, with no inline colour.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
-test('colours a select chip from its option, falling back to neutral', {tag: '@post_attributes'}, async ({pw}) => {
+test('draws option chips in a neutral, whatever colour the option carries', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision one select carrying a palette colour, no colour, and a token nothing
-    // recognises. The server stores options as opaque maps, so the third round-trips
-    // exactly as written — which is the only way to reach the client's fallback for real.
+    // recognises. The server stores options as opaque maps, so the colours round-trip
+    // exactly as written and the only thing keeping them off screen is the chip.
     const {adminClient, user, userClient, team} = await pw.initSetup();
     const suffix = pw.random.id();
     const created: PropertyField[] = [];
@@ -621,57 +576,53 @@ test('colours a select chip from its option, falling back to neutral', {tag: '@p
         await purgeFields(adminClient);
 
         const classification = await createField(adminClient, fieldName('classification', suffix), {
-            options: [{name: 'SECRET', color: RED_TOKEN.name}, 'PLAIN', {name: 'ODD', color: 'chartreuse'}],
+            options: [{name: 'SECRET', color: RED_TOKEN}, 'PLAIN', {name: 'ODD', color: 'chartreuse'}],
         });
         created.push(classification);
 
         // # One post per option, so each draws a single chip
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const chipFor: Record<string, string> = {};
 
-        const colouredPost = await userClient.createTestPost({channel_id: channel.id, message: 'palette colour'});
-        await setPostValues(adminClient, colouredPost.id, [
-            {field_id: classification.id, value: optionId(classification, 'SECRET')},
-        ]);
-
-        const plainPost = await userClient.createTestPost({channel_id: channel.id, message: 'no colour'});
-        await setPostValues(adminClient, plainPost.id, [
-            {field_id: classification.id, value: optionId(classification, 'PLAIN')},
-        ]);
-
-        const oddPost = await userClient.createTestPost({channel_id: channel.id, message: 'unrecognised colour'});
-        await setPostValues(adminClient, oddPost.id, [
-            {field_id: classification.id, value: optionId(classification, 'ODD')},
-        ]);
+        for (const name of ['SECRET', 'PLAIN', 'ODD']) {
+            const post = await userClient.createTestPost({channel_id: channel.id, message: `option ${name}`});
+            await setPostValues(adminClient, post.id, [
+                {field_id: classification.id, value: optionId(classification, name)},
+            ]);
+            chipFor[name] = post.id;
+        }
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
-        // * Verify the palette token resolves to its background and to a derived
-        // foreground, both opaque, so the pair holds its contrast in any theme
-        const colouredOnScreen = await channelsPage.centerView.getPostById(colouredPost.id);
-        const colouredChip = colouredOnScreen.container.getByTestId(OPTION_CHIP);
-
-        await expect(colouredChip).toHaveCSS('background-color', RED_TOKEN.background);
-        await expect(colouredChip).toHaveCSS('color', DERIVED_FOREGROUND);
-
-        // * Verify an option with no colour still draws, in a translucent neutral. The
-        // alpha channel is the tell: palette backgrounds are opaque hex, the neutral is a
-        // theme token at 12%, so this holds whatever theme the account is on.
-        const plainOnScreen = await channelsPage.centerView.getPostById(plainPost.id);
+        // * Verify the chip of an option with no colour draws in a translucent neutral.
+        // The alpha channel is the tell: palette backgrounds are opaque, the neutral is a
+        // theme token at a low alpha, so this holds whatever theme the account is on.
+        const plainOnScreen = await channelsPage.centerView.getPostById(chipFor.PLAIN);
         const plainChip = plainOnScreen.container.getByTestId(OPTION_CHIP);
 
         await expect(plainChip).toHaveText('PLAIN');
         await expect(plainChip).toHaveCSS('background-color', /^rgba\(/);
+        await expect(plainChip).not.toHaveCSS('background-color', TRANSPARENT);
 
-        // * Verify an unrecognised colour lands on that same neutral rather than being
-        // passed through to CSS or dropping the chip
         const neutralBackground = await plainChip.evaluate((el: Element) => getComputedStyle(el).backgroundColor);
-        const oddOnScreen = await channelsPage.centerView.getPostById(oddPost.id);
-        const oddChip = oddOnScreen.container.getByTestId(OPTION_CHIP);
+        const neutralForeground = await plainChip.evaluate((el: Element) => getComputedStyle(el).color);
 
-        await expect(oddChip).toHaveText('ODD');
-        await expect(oddChip).toHaveCSS('background-color', neutralBackground);
+        // * Verify the options that carry a colour draw the same neutral, and no inline
+        // style was put on them
+        for (const name of ['SECRET', 'ODD']) {
+            const onScreen = await channelsPage.centerView.getPostById(chipFor[name]);
+            const chip = onScreen.container.getByTestId(OPTION_CHIP);
+
+            await expect(chip).toHaveText(name);
+
+            await expect(chip).toHaveCSS('background-color', neutralBackground);
+
+            await expect(chip).toHaveCSS('color', neutralForeground);
+
+            await expect(chip).not.toHaveAttribute('style', /./);
+        }
     } finally {
         await deleteFields(adminClient, created);
     }

@@ -21,6 +21,7 @@ import {
     getBool,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -36,6 +37,7 @@ import {getIsGlobalThreadsView} from 'selectors/lhs';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+import {getBoardChannelIds} from 'selectors/views/product_rail';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
@@ -172,7 +174,7 @@ function makeMapStateToProps() {
 
         const isPostBurnOnRead = isBurnOnReadPost(state, post.id);
         const isSearchPopout = isPopoutWindow() && ownProps.location === Locations.SEARCH;
-        const canReply = !isPostBurnOnRead && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
+        const canReply = !isPostBurnOnRead && !isChannelWriteDenied(state, channel.id) && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(
@@ -240,6 +242,7 @@ function makeMapStateToProps() {
             isPostAcknowledgementsEnabled: isPostAcknowledgementsEnabled(state),
             isPostPriorityEnabled: isPostPriorityEnabled(state),
             isPostAttributesEnabled: isPostAttributesEnabled(state),
+            isBoardCard: !post.root_id && getBoardChannelIds(state).has(post.channel_id),
             isCardOpen: selectedCard && selectedCard.id === post.id,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
             canDelete: canDeletePost(state, post, channel),

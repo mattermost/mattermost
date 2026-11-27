@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -191,9 +192,7 @@ type OutgoingOAuthConnectionGetConnectionsFilter struct {
 
 // SetDefaults sets the default values for the filter
 func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) SetDefaults() {
-	if oaf.Limit == 0 {
-		oaf.Limit = defaultGetConnectionsLimit
-	}
+	oaf.Limit = cmp.Or(oaf.Limit, defaultGetConnectionsLimit)
 }
 
 // ToURLValues converts the filter to url.Values

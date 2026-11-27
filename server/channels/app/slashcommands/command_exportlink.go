@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"cmp"
 	"path"
 	"strings"
 	"time"
@@ -100,9 +101,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 		file = message + "_export.zip"
 	}
 
-	if file == "" {
-		file = message
-	}
+	file = cmp.Or(file, message)
 	if !strings.HasSuffix(file, "_export.zip") {
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.invalid.app_error")}
 	}

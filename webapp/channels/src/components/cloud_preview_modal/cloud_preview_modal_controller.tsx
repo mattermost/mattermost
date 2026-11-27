@@ -109,13 +109,13 @@ const CloudPreviewModal: React.FC = () => {
         return null;
     }
 
-    // Show FAB only if modal has been shown before and modal is not currently open
-    const shouldShowFAB = hasModalBeenShown && !showModal;
-
     // Only render the controller if we pass the license checks
     // Use dynamic content if available and not empty, fallback to hardcoded content
     const contentToUse = (dynamicModalContent && dynamicModalContent.length > 0) ? dynamicModalContent : modalContent;
     const contentData = team?.name ? filteredContentByUseCase(contentToUse) : [];
+
+    // Show FAB only if modal has been shown before, modal is not currently open, and there is content to reopen
+    const shouldShowFAB = hasModalBeenShown && !showModal && contentData.length > 0;
 
     // Show loading state while fetching dynamic content
     if (contentLoading) {
