@@ -97,13 +97,10 @@ func (ps *PlatformService) SetPluginKeyWithOptions(productID string, key string,
 	updated, err := ps.Store.Plugin().SetWithOptions(productID, key, value, options)
 	if err != nil {
 		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", productID), mlog.String("key", key), mlog.Err(err))
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return false, appErr
-		default:
-			return false, model.NewAppError("SetPluginKeyWithOptions", "app.plugin_store.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return false, model.NewAppError("SetPluginKeyWithOptions", "app.plugin_store.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Clean up a previous entry using the hashed key, if it exists.
@@ -117,7 +114,7 @@ func (ps *PlatformService) SetPluginKeyWithOptions(productID string, key string,
 func (ps *PlatformService) KVGet(productID, key string) ([]byte, *model.AppError) {
 	if kv, err := ps.Store.Plugin().Get(productID, key); err == nil {
 		return kv.Value, nil
-	} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", productID), mlog.String("key", key), mlog.Err(err))
 		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -125,7 +122,7 @@ func (ps *PlatformService) KVGet(productID, key string) ([]byte, *model.AppError
 	// Lookup using the hashed version of the key for keys written prior to v5.6.
 	if kv, err := ps.Store.Plugin().Get(productID, getKeyHash(key)); err == nil {
 		return kv.Value, nil
-	} else if nfErr := new(store.ErrNotFound); !errors.As(err, &nfErr) {
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 		mlog.Error("Failed to query plugin key value using hashed key", mlog.String("plugin_id", productID), mlog.String("key", key), mlog.Err(err))
 		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

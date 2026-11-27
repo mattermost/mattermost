@@ -594,3 +594,65 @@ func TestSendChannelInvite_SyncCursorStartOnNewRemote(t *testing.T) {
 		})
 	}
 }
+
+func TestChannelInviteGetRemoteByIdsErrors(t *testing.T) {
+	channelID := model.NewId()
+	userID := model.NewId()
+	remoteID := model.NewId()
+	storeErr := errors.New("database failure")
+	ephemeralPost := mock.MatchedBy(func(post *model.Post) bool {
+		return post != nil && post.ChannelId == channelID && post.Message != ""
+	})
+
+	newService := func(t *testing.T, scStore *mocks.SharedChannelStore) (*Service, *MockAppIface) {
+		mockServer := &MockServerIface{}
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(scStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockApp := &MockAppIface{}
+		return &Service{server: mockServer, app: mockApp}, mockApp
+	}
+
+	t.Run("offline remote returns the store error and notifies the user", func(t *testing.T) {
+		scStore := &mocks.SharedChannelStore{}
+		scStore.On("Get", channelID).Return(&model.SharedChannel{ChannelId: channelID}, nil)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, storeErr)
+		scs, mockApp := newService(t, scStore)
+		mockApp.On("SendEphemeralPost", mockTypeReqContext, userID, ephemeralPost).Return(nil, true).Once()
+
+		rc := &model.RemoteCluster{RemoteId: remoteID, DisplayName: "Test Remote"}
+		err := scs.SendChannelInvite(&model.Channel{Id: channelID}, userID, rc)
+		require.ErrorIs(t, err, storeErr)
+		mockApp.AssertExpectations(t)
+		scStore.AssertNotCalled(t, "SaveRemote", mock.Anything)
+	})
+
+	t.Run("invite confirmation notifies the user and stops on a store error", func(t *testing.T) {
+		scStore := &mocks.SharedChannelStore{}
+		scStore.On("Get", channelID).Return(&model.SharedChannel{ChannelId: channelID}, nil)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, storeErr)
+		scs, mockApp := newService(t, scStore)
+		mockApp.On("SendEphemeralPost", mockTypeReqContext, userID, ephemeralPost).Return(nil, true).Once()
+
+		rc := &model.RemoteCluster{RemoteId: remoteID, DisplayName: "Test Remote", PluginID: "com.example.plugin", LastPingAt: model.GetMillis()}
+		require.NoError(t, scs.SendChannelInvite(&model.Channel{Id: channelID}, userID, rc))
+		mockApp.AssertExpectations(t)
+		scStore.AssertNotCalled(t, "SaveRemote", mock.Anything)
+	})
+
+	t.Run("receiving an invite returns the store error", func(t *testing.T) {
+		scStore := &mocks.SharedChannelStore{}
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, storeErr)
+		scs, _ := newService(t, scStore)
+
+		payload, err := json.Marshal(channelInviteMsg{ChannelId: channelID, TeamId: model.NewId(), Type: model.ChannelTypeOpen})
+		require.NoError(t, err)
+
+		rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test", DefaultTeamId: model.NewId()}
+		err = scs.onReceiveChannelInvite(model.RemoteClusterMsg{Payload: payload}, rc, nil)
+		require.ErrorIs(t, err, storeErr)
+		scStore.AssertNotCalled(t, "SaveRemote", mock.Anything)
+	})
+}

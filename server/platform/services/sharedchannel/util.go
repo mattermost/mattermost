@@ -126,8 +126,8 @@ func isNotFoundError(err error) bool {
 		return false
 	}
 
-	var errNotFound *store.ErrNotFound
-	return errors.As(err, &errNotFound)
+	_, ok := errors.AsType[*store.ErrNotFound](err)
+	return ok
 }
 
 func postsSliceToMap(posts []*model.Post) map[string]*model.Post {

@@ -95,8 +95,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		existingScr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(sc.ChannelId, rc.RemoteId)
-		var errNotFound *store.ErrNotFound
-		if getErr != nil && !errors.As(getErr, &errNotFound) {
+		if _, ok := errors.AsType[*store.ErrNotFound](getErr); getErr != nil && !ok {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %v", rc.DisplayName, getErr))
 			return getErr
 		}
@@ -169,8 +168,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		existingScr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(sc.ChannelId, rc.RemoteId)
-		var errNotFound *store.ErrNotFound
-		if err != nil && !errors.As(err, &errNotFound) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); err != nil && !ok {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, err))
 			return
 		}
@@ -278,8 +276,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 
 	// check if channel already exists
 	existingScr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(invite.ChannelId, rc.RemoteId)
-	var errNotFound *store.ErrNotFound
-	if err != nil && !errors.As(err, &errNotFound) {
+	if _, ok := errors.AsType[*store.ErrNotFound](err); err != nil && !ok {
 		return fmt.Errorf("cannot get deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 	}
 
