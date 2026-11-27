@@ -29,13 +29,21 @@ export default function PublishedPostReactions({post, showAddButtonWhenEmpty}: P
         }
         fetchedPostId.current = post.id;
 
+        const reactionKey = (reaction: Reaction) => `${reaction.user_id}-${reaction.emoji_name}`;
+        const keysAtStart = new Set(Object.values(getReactionsForPosts(store.getState())[post.id] ?? {}).map(reactionKey));
+
         Client4.getReactionsForPost(post.id).then((reactions) => {
-            const reactionKey = (reaction: Reaction) => `${reaction.user_id}-${reaction.emoji_name}`;
             const fetchedKeys = new Set(reactions.map(reactionKey));
             const cached = Object.values(getReactionsForPosts(store.getState())[post.id] ?? {});
 
+            // Reactions added while the request was in flight are newer than the server snapshot, so they are kept.
+            const stale = cached.filter((reaction) => {
+                const key = reactionKey(reaction);
+                return keysAtStart.has(key) && !fetchedKeys.has(key);
+            });
+
             const actions = [
-                ...cached.filter((reaction) => !fetchedKeys.has(reactionKey(reaction))).map((reaction) => ({
+                ...stale.map((reaction) => ({
                     type: PostTypes.REACTION_DELETED,
                     data: reaction,
                 })),

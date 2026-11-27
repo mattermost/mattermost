@@ -5,6 +5,7 @@ import React from 'react';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {PostTypes} from 'mattermost-redux/action_types';
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
@@ -12,7 +13,7 @@ import {getReactionsForPosts} from 'mattermost-redux/selectors/entities/posts';
 
 import PublishedPostReactions from 'components/post_view/reaction_list/published_post_reactions';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TestHelper} from 'utils/test_helper';
 
@@ -143,6 +144,55 @@ describe('publishedComponents', () => {
             expect(getReactionsForPosts(store.getState())[post.id]).toEqual({
                 [`${reaction.user_id}-${reaction.emoji_name}`]: reaction,
                 [`${missingReaction.user_id}-${missingReaction.emoji_name}`]: missingReaction,
+            });
+        });
+
+        test('keeps reactions that arrive while the fetch is in flight', async () => {
+            const removedReaction = {...reaction, user_id: userId, emoji_name: 'thumbsup'};
+            const arrivedReaction = {...reaction, emoji_name: 'heart'};
+            let resolveFetch: (reactions: Array<typeof reaction>) => void = () => {};
+            reactionsSpy = jest.spyOn(Client4, 'getReactionsForPost').mockReturnValue(new Promise((resolve) => {
+                resolveFetch = resolve;
+            }));
+
+            const {PostReactions} = publishedComponents;
+            const {store} = renderWithContext(
+                <PostReactions post={post}/>,
+                {
+                    ...initialState,
+                    entities: {
+                        ...initialState.entities,
+                        posts: {
+                            reactions: {
+                                [post.id]: {
+                                    [`${reaction.user_id}-${reaction.emoji_name}`]: reaction,
+                                    [`${removedReaction.user_id}-${removedReaction.emoji_name}`]: removedReaction,
+                                },
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(reactionsSpy).toHaveBeenCalledTimes(1);
+
+            act(() => {
+                store.dispatch({type: PostTypes.RECEIVED_REACTION, data: arrivedReaction});
+            });
+            expect(await screen.findByRole('button', {name: /heart/})).toBeInTheDocument();
+
+            await act(async () => {
+                resolveFetch([reaction]);
+            });
+
+            await waitFor(() => {
+                expect(screen.queryByRole('button', {name: /thumbsup/})).not.toBeInTheDocument();
+            });
+            expect(screen.getByRole('button', {name: /smile/})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /heart/})).toBeInTheDocument();
+            expect(getReactionsForPosts(store.getState())[post.id]).toEqual({
+                [`${reaction.user_id}-${reaction.emoji_name}`]: reaction,
+                [`${arrivedReaction.user_id}-${arrivedReaction.emoji_name}`]: arrivedReaction,
             });
         });
     });
