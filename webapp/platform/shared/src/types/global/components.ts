@@ -24,6 +24,9 @@ export type PublishedWithTooltipProps = {
     children: ReactElement<any>;
 };
 
+/**
+ * @experimental May change or be removed without the usual deprecation period.
+ */
 export type PublishedPostReactionsProps = {
     post: Post; // the post does not have to be in the posts store
 
@@ -33,6 +36,10 @@ export type PublishedPostReactionsProps = {
 
 export type PublishedComponentProps = {
     WithTooltip: PublishedWithTooltipProps;
+
+    /**
+     * @experimental May change or be removed without the usual deprecation period.
+     */
     PostReactions: PublishedPostReactionsProps;
 };
 
