@@ -367,10 +367,22 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 	return api.app.CreateSession(api.ctx, session)
 }
 
+func (api *PluginAPI) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
+	session, err := api.app.CreateScopedSession(api.ctx, api.id, userID, scope, expiresAt)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	return session, nil
+}
+
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
 	session, err := api.app.ch.srv.platform.GetSessionByID(api.ctx, sessionID)
 	if err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if session.IsScoped() && expiresAt > session.CreateAt+model.SessionScopeMaxLifetimeMillis {
+		return model.NewAppError("extendSessionExpiry", "app.session.create_scoped.expires_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := api.app.ch.srv.platform.ExtendSessionExpiry(session, expiresAt); err != nil {

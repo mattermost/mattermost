@@ -181,6 +181,36 @@ func (_m *SessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetada
 	return r0, r1
 }
 
+// GetScopedSessions provides a mock function with given fields: rctx
+func (_m *SessionStore) GetScopedSessions(rctx request.CTX) ([]*model.Session, error) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetScopedSessions")
+	}
+
+	var r0 []*model.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]*model.Session, error)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) []*model.Session); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSessions provides a mock function with given fields: rctx, userID
 func (_m *SessionStore) GetSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
 	ret := _m.Called(rctx, userID)

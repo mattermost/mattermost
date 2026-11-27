@@ -148,8 +148,9 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 	t.Run("Should set error when license is not valid", func(t *testing.T) {
 		th.RemoveLicense(t)
 		c := &Context{
-			App:    th.App,
-			Logger: th.App.Log(),
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
 		requireContentFlaggingEnabled(c)
@@ -168,8 +169,9 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 		})
 
 		c := &Context{
-			App:    th.App,
-			Logger: th.App.Log(),
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
 		requireContentFlaggingEnabled(c)
@@ -188,8 +190,9 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 		})
 
 		c := &Context{
-			App:    th.App,
-			Logger: th.App.Log(),
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
 		}
 
 		requireContentFlaggingEnabled(c)

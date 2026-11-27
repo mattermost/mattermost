@@ -392,7 +392,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
     r'([\w.]*)\.Handle\("([^"]*)"'   # receiver and path
-    r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
+    r',\s*[^)]*\((\w+)(?:,\s*[\w.]+)*\)\)'  # wrapper(...handlerFunc, option...))
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
 
@@ -552,6 +552,8 @@ def check_api(patches: dict[str, str]) -> CheckResult:
         removed_eps |= removed
  
         # Anchor the check to avoid false positives from unrelated source text
+        if fname.endswith("_test.go"):
+            continue
         if re.search(r"^new file mode \d+", patch, re.MULTILINE):
             result.changes.append(f"🆕 New API file: `{fname.split('/')[-1]}`")
         if re.search(r"^deleted file mode \d+", patch, re.MULTILINE):
