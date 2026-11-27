@@ -96,7 +96,7 @@ describe('Bots in lists', () => {
             });
 
             // * Verify no statuses on bots
-            cy.get('.more-modal__row--bot .status-wrapper .status').should('not.exist');
+            cy.get('.more-modal__row--bot .status-wrapper .user-status-badge').should('not.exist');
 
             // * Verify bot badges
             cy.get('.more-modal__row--bot .Tag').then(($tags) => {

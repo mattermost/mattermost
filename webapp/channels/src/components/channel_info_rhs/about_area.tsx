@@ -26,6 +26,11 @@ const Container = styled.div`
         height: 50px;
     }
 
+    & .status-wrapper .user-status-badge {
+        right: -1px;
+        bottom: -1px;
+    }
+
     & .text-empty {
         padding: 0px;
         background: transparent;

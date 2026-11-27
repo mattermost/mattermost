@@ -1,5 +1,43 @@
-@use "utils/variables";
+// Compass StatusBadge placed on the bottom-right corner of an avatar inside `.status-wrapper`.
+// Badge size comes from the StatusBadge `size` prop and the corner offset from the --offset-* modifier (the
+// right/bottom value in px; `n` means negative, i.e. outside the corner); both follow compass-ui UserAvatar
+// (see getStatusBadgeClassName in utils/status_badge.ts).
+.status-wrapper .user-status-badge {
+    position: absolute;
+    top: auto;
+    right: -2px;
+    bottom: -2px;
+    margin: 0;
+    line-height: 0;
 
+    &.user-status-badge--offset-n1 {
+        right: -1px;
+        bottom: -1px;
+    }
+
+    &.user-status-badge--offset-0 {
+        right: 0;
+        bottom: 0;
+    }
+
+    &.user-status-badge--offset-2 {
+        right: 2px;
+        bottom: 2px;
+    }
+
+    &.user-status-badge--offset-3 {
+        right: 3px;
+        bottom: 3px;
+    }
+
+    // UserAvatar draws the medium badge at the 20px glyph size, without the 2px ring of its 24px box
+    &.user-status-badge--medium {
+        width: var(--icon-size-20);
+        height: var(--icon-size-20);
+    }
+}
+
+// Container around an avatar and its status badge
 .status-wrapper {
     position: relative;
     display: inline-flex;
@@ -10,137 +48,10 @@
     .sidebar--left & {
         width: 36px;
         height: 36px;
-
-        .status {
-            right: -6px;
-            bottom: -5px;
-            width: 19px;
-            height: 19px;
-
-            &.status-edit {
-                .fa {
-                    top: 4px;
-                }
-            }
-
-            .fa {
-                position: relative;
-                top: 2px;
-            }
-
-            .icon__container {
-                &::after {
-                    position: absolute;
-                    top: 4px;
-                    left: 4px;
-                    width: 10px;
-                    height: 10px;
-                    border-radius: 20px;
-                    content: '';
-                }
-            }
-
-            svg {
-                position: relative;
-                z-index: 1;
-                top: 0;
-                left: 0;
-                width: 13px;
-                height: 13px;
-                max-height: initial;
-
-                &.offline--icon,
-                .offline--icon {
-                    fill: var(--offline-indicator);
-                }
-            }
-        }
-    }
-
-    .status {
-        position: absolute;
-        top: auto;
-        right: -3px;
-        bottom: -4px;
-        width: 15px;
-        height: 15px;
-        border-radius: 100px;
-        margin: 0;
-        background: var(--center-channel-bg);
-        line-height: 0;
-        visibility: visible;
-
-        .modal & {
-            bottom: -6px;
-        }
-
-        &.status-edit {
-            text-align: center;
-            visibility: hidden;
-
-            i {
-                position: relative;
-                top: 4px;
-                font-size: 10px;
-                opacity: 1;
-            }
-        }
-
-        svg {
-            position: relative;
-            top: 2px;
-            max-height: 11px;
-        }
-
-        .dnd--icon {
-            fill: var(--dnd-indicator);
-        }
-
-        .online--icon {
-            fill: var(--online-indicator);
-        }
-
-        .away--icon {
-            fill: var(--away-indicator);
-        }
-
-        .offline--icon {
-            fill: var(--offline-indicator);
-        }
     }
 }
 
-.status-selector {
-    .status {
-        body.enable-animations & {
-            transition-delay: 0s;
-            transition-duration: variables.$transition-quick;
-            transition-property: opacity, visibility;
-            transition-timing-function: ease-out, step-start;
-        }
-
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .status-edit {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    &:hover {
-        .status {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .status-edit {
-            opacity: 1;
-            visibility: visible;
-        }
-    }
-}
-
+// Group channel "G" / member count icon (`.status.status--group`)
 .status {
     position: relative;
     top: 2px;
@@ -158,83 +69,5 @@
         font-weight: 600;
         line-height: 14px;
         text-align: center;
-    }
-
-    svg {
-        max-height: 14px;
-        backface-visibility: hidden;
-    }
-
-    i,
-    path,
-    ellipse {
-        &.online--icon,
-        &.away--icon,
-        &.dnd--icon {
-            opacity: 1;
-        }
-    }
-
-    .fa-lock {
-        margin-left: 1px;
-    }
-
-    .fa-globe {
-        position: relative;
-        top: -1px;
-    }
-}
-
-.status-dropdown-menu {
-    .online--icon > svg {
-        fill: var(--online-indicator);
-    }
-
-    .away--icon > svg {
-        fill: var(--away-indicator);
-    }
-
-    .dnd--icon > svg {
-        fill: var(--dnd-indicator);
-    }
-
-    .offline--icon {
-        fill: var(--offline-indicator);
-    }
-}
-
-.app__body {
-    .status {
-        &.status--online {
-            color: var(--online-indicator);
-        }
-
-        &.status--away {
-            color: var(--away-indicator);
-        }
-
-        .dnd--icon {
-            fill: var(--dnd-indicator);
-        }
-
-        .online--icon {
-            fill: var(--online-indicator);
-        }
-
-        .away--icon {
-            fill: var(--away-indicator);
-        }
-
-        .offline--icon {
-            fill: var(--offline-indicator);
-        }
-    }
-
-    .sidebar--left {
-        .status {
-            .offline--icon {
-                fill: var(--offline-indicator);
-            }
-        }
     }
 }
