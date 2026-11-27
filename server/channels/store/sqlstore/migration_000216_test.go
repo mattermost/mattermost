@@ -40,6 +40,9 @@ func TestMigration000216(t *testing.T) {
 	// 000242 rebuilds AttributeView on PropertyOptions, so take it off to see
 	// the schema as 000216 left it.
 	defer withoutLegacyAttributeView(t, store)()
+	// The down and up below rebuild UserAttributeView and ChannelAttributeView
+	// with 000216's bodies and no unique index, so put back 000245's and 000246's.
+	defer restoreAttributeViews(t, store)
 
 	// New() applies all migrations, so 000216 is already in effect.
 	require.True(t, matviewExists(t, store, "UserAttributeView"), "UserAttributeView should exist after migration")

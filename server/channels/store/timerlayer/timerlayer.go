@@ -964,10 +964,10 @@ func (s *TimerLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID str
 	}
 }
 
-func (s *TimerLayerAttributesStore) RefreshAttributes() error {
+func (s *TimerLayerAttributesStore) RefreshAttributes(objectTypes ...string) error {
 	start := time.Now()
 
-	err := s.AttributesStore.RefreshAttributes()
+	err := s.AttributesStore.RefreshAttributes(objectTypes...)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

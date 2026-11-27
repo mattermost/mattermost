@@ -32,6 +32,17 @@ var attributeViewsByObjectType = map[string]string{
 	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
 }
 
+// attributeViewFor maps a property-field object type to its materialized view.
+// An unrecognized type is an error, so a caller asking to refresh a type that
+// has no view finds out instead of silently refreshing nothing.
+func attributeViewFor(objectType string) (string, error) {
+	view, ok := attributeViewsByObjectType[objectType]
+	if !ok {
+		return "", errors.Errorf("unknown object type %q for attribute view", objectType)
+	}
+	return view, nil
+}
+
 // attributeLiveViewsByObjectType maps each object type to the plain view the
 // materialized view above is built on (migration 000245). Single-subject reads
 // use it: filtered on TargetID and GroupID it is an index lookup on
@@ -92,18 +103,47 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 	return s
 }
 
-func (s *SqlAttributesStore) RefreshAttributes() error {
-	// Both per-object-type views (migration 000216) refresh on one cadence, so a
-	// caller does not have to know which object types it is about to read. They
-	// refresh in separate statements, though, so this is not an atomic snapshot:
-	// a read straddling a refresh can see the two views a generation apart. Every
-	// consumer tolerates that — values are eventually consistent and the
-	// membership sync re-runs on cadence and converges. Refreshing only the view
-	// whose attributes actually changed is a scale follow-up. Refresh order is
-	// unspecified (map iteration) and does not matter: each REFRESH is its own
-	// independent statement.
-	for _, view := range attributeViewsByObjectType {
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW " + view); err != nil {
+// RefreshAttributes refreshes the attribute materialized views of the given
+// object types, or every view in attributeViewsByObjectType when called with
+// none. Every type is checked before anything is refreshed, so an unknown type
+// returns an error and refreshes nothing; a type given twice is refreshed once.
+//
+// Each view is refreshed with REFRESH MATERIALIZED VIEW CONCURRENTLY, which
+// needs the view's unique index (migration 000246): readers keep reading the
+// old contents while the new ones are computed, instead of waiting for the
+// whole rebuild. Refreshes of one view still queue behind each other, across
+// nodes too. A migration that drops and recreates either view must recreate
+// its index, or this fails.
+//
+// The views refresh in separate statements, so this is not an atomic snapshot:
+// a read straddling a refresh can see the two views a generation apart. Every
+// consumer tolerates that: values are eventually consistent and the membership
+// sync re-runs on cadence and converges. Refresh order is unspecified and does
+// not matter: each REFRESH is its own independent statement.
+func (s *SqlAttributesStore) RefreshAttributes(objectTypes ...string) error {
+	if len(objectTypes) == 0 {
+		objectTypes = make([]string, 0, len(attributeViewsByObjectType))
+		for objectType := range attributeViewsByObjectType {
+			objectTypes = append(objectTypes, objectType)
+		}
+	}
+
+	views := make([]string, 0, len(objectTypes))
+	seen := make(map[string]bool, len(objectTypes))
+	for _, objectType := range objectTypes {
+		view, err := attributeViewFor(objectType)
+		if err != nil {
+			return err
+		}
+		if seen[view] {
+			continue
+		}
+		seen[view] = true
+		views = append(views, view)
+	}
+
+	for _, view := range views {
+		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view); err != nil {
 			return errors.Wrapf(err, "error refreshing materialized view %s", view)
 		}
 	}
@@ -260,7 +300,8 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	return users, total, nil
 }
 
-func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+// channelMembersToRemoveQuery renders GetChannelMembersToRemove's query.
+func (s *SqlAttributesStore) channelMembersToRemoveQuery(channelID string, opts model.SubjectSearchOptions) (string, []any, error) {
 	query := s.getQueryBuilder().
 		Select(qualify("ChannelMembers", channelMemberSliceColumns())...).From("ChannelMembers").
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
@@ -296,7 +337,15 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 	q, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build query for subjects")
+		return "", nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+	return q, args, nil
+}
+
+func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+	q, args, err := s.channelMembersToRemoveQuery(channelID, opts)
+	if err != nil {
+		return nil, err
 	}
 
 	members := []*model.ChannelMember{}
@@ -342,7 +391,8 @@ func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
 func (s *SqlAttributesStore) InvalidateUserAttributes(userID string) {}
 func (s *SqlAttributesStore) ClearUserAttributesCache()              {}
 
-func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+// teamMembersToRemoveQuery renders GetTeamMembersToRemove's query.
+func (s *SqlAttributesStore) teamMembersToRemoveQuery(teamID string, opts model.SubjectSearchOptions) (string, []any, error) {
 	query := s.getQueryBuilder().
 		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
@@ -383,7 +433,15 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 
 	q, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build query for subjects")
+		return "", nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+	return q, args, nil
+}
+
+func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	q, args, err := s.teamMembersToRemoveQuery(teamID, opts)
+	if err != nil {
+		return nil, err
 	}
 
 	members := []*model.TeamMember{}

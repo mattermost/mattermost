@@ -153,17 +153,23 @@ func (_m *AttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
 	_m.Called(userID)
 }
 
-// RefreshAttributes provides a mock function with no fields
-func (_m *AttributesStore) RefreshAttributes() error {
-	ret := _m.Called()
+// RefreshAttributes provides a mock function with given fields: objectTypes
+func (_m *AttributesStore) RefreshAttributes(objectTypes ...string) error {
+	_va := make([]interface{}, len(objectTypes))
+	for _i := range objectTypes {
+		_va[_i] = objectTypes[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RefreshAttributes")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(...string) error); ok {
+		r0 = rf(objectTypes...)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -32,6 +32,7 @@ var (
 
 func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
+	t.Run("RefreshByObjectType", func(t *testing.T) { testAttributesStoreRefreshByObjectType(t, ss, s) })
 	t.Run("GetChannelSubject", func(t *testing.T) { testAttributesStoreGetChannelSubject(t, rctx, ss) })
 	t.Run("EmptyMultiselect", func(t *testing.T) { testAttributesStoreEmptyMultiselect(t, rctx, ss) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
@@ -235,6 +236,91 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 // channel-scoped attribute is readable via
 // GetSubject(..., "channel") from ChannelAttributeView, and is *not* visible
 // through the user view — proving the two views filter by ObjectType.
+// testAttributesStoreRefreshByObjectType checks RefreshAttributes' object-type arguments: a type
+// refreshes only its own view, an unknown type is an error, a call that mixes a known and an
+// unknown type refreshes nothing, and a call with no types refreshes every view.
+func testAttributesStoreRefreshByObjectType(t *testing.T, ss store.Store, s SqlStore) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	newField := func(t *testing.T, objectType string) *model.PropertyField {
+		t.Helper()
+		field, cErr := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       objectType + "_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, cErr)
+		t.Cleanup(func() { require.NoError(t, ss.PropertyField().Delete(groupID, field.ID)) })
+		return field
+	}
+	userField := newField(t, model.PropertyFieldObjectTypeUser)
+	channelField := newField(t, model.PropertyFieldObjectTypeChannel)
+
+	// setValue writes a value for a new target and returns the target's ID.
+	setValue := func(t *testing.T, field *model.PropertyField, targetType string) string {
+		t.Helper()
+		targetID := model.NewId()
+		value, cErr := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: targetType,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      []byte(`"value"`),
+		})
+		require.NoError(t, cErr)
+		t.Cleanup(func() { require.NoError(t, ss.PropertyValue().Delete(groupID, value.ID)) })
+		return targetID
+	}
+
+	inView := func(t *testing.T, view, targetID string) bool {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM "+view+" WHERE TargetID = $1 AND GroupID = $2", targetID, groupID))
+		return count > 0
+	}
+
+	userTarget := setValue(t, userField, model.PropertyValueTargetTypeUser)
+	channelTarget := setValue(t, channelField, model.PropertyValueTargetTypeChannel)
+
+	t.Run("a type refreshes only its own view", func(t *testing.T) {
+		require.NoError(t, ss.Attributes().RefreshAttributes(model.PropertyFieldObjectTypeUser))
+		require.True(t, inView(t, "UserAttributeView", userTarget), "the user view should show the user value")
+		require.False(t, inView(t, "ChannelAttributeView", channelTarget), "the channel view should not be refreshed")
+
+		require.NoError(t, ss.Attributes().RefreshAttributes(model.PropertyFieldObjectTypeChannel))
+		require.True(t, inView(t, "ChannelAttributeView", channelTarget), "the channel view should show the channel value")
+	})
+
+	t.Run("a type given twice is refreshed once", func(t *testing.T) {
+		target := setValue(t, userField, model.PropertyValueTargetTypeUser)
+		require.NoError(t, ss.Attributes().RefreshAttributes(model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeUser))
+		require.True(t, inView(t, "UserAttributeView", target))
+	})
+
+	t.Run("an unknown type is an error", func(t *testing.T) {
+		require.Error(t, ss.Attributes().RefreshAttributes("unknown"))
+	})
+
+	t.Run("a known and an unknown type refresh nothing", func(t *testing.T) {
+		target := setValue(t, userField, model.PropertyValueTargetTypeUser)
+		require.Error(t, ss.Attributes().RefreshAttributes(model.PropertyFieldObjectTypeUser, "unknown"))
+		require.False(t, inView(t, "UserAttributeView", target), "the user view should not be refreshed when another type is unknown")
+	})
+
+	t.Run("no types refresh every view", func(t *testing.T) {
+		user := setValue(t, userField, model.PropertyValueTargetTypeUser)
+		channel := setValue(t, channelField, model.PropertyValueTargetTypeChannel)
+		require.NoError(t, ss.Attributes().RefreshAttributes())
+		require.True(t, inView(t, "UserAttributeView", user))
+		require.True(t, inView(t, "ChannelAttributeView", channel))
+	})
+}
+
 func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss store.Store) {
 	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)

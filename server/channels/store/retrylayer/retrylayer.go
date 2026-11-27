@@ -992,11 +992,11 @@ func (s *RetryLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID str
 
 }
 
-func (s *RetryLayerAttributesStore) RefreshAttributes() error {
+func (s *RetryLayerAttributesStore) RefreshAttributes(objectTypes ...string) error {
 
 	tries := 0
 	for {
-		err := s.AttributesStore.RefreshAttributes()
+		err := s.AttributesStore.RefreshAttributes(objectTypes...)
 		if err == nil {
 			return nil
 		}
