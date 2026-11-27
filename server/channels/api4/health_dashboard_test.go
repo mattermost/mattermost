@@ -450,7 +450,7 @@ func TestHealthDashboardLocal(t *testing.T) {
 		}, filename)
 
 		report := string(data)
-		assert.Contains(t, report, "SiteURL uses http:// (not https://)")
+		assert.Contains(t, report, "Site URL uses HTTP, not HTTPS")
 		assert.Contains(t, report, " UTC\n", "a local session has no user timezone")
 	})
 
@@ -528,9 +528,9 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 
 		rendered := list.Findings[0]
 		assert.Equal(t, finding.Fingerprint, rendered.Fingerprint)
-		assert.Equal(t, "SiteURL uses http:// (not https://)", rendered.Title)
-		assert.Equal(t, "Serve Mattermost over HTTPS and update SiteURL to the https:// address.", rendered.Remediation)
-		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens travel over the network unencrypted.", rendered.Message)
+		assert.Equal(t, "Site URL uses HTTP, not HTTPS", rendered.Title)
+		assert.Equal(t, "Serve Mattermost over HTTPS and update Site URL to the https:// address.", rendered.Remediation)
+		assert.Equal(t, "Site URL is http://example.com. Session cookies and auth tokens travel over the network unencrypted.", rendered.Message)
 		assert.Equal(t, finding.MessageID, rendered.MessageID)
 		assert.Equal(t, "https://mattermost.com/pl/configure-site-url", rendered.DocsURL)
 		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
@@ -693,7 +693,7 @@ func TestExportHealthFindings(t *testing.T) {
 			assert.Contains(t, report, "https://chat.example.com/admin_console/environment/web_server")
 			assert.Contains(t, report, "My awesome Company")
 			assert.Contains(t, report, model.CurrentVersion)
-			assert.Contains(t, report, "SiteURL uses http:// (not https://)")
+			assert.Contains(t, report, "Site URL uses HTTP, not HTTPS")
 			assert.NotContains(t, report, "Push notification server connection test failed")
 		})
 	}
