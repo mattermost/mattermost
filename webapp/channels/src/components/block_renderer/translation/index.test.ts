@@ -345,4 +345,44 @@ describe('getPostInteractiveIntegrationFormat', () => {
             })).toBe('attachment');
         });
     });
+
+    it('omits external author_icon and footer_icon when blockExternalImages is true', () => {
+        const blocks = translatePostProps({
+            attachments: [{
+                author_name: 'Author',
+                author_icon: 'https://external.example/author.png',
+                footer: 'Footer',
+                footer_icon: 'https://external.example/footer.png',
+            }],
+        }, mockIntl, {
+            blockExternalImages: true,
+            siteURL: 'https://chat.example.com',
+        });
+
+        const serialized = JSON.stringify(blocks);
+        expect(serialized).toContain('Author');
+        expect(serialized).toContain('Footer');
+        expect(serialized).not.toContain('https://external.example/author.png');
+        expect(serialized).not.toContain('https://external.example/footer.png');
+    });
+
+    it('omits the placeholder alt_text on blocked attachment images and keeps it otherwise', () => {
+        const props = {
+            attachments: [{
+                image_url: 'https://external.example/image.png',
+                thumb_url: 'https://external.example/thumb.png',
+            }],
+        };
+
+        const blocked = JSON.stringify(translatePostProps(props, mockIntl, {
+            blockExternalImages: true,
+            siteURL: 'https://chat.example.com',
+        }));
+        expect(blocked).toContain('https://external.example/image.png');
+        expect(blocked).toContain('https://external.example/thumb.png');
+        expect(blocked).not.toContain('Attachment image');
+
+        const allowed = JSON.stringify(translatePostProps(props, mockIntl));
+        expect(allowed.match(/"alt_text":"Attachment image"/g)).toHaveLength(2);
+    });
 });

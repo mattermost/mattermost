@@ -152,6 +152,13 @@ func (h Handler) basicSecurityChecks(c *Context, w http.ResponseWriter, r *http.
 	}
 }
 
+func appendImageBlockCSP(csp string, cfg *model.Config) string {
+	if cfg.ImageProxySettings.IsBlockMode() {
+		return csp + "; img-src 'self' data: blob:"
+	}
+	return csp
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
@@ -254,12 +261,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		devCSP := generateDevCSP(*c)
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
-		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
+		cfg := c.App.Config()
+		csp := appendImageBlockCSP(fmt.Sprintf(
 			"frame-ancestors 'self' %s; script-src 'self'%s%s",
-			*c.App.Config().ServiceSettings.FrameAncestors,
+			*cfg.ServiceSettings.FrameAncestors,
 			h.cspShaDirective,
 			devCSP,
-		))
+		), cfg)
+		w.Header().Set("Content-Security-Policy", csp)
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")

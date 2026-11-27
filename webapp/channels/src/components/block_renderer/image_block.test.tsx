@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
-import type {MmImageBlock} from '@mattermost/types/mm_blocks';
+import type {MmColumnSetBlock, MmContainerBlock, MmImageBlock} from '@mattermost/types/mm_blocks';
 
 import {openModal} from 'actions/views/modals';
 
+import ExternalImage from 'components/external_image';
 import SizeAwareImage from 'components/size_aware_image';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -14,6 +16,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import {MmBlocksImagesMetadataContext} from './context';
 import {ImageBlock} from './image_block';
+import {translateAttachments} from './translation/attachments';
 
 const mockOpenModal = jest.fn();
 
@@ -23,7 +26,7 @@ jest.mock('actions/views/modals', () => ({
 
 jest.mock('components/external_image', () => ({
     __esModule: true,
-    default: jest.fn((props: {children: (src: string) => React.ReactNode; src: string}) => (
+    default: jest.fn((props: {children: (src: string, blockedReason?: 'external') => React.ReactNode; src: string}) => (
         <>{props.children(props.src)}</>
     )),
 }));
@@ -170,5 +173,71 @@ describe('ImageBlock', () => {
             maxHeight: 120,
             ...expectedStyle,
         });
+    });
+
+    it('renders a clickable link instead of an image when external images are blocked', () => {
+        jest.mocked(ExternalImage).mockImplementationOnce(((props: {children: (src: string, blockedReason?: 'external') => React.ReactNode}) => (
+            <>{props.children('', 'external')}</>
+        )) as never);
+
+        const {container} = renderWithContext(
+            <ImageBlock
+                block={{
+                    type: 'image',
+                    url: 'https://external.example/photo.png',
+                    alt_text: 'External photo',
+                    size: 'small',
+                }}
+                postId='post-1'
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('.mm-blocks-image')).not.toBeNull();
+        expect(container.querySelector('.mm-blocks-image__frame')).toBeNull();
+        const link = container.querySelector('a[href="https://external.example/photo.png"]');
+        expect(link).not.toBeNull();
+        expect(link?.textContent).toBe('External photo');
+    });
+
+    it('renders the target url for a blocked attachment image_url and thumb_url instead of a placeholder', () => {
+        const blockedExternalImage = ((props: {children: (src: string, blockedReason?: 'external') => React.ReactNode}) => (
+            <>{props.children('', 'external')}</>
+        )) as never;
+        jest.mocked(ExternalImage).mockImplementationOnce(blockedExternalImage).mockImplementationOnce(blockedExternalImage);
+        const intl = {formatMessage: jest.fn((descriptor) => descriptor.defaultMessage)} as unknown as IntlShape;
+        const [container] = translateAttachments([{
+            image_url: 'https://external.example/image.png',
+            thumb_url: 'https://external.example/thumb.png',
+        }], intl, {blockExternalImages: true, siteURL: 'https://chat.example.com'}) as MmContainerBlock[];
+        const columnSet = container.content[0] as MmColumnSetBlock;
+        const imageBlock = columnSet.columns[0].items[0] as MmImageBlock;
+        const thumbBlock = columnSet.columns[1].items[0] as MmImageBlock;
+
+        const {container: rendered} = renderWithContext(
+            <>
+                <ImageBlock
+                    block={imageBlock}
+                    postId='post-1'
+                />
+                <ImageBlock
+                    block={thumbBlock}
+                    postId='post-1'
+                />
+            </>,
+            {entities: {general: {config: {SiteURL: 'https://chat.example.com'}}}},
+        );
+
+        expect(rendered.querySelector('a[href="https://external.example/image.png"]')?.textContent).toBe('https://external.example/image.png');
+        expect(rendered.querySelector('a[href="https://external.example/thumb.png"]')?.textContent).toBe('https://external.example/thumb.png');
+        expect(screen.queryByText('Attachment image')).toBeNull();
     });
 });

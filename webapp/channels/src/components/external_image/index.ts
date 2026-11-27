@@ -5,16 +5,21 @@ import {connect} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import {getExternalImageBlockingConfig} from 'selectors/general';
+
 import type {GlobalState} from 'types/store';
 
 import ExternalImage from './external_image';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
+    const {blockExternalImages, siteURL} = getExternalImageBlockingConfig(state);
 
     return {
+        blockExternalImages,
         enableSVGs: config.EnableSVGs === 'true',
         hasImageProxy: config.HasImageProxy === 'true',
+        siteURL,
     };
 }
 

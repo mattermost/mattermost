@@ -16,6 +16,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import ExternalImage from 'components/external_image';
+import BlockedImageLink from 'components/external_image/blocked_image_link';
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
 import Markdown from 'components/markdown';
@@ -400,48 +401,63 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             );
         }
 
-        let author = [] as JSX.Element[];
-        if (attachment.author_name || attachment.author_icon) {
+        const hasSafeAuthorLink = Boolean(attachment.author_link && isUrlSafe(attachment.author_link));
+        const renderAuthorIcon = (wrapInLink: boolean) => (
+            <ExternalImage
+                key={'attachment__author-icon'}
+                src={attachment.author_icon!}
+                imageMetadata={secureGetFromRecord(this.props.imagesMetadata, attachment.author_icon!)}
+            >
+                {(iconUrl) => {
+                    if (!iconUrl) {
+                        return null;
+                    }
+                    const icon = (
+                        <img
+                            alt={'attachment author icon'}
+                            className='attachment__author-icon'
+                            src={iconUrl}
+                            height='14'
+                            width='14'
+                        />
+                    );
+                    return wrapInLink && hasSafeAuthorLink ? (
+                        <ExternalLink
+                            href={attachment.author_link!}
+                            location='message_attachment'
+                        >
+                            {icon}
+                        </ExternalLink>
+                    ) : icon;
+                }}
+            </ExternalImage>
+        );
+
+        let author: React.ReactNode = null;
+        if (attachment.author_name) {
+            const authorElements: JSX.Element[] = [];
             if (attachment.author_icon) {
-                author.push(
-                    <ExternalImage
-                        key={'attachment__author-icon'}
-                        src={attachment.author_icon}
-                        imageMetadata={secureGetFromRecord(this.props.imagesMetadata, attachment.author_icon)}
-                    >
-                        {(iconUrl) => (
-                            <img
-                                alt={'attachment author icon'}
-                                className='attachment__author-icon'
-                                src={iconUrl}
-                                height='14'
-                                width='14'
-                            />
-                        )}
-                    </ExternalImage>,
-                );
+                authorElements.push(renderAuthorIcon(false));
             }
-            if (attachment.author_name) {
-                author.push(
-                    <span
-                        className='attachment__author-name'
-                        key={'attachment__author-name'}
-                    >
-                        {decodeHtmlEntities(attachment.author_name)}
-                    </span>,
-                );
-            }
-        }
-        if (attachment.author_link && isUrlSafe(attachment.author_link)) {
-            author = [(
+            authorElements.push(
+                <span
+                    className='attachment__author-name'
+                    key={'attachment__author-name'}
+                >
+                    {decodeHtmlEntities(attachment.author_name)}
+                </span>,
+            );
+            author = hasSafeAuthorLink ? (
                 <ExternalLink
-                    href={attachment.author_link}
+                    href={attachment.author_link!}
                     key={'attachment__author-name'}
                     location='message_attachment'
                 >
-                    {author}
+                    {authorElements}
                 </ExternalLink>
-            )];
+            ) : authorElements;
+        } else if (attachment.author_icon) {
+            author = renderAuthorIcon(true);
         }
 
         let title;
@@ -505,14 +521,22 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         src={attachment.image_url}
                         imageMetadata={imageMetadata}
                     >
-                        {(imageUrl) => (
-                            <SizeAwareImage
-                                className='attachment__image'
-                                onImageLoaded={this.handleHeightReceivedForImageUrl}
-                                src={imageUrl}
-                                dimensions={imageMetadata}
-                                onClick={this.showModal}
-                            />
+                        {(imageUrl, blockedReason) => (
+                            blockedReason === 'external' ? (
+                                <BlockedImageLink
+                                    src={attachment.image_url!}
+                                    location='message_attachment'
+                                    inline={false}
+                                />
+                            ) : (
+                                <SizeAwareImage
+                                    className='attachment__image'
+                                    onImageLoaded={this.handleHeightReceivedForImageUrl}
+                                    src={imageUrl}
+                                    dimensions={imageMetadata}
+                                    onClick={this.showModal}
+                                />
+                            )
                         )}
                     </ExternalImage>
                 </div>
@@ -530,7 +554,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         src={attachment.footer_icon}
                         imageMetadata={footerIconMetadata}
                     >
-                        {(footerIconUrl) => (
+                        {(footerIconUrl) => (footerIconUrl ? (
                             <img
                                 alt={'attachment footer icon'}
                                 className='attachment__footer-icon'
@@ -538,7 +562,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                                 height='16'
                                 width='16'
                             />
-                        )}
+                        ) : null)}
                     </ExternalImage>
                 );
             }
@@ -565,12 +589,20 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         src={attachment.thumb_url}
                         imageMetadata={thumbMetadata}
                     >
-                        {(thumbUrl) => (
-                            <SizeAwareImage
-                                onImageLoaded={this.handleHeightReceivedForThumbUrl}
-                                src={thumbUrl}
-                                dimensions={thumbMetadata}
-                            />
+                        {(thumbUrl, blockedReason) => (
+                            blockedReason === 'external' ? (
+                                <BlockedImageLink
+                                    src={attachment.thumb_url!}
+                                    location='message_attachment'
+                                    inline={false}
+                                />
+                            ) : (
+                                <SizeAwareImage
+                                    onImageLoaded={this.handleHeightReceivedForThumbUrl}
+                                    src={thumbUrl}
+                                    dimensions={thumbMetadata}
+                                />
+                            )
                         )}
                     </ExternalImage>
                 </div>
@@ -585,7 +617,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             useBorderStyle = {borderLeftColor: attachment.color};
         }
 
-        const hasContent = author.length > 0 || Boolean(title) || Boolean(thumb) || Boolean(attachmentText) || Boolean(image) || Boolean(fields) || Boolean(footer) || Boolean(actions);
+        const hasContent = Boolean(author) || Boolean(title) || Boolean(thumb) || Boolean(attachmentText) || Boolean(image) || Boolean(fields) || Boolean(footer) || Boolean(actions);
 
         return (
             <div

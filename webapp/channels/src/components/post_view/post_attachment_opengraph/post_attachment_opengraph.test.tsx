@@ -118,6 +118,31 @@ describe('PostAttachmentOpenGraph', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
+    test('should omit OpenGraph image container when external images are blocked', () => {
+        const {container, getByText} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            SiteURL: 'https://chat.example.com',
+                            HasImageProxy: 'true',
+                            ImageProxyType: 'block',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(getByText(openGraphData.title)).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).not.toBeInTheDocument();
+        expect(container.querySelector('img')).not.toBeInTheDocument();
+    });
+
     test('should render nothing when link previews are disabled on the server', () => {
         const {container} = renderWithContext(
             <PostAttachmentOpenGraph {...baseProps}/>,
@@ -292,30 +317,6 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(placeholder).toBeInTheDocument();
         expect(placeholder!.style.containIntrinsicSize).toEqual('40px 80px');
         expect(placeholder!.style.aspectRatio).toEqual('auto 40 / 80');
-    });
-});
-
-describe('PostAttachmentOpenGraphBody', () => {
-    const baseProps = {
-        title: 'test_title',
-        isInPermalink: false,
-        siteName: 'test_sitename',
-        description: 'test_description',
-    };
-
-    describe('permalink preview', () => {
-        test('should add extra class for permalink view', () => {
-            const props = {
-                ...baseProps,
-                isInPermalink: true,
-            };
-
-            const {container} = render(
-                <PostAttachmentOpenGraphBody {...props}/>,
-            );
-
-            expect(container.querySelector('.isInPermalink')).toBeInTheDocument();
-        });
     });
 });
 

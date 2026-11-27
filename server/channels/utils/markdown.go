@@ -8,11 +8,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	astExt "github.com/yuin/goldmark/extension/ast"
+	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer"
+	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 )
 
@@ -55,6 +58,12 @@ var blockquoteReg = regexp.MustCompile(`^|\n(&gt;)`)
 
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown, siteURL string) (string, error) {
+	return MarkdownToHTMLWithBlockedImages(markdown, siteURL, false)
+}
+
+// MarkdownToHTMLWithBlockedImages converts Markdown to HTML and, when blockExternalImages is true,
+// replaces external or /api/v4/image Markdown images with links (or plain text if inside a link or unsafe).
+func MarkdownToHTMLWithBlockedImages(markdown, siteURL string, blockExternalImages bool) (string, error) {
 	// Turn relative links into absolute links
 	absLinkMarkdown := relLinkReg.ReplaceAllStringFunc(markdown, func(s string) string {
 		return relLinkReg.ReplaceAllString(s, "[$1]("+siteURL+"$2)")
@@ -65,9 +74,16 @@ func MarkdownToHTML(markdown, siteURL string) (string, error) {
 		return html.UnescapeString(s)
 	})
 
-	md := goldmark.New(
+	opts := []goldmark.Option{
 		goldmark.WithExtensions(extension.GFM),
-	)
+	}
+	if blockExternalImages {
+		opts = append(opts, goldmark.WithParserOptions(
+			parser.WithASTTransformers(util.Prioritized(&externalImageBlockTransformer{siteURL: siteURL}, 500)),
+		))
+	}
+
+	md := goldmark.New(opts...)
 
 	var b strings.Builder
 
@@ -76,6 +92,75 @@ func MarkdownToHTML(markdown, siteURL string) (string, error) {
 		return "", err
 	}
 	return b.String(), nil
+}
+
+type externalImageBlockTransformer struct {
+	siteURL string
+}
+
+func (t *externalImageBlockTransformer) Transform(doc *ast.Document, _ text.Reader, _ parser.Context) {
+	var images []*ast.Image
+	if err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if entering && n.Kind() == ast.KindImage {
+			if img, ok := n.(*ast.Image); ok {
+				images = append(images, img)
+			}
+		}
+		return ast.WalkContinue, nil
+	}); err != nil {
+		return
+	}
+
+	for _, img := range images {
+		// The destination keeps its Markdown source spelling, so entity references such as the
+		// &amp; that email escaping produces must be decoded before the URL's query is read.
+		dest := string(util.ResolveNumericReferences(util.ResolveEntityNames(util.UnescapePunctuations(img.Destination))))
+		if !model.IsExternalImageURL(dest, t.siteURL) {
+			continue
+		}
+
+		parent := img.Parent()
+		if parent == nil {
+			continue
+		}
+
+		hasLinkAncestor := false
+		for p := parent; p != nil; p = p.Parent() {
+			if p.Kind() == ast.KindLink {
+				hasLinkAncestor = true
+				break
+			}
+		}
+
+		targetURL, linkable := model.BlockedImageLinkTarget(dest, t.siteURL)
+		if !hasLinkAncestor && linkable {
+			link := ast.NewLink()
+			link.Destination = []byte(targetURL)
+			link.Title = img.Title
+			if img.FirstChild() != nil {
+				for c := img.FirstChild(); c != nil; {
+					next := c.NextSibling()
+					link.AppendChild(link, c)
+					c = next
+				}
+			} else {
+				link.AppendChild(link, ast.NewString([]byte(targetURL)))
+			}
+			parent.ReplaceChild(parent, img, link)
+			continue
+		}
+
+		if img.FirstChild() != nil {
+			for c := img.FirstChild(); c != nil; {
+				next := c.NextSibling()
+				parent.InsertBefore(parent, img, c)
+				c = next
+			}
+			parent.RemoveChild(parent, img)
+		} else {
+			parent.ReplaceChild(parent, img, ast.NewString([]byte(targetURL)))
+		}
+	}
 }
 
 type notificationRenderer struct {

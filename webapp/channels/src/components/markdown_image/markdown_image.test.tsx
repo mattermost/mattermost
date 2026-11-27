@@ -403,4 +403,44 @@ describe('components/MarkdownImage', () => {
         expect(container.querySelector('.markdown-image-expand__expand-button')).toBeInTheDocument();
         expect(container.querySelector('.markdown-image-expand--expanded')).not.toBeInTheDocument();
     });
+
+    test('should render unwrapped link in block mode and plain text when imageIsLink is true', () => {
+        const blockState = {
+            entities: {
+                general: {
+                    config: {
+                        SiteURL: 'https://chat.example.com',
+                        HasImageProxy: 'true',
+                        ImageProxyType: 'block',
+                    },
+                },
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <MarkdownImage
+                {...baseProps}
+                src='/api/v4/image?url=https%3A%2F%2Fext.example%2Fa.png'
+                alt='External alt'
+                imageIsLink={false}
+            />,
+            blockState,
+        );
+
+        const link = screen.getByRole('link', {name: 'External alt'});
+        expect(link).toHaveAttribute('href', 'https://ext.example/a.png');
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+
+        rerender(
+            <MarkdownImage
+                {...baseProps}
+                src='/api/v4/image?url=https%3A%2F%2Fext.example%2Fa.png'
+                alt=''
+                imageIsLink={true}
+            />,
+        );
+
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        expect(screen.getByText('https://ext.example/a.png')).toBeInTheDocument();
+    });
 });

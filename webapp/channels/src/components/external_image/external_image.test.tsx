@@ -91,4 +91,45 @@ describe('ExternalImage', () => {
         expect(props.children).toHaveBeenCalledWith(Client4.getBaseRoute() + '/image?url=' + encodeURIComponent(props.src));
         expect(container.querySelector('img')).toBeInTheDocument();
     });
+
+    test('should block external and proxy URLs when blockExternalImages is true', () => {
+        const externalChildren = jest.fn(() => <span data-testid='blocked'/>);
+        render(
+            <ExternalImage
+                {...baseProps}
+                blockExternalImages={true}
+                siteURL='https://chat.example.com'
+                src='https://external.example/a.png'
+            >
+                {externalChildren}
+            </ExternalImage>,
+        );
+        expect(externalChildren).toHaveBeenCalledWith('', 'external');
+
+        const proxyChildren = jest.fn(() => <span data-testid='blocked-proxy'/>);
+        render(
+            <ExternalImage
+                {...baseProps}
+                blockExternalImages={true}
+                siteURL='https://chat.example.com'
+                src='/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png'
+            >
+                {proxyChildren}
+            </ExternalImage>,
+        );
+        expect(proxyChildren).toHaveBeenCalledWith('', 'external');
+
+        const internalChildren = jest.fn((src) => <img src={src}/>);
+        render(
+            <ExternalImage
+                {...baseProps}
+                blockExternalImages={true}
+                siteURL='https://chat.example.com'
+                src='https://chat.example.com/api/v4/files/1/preview'
+            >
+                {internalChildren}
+            </ExternalImage>,
+        );
+        expect(internalChildren).toHaveBeenCalledWith('https://chat.example.com/api/v4/files/1/preview');
+    });
 });

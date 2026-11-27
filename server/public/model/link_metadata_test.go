@@ -487,3 +487,97 @@ func TestFilterSVGImages(t *testing.T) {
 		assert.Len(t, result, 2)
 	})
 }
+
+func TestIsExternalImageURL(t *testing.T) {
+	const rootSite = "https://chat.example.com"
+	const subpathSite = "https://chat.example.com/mm"
+
+	for _, tc := range []struct {
+		name     string
+		rawURL   string
+		siteURL  string
+		expected bool
+	}{
+		{"empty", "", rootSite, false},
+		{"data image", "data:image/png;base64,iVBORw0KGgo=", rootSite, false},
+		{"data svg", "DATA:IMAGE/svg+xml;base64,abc", rootSite, false},
+		{"relative files", "/api/v4/files/abc123/preview", rootSite, false},
+		{"same origin", "https://chat.example.com/static/logo.png", rootSite, false},
+		{"default https port", "https://chat.example.com:443/static/logo.png", rootSite, false},
+		{"case insensitive host", "HTTPS://CHAT.EXAMPLE.COM/static/logo.png", rootSite, false},
+		{"external host", "https://external.example/a.png", rootSite, true},
+		{"host prefix lookalike", "https://chat.example.com.evil.net/a.png", rootSite, true},
+		{"scheme mismatch", "http://chat.example.com/static/logo.png", rootSite, true},
+		{"port mismatch", "https://chat.example.com:8443/static/logo.png", rootSite, true},
+		{"protocol relative", "//external.example/a.png", rootSite, true},
+		{"backslash", `/\evil.net/a.png`, rootSite, true},
+		{"control char", "https://chat.example.com/\na.png", rootSite, true},
+		{"javascript scheme", "javascript:alert(1)", rootSite, true},
+		{"root image proxy relative", "/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", rootSite, true},
+		{"root duplicate slash image proxy", "https://chat.example.com//api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", rootSite, true},
+		{"subpath duplicate slash image proxy", "/mm//api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", subpathSite, true},
+		{"root image proxy absolute", "https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", rootSite, true},
+		{"subpath internal", "https://chat.example.com/mm/api/v4/files/1/preview", subpathSite, false},
+		{"subpath relative without leading slash", "static/logo.png", subpathSite, false},
+		{"subpath boundary mm2", "https://chat.example.com/mm2/a.png", subpathSite, true},
+		{"subpath dot traversal", "https://chat.example.com/mm/../other/a.png", subpathSite, true},
+		{"subpath image proxy", "https://chat.example.com/mm/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", subpathSite, true},
+		{"subpath relative image proxy", "/mm/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", subpathSite, true},
+		{"subpath relative image proxy without leading slash", "api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", subpathSite, true},
+		{"userinfo url", "https://user@chat.example.com/a.png", rootSite, true},
+		{"leading space proxy", " /api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", rootSite, true},
+		{"trailing space internal", "https://chat.example.com/static/logo.png ", rootSite, true},
+		{"empty siteURL absolute", "https://chat.example.com/a.png", "", true},
+		{"empty siteURL relative", "/api/v4/files/1/preview", "", false},
+		{"empty siteURL relative proxy", "/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png", "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsExternalImageURL(tc.rawURL, tc.siteURL))
+		})
+	}
+}
+
+func TestIsImageProxyURL(t *testing.T) {
+	assert.True(t, IsImageProxyURL("/api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com"))
+	assert.True(t, IsImageProxyURL("https://chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com"))
+	assert.True(t, IsImageProxyURL("https://chat.example.com/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com/mm"))
+	assert.True(t, IsImageProxyURL("api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com/mm"))
+	assert.False(t, IsImageProxyURL("https://user@chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com"))
+	assert.False(t, IsImageProxyURL("https://other.example/api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com"))
+	assert.False(t, IsImageProxyURL(" /api/v4/image?url=https%3A%2F%2Fext%2Fa.png", "https://chat.example.com"))
+	assert.False(t, IsImageProxyURL("https://chat.example.com/api/v4/files/1", "https://chat.example.com"))
+}
+
+func TestUnwrapImageProxyURL(t *testing.T) {
+	const siteURL = "https://chat.example.com"
+	assert.Equal(t, "https://ext.example/a.png", UnwrapImageProxyURL("/api/v4/image?url=https%3A%2F%2Fext.example%2Fa.png", siteURL))
+	assert.Equal(t, "https://ext.example/a.png", UnwrapImageProxyURL("https://chat.example.com/mm/api/v4/image?url=https%3A%2F%2Fext.example%2Fa.png", "https://chat.example.com/mm"))
+
+	unsafe := "/api/v4/image?url=javascript%3Aalert(1)"
+	assert.Equal(t, unsafe, UnwrapImageProxyURL(unsafe, siteURL))
+	assert.Equal(t, "https://ext.example/a.png", UnwrapImageProxyURL("https://ext.example/a.png", siteURL))
+}
+
+func TestBlockedImageLinkTarget(t *testing.T) {
+	const siteURL = "https://chat.example.com"
+
+	for name, tc := range map[string]struct {
+		rawURL     string
+		wantTarget string
+		wantOK     bool
+	}{
+		"direct external URL":        {"https://ext.example/a.png", "https://ext.example/a.png", true},
+		"proxy URL is unwrapped":     {"/api/v4/image?url=https%3A%2F%2Fext.example%2Fa.png", "https://ext.example/a.png", true},
+		"unsafe proxy target":        {"/api/v4/image?url=javascript%3Aalert(1)", "/api/v4/image?url=javascript%3Aalert(1)", false},
+		"proxy wrapping a proxy URL": {"/api/v4/image?url=https%3A%2F%2Fchat.example.com%2Fapi%2Fv4%2Fimage%3Furl%3Dx", "https://chat.example.com/api/v4/image?url=x", false},
+		"non-http scheme":            {"ftp://ext.example/a.png", "ftp://ext.example/a.png", false},
+		"protocol-relative URL":      {"//ext.example/a.png", "//ext.example/a.png", false},
+		"leading whitespace":         {" https://ext.example/a.png", " https://ext.example/a.png", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			target, ok := BlockedImageLinkTarget(tc.rawURL, siteURL)
+			assert.Equal(t, tc.wantTarget, target)
+			assert.Equal(t, tc.wantOK, ok)
+		})
+	}
+}

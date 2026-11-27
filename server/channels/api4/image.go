@@ -7,6 +7,7 @@ import (
 	"cmp"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -16,7 +17,14 @@ func (api *API) InitImage() {
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	cfg := c.App.Config()
+	isBlockMode := cfg.ImageProxySettings.IsBlockMode()
+
 	actualURL := r.URL.Query().Get("url")
+	if isBlockMode && actualURL == "" {
+		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	parsedURL, err := url.Parse(actualURL)
 	if err != nil {
 		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -25,23 +33,35 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-	siteURL, err := url.Parse(*c.App.Config().ServiceSettings.SiteURL)
+	siteURLStr := *cfg.ServiceSettings.SiteURL
+	siteURL, err := url.Parse(siteURLStr)
 	if err != nil {
 		c.Err = model.NewAppError("getImage", "model.config.is_valid.site_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	parsedURL.Scheme = cmp.Or(parsedURL.Scheme, siteURL.Scheme)
-	if parsedURL.Host == "" {
-		parsedURL.Host = siteURL.Host
+	if isBlockMode && siteURL.Scheme != "" && siteURL.Host != "" {
+		siteBase := *siteURL
+		siteBase.Path = strings.TrimRight(siteURL.Path, "/") + "/"
+		parsedURL = siteBase.ResolveReference(parsedURL)
+	} else {
+		parsedURL.Scheme = cmp.Or(parsedURL.Scheme, siteURL.Scheme)
+		if parsedURL.Host == "" {
+			parsedURL.Host = siteURL.Host
+		}
 	}
 
-	if *c.App.Config().ImageProxySettings.Enable {
-		// in case image proxy is enabled and we are fetching a remote image (NOT static or served by plugins), pass request to proxy
-		if parsedURL.Host != siteURL.Host {
+	if *cfg.ImageProxySettings.Enable {
+		var isExternal bool
+		if isBlockMode {
+			isExternal = model.IsExternalImageURL(actualURL, siteURLStr)
+		} else {
+			isExternal = parsedURL.Host != siteURL.Host
+		}
+
+		if isExternal {
 			c.App.ImageProxy().GetImage(w, r, parsedURL.String())
 		} else {
-			// Otherwise we redirect.
 			http.Redirect(w, r, parsedURL.String(), http.StatusFound)
 		}
 		return

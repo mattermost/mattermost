@@ -7,7 +7,7 @@
 // and renders the result via the Block Renderer. Action dispatch delegates to
 // the existing doPostAction layer, consistent with Attachments.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -18,6 +18,7 @@ import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
 import {BlockRenderer} from 'components/block_renderer';
 import {getPostInteractiveIntegrationFormat, translatePostProps} from 'components/block_renderer/translation';
 
+import {useExternalImageBlocking} from 'hooks/useExternalImageBlocking';
 import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 
 type Props = {
@@ -70,7 +71,11 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
         }
     }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie, intl]);
 
-    const blocks = translatePostProps(post.props as Record<string, unknown>, intl);
+    const {blockExternalImages, siteURL} = useExternalImageBlocking();
+    const blocks = useMemo(() => translatePostProps(post.props as Record<string, unknown>, intl, {
+        blockExternalImages,
+        siteURL,
+    }), [post.props, intl, blockExternalImages, siteURL]);
     if (!blocks || blocks.length === 0) {
         return null;
     }

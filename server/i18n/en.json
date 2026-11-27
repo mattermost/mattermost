@@ -17726,8 +17726,8 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
-    "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local', or set ImageProxySettings.Enable to false to disable the image proxy.",
-    "description": "Configuration validation error shown to a system admin (and logged at startup) when the config still selects the removed 'atmos/camo' image proxy. The setting names, the value 'local', and 'false' are literal identifiers and must not be translated."
+    "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local' or 'block', or set ImageProxySettings.Enable to false to disable the image proxy.",
+    "description": "Configuration validation error shown to a system admin (and logged at startup) when the config still selects the removed 'atmos/camo' image proxy. The setting names, the values 'local' and 'block', and 'false' are literal identifiers and must not be translated."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -18086,8 +18086,8 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local'.",
-    "description": "Config validation error shown to system admins; 'local' and 'atmos/camo' are literal image proxy type option values and must not be translated."
+    "translation": "Invalid image proxy type. Must be 'local' or 'block'.",
+    "description": "Config validation error shown to system admins; 'local' and 'block' are literal image proxy type option values and must not be translated."
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",

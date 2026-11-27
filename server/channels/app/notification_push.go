@@ -143,6 +143,10 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return true
 	}, plugin.NotificationWillBePushedID)
 
+	if a.isExternalImageBlocked() && msg.OverrideIconURL != "" && model.IsExternalImageURL(msg.OverrideIconURL, a.GetSiteURL()) {
+		msg.OverrideIconURL = ""
+	}
+
 	if rejectionReason != "" {
 		// Notifications rejected by a plugin should not be considered errors
 		// This is likely normal operation so no need for metrics here
@@ -955,7 +959,9 @@ func (a *App) buildFullPushNotificationMessage(rctx request.CTX, contentsConfig 
 	}
 
 	if oi, ok := post.GetProp(model.PostPropsOverrideIconURL).(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
-		msg.OverrideIconURL = oi
+		if !(a.isExternalImageBlocked() && model.IsExternalImageURL(oi, a.GetSiteURL())) {
+			msg.OverrideIconURL = oi
+		}
 	}
 
 	if fw, ok := post.GetProp(model.PostPropsFromWebhook).(string); ok {

@@ -8175,8 +8175,12 @@
     "defaultMessage": "Image Proxy Type:",
     "description": "Setting label for a dropdown in the image proxy admin settings choosing the proxy implementation; ends with a colon."
   },
-  "admin.image.proxyTypeDescription": {
-    "defaultMessage": "Configure an image proxy to load all Markdown images through a proxy. The image proxy prevents users from making insecure image requests, provides caching for increased performance, and automates image adjustments such as resizing. See <link>documentation</link> to learn more.",
+  "admin.image.proxyType.block": {
+    "defaultMessage": "block",
+    "description": "Dropdown option for Image Proxy Type setting to block external image fetching and render external images as links."
+  },
+  "admin.image.proxyTypeWithBlockDescription": {
+    "defaultMessage": "Configure an image proxy to load all Markdown images through a proxy, or set to \"block\" to prevent external image requests and render external images as links. For full outbound hardening, also set Enable website link previews, Enable integrations to override profile picture icons, and Enable GIF Picker to false. See <link>documentation</link> to learn more.",
     "description": "Help text for the Image Proxy Type setting; <link> wraps the word 'documentation'."
   },
   "admin.image.publicLinkDescription": {

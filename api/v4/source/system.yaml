@@ -1820,6 +1820,13 @@
               schema:
                 type: string
                 format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          description: >
+            Fetching external images is blocked because
+            `ImageProxySettings.ImageProxyType` is set to `block`.
+            The response has an empty body.
         "404":
           $ref: "#/components/responses/NotFound"
 

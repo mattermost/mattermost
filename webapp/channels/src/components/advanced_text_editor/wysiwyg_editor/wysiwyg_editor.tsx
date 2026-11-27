@@ -30,6 +30,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
+import {useExternalImageBlocking} from 'hooks/useExternalImageBlocking';
 import {useLatest} from 'hooks/useLatest';
 import {formatQuote} from 'utils/quote';
 import {canHighlight} from 'utils/syntax_highlighting';
@@ -238,6 +239,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
     const hasImageProxy = useSelector(getConfig).HasImageProxy === 'true';
+    const {blockExternalImages, siteURL: rawSiteURL} = useExternalImageBlocking();
+    const siteURL = rawSiteURL || '';
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
 
@@ -320,7 +323,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         TableRow,
         TableCell,
         TableHeader,
-        WysiwygImage.configure({hasImageProxy}),
+        WysiwygImage.configure({hasImageProxy, blockExternalImages, siteURL}),
         WysiwygMention,
         OrderedListMarkerWidth,
         EmojiDecorations,

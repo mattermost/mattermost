@@ -8,10 +8,10 @@ import StarterKit from '@tiptap/starter-kit';
 import WysiwygImage from './wysiwyg_image';
 import {parseMarkdownContent, serializeToMarkdown} from './wysiwyg_markdown';
 
-const createEditor = (hasImageProxy = false) => new Editor({
+const createEditor = (hasImageProxy = false, blockExternalImages = false, siteURL = 'https://chat.example.com') => new Editor({
     extensions: [
         StarterKit.configure({link: false}),
-        WysiwygImage.configure({hasImageProxy}),
+        WysiwygImage.configure({hasImageProxy, blockExternalImages, siteURL}),
         Markdown.configure({markedOptions: {gfm: true}}),
     ],
     content: '',
@@ -155,5 +155,25 @@ describe('WysiwygImage', () => {
 
         expect(contentImage(editor.view.dom)?.getAttribute('src')).toBe('https://example.com/cat.png');
         expect(editor.view.dom.textContent).toBe('');
+    });
+
+    it('renders blocked span for external images in block mode and round-trips markdown', () => {
+        editor = createEditor(true, true, 'https://chat.example.com');
+        editor.commands.setContent('![a kitten](https://example.com/cat.png)', {contentType: 'markdown'});
+
+        expect(contentImage(editor.view.dom)).toBeNull();
+        const blocked = editor.view.dom.querySelector('span[data-blocked-image]');
+        expect(blocked).not.toBeNull();
+        expect(blocked?.textContent).toBe('a kitten');
+        expect(serializeToMarkdown(editor)).toBe('![a kitten](https://example.com/cat.png)');
+    });
+
+    it('ignores span[data-blocked-image] elements missing data-src during HTML parsing', () => {
+        editor = createEditor(true, true, 'https://chat.example.com');
+        editor.commands.setContent('<p><span data-blocked-image="true">not an image</span></p>', {contentType: 'html'});
+
+        const paragraph = editor.getJSON().content?.[0];
+        expect(paragraph?.content).toEqual([{type: 'text', text: 'not an image'}]);
+        expect(serializeToMarkdown(editor)).toBe('not an image');
     });
 });

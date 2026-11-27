@@ -34,53 +34,60 @@ function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThum
     const {formatMessage} = useIntl();
 
     return (
-        <div
-            className='video-thumbnail__container'
-            onClick={play}
-            role='button'
-            aria-label={formatMessage({
-                id: 'youtube_video.play.aria_label',
-                defaultMessage: 'Play {videoTitle} on YouTube',
-            }, {
-                videoTitle,
-            })}
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    play();
+        <ExternalImage src={thumbnailUrl}>
+            {(src) => {
+                if (!src) {
+                    return null;
                 }
+                return (
+                    <div className='video-div embed-responsive-item'>
+                        <div
+                            className='video-thumbnail__container'
+                            onClick={play}
+                            role='button'
+                            aria-label={formatMessage({
+                                id: 'youtube_video.play.aria_label',
+                                defaultMessage: 'Play {videoTitle} on YouTube',
+                            }, {
+                                videoTitle,
+                            })}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    play();
+                                }
+                            }}
+                        >
+                            <img
+                                className='video-thumbnail'
+                                src={src}
+                                alt={formatMessage({
+                                    id: 'youtube_video.thumbnail.alt_text',
+                                    defaultMessage: 'Thumbnail for {videoTitle} on YouTube',
+                                }, {
+                                    videoTitle,
+                                })}
+                                onError={onError}
+                            />
+                            <div
+                                className='play-button'
+                                role='presentation'
+                                aria-label={formatMessage({
+                                    id: 'youtube_video.play_button.aria_label',
+                                    defaultMessage: 'Play video',
+                                })}
+                            >
+                                <i
+                                    className='icon-play'
+                                    aria-hidden='true'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                );
             }}
-        >
-            <ExternalImage src={thumbnailUrl}>
-                {(src) => (
-                    <img
-                        className='video-thumbnail'
-                        src={src}
-                        alt={formatMessage({
-                            id: 'youtube_video.thumbnail.alt_text',
-                            defaultMessage: 'Thumbnail for {videoTitle} on YouTube',
-                        }, {
-                            videoTitle,
-                        })}
-                        onError={onError}
-                    />
-                )}
-            </ExternalImage>
-            <div
-                className='play-button'
-                role='presentation'
-                aria-label={formatMessage({
-                    id: 'youtube_video.play_button.aria_label',
-                    defaultMessage: 'Play video',
-                })}
-            >
-                <i
-                    className='icon-play'
-                    aria-hidden='true'
-                />
-            </div>
-        </div>
+        </ExternalImage>
     );
 }
 
@@ -159,20 +166,22 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         if (this.state.playing) {
             content = (
-                <div className='video-playing'>
-                    <iframe
-                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&enablejsapi=1${time}`}
-                        title={videoTitle}
-                        width='100%'
-                        height='100%'
-                        frameBorder='0'
-                        allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                        allowFullScreen={true}
+                <div className='video-div embed-responsive-item'>
+                    <div className='video-playing'>
+                        <iframe
+                            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&enablejsapi=1${time}`}
+                            title={videoTitle}
+                            width='100%'
+                            height='100%'
+                            frameBorder='0'
+                            allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                            allowFullScreen={true}
 
-                        // YouTube refuses to play embeds without a referrer (Error 153), and the page itself is no-referrer.
-                        referrerPolicy='strict-origin-when-cross-origin'
-                        sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
-                    />
+                            // YouTube refuses to play embeds without a referrer (Error 153), and the page itself is no-referrer.
+                            referrerPolicy='strict-origin-when-cross-origin'
+                            sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
+                        />
+                    </div>
                 </div>
             );
         } else {
@@ -190,9 +199,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
             <div className='post__embed-container'>
                 <div>
                     {header}
-                    <div className='video-div embed-responsive-item'>
-                        {content}
-                    </div>
+                    {content}
                 </div>
             </div>
         );

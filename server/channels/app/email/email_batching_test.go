@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 func TestHandleNewNotifications(t *testing.T) {
@@ -315,4 +316,58 @@ func TestAddCarriesWithholdContents(t *testing.T) {
 	require.Len(t, job.pendingNotifications["user1"], 2)
 	require.False(t, job.pendingNotifications["user1"][0].withholdContents)
 	require.True(t, job.pendingNotifications["user1"][1].withholdContents)
+}
+
+func TestSendBatchedEmailNotificationImageProxyBlockMode(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigureInbucketMail(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "https://chat.example.com"
+		*cfg.ImageProxySettings.Enable = true
+		*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeBlock
+	})
+
+	recipient := th.BasicUser2
+	require.NoError(t, mail.DeleteMailBox(recipient.Email))
+
+	post := &model.Post{
+		Id:        model.NewId(),
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		CreateAt:  model.GetMillis(),
+		Message:   "![ext alt](https://external.example/pic.png) and ![int alt](https://chat.example.com/static/logo.png)",
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			Text:     "![att text](https://external.example/text.png)",
+			ImageURL: "https://external.example/att-image.png",
+			ThumbURL: "https://external.example/att-thumb.png",
+		},
+	})
+
+	th.service.sendBatchedEmailNotification(recipient.Id, []*batchedNotification{
+		{post: post, teamName: th.BasicTeam.Name},
+	})
+
+	var mailbox mail.JSONMessageHeaderInbucket
+	err := mail.RetryInbucket(5, func() error {
+		var getErr error
+		mailbox, getErr = mail.GetMailBox(recipient.Email)
+		return getErr
+	})
+	if err != nil {
+		t.Skipf("No email was received, maybe due load on the server: %v", err)
+	}
+	require.Len(t, mailbox, 1)
+	message, err := mail.GetMessageFromMailbox(recipient.Email, mailbox[0].ID)
+	require.NoError(t, err)
+	body := message.Body.HTML
+
+	assert.NotContains(t, body, `src="https://external.example/`)
+	assert.Contains(t, body, `<a href="https://external.example/pic.png">ext alt</a>`)
+	assert.Contains(t, body, `<img src="https://chat.example.com/static/logo.png" alt="int alt"`)
+	assert.Contains(t, body, `<a href="https://external.example/text.png">att text</a>`)
+	assert.Contains(t, body, `<a href="https://external.example/att-image.png"`)
+	assert.Contains(t, body, `<a href="https://external.example/att-thumb.png"`)
 }

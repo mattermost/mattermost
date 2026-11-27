@@ -297,6 +297,7 @@ const (
 	GlobalRelayChannelTypeHeader = "X-Mattermost-ChannelType"
 
 	ImageProxyTypeLocal           = "local"
+	ImageProxyTypeBlock           = "block"
 	ImageProxyTypeLegacyAtmosCamo = "atmos/camo"
 
 	GoogleSettingsDefaultScope           = "profile email"
@@ -4216,6 +4217,13 @@ func (s *ImageProxySettings) SetDefaults() {
 	}
 }
 
+func (s *ImageProxySettings) IsBlockMode() bool {
+	if s == nil {
+		return false
+	}
+	return SafeDereference(s.Enable) && SafeDereference(s.ImageProxyType) == ImageProxyTypeBlock
+}
+
 // ImportSettings defines configuration settings for file imports.
 type ImportSettings struct {
 	// The directory where to store the imported files.
@@ -5695,7 +5703,7 @@ func (s *DisplaySettings) isValid() *AppError {
 func (s *ImageProxySettings) isValid() *AppError {
 	if *s.Enable {
 		switch *s.ImageProxyType {
-		case ImageProxyTypeLocal:
+		case ImageProxyTypeLocal, ImageProxyTypeBlock:
 			// No other settings to validate
 		case ImageProxyTypeLegacyAtmosCamo:
 			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_removed.app_error", nil, "", http.StatusBadRequest)

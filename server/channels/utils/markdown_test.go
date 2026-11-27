@@ -490,3 +490,63 @@ func TestMarkdownToHTML(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownToHTMLWithBlockedImages(t *testing.T) {
+	siteURL := "https://chat.example.com"
+	tests := []struct {
+		name     string
+		markdown string
+		want     string
+	}{
+		{
+			name:     "external image becomes link with alt text",
+			markdown: "![alt text](https://external.example/pic.png)",
+			want:     "<p><a href=\"https://external.example/pic.png\">alt text</a></p>\n",
+		},
+		{
+			name:     "external image without alt uses URL as link label",
+			markdown: "![](https://external.example/pic.png)",
+			want:     "<p><a href=\"https://external.example/pic.png\">https://external.example/pic.png</a></p>\n",
+		},
+		{
+			name:     "proxied image unwraps to external destination link",
+			markdown: "![proxied](/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fpic.png)",
+			want:     "<p><a href=\"https://external.example/pic.png\">proxied</a></p>\n",
+		},
+		{
+			name:     "proxied image with an earlier query parameter unwraps to external destination link",
+			markdown: "![photo](/api/v4/image?extra=1&url=https%3A%2F%2Fexternal.example%2Fphoto.png)",
+			want:     "<p><a href=\"https://external.example/photo.png\">photo</a></p>\n",
+		},
+		{
+			name:     "HTML-escaped proxied image with an earlier query parameter unwraps to external destination link",
+			markdown: "![photo](/api/v4/image?extra=1&amp;url=https%3A%2F%2Fexternal.example%2Fphoto.png)",
+			want:     "<p><a href=\"https://external.example/photo.png\">photo</a></p>\n",
+		},
+		{
+			name:     "internal image remains img tag",
+			markdown: "![logo](https://chat.example.com/static/logo.png)",
+			want:     "<p><img src=\"https://chat.example.com/static/logo.png\" alt=\"logo\"></p>\n",
+		},
+		{
+			name:     "linked external image avoids nested anchor",
+			markdown: "[![alt](https://external.example/pic.png)](https://external.example/page)",
+			want:     "<p><a href=\"https://external.example/page\">alt</a></p>\n",
+		},
+		{
+			name:     "unsafe javascript target in proxy renders plain text",
+			markdown: "![bad](/api/v4/image?url=javascript%3Aalert(1))",
+			want:     "<p>bad</p>\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := MarkdownToHTMLWithBlockedImages(tt.markdown, siteURL, true)
+			if err != nil {
+				t.Fatalf("error: %v", err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

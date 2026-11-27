@@ -229,29 +229,13 @@ func isSitePluginActionURL(siteURL, target *url.URL, subpath string) bool {
 	if !strings.EqualFold(siteURL.Hostname(), target.Hostname()) {
 		return false
 	}
-	if effectiveURLPort(siteURL) != effectiveURLPort(target) {
+	if model.NormalizedPort(siteURL) != model.NormalizedPort(target) {
 		return false
 	}
 
 	pluginPath := path.Join(subpath, "plugins")
 	cleaned := path.Clean(target.Path)
 	return cleaned == pluginPath || strings.HasPrefix(cleaned, pluginPath+"/")
-}
-
-// effectiveURLPort returns u's port, or the scheme default (80 for http, 443
-// for https) when the port is empty.
-func effectiveURLPort(u *url.URL) string {
-	if port := u.Port(); port != "" {
-		return port
-	}
-	switch u.Scheme {
-	case "http":
-		return "80"
-	case "https":
-		return "443"
-	default:
-		return ""
-	}
 }
 
 type LocalResponseWriter struct {

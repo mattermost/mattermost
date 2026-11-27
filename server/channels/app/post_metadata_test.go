@@ -4611,3 +4611,305 @@ func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
 		}
 	})
 }
+
+func TestPostMetadataImageProxyBlockMode(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	var hits atomic.Int32
+	var picHits atomic.Int32
+	var acceptMu sync.Mutex
+	var lastAccept string
+	imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		acceptMu.Lock()
+		lastAccept = strings.Join(r.Header.Values("Accept"), ", ")
+		acceptMu.Unlock()
+		if r.URL.Path == "/short" {
+			hits.Add(1)
+			http.Redirect(w, r, "/pic.png", http.StatusFound)
+			return
+		}
+		if r.URL.Path == "/pic.png" {
+			picHits.Add(1)
+		}
+		hits.Add(1)
+		w.Header().Set("Content-Type", "image/png")
+		var buf bytes.Buffer
+		img := image.NewGray(image.Rect(0, 0, 16, 16))
+		if err := (&png.Encoder{}).Encode(&buf, img); err == nil {
+			if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+				return
+			}
+		}
+	}))
+	defer imgServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.SiteURL = new("https://chat.example.com")
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.EnableLinkPreviews = new(true)
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+	})
+
+	t.Run("zero outbound requests for external images and no SQL poisoning", func(t *testing.T) {
+		hits.Store(0)
+		extURL := imgServer.URL + "/pic.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   "![alt](" + extURL + ")",
+		}
+
+		prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+		assert.Contains(t, prepared.Message, "/api/v4/image?url=")
+		assert.Empty(t, prepared.Metadata.Images)
+		assert.Equal(t, int32(0), hits.Load())
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLocal)
+		})
+		postLocal := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+		assert.NotEmpty(t, postLocal.Metadata.Images)
+		assert.Greater(t, hits.Load(), int32(0))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+		})
+	})
+
+	t.Run("zero outbound requests for attachments and bare image links", func(t *testing.T) {
+		hits.Store(0)
+		extURL := imgServer.URL + "/attach.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   extURL,
+		}
+		post.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{
+			{
+				ImageURL:   imgServer.URL + "/img.png",
+				ThumbURL:   imgServer.URL + "/thumb.png",
+				AuthorIcon: imgServer.URL + "/author.png",
+				FooterIcon: imgServer.URL + "/footer.png",
+			},
+		})
+
+		prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+		assert.Empty(t, prepared.Metadata.Images)
+		assert.Equal(t, int32(0), hits.Load())
+
+		barePost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   imgServer.URL + "/bare.png",
+		}
+		preparedBare := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, barePost, &model.PreparePostForClientOpts{IsNewPost: true})
+		require.Len(t, preparedBare.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, preparedBare.Metadata.Embeds[0].Type)
+		assert.Equal(t, int32(0), hits.Load())
+	})
+
+	t.Run("extensionless image URL degrades to PostEmbedLink without poisoning SQL", func(t *testing.T) {
+		hits.Store(0)
+		acceptMu.Lock()
+		lastAccept = ""
+		acceptMu.Unlock()
+		assetURL := imgServer.URL + "/asset"
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   assetURL,
+		}
+
+		prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+		require.Len(t, prepared.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, prepared.Metadata.Embeds[0].Type)
+		assert.Equal(t, assetURL, prepared.Metadata.Embeds[0].URL)
+		assert.Empty(t, prepared.Metadata.Images)
+		acceptMu.Lock()
+		gotAccept := lastAccept
+		acceptMu.Unlock()
+		assert.Equal(t, "text/html", gotAccept)
+
+		hitsBeforeSecondCall := hits.Load()
+		secondEmbed, secondErr := th.App.getEmbedForPost(th.Context, &model.Post{
+			Id:        post.Id,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  post.CreateAt,
+			Message:   assetURL,
+		}, assetURL, false)
+		require.NoError(t, secondErr)
+		require.NotNil(t, secondEmbed)
+		assert.Equal(t, model.PostEmbedLink, secondEmbed.Type)
+		assert.Equal(t, assetURL, secondEmbed.URL)
+		assert.Equal(t, hitsBeforeSecondCall, hits.Load())
+
+		_, storeErr := th.App.Srv().Store().LinkMetadata().Get(assetURL, model.FloorToNearestHour(post.CreateAt))
+		require.Error(t, storeErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLocal)
+		})
+		preparedLocal := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: false})
+		require.Len(t, preparedLocal.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedImage, preparedLocal.Metadata.Embeds[0].Type)
+		assert.NotEmpty(t, preparedLocal.Metadata.Images)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+		})
+	})
+
+	t.Run("shortlink redirecting to external image makes zero requests to image target", func(t *testing.T) {
+		hits.Store(0)
+		picHits.Store(0)
+		shortURL := imgServer.URL + "/short"
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   shortURL,
+		}
+
+		prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+		require.Len(t, prepared.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, prepared.Metadata.Embeds[0].Type)
+		assert.Equal(t, shortURL, prepared.Metadata.Embeds[0].URL)
+		assert.Empty(t, prepared.Metadata.Images)
+		assert.Equal(t, int32(1), hits.Load())
+		assert.Equal(t, int32(0), picHits.Load())
+
+		_, storeErr := th.App.Srv().Store().LinkMetadata().Get(shortURL, model.FloorToNearestHour(post.CreateAt))
+		require.Error(t, storeErr)
+	})
+
+	t.Run("trailing slash and heic/heif extensions and non-canonical proxy URLs", func(t *testing.T) {
+		assert.True(t, hasImageFileExtension("https://example.com/photo.png/"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.heic"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.HEIF/"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.apng"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.jfif"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.pjpeg"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.jxl"))
+		assert.True(t, hasImageFileExtension("https://example.com/photo.jp2"))
+
+		hits.Store(0)
+		nonCanonicalProxy := "https://chat.example.com:443/api/v4/image?extra=1&url=" + url.QueryEscape(imgServer.URL+"/asset")
+		_, _, err := th.App.getLinkMetadataForURL(th.Context, nonCanonicalProxy)
+		require.ErrorIs(t, err, errBlockedExternalImage)
+		assert.Equal(t, int32(0), hits.Load())
+	})
+
+	t.Run("blocks internal-to-external redirect and closes external image stream without draining", func(t *testing.T) {
+		var drainedPastHeaders atomic.Bool
+		streamServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+			w.WriteHeader(http.StatusOK)
+			if flusher, ok := w.(http.Flusher); ok {
+				flusher.Flush()
+			}
+			timer := time.NewTimer(2 * time.Second)
+			defer timer.Stop()
+			select {
+			case <-r.Context().Done():
+				return
+			case <-timer.C:
+				drainedPastHeaders.Store(true)
+			}
+		}))
+		defer streamServer.Close()
+
+		_, postImg, streamErr := th.App.getLinkMetadataForURL(th.Context, streamServer.URL+"/stream")
+		require.ErrorIs(t, streamErr, errBlockedExternalImage)
+		assert.Nil(t, postImg)
+		assert.False(t, drainedPastHeaders.Load())
+
+		hits.Store(0)
+		internalServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, imgServer.URL+"/asset", http.StatusFound)
+		}))
+		defer internalServer.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new(internalServer.URL)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("https://chat.example.com")
+		})
+
+		redirPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   internalServer.URL + "/redir",
+		}
+		prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, redirPost, &model.PreparePostForClientOpts{IsNewPost: true})
+		require.Len(t, prepared.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, prepared.Metadata.Embeds[0].Type)
+		assert.Equal(t, int32(0), hits.Load())
+	})
+
+	t.Run("HTML page with external og:image skips og:image fetch in block mode", func(t *testing.T) {
+		var ogHits atomic.Int32
+		ogImgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ogHits.Add(1)
+			w.Header().Set("Content-Type", "image/png")
+			var buf bytes.Buffer
+			img := image.NewGray(image.Rect(0, 0, 16, 16))
+			if err := (&png.Encoder{}).Encode(&buf, img); err == nil {
+				if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+					return
+				}
+			}
+		}))
+		defer ogImgServer.Close()
+
+		htmlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			htmlBody := fmt.Sprintf(`<!doctype html><html><head><meta property="og:title" content="Example Page"><meta property="og:image" content="%s/og.png"></head><body>hello</body></html>`, ogImgServer.URL)
+			if _, writeErr := w.Write([]byte(htmlBody)); writeErr != nil {
+				return
+			}
+		}))
+		defer htmlServer.Close()
+
+		pageURL := htmlServer.URL + "/article"
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pageURL,
+		}
+
+		prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
+		require.Len(t, prepared.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedOpengraph, prepared.Metadata.Embeds[0].Type)
+		assert.Empty(t, prepared.Metadata.Images)
+		assert.Equal(t, int32(0), ogHits.Load())
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLocal)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+		})
+
+		preparedLocal := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: false})
+		require.Len(t, preparedLocal.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedOpengraph, preparedLocal.Metadata.Embeds[0].Type)
+		assert.NotEmpty(t, preparedLocal.Metadata.Images)
+		assert.Greater(t, ogHits.Load(), int32(0))
+	})
+}

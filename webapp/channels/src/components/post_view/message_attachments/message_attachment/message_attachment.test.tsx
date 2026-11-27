@@ -7,6 +7,7 @@ import type {PostAction} from '@mattermost/types/integration_actions';
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 
+import ExternalImage from 'components/external_image';
 import MessageAttachment from 'components/post_view/message_attachments/message_attachment/message_attachment';
 
 import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
@@ -375,5 +376,96 @@ describe('components/post_view/MessageAttachment', () => {
         await waitFor(() => {
             expect(screen.getByText('Action failed to execute')).toBeInTheDocument();
         });
+    });
+
+    test('renders links for image_url/thumb_url and omits external author_icon/footer_icon in block mode', () => {
+        jest.mocked(ExternalImage).mockImplementation(((props: any) => <>{props.children('', 'external')}</>) as any);
+        try {
+            const blockedAttachment = {
+                ...attachment,
+                author_name: 'Author Name',
+                author_icon: 'https://external.example/author.png',
+                footer: 'Footer text',
+                footer_icon: 'https://external.example/footer.png',
+                image_url: 'https://external.example/image.png',
+                thumb_url: 'https://external.example/thumb.png',
+            };
+
+            renderWithContext(
+                <MessageAttachment
+                    {...baseProps}
+                    attachment={blockedAttachment}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                SiteURL: 'https://chat.example.com',
+                                HasImageProxy: 'true',
+                                ImageProxyType: 'block',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(screen.getByText('Author Name')).toBeInTheDocument();
+            expect(screen.queryByAltText('attachment author icon')).not.toBeInTheDocument();
+            expect(screen.queryByAltText('attachment footer icon')).not.toBeInTheDocument();
+            const imageLink = screen.getByRole('link', {name: 'https://external.example/image.png'});
+            expect(imageLink).toHaveAttribute('href', 'https://external.example/image.png');
+            expect(imageLink).toHaveStyle({
+                display: 'inline-block',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+            });
+            const thumbLink = screen.getByRole('link', {name: 'https://external.example/thumb.png'});
+            expect(thumbLink).toHaveAttribute('href', 'https://external.example/thumb.png');
+            expect(thumbLink).toHaveStyle({
+                display: 'inline-block',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+            });
+        } finally {
+            jest.mocked(ExternalImage).mockImplementation(((props: any) => <>{props.children(props.src)}</>) as any);
+        }
+    });
+
+    test('omits empty author_link wrapper when author_icon is blocked and author_name is absent', () => {
+        jest.mocked(ExternalImage).mockImplementation(((props: any) => <>{props.children('', 'external')}</>) as any);
+        try {
+            const iconOnlyAuthorAttachment = {
+                author_icon: 'https://external.example/author.png',
+                author_link: 'https://external.example/profile',
+                text: 'Body text',
+            } as MessageAttachmentType;
+
+            const {container} = renderWithContext(
+                <MessageAttachment
+                    {...baseProps}
+                    attachment={iconOnlyAuthorAttachment}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                SiteURL: 'https://chat.example.com',
+                                HasImageProxy: 'true',
+                                ImageProxyType: 'block',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(container.querySelector('a[href="https://external.example/profile"]')).toBeNull();
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        } finally {
+            jest.mocked(ExternalImage).mockImplementation(((props: any) => <>{props.children(props.src)}</>) as any);
+        }
     });
 });

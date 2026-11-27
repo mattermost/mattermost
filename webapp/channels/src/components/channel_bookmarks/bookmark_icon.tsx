@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -43,6 +43,15 @@ const BookmarkIcon = ({
     }
     const emojiName = emoji && trimmedEmojiName(emoji);
     const hasImageProxy = useSelector((state: GlobalState) => getConfig(state).HasImageProxy === 'true');
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [imageUrl]);
+
+    // A favicon that fails to load (for example one blocked by the CSP img-src rule
+    // or refused by the image proxy) falls back to the default icon.
+    const showFavicon = Boolean(imageUrl && !imageError);
 
     if (emojiName) {
         icon = (
@@ -51,12 +60,13 @@ const BookmarkIcon = ({
                 size={size}
             />
         );
-    } else if (imageUrl) {
+    } else if (imageUrl && showFavicon) {
         icon = (
             <BookmarkIconImg
                 src={getImageSrc(imageUrl, hasImageProxy)}
                 size={size}
                 draggable={false}
+                onError={() => setImageError(true)}
             />
         );
     } else if (fileInfo) {
@@ -71,7 +81,7 @@ const BookmarkIcon = ({
     let iconKind = `${type}-fallback`;
     if (emojiName) {
         iconKind = 'emoji';
-    } else if (imageUrl) {
+    } else if (showFavicon) {
         iconKind = 'favicon';
     } else if (fileInfo) {
         iconKind = 'file-thumbnail';

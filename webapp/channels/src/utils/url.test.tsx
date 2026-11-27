@@ -5,7 +5,10 @@ import {
     getRelativeChannelURL,
     getSiteURL,
     getSiteURLFromWindowObject,
+    isExternalImageURL,
+    isImageProxyURL,
     isPermalinkURL,
+    unwrapImageProxyURL,
     validateChannelUrl,
 } from 'utils/url';
 
@@ -131,6 +134,71 @@ describe('Utils.URL', () => {
             ['https://example.com/teamname-1/pl/affe2344234', false],
         ])('is permalink for %s should return %s', (url, expected) => {
             expect(isPermalinkURL(url)).toBe(expected);
+        });
+    });
+
+    describe('isExternalImageURL', () => {
+        const rootSite = 'https://chat.example.com';
+        const subpathSite = 'https://chat.example.com/mm';
+
+        test.each([
+            ['', rootSite, false],
+            ['data:image/png;base64,iVBORw0KGgo=', rootSite, false],
+            ['/api/v4/files/abc123/preview', rootSite, false],
+            ['https://chat.example.com/static/logo.png', rootSite, false],
+            ['https://chat.example.com:443/static/logo.png', rootSite, false],
+            ['HTTPS://CHAT.EXAMPLE.COM/static/logo.png', rootSite, false],
+            ['https://external.example/a.png', rootSite, true],
+            ['https://chat.example.com.evil.net/a.png', rootSite, true],
+            ['http://chat.example.com/static/logo.png', rootSite, true],
+            ['https://chat.example.com:8443/static/logo.png', rootSite, true],
+            ['//external.example/a.png', rootSite, true],
+            ['/\\evil.net/a.png', rootSite, true],
+            // eslint-disable-next-line no-script-url
+            ['javascript:alert(1)', rootSite, true],
+            ['/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', rootSite, true],
+            ['/api/v4/%69mage?url=https%3A%2F%2Fexternal.example%2Fa.png', rootSite, true],
+            ['https://chat.example.com//api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', rootSite, true],
+            ['/mm//api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', subpathSite, true],
+            ['https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', rootSite, true],
+            ['https://chat.example.com/mm/api/v4/files/1/preview', subpathSite, false],
+            ['static/logo.png', subpathSite, false],
+            ['https://chat.example.com/mm2/a.png', subpathSite, true],
+            ['https://chat.example.com/mm/../other/a.png', subpathSite, true],
+            ['https://chat.example.com/mm/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', subpathSite, true],
+            ['/mm/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', subpathSite, true],
+            ['https://user@chat.example.com/a.png', rootSite, true],
+            [' https://chat.example.com/static/logo.png', rootSite, true],
+            ['blob:https://chat.example.com/1234-5678', rootSite, true],
+            ['https://chat.example.com/static/100%logo.png', rootSite, false],
+            ['https://chat.example.com/a.png', '', true],
+            ['/api/v4/files/1/preview', '', false],
+            ['/api/v4/image?url=https%3A%2F%2Fexternal.example%2Fa.png', '', true],
+        ])('isExternalImageURL(%s, %s) -> %s', (rawURL, sURL, expected) => {
+            expect(isExternalImageURL(rawURL, sURL)).toBe(expected);
+        });
+    });
+
+    describe('isImageProxyURL and unwrapImageProxyURL', () => {
+        const siteURL = 'https://chat.example.com';
+
+        test('recognizes proxy URLs on root and subpath including percent-encoded path', () => {
+            expect(isImageProxyURL('/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', siteURL)).toBe(true);
+            expect(isImageProxyURL('/api/v4/%69mage?url=https%3A%2F%2Fext%2Fa.png', siteURL)).toBe(true);
+            expect(isImageProxyURL('https://chat.example.com/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com/mm')).toBe(true);
+            expect(isImageProxyURL('api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com/mm')).toBe(true);
+            expect(isImageProxyURL('https://other.example/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', siteURL)).toBe(false);
+            expect(isImageProxyURL('https://user@chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', siteURL)).toBe(false);
+            expect(isImageProxyURL(' /api/v4/image?url=https%3A%2F%2Fext%2Fa.png', siteURL)).toBe(false);
+            expect(isImageProxyURL('https://chat.example.com/api/v4/image/%ZZ?url=https%3A%2F%2Fext%2Fa.png', siteURL)).toBe(true);
+            expect(isImageProxyURL('blob:https://chat.example.com/api/v4/image', siteURL)).toBe(false);
+        });
+
+        test('unwraps safe external URLs and rejects unsafe schemes', () => {
+            expect(unwrapImageProxyURL('/api/v4/image?url=https%3A%2F%2Fext.example%2Fa.png', siteURL)).toBe('https://ext.example/a.png');
+            expect(unwrapImageProxyURL('/api/v4/%69mage?url=https%3A%2F%2Fext.example%2Fa.png', siteURL)).toBe('https://ext.example/a.png');
+            const unsafe = '/api/v4/image?url=javascript%3Aalert(1)';
+            expect(unwrapImageProxyURL(unsafe, siteURL)).toBe(unsafe);
         });
     });
 });

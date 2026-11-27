@@ -8,6 +8,7 @@ import (
 	"html"
 	"html/template"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -64,14 +65,38 @@ func (es *Service) GetMessageForNotification(post *model.Post, teamName, siteUrl
 	}))
 }
 
-func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessageAttachment {
+func ProcessMessageAttachments(post *model.Post, siteURL string, blockExternalImages bool) []*EmailMessageAttachment {
 	emailMessageAttachments := []*EmailMessageAttachment{}
 
 	for _, messageAttachment := range post.Attachments() {
 		emailMessageAttachment := &EmailMessageAttachment{
 			MessageAttachment: *messageAttachment,
-			Pretext:           prepareTextForEmail(messageAttachment.Pretext, siteURL),
-			Text:              prepareTextForEmail(messageAttachment.Text, siteURL),
+			Pretext:           prepareTextForEmail(messageAttachment.Pretext, siteURL, blockExternalImages),
+			Text:              prepareTextForEmail(messageAttachment.Text, siteURL, blockExternalImages),
+		}
+
+		if blockExternalImages {
+			if model.IsExternalImageURL(emailMessageAttachment.AuthorIcon, siteURL) {
+				emailMessageAttachment.AuthorIcon = ""
+			}
+			if model.IsExternalImageURL(emailMessageAttachment.FooterIcon, siteURL) {
+				emailMessageAttachment.FooterIcon = ""
+			}
+			var blockedLinks []string
+			for _, imageURL := range []*string{&emailMessageAttachment.ImageURL, &emailMessageAttachment.ThumbURL} {
+				if !model.IsExternalImageURL(*imageURL, siteURL) {
+					continue
+				}
+				target, linkable := model.BlockedImageLinkTarget(*imageURL, siteURL)
+				*imageURL = ""
+				if linkable && !slices.Contains(blockedLinks, target) {
+					blockedLinks = append(blockedLinks, target)
+				}
+			}
+			for _, link := range blockedLinks {
+				escaped := html.EscapeString(link)
+				emailMessageAttachment.Text += template.HTML(fmt.Sprintf(`<p><a href="%s">%s</a></p>`, escaped, escaped))
+			}
 		}
 
 		stripedTitle, err := utils.StripMarkdown(emailMessageAttachment.Title)
@@ -96,7 +121,7 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 			}
 
 			if stringValue, ok := field.Value.(string); ok {
-				field.Value = prepareTextForEmail(stringValue, siteURL)
+				field.Value = prepareTextForEmail(stringValue, siteURL, blockExternalImages)
 			}
 
 			if !field.Short {
@@ -128,9 +153,9 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 	return emailMessageAttachments
 }
 
-func prepareTextForEmail(text, siteURL string) template.HTML {
+func prepareTextForEmail(text, siteURL string, blockExternalImages bool) template.HTML {
 	escapedText := html.EscapeString(text)
-	markdownText, err := utils.MarkdownToHTML(escapedText, siteURL)
+	markdownText, err := utils.MarkdownToHTMLWithBlockedImages(escapedText, siteURL, blockExternalImages)
 	if err != nil {
 		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(err))
 		return template.HTML(text)
@@ -141,7 +166,7 @@ func prepareTextForEmail(text, siteURL string) template.HTML {
 
 func (es *Service) prepareNotificationMessageForEmail(postMessage, teamName, siteURL string) string {
 	postMessage = html.EscapeString(postMessage)
-	mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, siteURL)
+	mdPostMessage, mdErr := utils.MarkdownToHTMLWithBlockedImages(postMessage, siteURL, es.config().ImageProxySettings.IsBlockMode())
 	if mdErr != nil {
 		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
 		mdPostMessage = postMessage

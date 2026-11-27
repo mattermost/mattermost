@@ -63,10 +63,18 @@ func TestProcessMessageAttachments(t *testing.T) {
 
 	model.ParseMessageAttachment(post, messageAttachments)
 
-	processedAttachmentsPost := ProcessMessageAttachments(post, "https://example.com")
+	processedAttachmentsPost := ProcessMessageAttachments(post, "https://example.com", false)
 	require.NotNil(t, processedAttachmentsPost)
 	require.Len(t, processedAttachmentsPost, 2)
 	require.Equal(t, processedAttachmentsPost[0].Color, "#FF0000")
 	require.Equal(t, processedAttachmentsPost[0].FieldRows[0].Cells[0].Title, "message attachment 1 field 1 title")
 	require.Equal(t, processedAttachmentsPost[1].Color, "#FF0000")
+
+	blockedAttachments := ProcessMessageAttachments(post, "https://chat.example.com", true)
+	require.Len(t, blockedAttachments, 2)
+	require.Empty(t, blockedAttachments[0].AuthorIcon)
+	require.Empty(t, blockedAttachments[0].ImageURL)
+	require.Empty(t, blockedAttachments[0].ThumbURL)
+	require.Contains(t, string(blockedAttachments[0].Text), `<a href="https://example.com/slack_attachment_1/image">https://example.com/slack_attachment_1/image</a>`)
+	require.Contains(t, string(blockedAttachments[0].Text), `<a href="https://example.com/slack_attachment_1/thumb">https://example.com/slack_attachment_1/thumb</a>`)
 }

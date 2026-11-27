@@ -2070,3 +2070,103 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	b.Logf("throughput: %f reqs/s", float64(len(testData)*cnt)/time.Since(then).Seconds())
 	time.Sleep(2 * time.Second)
 }
+
+func TestPushNotificationOverrideIconBlocked(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.SiteURL = new("https://chat.example.com")
+		cfg.ServiceSettings.EnablePostIconOverride = new(true)
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+	})
+
+	t.Run("external OverrideIconURL is omitted", func(t *testing.T) {
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello",
+		}
+		post.AddProp(model.PostPropsOverrideIconURL, "https://external.example/icon.png")
+
+		msg := th.App.buildFullPushNotificationMessage(
+			th.Context,
+			"full",
+			post,
+			th.BasicUser,
+			th.BasicChannel,
+			th.BasicChannel.DisplayName,
+			th.BasicUser.Username,
+			false,
+			false,
+			"",
+		)
+		assert.Empty(t, msg.OverrideIconURL)
+	})
+
+	t.Run("internal OverrideIconURL is preserved", func(t *testing.T) {
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello",
+		}
+		post.AddProp(model.PostPropsOverrideIconURL, "https://chat.example.com/static/emoji/1f600.png")
+
+		msg := th.App.buildFullPushNotificationMessage(
+			th.Context,
+			"full",
+			post,
+			th.BasicUser,
+			th.BasicChannel,
+			th.BasicChannel.DisplayName,
+			th.BasicUser.Username,
+			false,
+			false,
+			"",
+		)
+		assert.Equal(t, "https://chat.example.com/static/emoji/1f600.png", msg.OverrideIconURL)
+	})
+
+	t.Run("external OverrideIconURL set by NotificationWillBePushed hook is cleared", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping plugin compilation test in short mode")
+		}
+
+		templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, `notification.OverrideIconURL = "https://external.example/plugin-icon.png"
+	return notification, ""`)
+		tearDown, _, activationErrs := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+		require.Len(t, activationErrs, 1)
+		require.NoError(t, activationErrs[0])
+		defer tearDown()
+
+		handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+		pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+		defer pushServer.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("https://chat.example.com")
+			cfg.ImageProxySettings.Enable = new(true)
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeBlock)
+			*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		})
+
+		_, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId:    th.BasicUser.Id,
+			DeviceId:  model.PushNotifyAppleReactNative + ":plugintesttoken",
+			ExpiresAt: model.GetMillis() + 100000,
+		})
+		require.Nil(t, err)
+
+		msg := &model.PushNotification{
+			Type:            model.PushTypeMessage,
+			OverrideIconURL: "https://chat.example.com/static/emoji/1f600.png",
+		}
+		appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		require.Eventually(t, func() bool {
+			return len(handler.notifications()) == 1
+		}, 2*time.Second, 10*time.Millisecond)
+		assert.Empty(t, handler.notifications()[0].OverrideIconURL)
+	})
+}

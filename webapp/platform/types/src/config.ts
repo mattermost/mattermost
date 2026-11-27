@@ -151,6 +151,7 @@ export type ClientConfig = {
     GoogleDeveloperKey: string;
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
+    ImageProxyType: string;
     HelpLink: string;
     HideGuestTags: string;
     IosAppDownloadLink: string;

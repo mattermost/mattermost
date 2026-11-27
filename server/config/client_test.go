@@ -48,6 +48,8 @@ func TestGetClientConfig(t *testing.T) {
 				"WebsocketURL":                     "ws://mattermost.example.com:8065",
 				"WebsocketPort":                    "80",
 				"WebsocketSecurePort":              "443",
+				"HasImageProxy":                    "false",
+				"ImageProxyType":                   "local",
 			},
 			nil,
 		},
