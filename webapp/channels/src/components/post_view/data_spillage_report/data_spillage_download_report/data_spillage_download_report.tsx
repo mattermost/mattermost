@@ -40,10 +40,10 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
 
         setStatus('generating');
 
-        let blob: Blob | undefined;
+        let report: {blob: Blob; filename: string} | undefined;
 
         try {
-            blob = await Client4.generateFlaggedPostReport(flaggedPostId, '', undefined, controller.signal);
+            report = await Client4.generateFlaggedPostReport(flaggedPostId, '', undefined, controller.signal);
             if (controller.signal.aborted) {
                 return;
             }
@@ -58,14 +58,14 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
             return;
         }
 
-        if (controller.signal.aborted || !blob) {
+        if (controller.signal.aborted || !report) {
             return;
         }
 
-        const downloadUrl = URL.createObjectURL(blob);
+        const downloadUrl = URL.createObjectURL(report.blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = `flagged-post-${flaggedPostId}-${Date.now()}.zip`;
+        a.download = report.filename;
         document.body.appendChild(a);
         a.click();
         a.remove();

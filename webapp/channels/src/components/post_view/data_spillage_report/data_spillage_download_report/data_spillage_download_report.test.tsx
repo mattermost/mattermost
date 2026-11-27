@@ -13,6 +13,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('DataSpillageDownloadReport', () => {
     const flaggedPostId = 'flagged_post_id';
+    const serverReportFilename = `flagged-post-${flaggedPostId}-1700000000000.zip`;
 
     let originalCreateObjectURL: typeof URL.createObjectURL;
     let originalRevokeObjectURL: typeof URL.revokeObjectURL;
@@ -20,7 +21,10 @@ describe('DataSpillageDownloadReport', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        Client4.generateFlaggedPostReport = jest.fn().mockResolvedValue(new Blob(['report'], {type: 'application/zip'}));
+        Client4.generateFlaggedPostReport = jest.fn().mockResolvedValue({
+            blob: new Blob(['report'], {type: 'application/zip'}),
+            filename: serverReportFilename,
+        });
 
         originalCreateObjectURL = URL.createObjectURL;
         originalRevokeObjectURL = URL.revokeObjectURL;
@@ -82,10 +86,27 @@ describe('DataSpillageDownloadReport', () => {
         expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
 
+    test('saves the report under the filename the server sent', async () => {
+        const downloadedNames: string[] = [];
+        const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function(this: HTMLAnchorElement) {
+            downloadedNames.push(this.download);
+        });
+
+        renderWithContext(<DataSpillageDownloadReport flaggedPostId={flaggedPostId}/>);
+
+        await userEvent.click(screen.getByTestId('data-spillage-action-download-report'));
+
+        await waitFor(() => {
+            expect(downloadedNames).toEqual([serverReportFilename]);
+        });
+
+        clickSpy.mockRestore();
+    });
+
     test('aborts in-flight request on unmount', async () => {
         // Hold the request promise open until we unmount
-        let resolveRequest: (value: Blob) => void = () => {};
-        const requestPromise = new Promise<Blob>((resolve) => {
+        let resolveRequest: (value: {blob: Blob; filename: string}) => void = () => {};
+        const requestPromise = new Promise<{blob: Blob; filename: string}>((resolve) => {
             resolveRequest = resolve;
         });
         Client4.generateFlaggedPostReport = jest.fn().mockReturnValue(requestPromise);
@@ -103,7 +124,7 @@ describe('DataSpillageDownloadReport', () => {
         unmount();
 
         // Resolving after unmount should not trigger a download
-        resolveRequest(new Blob(['report']));
+        resolveRequest({blob: new Blob(['report']), filename: serverReportFilename});
         await Promise.resolve();
         await Promise.resolve();
         expect(URL.createObjectURL).not.toHaveBeenCalled();

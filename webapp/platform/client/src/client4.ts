@@ -5603,8 +5603,10 @@ export default class Client4 {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
 
-    generateFlaggedPostReport = (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
-        return this.doFetch<Blob>(
+    // The filename comes from the server's Content-Disposition header so it matches the name
+    // the server posts to reviewers alongside the report's checksum.
+    generateFlaggedPostReport = async (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<{blob: Blob; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
             this.getFlaggedPostReportUrl(postId),
             {
                 method: 'post',
@@ -5612,6 +5614,14 @@ export default class Client4 {
                 signal,
             },
         );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `flagged-post-${postId}-${Date.now()}.zip`,
+            ),
+        };
     };
 
     getPostExposureReportUrl = (postId: string) => {
