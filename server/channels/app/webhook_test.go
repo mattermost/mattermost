@@ -1372,10 +1372,10 @@ func TestSplitWebhookPost(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			splits, err := splitWebhookPost(tc.Post, maxPostSize, true)
 			if tc.ExpectSplitError {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				return
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, len(tc.Expected), len(splits))
 			for i, split := range splits {
 				if i < len(tc.Expected) {
@@ -1401,7 +1401,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		}
 
 		splits, err := splitWebhookPost(post, maxPostSize, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, splits, 2)
 		for _, split := range splits {
 			assert.Nil(t, split.GetProp(model.PostPropsMmBlocks))
@@ -1536,9 +1536,9 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			splits, err := splitWebhookPost(tc.post, maxPostSize, true)
 			if tc.expected == nil {
-				require.NotNil(t, err)
+				require.Error(t, err)
 			} else {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			}
 			assert.Equal(t, len(tc.expected), len(splits))
 			for i, split := range splits {
