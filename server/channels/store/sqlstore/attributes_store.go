@@ -115,7 +115,7 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectTyp
 		return nil, errors.Wrap(err, "failed to build query for subject")
 	}
 
-	row := s.GetReplica().QueryRowContext(rctx.Context(), q, args...)
+	row := s.DBXFromContext(rctx.Context()).QueryRowContext(rctx.Context(), q, args...)
 
 	var subject model.Subject
 	var properties []byte

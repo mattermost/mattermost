@@ -109,14 +109,15 @@ func (a *App) goPushClientConfigOverrides(userID, sessionID string, force bool) 
 }
 
 // Overrides are evaluated on this node and sent per session, so other nodes
-// never evaluate against attribute data they may not have caught up on yet.
-// Sessions are read from the master because the push may follow a write a
-// replica hasn't caught up on; GetSessions always reads a replica, so it only
-// lists the session IDs.
+// never evaluate against user attributes they may not have caught up on yet.
+// Sessions and uncached user attributes are read from the master because the
+// push may follow a write a replica hasn't caught up on; GetSessions always
+// reads a replica, so it only lists the session IDs.
 func (a *App) pushClientConfigOverridesForUser(rctx request.CTX, userID, sessionID string, force bool) {
+	masterCtx := RequestContextWithMaster(rctx)
 	sessionIDs := []string{sessionID}
 	if sessionID == "" {
-		listed, appErr := a.GetSessions(rctx, userID)
+		listed, appErr := a.GetSessions(masterCtx, userID)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to load sessions for client config override push", mlog.String("user_id", userID), mlog.Err(appErr))
 			return
@@ -127,7 +128,6 @@ func (a *App) pushClientConfigOverridesForUser(rctx request.CTX, userID, session
 		}
 	}
 
-	masterCtx := RequestContextWithMaster(rctx)
 	overridesBySession := make(map[string]map[string]string, len(sessionIDs))
 	for _, id := range sessionIDs {
 		session, err := a.Srv().Store().Session().Get(masterCtx, id)
@@ -145,7 +145,7 @@ func (a *App) pushClientConfigOverridesForUser(rctx request.CTX, userID, session
 			continue
 		}
 
-		overrides, hasCandidate, evalErr := a.evaluateClientConfigOverrides(rctx.WithSession(session))
+		overrides, hasCandidate, evalErr := a.evaluateClientConfigOverrides(masterCtx.WithSession(session))
 		if evalErr != nil {
 			rctx.Logger().Warn("Failed to evaluate client config overrides for push",
 				mlog.String("user_id", userID),
