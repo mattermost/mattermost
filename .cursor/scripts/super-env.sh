@@ -126,7 +126,7 @@ ensure_deploy_target() {
     return 0
   fi
   log "No local mode socket at $socket and no MM_ADMIN_TOKEN or MM_ADMIN_USERNAME/MM_ADMIN_PASSWORD."
-  log "Start the server with MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true (see .cursor/cursor.md)."
+  log "Start the server with MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true MM_FILESETTINGS_MAXFILESIZE=524288000 (see .cursor/cursor.md)."
   return 1
 }
 
@@ -163,6 +163,7 @@ cmd_deploy() {
 
   if [ "${#failed[@]}" -gt 0 ]; then
     log "Deploy failed for: ${failed[*]}"
+    log "If the upload was rejected (size, uploads disabled, site URL not configured), restart the server with the settings in .cursor/cursor.md."
     return 1
   fi
 }

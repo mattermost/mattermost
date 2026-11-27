@@ -42,7 +42,7 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 
   ```bash
   cd server
-  export MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true
+  export MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true MM_FILESETTINGS_MAXFILESIZE=524288000 MM_SERVICESETTINGS_SITEURL=http://localhost:8065
   ENABLED_DOCKER_SERVICES='postgres redis' RUN_SERVER_IN_BACKGROUND=true make run
   ```
 
@@ -50,11 +50,11 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 
   ```bash
   cd server
-  export MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true
+  export MM_SERVICESETTINGS_ENABLELOCALMODE=true MM_PLUGINSETTINGS_ENABLEUPLOADS=true MM_FILESETTINGS_MAXFILESIZE=524288000 MM_SERVICESETTINGS_SITEURL=http://localhost:8065
   ENABLED_DOCKER_SERVICES='postgres redis' make run-server
   ```
 
-- `MM_SERVICESETTINGS_ENABLELOCALMODE=true` opens the local mode socket (`/var/tmp/mattermost_local.socket`) that `mmctl --local` and plugin deploys use; it is off by default. `MM_PLUGINSETTINGS_ENABLEUPLOADS=true` lets `make deploy` upload plugin bundles.
+- `MM_SERVICESETTINGS_ENABLELOCALMODE=true` opens the local mode socket (`/var/tmp/mattermost_local.socket`) that `mmctl --local` and plugin deploys use; it is off by default. `MM_PLUGINSETTINGS_ENABLEUPLOADS=true` lets `make deploy` upload plugin bundles. `MM_FILESETTINGS_MAXFILESIZE=524288000` raises the 100 MB upload cap, which multi-platform bundles such as Boards exceed. Plugins such as Agents refuse to start without `MM_SERVICESETTINGS_SITEURL`.
 
   and then:
 

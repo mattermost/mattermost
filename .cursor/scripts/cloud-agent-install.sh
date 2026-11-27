@@ -361,7 +361,13 @@ hydrate_plugin() {
     fi
 
     if has_make_target webapp/node_modules; then
+      local lockfile=webapp/package-lock.json lock_was_clean=false
+      git diff --quiet -- "$lockfile" 2>/dev/null && lock_was_clean=true
       make webapp/node_modules || exit 1
+      # Plugin Makefiles use `npm install`, which rewrites the lockfile; keep checkouts clean.
+      if [ "$lock_was_clean" = true ] && [ -f "$lockfile" ]; then
+        git checkout --quiet -- "$lockfile" 2>/dev/null || true
+      fi
     elif [ -f webapp/package-lock.json ]; then
       npm ci --prefix webapp || exit 1
     fi
