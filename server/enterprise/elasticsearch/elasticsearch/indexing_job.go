@@ -5,6 +5,8 @@ package elasticsearch
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"sync/atomic"
@@ -108,5 +110,54 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				logger.Info("Bulk indexer closed", fields...)
 			}
 			return realFailed.Load(), err
+		},
+		func(indexName string) (bool, error) {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+			defer cancel()
+			// Count only sees refreshed documents.
+			refreshRes, err := client.Indices.Refresh(client.Indices.Refresh.WithContext(ctx), client.Indices.Refresh.WithIndex(indexName))
+			if err != nil {
+				return false, err
+			}
+			defer refreshRes.Body.Close()
+			if refreshRes.StatusCode == http.StatusNotFound {
+				return true, nil
+			}
+			if refreshRes.IsError() {
+				return false, fmt.Errorf("failed to refresh index %s: %s", indexName, refreshRes.String())
+			}
+			var refreshBody struct {
+				Shards struct {
+					Failed int `json:"failed"`
+				} `json:"_shards"`
+			}
+			if err = json.NewDecoder(refreshRes.Body).Decode(&refreshBody); err != nil {
+				return false, err
+			}
+			if refreshBody.Shards.Failed > 0 {
+				return false, fmt.Errorf("incomplete refresh of index %s: %d shards failed", indexName, refreshBody.Shards.Failed)
+			}
+
+			res, err := client.Count(client.Count.WithContext(ctx), client.Count.WithIndex(indexName))
+			if err != nil {
+				return false, err
+			}
+			defer res.Body.Close()
+			if res.IsError() {
+				return false, fmt.Errorf("failed to count documents in index %s: %s", indexName, res.String())
+			}
+			var body struct {
+				Count  int64 `json:"count"`
+				Shards struct {
+					Failed int `json:"failed"`
+				} `json:"_shards"`
+			}
+			if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+				return false, err
+			}
+			if body.Shards.Failed > 0 {
+				return false, fmt.Errorf("incomplete count for index %s: %d shards failed", indexName, body.Shards.Failed)
+			}
+			return body.Count == 0, nil
 		})
 }
