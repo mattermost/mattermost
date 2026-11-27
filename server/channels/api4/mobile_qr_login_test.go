@@ -334,9 +334,17 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 
 		created, _, err := th.Client.CreateMobileQRLoginToken(context.Background())
 		require.NoError(t, err)
-		_, resp, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), mobileQRTokenFromLink(t, created.Link), "not a device id", "")
+		code := mobileQRTokenFromLink(t, created.Link)
+		_, resp, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "not a device id", "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+
+		_, resp, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "", "not a voip device id")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		_, _, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), code, mobileQRTestDeviceId(), "")
+		require.NoError(t, err, "a rejected device id must not consume the code")
 	})
 
 	t.Run("a code can only be redeemed once", func(t *testing.T) {

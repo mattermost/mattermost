@@ -87,6 +87,14 @@ func (a *App) RedeemMobileQRLoginToken(rctx request.CTX, w http.ResponseWriter, 
 		return model.NewAppError("RedeemMobileQRLoginToken", "api.user.mobile_qr_login.invalid_token.app_error", nil, detail, http.StatusUnauthorized)
 	}
 
+	// Validate before consuming so a malformed request does not burn the single-use code.
+	if deviceId != "" && !model.IsValidStandardDeviceId(deviceId) {
+		return nil, model.NewAppError("RedeemMobileQRLoginToken", "api.user.attach_device_id.invalid_device_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if voipDeviceId != "" && !model.IsValidVoIPDeviceId(voipDeviceId) {
+		return nil, model.NewAppError("RedeemMobileQRLoginToken", "api.user.attach_device_id.invalid_voip_device_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	token, appErr := a.ConsumeTokenOnce(model.TokenTypeMobileQRLogin, tokenString)
 	if appErr != nil {
 		return nil, invalid("token not found or already used")
