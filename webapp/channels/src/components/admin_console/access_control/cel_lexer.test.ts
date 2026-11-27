@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {fixture} from './cel_expression_test_fixtures';
-import {isWrappedInParens, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
+import {everyPathRequires, isWrappedInParens, referencedSessionAttributeNames, referencedUserAttributeNames, splitOutsideLiterals} from './cel_lexer';
 
 describe('referencedUserAttributeNames', () => {
     it.each([
@@ -69,6 +69,74 @@ describe('referencedUserAttributeNames', () => {
 
     it('still ignores names that appear only in string literals', () => {
         expect(referencedUserAttributeNames('user.attributes.A == "user.attributes.B" && user.attributes.C in [\'user.attributes.D\']')).toEqual(['A', 'C']);
+    });
+});
+
+describe('referencedSessionAttributeNames', () => {
+    it.each([
+        ['user.session.Platform == "desktop"', ['Platform']],
+        ['user.session.ip_address.inCIDR("10.0.0.0/8") && user.session["Platform"] == "desktop"', ['ip_address', 'Platform']],
+        ['user.attributes.A == "user.session.B" // user.session.C', []],
+        ['user.attributes.A == "x" && user.email == "a@b.c"', []],
+        ['', []],
+        ['"Platform" in user.session && user.attributes.A == "x"', ['Platform']],
+        ['"Platform"in user.session', ['Platform']],
+        ["'Platform' in user . session || user.session.B == \"y\"", ['Platform', 'B']],
+        ['"x" in user.session.Tags', ['Tags']],
+        ['user.attributes.A == "\\"Platform\\" in user.session"', []],
+        ['user.attributes.A == "x" // "Platform" in user.session', []],
+    ])('%j -> %j', (input, expected) => {
+        expect(referencedSessionAttributeNames(input)).toEqual(expected);
+    });
+});
+
+describe('everyPathRequires', () => {
+    const isTrusted = (condition: string) => condition.includes('T');
+
+    it.each([
+        ['T', true],
+        ['u', false],
+        ['', false],
+        ['T && u', true],
+        ['u && u', false],
+        ['T || u', false],
+        ['T || T', true],
+        ['(T || u) && T', true],
+        ['(T || u) && u', false],
+        ['u && (T || T)', true],
+        ['T && u || u', false],
+        ['((T))', true],
+        ['!T', true],
+        ['!(T && u)', false],
+        ['!(T || u)', true],
+        ['!!(T || u)', false],
+        ['u != "x" && T', true],
+        ['T ? T : T', true],
+        ['T ? u : T', true],
+        ['u ? T : u', false],
+        ['u ? T : T', true],
+        ['T ? u : u', true],
+        ['u ? u : T', false],
+        ['u ? T : u ? T : T', true],
+        ['u ? T : u ? T : u', false],
+        ['(u ? T : u) || T', false],
+        ['u.f(T || u)', true],
+        ['u in [T || u]', true],
+        ['T == "x || y"', true],
+        ['T == "x" // || u', true],
+        ['(T || u) // note', false],
+        ['// note\n(T || u)', false],
+        ['(T && u) // note', true],
+        ['u // T', false],
+    ])('%j -> %s', (input, expected) => {
+        expect(everyPathRequires(input, isTrusted)).toBe(expected);
+    });
+
+    it('passes whole, trimmed conditions to the predicate', () => {
+        const trusted = ['user.attributes.a.startsWith("x && y")', 'user.email.endsWith("e")'];
+        const expr = 'user.attributes.a.startsWith("x && y") || (user.session.b in ["c", "d"] && !user.email.endsWith("e"))';
+
+        expect(everyPathRequires(expr, (condition) => trusted.includes(condition))).toBe(true);
     });
 });
 

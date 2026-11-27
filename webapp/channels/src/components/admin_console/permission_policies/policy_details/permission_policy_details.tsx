@@ -47,7 +47,8 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 import RuleEditorCard, {type EditorMode, type PolicyScope, type SimulateBlockedReason} from './rule_editor_card';
 
 import {SYSTEM_BOT_ROLE, getHiddenNativeReferences, getSyncedAttributeReferences} from '../../access_control/bot_scope';
-import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
+import {everyPathRequires, referencedNativeUserAttributeNames, referencedSessionAttributeNames, referencedUserAttributeNames} from '../../access_control/cel_lexer';
+import {hasControlledAttributeValues, hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
 import {AVAILABLE_ROLES, roleMessages} from '../roles';
 
 import './permission_policy_details.scss';
@@ -112,6 +113,24 @@ const hiddenNativeBotMessages = defineMessages({
     error: {
         id: 'admin.permission_policies.edit.error.hidden_native_bot',
         defaultMessage: 'Remove {attributes} from the rules. Bot accounts policies can\'t use {count, plural, one {this attribute} other {these attributes}}.',
+    },
+});
+
+// Measured by the server from the connection itself rather than reported by the client.
+const SERVER_VERIFIED_SESSION_ATTRIBUTES = ['ip_address'];
+
+const unverifiedAttributeMessages = defineMessages({
+    session: {
+        id: 'admin.permission_policies.edit.notice.unverified.session',
+        defaultMessage: '{attributes} {count, plural, one {is a session attribute reported by the device and isn\'t} other {are session attributes reported by the device and aren\'t}} verified by the server.',
+    },
+    userManaged: {
+        id: 'admin.permission_policies.edit.notice.unverified.user_managed',
+        defaultMessage: '{attributes} {count, plural, one {is a user-managed attribute} other {are user-managed attributes}} that users can change themselves.',
+    },
+    advice: {
+        id: 'admin.permission_policies.edit.notice.unverified.advice',
+        defaultMessage: 'Consider including other limiting attributes to ensure that only intended users are granted the permission listed below.',
     },
 });
 
@@ -286,6 +305,45 @@ function PermissionPolicyDetails({
             return field ? getUserPropertyFieldLabel(field) : name;
         });
     }, [isBotScope, expression, userFields]);
+
+    // Warn when the rules can pass without any condition on a value the user or
+    // their device can't control. Unknown custom attributes count as trusted to avoid false alarms.
+    const unverifiedNotice = useMemo(() => {
+        const findCustomField = (name: string) => userFields.find((f) => f.name === name && !isNativeField(f));
+        const isTrustedCondition = (condition: string) => referencedNativeUserAttributeNames(condition).length > 0 ||
+            referencedSessionAttributeNames(condition).some((name) => SERVER_VERIFIED_SESSION_ATTRIBUTES.includes(name)) ||
+            referencedUserAttributeNames(condition).some((name) => {
+                const field = findCustomField(name);
+                return !field || hasControlledAttributeValues(field);
+            });
+        if (everyPathRequires(expression, isTrustedCondition)) {
+            return undefined;
+        }
+
+        const sessionLabels = referencedSessionAttributeNames(expression).flatMap((name) => {
+            if (SERVER_VERIFIED_SESSION_ATTRIBUTES.includes(name)) {
+                return [];
+            }
+            const field = sessionFields.find((f) => f.name === name);
+            return [field ? getUserPropertyFieldLabel(field) : name];
+        });
+        const userManagedLabels = referencedUserAttributeNames(expression).flatMap((name) => {
+            const field = findCustomField(name);
+            return field && !hasControlledAttributeValues(field) ? [getUserPropertyFieldLabel(field)] : [];
+        });
+
+        const sentences: string[] = [];
+        if (sessionLabels.length > 0) {
+            sentences.push(formatMessage(unverifiedAttributeMessages.session, {attributes: formatList(sessionLabels, {type: 'conjunction'}), count: sessionLabels.length}));
+        }
+        if (userManagedLabels.length > 0) {
+            sentences.push(formatMessage(unverifiedAttributeMessages.userManaged, {attributes: formatList(userManagedLabels, {type: 'conjunction'}), count: userManagedLabels.length}));
+        }
+        if (sentences.length === 0) {
+            return undefined;
+        }
+        return [...sentences, formatMessage(unverifiedAttributeMessages.advice)].join(' ');
+    }, [expression, userFields, sessionFields, formatMessage, formatList]);
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
@@ -702,6 +760,15 @@ function PermissionPolicyDetails({
                                 onTestClick={handleTestClick}
                                 simulateBlockedBy={simulateBlockedBy}
                             />
+
+                            {unverifiedNotice && (
+                                <div className='admin-console__warning-notice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={unverifiedNotice}
+                                    />
+                                </div>
+                            )}
 
                             {/* "What permissions are modified" */}
                             <AdminPanel

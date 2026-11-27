@@ -391,6 +391,84 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     });
 
+    describe('unverified attributes warning', () => {
+        const ADVICE = 'Consider including other limiting attributes to ensure that only intended users are granted the permission listed below.';
+        const NETWORK_NAME_SENTENCE = 'network_name is a session attribute reported by the device and isn\'t verified by the server.';
+        const NICKNAME_SENTENCE = 'Nickname is a user-managed attribute that users can change themselves.';
+        const USER_MANAGED_FIELDS = [
+            LDAP_TEAMS,
+            customField('u-dept', 'department', {managed: 'admin'}),
+            customField('u-nick', 'nickname', {display_name: 'Nickname'}),
+            customField('u-color', 'color', {display_name: 'Favorite color'}),
+        ];
+
+        beforeEach(() => {
+            useFields(USER_MANAGED_FIELDS);
+        });
+
+        test.each([
+            ['a single session attribute', 'user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['several session attributes, falling back to the name when the field is not enabled', 'user.session.network_name == "office" && user.session.os_platform == "macos"', `network_name and os_platform are session attributes reported by the device and aren't verified by the server. ${ADVICE}`],
+            ['a client-reported session attribute OR-ed with the server-measured IP address', 'user.session.ip_address.inCIDR("10.0.0.0/8") || user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['user agent attributes, which the client sets', 'user.session.user_agent_browser_name == "Desktop App"', `user_agent_browser_name is a session attribute reported by the device and isn't verified by the server. ${ADVICE}`],
+            ['session and channel attributes', 'user.session.network_name == resource.attributes.network', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a user-managed attribute', 'user.attributes.nickname == "boss"', `${NICKNAME_SENTENCE} ${ADVICE}`],
+            ['several user-managed attributes', 'user.attributes.nickname == "boss" && user.attributes["color"] == "red"', `Nickname and Favorite color are user-managed attributes that users can change themselves. ${ADVICE}`],
+            ['session and user-managed attributes', 'user.attributes.nickname == "boss" && user.session.network_name == "office"', `${NETWORK_NAME_SENTENCE} ${NICKNAME_SENTENCE} ${ADVICE}`],
+            ['a session attribute OR-ed with an admin-managed attribute', 'user.session.network_name == "office" || user.attributes.department == "sales"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a session presence test OR-ed with an admin-managed attribute', '"network_name" in user.session || user.attributes.department == "sales"', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a user-managed attribute OR-ed with a synced attribute', 'user.attributes.nickname == "boss" || user.attributes.teams == "eng"', `${NICKNAME_SENTENCE} ${ADVICE}`],
+            ['a negated AND with a trusted side', '!(user.attributes.department == "sales" && user.session.network_name == "office")', `${NETWORK_NAME_SENTENCE} ${ADVICE}`],
+            ['a ternary on a session attribute with a user-managed branch', 'user.session.network_name == "office" ? user.attributes.teams == "eng" : user.attributes.nickname == "boss"', `${NETWORK_NAME_SENTENCE} ${NICKNAME_SENTENCE} ${ADVICE}`],
+        ])('shows when the rules only use %s', async (_label, expression, warning) => {
+            renderWithExpression(expression);
+            await screen.findByTestId(/editor/);
+
+            expect(screen.getByText(warning)).toBeInTheDocument();
+        });
+
+        test.each([
+            ['no rules', ''],
+            ['only a synced attribute', E],
+            ['a session and a synced attribute', 'user.session.network_name == "office" && user.attributes.teams == "engineering"'],
+            ['a session and a built-in attribute', 'user.session.network_name == "office" && user.email.endsWith("@acme.com")'],
+            ['a user-managed and an admin-managed attribute', 'user.attributes.nickname == "boss" && user.attributes.department == "sales"'],
+            ['an attribute that is not in the field list', 'user.session.network_name == "office" && user.attributes.unknown == "x"'],
+            ['only the server-measured IP address', 'user.session.ip_address.inCIDR("10.0.0.0/8")'],
+            ['a client-reported session attribute AND-ed with the server-measured IP address', 'user.session.network_name == "office" && user.session.ip_address.inCIDR("10.0.0.0/8")'],
+            ['a user-managed attribute AND-ed with the server-measured IP address', 'user.attributes.nickname == "boss" && user.session.ip_address == "10.0.0.1"'],
+            ['an OR of unverified attributes AND-ed with a trusted one', '(user.session.network_name == "office" || user.attributes.nickname == "boss") && user.attributes.department == "sales"'],
+            ['a session attribute AND-ed with an OR of trusted attributes', 'user.session.network_name == "office" && (user.attributes.department == "sales" || user.attributes.teams == "eng")'],
+            ['a ternary where both branches need a trusted attribute', 'user.session.network_name == "office" ? user.attributes.teams == "eng" : user.attributes.department == "sales"'],
+        ])('hides when the rules use %s', async (_label, expression) => {
+            renderWithExpression(expression);
+            await screen.findByTestId(/editor/);
+
+            expect(screen.queryByText(new RegExp(ADVICE))).not.toBeInTheDocument();
+        });
+
+        test('names session attributes by their display name', async () => {
+            mockUseEnabledSessionAttributeFields.mockReturnValue([customField('s1', 'network_name', {display_name: 'Network name'})]);
+            renderWithExpression('user.session.network_name == "office"');
+            await screen.findByTestId('table-editor');
+
+            expect(screen.getByText(`Network name is a session attribute reported by the device and isn't verified by the server. ${ADVICE}`)).toBeInTheDocument();
+        });
+
+        test('appears and disappears as the rules change', async () => {
+            const warning = `${NETWORK_NAME_SENTENCE} ${ADVICE}`;
+            renderWithExpression(E);
+            await screen.findByTestId('table-editor');
+            expect(screen.queryByText(warning)).not.toBeInTheDocument();
+
+            await act(() => lastTableProps().onChange('user.session.network_name == "office"'));
+            expect(screen.getByText(warning)).toBeInTheDocument();
+
+            await act(() => lastTableProps().onChange(`user.session.network_name == "office" && ${E}`));
+            expect(screen.queryByText(warning)).not.toBeInTheDocument();
+        });
+    });
+
     describe('copy', () => {
         test('switching to Bot accounts swaps the copy', async () => {
             renderWithExpression(E);
