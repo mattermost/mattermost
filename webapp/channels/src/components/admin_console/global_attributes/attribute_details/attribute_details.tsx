@@ -134,17 +134,31 @@ function fieldDisplayName(field: PropertyField): string {
     return (typeof field.attrs?.display_name === 'string' ? field.attrs.display_name : '') || '';
 }
 
-const COPY_DISPLAY_PREFIX = 'Copy of ';
-
-// Prefill label for Duplicate → create. Truncates so the result fits the
-// display-name max (same cap as the Definition input).
-function buildDuplicateDisplayName(sourceLabel: string): string {
-    const available = Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH - COPY_DISPLAY_PREFIX.length;
+// Prefill label for Duplicate → create. Formats via i18n (`Copy of {name}`),
+// then shortens {name} until the whole string fits the display-name max so
+// locales with a longer/shorter wrapper still land under the input cap.
+function buildDuplicateDisplayName(sourceLabel: string, formatCopyOf: (name: string) => string): string {
+    const max = Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH;
     const label = sourceLabel.trim();
-    if (label.length <= available) {
-        return `${COPY_DISPLAY_PREFIX}${label}`;
+    const full = formatCopyOf(label);
+    if (full.length <= max) {
+        return full;
     }
-    return `${COPY_DISPLAY_PREFIX}${label.slice(0, Math.max(0, available))}`;
+
+    let lo = 0;
+    let hi = label.length;
+    let best = formatCopyOf('').slice(0, max);
+    while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        const candidate = formatCopyOf(label.slice(0, mid));
+        if (candidate.length <= max) {
+            best = candidate;
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    return best;
 }
 
 // Create-from-duplicate keeps option names/ranks/parents but drops server ids
@@ -727,7 +741,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setOwners(NO_OWNERS);
 
                 const sourceLabel = fieldDisplayName(field) || field.name;
-                setDisplayName(buildDuplicateDisplayName(sourceLabel));
+                setDisplayName(buildDuplicateDisplayName(
+                    sourceLabel,
+                    (name) => formatMessage(messages.copyOfDisplayName, {name}),
+                ));
                 setManualName('');
                 setIsNameManuallyEdited(false);
                 setFieldType(getAttributeTypeDescriptor(field).id);
@@ -768,7 +785,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId, fromFieldId, allowedResourceTypes, isGraphEnabled, dispatch]);
+    }, [fieldId, fromFieldId, allowedResourceTypes, isGraphEnabled, dispatch, formatMessage]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
@@ -2062,6 +2079,7 @@ const messages = defineMessages({
     definitionTitle: {id: 'admin.global_attributes.attribute_details.definition.title', defaultMessage: 'Definition'},
     definitionSubtitle: {id: 'admin.global_attributes.attribute_details.definition.subtitle', defaultMessage: 'Display name, type, and options.'},
     displayNameLabel: {id: 'admin.global_attributes.attribute_details.display_name.label', defaultMessage: 'Display name'},
+    copyOfDisplayName: {id: 'admin.global_attributes.attribute_details.display_name.copy_of', defaultMessage: 'Copy of {name}'},
     displayNamePlaceholder: {id: 'admin.global_attributes.attribute_details.display_name.placeholder', defaultMessage: 'Add a display name'},
     uniqueNamePrefix: {id: 'admin.global_attributes.attribute_details.unique_name.prefix', defaultMessage: 'Unique name:'},
     editLink: {id: 'admin.global_attributes.attribute_details.unique_name.edit', defaultMessage: 'Edit'},

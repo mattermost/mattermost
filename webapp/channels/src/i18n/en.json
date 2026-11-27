@@ -6143,6 +6143,10 @@
     "defaultMessage": "Definition",
     "description": "Heading of the first card on the attribute detail page, holding the display name, type and options fields. A noun."
   },
+  "admin.global_attributes.attribute_details.display_name.copy_of": {
+    "defaultMessage": "Copy of {name}",
+    "description": "Prefill for Display name when duplicating an attribute into an unsaved create draft. {name} is the source attribute's display name (or unique name if it has none). Keep {name} as a placeholder."
+  },
   "admin.global_attributes.attribute_details.display_name.label": {
     "defaultMessage": "Display name",
     "description": "Label of the text input for the attribute's human-readable name on the attribute detail page. Contrasted with the internal 'unique name' shown beneath it."

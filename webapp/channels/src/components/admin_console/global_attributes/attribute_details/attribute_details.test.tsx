@@ -4237,6 +4237,21 @@ describe('AttributeDetails', () => {
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
+        it('truncates a long Copy of {name} prefill to the display-name max', async () => {
+            const longName = `Long Department Name ${'X'.repeat(40)}`;
+            mockSourceField(makeTemplate({
+                attrs: {display_name: longName},
+            }));
+
+            renderFrom();
+            await waitForForm();
+
+            const displayName = screen.getByTestId('attributeDisplayNameInput');
+            expect(displayName).toHaveValue();
+            expect((displayName as HTMLInputElement).value.startsWith('Copy of ')).toBe(true);
+            expect((displayName as HTMLInputElement).value.length).toBeLessThanOrEqual(40);
+        });
+
         it('creates a new template on Save instead of patching the source, and does not send sync attrs', async () => {
             mockSourceField(makeTemplate({
                 type: 'select',

@@ -39,11 +39,12 @@ test.describe('System Console - Global Attributes duplicate', {tag: '@system_con
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
         const timestamp = Date.now();
-        // Short prefixes: display name max is 40, and Duplicate prefixes "Copy of ".
+        // Short prefixes: display name max is 40; Duplicate prefills i18n
+        // "Copy of {name}" (en default below).
         const sourceName = `e2e_dup_${timestamp}`;
         const sourceDisplayName = `PW Dup ${timestamp}`;
         const copyDisplayName = `Copy of ${sourceDisplayName}`;
-        // Auto-slug from Copy of … before the admin renames (slugifyForCEL).
+        // Auto-slug from the en Copy of … draft before the admin renames (slugifyForCEL).
         const draftName = `copy_of_pw_dup_${timestamp}`;
         const renamedDisplayName = `PW Dup New ${timestamp}`;
         const renamedName = `pw_dup_new_${timestamp}`;
