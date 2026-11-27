@@ -144,6 +144,13 @@ type MetricsInterface interface {
 	IncrementAccessControlCacheInvalidation()
 	// SetAccessControlDecisionCacheEnabled reports whether this node runs the ABAC decision cache.
 	SetAccessControlDecisionCacheEnabled(enabled bool)
+	// IncrementAttributeViewRefresh counts one try at refreshing an attribute materialized view
+	// (view: the object type, user or channel) by its result: refreshed, covered, busy, gap or
+	// failed.
+	IncrementAttributeViewRefresh(view, result string)
+	// SetAttributeViewStaleness reports how many seconds ago this node made the oldest write not
+	// yet in an attribute materialized view (view: the object type), 0 when every write is in it.
+	SetAttributeViewStaleness(view string, seconds float64)
 
 	// Auto-translation metrics
 	ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64)

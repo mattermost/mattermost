@@ -354,6 +354,16 @@ func TestAttributeViewRefresherDebounce(t *testing.T) {
 		require.ElementsMatch(t, attributeViewObjectTypes, []string{calls[0].objectType, calls[1].objectType})
 	})
 
+	t.Run("a node whose views are clean reports no staleness", func(t *testing.T) {
+		h := newRefresherHarness(t)
+		h.step()
+		h.enabled.Store(false)
+		h.step()
+		h.metrics.mu.Lock()
+		defer h.metrics.mu.Unlock()
+		require.Empty(t, h.metrics.staleness, "the gauge is only set when its value changes")
+	})
+
 	t.Run("types without a view are ignored", func(t *testing.T) {
 		h := newRefresherHarness(t)
 		h.r.mark(model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeSystem, "")

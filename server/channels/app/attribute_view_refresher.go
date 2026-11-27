@@ -144,6 +144,9 @@ type attributeViewRefresher struct {
 	mu      sync.Mutex
 	timings attributeViewTimings
 	views   map[string]*attributeViewState
+	// reported is the staleness last reported per view, so a node whose views are clean, such as
+	// one with ABAC off, reports nothing.
+	reported map[string]float64
 
 	wake chan struct{}
 	stop chan struct{}
@@ -158,14 +161,15 @@ func newAttributeViewRefresher(
 	logger mlog.LoggerIFace,
 ) *attributeViewRefresher {
 	r := &attributeViewRefresher{
-		store:   storeFn,
-		metrics: metricsFn,
-		enabled: enabled,
-		clock:   clock,
-		logger:  logger,
-		timings: defaultAttributeViewTimings,
-		views:   make(map[string]*attributeViewState, len(attributeViewObjectTypes)),
-		wake:    make(chan struct{}, 1),
+		store:    storeFn,
+		metrics:  metricsFn,
+		enabled:  enabled,
+		clock:    clock,
+		logger:   logger,
+		timings:  defaultAttributeViewTimings,
+		views:    make(map[string]*attributeViewState, len(attributeViewObjectTypes)),
+		reported: make(map[string]float64, len(attributeViewObjectTypes)),
+		wake:     make(chan struct{}, 1),
 	}
 	for _, objectType := range attributeViewObjectTypes {
 		r.views[objectType] = &attributeViewState{}
@@ -433,8 +437,9 @@ func (r *attributeViewRefresher) reportStaleness() bool {
 			stale = true
 			seconds = max(now.Sub(oldest).Seconds(), 0)
 		}
-		if m != nil {
+		if m != nil && seconds != r.reported[objectType] {
 			m.SetAttributeViewStaleness(objectType, seconds)
+			r.reported[objectType] = seconds
 		}
 	}
 	return stale
@@ -511,7 +516,13 @@ func attributeViewsEnabled(cfg *model.Config) bool {
 func (ch *Channels) newAttributeViewRefresher() *attributeViewRefresher {
 	return newAttributeViewRefresher(
 		func() attributeViewRefreshStore { return ch.srv.Store().Attributes() },
-		func() attributeViewRefreshMetrics { return nil },
+		func() attributeViewRefreshMetrics {
+			// A nil MetricsInterface must stay a nil interface here, not a typed nil.
+			if m := ch.srv.GetMetrics(); m != nil {
+				return m
+			}
+			return nil
+		},
 		func() bool { return attributeViewsEnabled(ch.cfgSvc.Config()) },
 		systemClock{},
 		ch.srv.Log(),

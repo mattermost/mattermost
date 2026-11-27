@@ -248,6 +248,8 @@ type MetricsInterfaceImpl struct {
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
 	AccessControlDecisionCacheEnabled      prometheus.Gauge
+	AccessControlAttributeViewRefreshes    *prometheus.CounterVec
+	AccessControlAttributeViewStaleness    *prometheus.GaugeVec
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
@@ -1700,6 +1702,30 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlDecisionCacheEnabled)
 
+	m.AccessControlAttributeViewRefreshes = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "attribute_view_refreshes_total",
+			Help:        "Tries at refreshing an attribute materialized view on this node, by view (object type) and result: refreshed, covered (another refresh already included the writes), busy (a refresh was running elsewhere), gap (refreshed too recently) or failed",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"view", "result"},
+	)
+	m.Registry.MustRegister(m.AccessControlAttributeViewRefreshes)
+
+	m.AccessControlAttributeViewStaleness = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "attribute_view_staleness_seconds",
+			Help:        "Seconds since this node's oldest attribute write not yet in the attribute materialized view, by view (object type); 0 when every write is in it",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"view"},
+	)
+	m.Registry.MustRegister(m.AccessControlAttributeViewStaleness)
+
 	// Auto-translation Subsystem
 	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
@@ -2422,6 +2448,14 @@ func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float
 
 func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
 	mi.AccessControlCacheInvalidation.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAttributeViewRefresh(view, result string) {
+	mi.AccessControlAttributeViewRefreshes.With(prometheus.Labels{"view": view, "result": result}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) SetAttributeViewStaleness(view string, seconds float64) {
+	mi.AccessControlAttributeViewStaleness.With(prometheus.Labels{"view": view}).Set(seconds)
 }
 
 func (mi *MetricsInterfaceImpl) SetAccessControlDecisionCacheEnabled(enabled bool) {
