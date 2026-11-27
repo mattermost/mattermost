@@ -23,7 +23,12 @@ export type FieldType = (
 
     // A JSON boolean; false or absent is unchecked. Not allowed in the access
     // control group either.
-    'checkbox'
+    'checkbox' |
+
+    // A positive integer the server assigns from a per-field counter and the
+    // client shows with the field's attrs.prefix, as in MM-42. Not allowed in the
+    // access control group either.
+    'key'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -252,6 +257,15 @@ export const supportsExternalSync = (field: {type: FieldType}): boolean => {
 // that editor has no way to send back.
 export const valueRefersToOptions = (field: PropertyField) => {
     return supportsOptions(field) || supportsHierarchy(field);
+};
+
+// Shows a key field's server-assigned number with the field's prefix, as in MM-42.
+// An empty value shows nothing.
+export const formatKeyValue = (prefix: string | undefined, value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return '';
+    }
+    return prefix ? `${prefix}-${String(value)}` : String(value);
 };
 
 export const isTextField = (field: PropertyField) => {

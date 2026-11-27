@@ -26,6 +26,9 @@ export type BoardsPropertyField = PropertyField & {
     attrs: {
         sort_order: number;
         options?: BoardsPropertyFieldOption[];
+
+        // Required on a key field: letters and digits, starting with a letter.
+        prefix?: string;
     };
 };
 

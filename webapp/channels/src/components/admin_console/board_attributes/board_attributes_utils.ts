@@ -118,7 +118,7 @@ export const useBoardPropertyFields = () => {
                 const patch: BoardsPropertyFieldPatch = {
                     name,
                     type,
-                    attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
+                    attrs: cleanAttrsForSave(attrs, type),
                 };
 
                 return Client4.patchPropertyField(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, id, patch as Partial<PropertyField> & Record<string, unknown>).
@@ -138,7 +138,7 @@ export const useBoardPropertyFields = () => {
                 return Client4.createPropertyField(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, {
                     name,
                     type,
-                    attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
+                    attrs: cleanAttrsForSave(attrs, type),
                     target_type: BOARDS_PROPERTY_TARGET_TYPE,
                     target_id: '',
                 }).
@@ -203,6 +203,13 @@ export const useBoardPropertyFields = () => {
                     const optionWarning = validateSelectOptions(field.attrs?.options);
                     if (optionWarning) {
                         acc[field.id] = {...acc[field.id], ...optionWarning};
+                    }
+                }
+
+                if (field.type === 'key' && field.delete_at === 0) {
+                    const prefixWarning = validateKeyPrefix(field, pending.data);
+                    if (prefixWarning) {
+                        acc[field.id] = {...acc[field.id], ...prefixWarning};
                     }
                 }
 
@@ -324,6 +331,60 @@ export const ValidationWarningNameUnique = 'board_attributes.validation.name_uni
 export const ValidationWarningNameTaken = 'board_attributes.validation.name_taken';
 export const ValidationWarningOptionsRequired = 'board_attributes.validation.options_required';
 export const ValidationWarningOptionsUnique = 'board_attributes.validation.options_unique';
+export const ValidationWarningPrefixRequired = 'board_attributes.validation.prefix_required';
+export const ValidationWarningPrefixInvalid = 'board_attributes.validation.prefix_invalid';
+export const ValidationWarningPrefixTaken = 'board_attributes.validation.prefix_taken';
+
+export const KEY_PREFIX_MAX_LENGTH = 10;
+
+// Mirrors the server's prefix rule: a letter first, then letters or digits.
+const KEY_PREFIX_PATTERN = /^[A-Z][A-Z0-9]{0,9}$/;
+
+// The server trims and uppercases a prefix before it checks or compares it.
+export const normalizeKeyPrefix = (prefix: string | undefined) => (prefix ?? '').trim().toUpperCase();
+
+// Keeps what a user may type into the prefix input: uppercase letters and digits.
+export const sanitizeKeyPrefixInput = (input: string) =>
+    input.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, KEY_PREFIX_MAX_LENGTH);
+
+export const validateKeyPrefix = (
+    field: BoardsPropertyField,
+    fields: IDMappedObjects<BoardsPropertyField>,
+): {attrs: string} | undefined => {
+    const prefix = normalizeKeyPrefix(field.attrs?.prefix);
+
+    if (!prefix) {
+        return {attrs: ValidationWarningPrefixRequired};
+    }
+    if (!KEY_PREFIX_PATTERN.test(prefix)) {
+        return {attrs: ValidationWarningPrefixInvalid};
+    }
+
+    const taken = Object.values(fields).some((other) => (
+        other.id !== field.id &&
+        other.type === 'key' &&
+        other.delete_at === 0 &&
+        normalizeKeyPrefix(other.attrs?.prefix) === prefix
+    ));
+    if (taken) {
+        return {attrs: ValidationWarningPrefixTaken};
+    }
+
+    return undefined;
+};
+
+// Messages the server returned for the fields that failed to save, such as a
+// prefix another key field already uses.
+export const getSaveErrorDetails = (error: Error | undefined): string[] => {
+    const causes = error?.cause;
+    if (!causes || typeof causes !== 'object') {
+        return [];
+    }
+    const messages = Object.values(causes as Record<string, unknown>).
+        map((cause) => (cause instanceof Error ? cause.message : '')).
+        filter(Boolean);
+    return Array.from(new Set(messages));
+};
 
 const normalizeOptionName = (name: string) => name.trim().toLowerCase();
 
@@ -426,6 +487,18 @@ const stripIrrelevantOptions = <A extends BoardsPropertyField['attrs']>(attrs: A
     Reflect.deleteProperty(next, 'options');
     return next;
 };
+
+const stripIrrelevantPrefix = <A extends BoardsPropertyField['attrs']>(attrs: A, type: BoardsPropertyField['type']): A => {
+    if (type === 'key' || attrs?.prefix === undefined) {
+        return attrs;
+    }
+    const next = {...attrs} as A;
+    Reflect.deleteProperty(next, 'prefix');
+    return next;
+};
+
+const cleanAttrsForSave = <A extends BoardsPropertyField['attrs']>(attrs: A, type: BoardsPropertyField['type']): A =>
+    stripIrrelevantPrefix(stripIrrelevantOptions(stripPendingFromAttrs(attrs), type), type);
 
 export const newPendingBoardField = (patch: BoardsPropertyFieldPatch & Pick<BoardsPropertyField, 'name'>): BoardsPropertyField => {
     const attrs = {...patch.attrs};

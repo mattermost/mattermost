@@ -133,6 +133,19 @@ describe('BoardAttributes (top-level screen)', () => {
         expect(screen.getByText(/there was an error while saving the configuration/i)).toBeInTheDocument();
     });
 
+    it('renders the server message for a field that failed to save', () => {
+        mockUseBoardAttributesTable.mockReturnValue(makeHookReturn({
+            hasChanges: true,
+            isValid: true,
+            saveError: new Error('error processing operations', {cause: {a: new Error('prefix "MM" is already in use')}}),
+        }));
+
+        renderWithContext(<BoardAttributes disabled={false}/>);
+
+        expect(screen.getByText(/there was an error while saving the configuration/i)).toBeInTheDocument();
+        expect(screen.getByText(/prefix "MM" is already in use/i)).toBeInTheDocument();
+    });
+
     it('dispatches setNavigationBlocked(false) on initial mount when hasChanges=false', () => {
         mockUseBoardAttributesTable.mockReturnValue(makeHookReturn({hasChanges: false}));
 

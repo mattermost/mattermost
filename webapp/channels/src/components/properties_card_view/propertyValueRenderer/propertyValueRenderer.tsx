@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import {formatKeyValue} from '@mattermost/types/properties';
 
 import type {
     ChannelFieldMetadata,
@@ -87,6 +88,19 @@ export default function PropertyValueRenderer({field, value, metadata, maxItems}
                 maxItems={maxItems}
             />
         );
+
+    case 'key': {
+        const formatted = formatKeyValue(field.attrs?.prefix as string | undefined, value.value);
+        if (!formatted) {
+            return null;
+        }
+        return (
+            <TextPropertyRenderer
+                value={{...value, value: formatted}}
+                metadata={metadata as TextFieldMetadata}
+            />
+        );
+    }
 
     default:
         return null;

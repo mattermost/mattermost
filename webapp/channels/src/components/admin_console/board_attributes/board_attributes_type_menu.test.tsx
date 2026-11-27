@@ -114,4 +114,61 @@ describe('SelectType (board attributes type menu)', () => {
         expect(updateField).toHaveBeenCalledTimes(1);
         expect(updateField).toHaveBeenCalledWith({...field, type: 'select'});
     });
+
+    describe('key type', () => {
+        it('offers the key type for a field pending creation', async () => {
+            const field = makeField({create_at: 0});
+            const updateField = jest.fn();
+
+            renderWithContext(
+                <SelectType
+                    field={field}
+                    updateField={updateField}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('fieldTypeSelectorMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: /^key$/i}));
+
+            expect(updateField).toHaveBeenCalledWith({...field, type: 'key'});
+        });
+
+        it('hides the key type for a saved field that is not a key', async () => {
+            renderWithContext(
+                <SelectType
+                    field={makeField({type: 'text'})}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('fieldTypeSelectorMenuButton'));
+
+            expect(screen.getByRole('menuitemradio', {name: /text/i})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitemradio', {name: /^key$/i})).not.toBeInTheDocument();
+        });
+
+        it('disables the type menu for a saved key field', () => {
+            renderWithContext(
+                <SelectType
+                    field={makeField({type: 'key', attrs: {sort_order: 0, prefix: 'MM'}})}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            const button = screen.getByTestId('fieldTypeSelectorMenuButton');
+            expect(button).toHaveTextContent(/key/i);
+            expect(button).toBeDisabled();
+        });
+
+        it('keeps the type menu enabled for a key field pending creation', () => {
+            renderWithContext(
+                <SelectType
+                    field={makeField({type: 'key', create_at: 0})}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toBeEnabled();
+        });
+    });
 });

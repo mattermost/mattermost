@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {css} from 'styled-components';
 
-import {AccountOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, CalendarOutlineIcon, CheckIcon, ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, PoundIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType} from '@mattermost/types/properties';
 import type {BoardsPropertyField} from '@mattermost/types/properties_board';
@@ -16,7 +16,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
 
-import {isPropertyDisabled} from './board_attributes_utils';
+import {isCreatePending, isPropertyDisabled} from './board_attributes_utils';
 
 import '../system_properties/user_properties_type_menu.scss';
 
@@ -38,18 +38,25 @@ const SelectType = (props: Props) => {
         setFilter('');
     };
 
+    const isKeyLocked = props.field.type === 'key' && !isCreatePending(props.field);
+    const canOfferKey = isCreatePending(props.field);
+
     const options = useMemo(() => {
         return Object.values(TYPE_DESCRIPTOR).filter((descriptor) => {
+            if (descriptor.fieldType === 'key' && !canOfferKey) {
+                return false;
+            }
             return formatMessage(descriptor.label).toLowerCase().includes(filter.toLowerCase());
         });
-    }, [filter, formatMessage]);
+    }, [filter, formatMessage, canOfferKey]);
 
     const currentTypeDescriptor = useMemo(() => {
         return getTypeDescriptor(props.field);
     }, [props.field]);
     const CurrentTypeIcon = currentTypeDescriptor.icon;
 
-    const isDisabled = isPropertyDisabled(props.field);
+    // The server refuses a type change to or from key once the field is saved.
+    const isDisabled = isPropertyDisabled(props.field) || isKeyLocked;
 
     return (
         <Menu.Container
@@ -130,7 +137,7 @@ const getTypeDescriptor = (field: BoardsPropertyField): TypeDescriptor => {
 // The property types Integrated Boards supports. Enumerated explicitly (a
 // deliberate subset of FieldType) so the IDMappedObjects typing on
 // TYPE_DESCRIPTOR forces a descriptor entry for each supported type.
-type TypeID = 'text' | 'select' | 'multiselect' | 'date' | 'user';
+type TypeID = 'text' | 'select' | 'multiselect' | 'date' | 'user' | 'key';
 
 type TypeDescriptor = {
     id: TypeID;
@@ -183,6 +190,15 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         label: defineMessage({
             id: 'admin.board_attributes.table.select_type.user',
             defaultMessage: 'User',
+        }),
+    },
+    key: {
+        id: 'key',
+        fieldType: 'key',
+        icon: PoundIcon,
+        label: defineMessage({
+            id: 'admin.board_attributes.table.select_type.key',
+            defaultMessage: 'Key',
         }),
     },
 } as const;

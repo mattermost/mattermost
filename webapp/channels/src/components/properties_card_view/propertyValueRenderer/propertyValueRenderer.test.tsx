@@ -384,6 +384,41 @@ describe('PropertyValueRenderer', () => {
         });
     });
 
+    describe('key field type', () => {
+        const keyField = (attrs: PropertyField['attrs']) => ({
+            id: 'field-1',
+            name: 'Key Field',
+            type: 'key',
+            attrs,
+        }) as PropertyField;
+
+        it('should render the value with the field prefix', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={keyField({prefix: 'MM'})}
+                    value={{value: 42} as PropertyValue<number>}
+                />,
+            );
+
+            expect(screen.getByTestId('mock-text-property')).toHaveTextContent('MM-42');
+        });
+
+        it.each([
+            ['null', null],
+            ['undefined', undefined],
+            ['an empty string', ''],
+        ])('should render nothing for %s', (_label, raw) => {
+            const {container} = renderWithContext(
+                <PropertyValueRenderer
+                    field={keyField({prefix: 'MM'})}
+                    value={{value: raw} as PropertyValue<unknown>}
+                />,
+            );
+
+            expect(container.firstChild).toBeNull();
+        });
+    });
+
     describe('unsupported field types', () => {
         it.each([
             ['an unrecognised type', 'unsupported', 'test value'],
@@ -550,6 +585,7 @@ describe('canRenderPropertyValue agrees with what PropertyValueRenderer draws', 
         graph: ['opt_1'],
         number: 42,
         checkbox: true,
+        key: 42,
     };
 
     const ALL_FIELD_TYPES = Object.keys(VALUE_BY_TYPE) as FieldType[];

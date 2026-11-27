@@ -11,6 +11,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {useBoardAttributesTable} from './board_attributes_table';
+import {getSaveErrorDetails} from './board_attributes_utils';
 
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminWrapper, DangerText} from '../system_properties/controls';
@@ -30,6 +31,7 @@ export default function BoardAttributes(props: Props) {
     const hasChanges = boardAttributes.hasChanges;
     const isValid = boardAttributes.isValid;
     const saveError = boardAttributes.saveError;
+    const saveErrorDetails = getSaveErrorDetails(saveError);
 
     const handleSave = () => {
         boardAttributes.save();
@@ -70,11 +72,18 @@ export default function BoardAttributes(props: Props) {
                 saveNeeded={hasChanges}
                 onClick={handleSave}
                 serverError={saveError ? (
-                    <FormattedMessage
-                        tagName={DangerText}
-                        id='admin.system_properties.details.saving_changes_error'
-                        defaultMessage='There was an error while saving the configuration'
-                    />
+                    <>
+                        <FormattedMessage
+                            tagName={DangerText}
+                            id='admin.system_properties.details.saving_changes_error'
+                            defaultMessage='There was an error while saving the configuration'
+                        />
+                        {saveErrorDetails.map((detail) => (
+                            <DangerText key={detail}>
+                                {` ${detail}`}
+                            </DangerText>
+                        ))}
+                    </>
                 ) : undefined}
                 savingMessage={formatMessage({id: 'admin.system_properties.details.saving_changes', defaultMessage: 'Saving configuration…'})}
                 isDisabled={props.disabled || saving || !isValid}

@@ -8,7 +8,7 @@ import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {supportsOptions} from '@mattermost/types/properties';
+import {formatKeyValue, supportsOptions} from '@mattermost/types/properties';
 import {type BoardsPropertyField, type BoardsPropertyFieldOption} from '@mattermost/types/properties_board';
 
 import * as Menu from 'components/menu';
@@ -22,7 +22,18 @@ import {
 } from 'utils/board_property_colors';
 import {resolveOptionChipColors} from 'utils/property_option_colors';
 
-import {ValidationWarningOptionsUnique, canEditFieldOptions, isOptionNameTaken, newPendingId} from './board_attributes_utils';
+import {
+    KEY_PREFIX_MAX_LENGTH,
+    ValidationWarningOptionsUnique,
+    ValidationWarningPrefixInvalid,
+    ValidationWarningPrefixRequired,
+    ValidationWarningPrefixTaken,
+    canEditFieldOptions,
+    isOptionNameTaken,
+    isPropertyDisabled,
+    newPendingId,
+    sanitizeKeyPrefixInput,
+} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
 import {useBoardOptionsDnd} from './hooks/use_board_options_dnd';
 
@@ -56,6 +67,16 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     });
 
     useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable});
+
+    if (field.type === 'key') {
+        return (
+            <KeyPrefixValues
+                field={field}
+                updateField={updateField}
+                warning={warning}
+            />
+        );
+    }
 
     if (!supportsOptions(field)) {
         return (
@@ -152,6 +173,73 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                     defaultMessage='Values must be unique.'
                 />
             )}
+        </>
+    );
+};
+
+type KeyPrefixValuesProps = Pick<Props, 'field' | 'updateField' | 'warning'>;
+
+const KeyPrefixValues = ({field, updateField, warning}: KeyPrefixValuesProps) => {
+    const {formatMessage} = useIntl();
+    const prefix = field.attrs?.prefix ?? '';
+    const prefixLabel = formatMessage({
+        id: 'admin.board_attributes.values.prefix',
+        defaultMessage: 'Prefix',
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        updateField({...field, attrs: {...field.attrs, prefix: sanitizeKeyPrefixInput(e.target.value)}});
+    };
+
+    let warningMessage;
+    if (warning === ValidationWarningPrefixRequired) {
+        warningMessage = (
+            <FormattedMessage
+                tagName={DangerText}
+                id='admin.board_attributes.table.validation.prefix_required'
+                defaultMessage='Please enter a prefix.'
+            />
+        );
+    } else if (warning === ValidationWarningPrefixInvalid) {
+        warningMessage = (
+            <FormattedMessage
+                tagName={DangerText}
+                id='admin.board_attributes.table.validation.prefix_invalid'
+                defaultMessage='A prefix must start with a letter and use only letters and numbers.'
+            />
+        );
+    } else if (warning === ValidationWarningPrefixTaken) {
+        warningMessage = (
+            <FormattedMessage
+                tagName={DangerText}
+                id='admin.board_attributes.table.validation.prefix_taken'
+                defaultMessage='Prefix already used by another key attribute.'
+            />
+        );
+    }
+
+    return (
+        <>
+            <PrefixContainer data-testid='property-values-key'>
+                <PrefixInput
+                    value={prefix}
+                    onChange={handleChange}
+                    maxLength={KEY_PREFIX_MAX_LENGTH}
+                    placeholder={prefixLabel}
+                    aria-label={prefixLabel}
+                    aria-invalid={Boolean(warningMessage)}
+                    disabled={isPropertyDisabled(field)}
+                    autoComplete='off'
+                    spellCheck={false}
+                    data-testid='board-attribute-key-prefix-input'
+                />
+                {prefix && (
+                    <PrefixPreview data-testid='board-attribute-key-preview'>
+                        {formatKeyValue(prefix, 1)}
+                    </PrefixPreview>
+                )}
+            </PrefixContainer>
+            {warningMessage}
         </>
     );
 };
@@ -407,6 +495,34 @@ export default BoardAttributesValues;
 const EmptyValues = styled.span`
     padding: 4px 8px;
     color: rgba(var(--center-channel-color-rgb), 0.48);
+`;
+
+const PrefixContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    min-height: 40px;
+`;
+
+const PrefixInput = styled.input.attrs({className: 'Input form-control'})`
+    && {
+        width: 112px;
+        height: 32px;
+        padding: 0 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    &&[aria-invalid='true'] {
+        border-color: var(--error-text);
+    }
+`;
+
+const PrefixPreview = styled.span`
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
 `;
 
 const ValuesContainer = styled.div`

@@ -2579,6 +2579,10 @@
     "defaultMessage": "Date",
     "description": "Menu option in the attribute type dropdown; a date-valued board property type."
   },
+  "admin.board_attributes.table.select_type.key": {
+    "defaultMessage": "Key",
+    "description": ""
+  },
   "admin.board_attributes.table.select_type.multi_select": {
     "defaultMessage": "Multi-select",
     "description": "Menu option in the attribute type dropdown; a property type allowing multiple selected options."
@@ -2611,6 +2615,18 @@
     "defaultMessage": "Attribute names must be unique.",
     "description": "Inline validation error under an attribute name cell when two attributes share the same name."
   },
+  "admin.board_attributes.table.validation.prefix_invalid": {
+    "defaultMessage": "A prefix must start with a letter and use only letters and numbers.",
+    "description": ""
+  },
+  "admin.board_attributes.table.validation.prefix_required": {
+    "defaultMessage": "Please enter a prefix.",
+    "description": ""
+  },
+  "admin.board_attributes.table.validation.prefix_taken": {
+    "defaultMessage": "Prefix already used by another key attribute.",
+    "description": ""
+  },
   "admin.board_attributes.table.validation.values_unique": {
     "defaultMessage": "Values must be unique.",
     "description": "Inline validation error under the option chips of a board attribute when two option values have the same name."
@@ -2642,6 +2658,10 @@
   "admin.board_attributes.values.option_menu_label": {
     "defaultMessage": "Edit option",
     "description": "Accessibility label for the popup menu opened by clicking an option value chip; contains rename input, delete, and color choices."
+  },
+  "admin.board_attributes.values.prefix": {
+    "defaultMessage": "Prefix",
+    "description": ""
   },
   "admin.board_attributes.values.protected_tooltip": {
     "defaultMessage": "System attribute options cannot be modified",
