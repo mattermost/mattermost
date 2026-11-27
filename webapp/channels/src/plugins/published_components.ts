@@ -6,9 +6,12 @@ import type React from 'react';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PublishedComponentProps, PublishedComponents} from '@mattermost/shared/types/global';
 
+import PublishedPostReactions from 'components/post_view/reaction_list/published_post_reactions';
+
 // Curated allowlist, not an escape hatch for rendering arbitrary core components.
 const components = {
     WithTooltip,
+    PostReactions: PublishedPostReactions,
 } satisfies Record<keyof PublishedComponents, React.ComponentType<any>>;
 
 // Fails the build here if a component's real props drift from the published contract,

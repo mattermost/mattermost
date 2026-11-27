@@ -37,6 +37,11 @@ type Props = {
      */
     canAddReactions: boolean;
 
+    /**
+     * When true, render the add-reaction button even if the post has no reactions.
+     */
+    showAddButtonWhenEmpty?: boolean;
+
     actions: {
 
         /**
@@ -91,7 +96,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
             }
         }
 
-        if (reactionsByName.size === 0) {
+        if (reactionsByName.size === 0 && !(this.props.showAddButtonWhenEmpty && this.props.canAddReactions)) {
             return null;
         }
 

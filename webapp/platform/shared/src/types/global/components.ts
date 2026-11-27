@@ -3,6 +3,8 @@
 
 import type {ComponentType, ReactElement, ReactNode} from 'react';
 
+import type {Post} from '@mattermost/types/posts';
+
 // Plugin-facing contract for window.WebappUtils.components. The web app asserts
 // each shape stays assignable to the real component at build time in
 // published_components.ts.
@@ -22,8 +24,23 @@ export type PublishedWithTooltipProps = {
     children: ReactElement<any>;
 };
 
+/**
+ * @experimental May change or be removed without the usual deprecation period.
+ */
+export type PublishedPostReactionsProps = {
+    post: Post; // the post does not have to be in the posts store
+
+    // Shows the add-reaction chip on its own when the post has no reactions.
+    showAddButtonWhenEmpty?: boolean;
+};
+
 export type PublishedComponentProps = {
     WithTooltip: PublishedWithTooltipProps;
+
+    /**
+     * @experimental May change or be removed without the usual deprecation period.
+     */
+    PostReactions: PublishedPostReactionsProps;
 };
 
 export type PublishedComponents = {
