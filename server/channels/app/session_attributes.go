@@ -266,8 +266,11 @@ func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, att
 }
 
 func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([]*model.SessionAttributeManifestEntry, *model.AppError) {
+	// An empty manifest tells clients there is nothing to collect. Answering
+	// with an error here would turn every client poll on servers without the
+	// feature into a 5xx.
 	if !a.sessionAttributesEnabled() {
-		return nil, model.NewAppError("GetSessionAttributesManifest", "api.user.session_attributes.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return []*model.SessionAttributeManifestEntry{}, nil
 	}
 
 	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)

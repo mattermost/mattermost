@@ -6638,11 +6638,6 @@
     "description": "Server error when the account email verification message fails to send; mostly seen in logs."
   },
   {
-    "id": "api.user.session_attributes.disabled.app_error",
-    "translation": "Session attributes are not enabled.",
-    "description": "API error when a session-attributes endpoint is called but the feature (per-session attribute-based access control data) is disabled."
-  },
-  {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled.",
     "description": "API error when reactivating a guest account while the Guest Access feature is disabled."

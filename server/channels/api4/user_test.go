@@ -12640,11 +12640,28 @@ func TestMeEndpointsWithMfaEnforced(t *testing.T) {
 func TestGetSessionAttributesManifest(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Run("disabled without feature flag", func(t *testing.T) {
-		_, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
-		require.Error(t, err)
-		CheckErrorID(t, err, "api.user.session_attributes.disabled.app_error")
-		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	t.Run("returns empty manifest without feature flag", func(t *testing.T) {
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, manifest)
+	})
+
+	t.Run("returns empty manifest with feature flag but without Enterprise Advanced license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.SessionAttributes = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.SessionAttributes = false
+		})
+
+		manifest, resp, err := th.Client.GetSessionAttributesManifest(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, manifest)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
