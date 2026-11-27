@@ -33,16 +33,46 @@ func withoutLegacyAttributeView(t *testing.T, s *SqlStore) func() {
 
 // withoutAttributeLiveViews reverts 000245 for a test that runs an earlier view
 // migration's down: 000245's live views read PropertyOptions, so 000223's down
-// can't drop that table while they exist. The returned function re-applies
-// 000245, so later tests sharing the database find the views as a migrated
-// server has them.
+// can't drop that table while they exist. The returned function puts the views
+// back through restoreAttributeViews.
 func withoutAttributeLiveViews(t *testing.T, s *SqlStore) func() {
 	t.Helper()
 	_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000245_create_attribute_live_views.down.sql"))
 	require.NoError(t, err, "reverting 000245")
-	return func() {
-		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000245_create_attribute_live_views.up.sql"))
-		assert.NoError(t, err, "re-applying 000245")
+	return func() { restoreAttributeViews(t, s) }
+}
+
+// attributeViewIndexes names the unique index 000246 builds on each attribute
+// materialized view.
+var attributeViewIndexes = map[string]string{
+	"UserAttributeView":    "idx_userattributeview_target",
+	"ChannelAttributeView": "idx_channelattributeview_target",
+}
+
+// restoreAttributeViews re-applies 000245 and 000246 for a test that rebuilt the
+// attribute materialized views through an earlier migration's down or up. That
+// leaves them off the live views and without their unique indexes, and
+// RefreshAttributes refreshes them CONCURRENTLY, which Postgres refuses (55000)
+// without the index: every later test in the package database that refreshes
+// would fail, depending on test order. 000245 rebuilds the views on the live
+// views, which drops any index, so 000246 has to follow it. It then checks that
+// both indexes exist and that each view refreshes concurrently.
+func restoreAttributeViews(t *testing.T, s *SqlStore) {
+	t.Helper()
+	for _, name := range []string{
+		"000245_create_attribute_live_views.up.sql",
+		"000246_create_attribute_view_target_indexes.up.sql",
+	} {
+		_, err := s.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
+		assert.NoError(t, err, "re-applying %s", name)
+	}
+	for view, index := range attributeViewIndexes {
+		var count int
+		assert.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM pg_indexes WHERE indexname = $1 AND tablename = lower($2)", index, view))
+		assert.Equal(t, 1, count, "%s should have its unique index %s", view, index)
+		_, err := s.GetMaster().ExecNoTimeout("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view)
+		assert.NoError(t, err, "a concurrent refresh of %s should succeed", view)
 	}
 }
 

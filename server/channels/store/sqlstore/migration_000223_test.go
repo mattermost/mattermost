@@ -54,7 +54,10 @@ func TestMigration000223(t *testing.T) {
 	// The test runs the down migration, which drops PropertyOptions out from
 	// under the AttributeView that 000242 builds on it.
 	defer withoutLegacyAttributeView(t, store)()
-	// It also drops PropertyOptions, which 000245's live views read.
+	// It also drops PropertyOptions, which 000245's live views read. Its up
+	// rebuilds the materialized views without 000246's unique indexes, so the
+	// restore at the end re-applies 000245 and 000246 and checks that a
+	// concurrent refresh works again.
 	defer withoutAttributeLiveViews(t, store)()
 
 	// New() applies all migrations, so 000223 is already in effect.
@@ -345,7 +348,13 @@ func TestMigration000223(t *testing.T) {
 
 	assertProjections := func(t *testing.T, stage string) {
 		t.Helper()
-		require.NoError(t, store.Attributes().RefreshAttributes())
+		// The views here are 000223's, without 000246's unique indexes, so they are
+		// refreshed plainly: RefreshAttributes refreshes CONCURRENTLY, which needs
+		// the indexes.
+		for _, view := range []string{"UserAttributeView", "ChannelAttributeView"} {
+			_, rErr := store.GetMaster().ExecNoTimeout("REFRESH MATERIALIZED VIEW " + view)
+			require.NoError(t, rErr, "refreshing %s", view)
+		}
 
 		require.Equal(t, `"Chosen"`, attributeFor(t, "UserAttributeView", userTarget, "linked_select"),
 			"%s: a select value on a linked field must resolve to the template option's name", stage)
