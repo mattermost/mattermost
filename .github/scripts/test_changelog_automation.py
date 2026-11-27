@@ -1263,6 +1263,16 @@ def runs_on_release(name: str, jobs: dict, seen: frozenset = frozenset()) -> boo
     return True
 
 
+def requires_master(condition: str) -> bool:
+    """Whether a job ``if:`` holds only with ref master: ``github.ref == 'refs/heads/master'`` is one of
+    its top-level ``&&`` terms (inside an ``||``, or a ``!=``, it doesn't require anything)."""
+    condition = condition.strip().removeprefix("${{").removesuffix("}}").strip()
+    while condition.startswith("(") and condition.endswith(")") and _closes_at_end(condition):
+        condition = condition[1:-1].strip()
+    return any(term == "github.ref == 'refs/heads/master'" or (
+        term.startswith("(") and _closes_at_end(term) and requires_master(term)) for term in _split_top(condition, "&&"))
+
+
 def uncommented(text: str) -> str:
     return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
 
@@ -1292,7 +1302,7 @@ class WriteEnvironmentTest(unittest.TestCase):
                 if not re.search(rf"(?m)^    environment: {WRITE_ENVIRONMENT}\s*$", job):
                     found.append(f"{name} {job_id}: mints a write-app token outside {WRITE_ENVIRONMENT}")
                 condition = re.search(r"(?m)^    if: (.+)$", job)
-                if not condition or "github.ref == 'refs/heads/master'" not in condition.group(1):
+                if not condition or not requires_master(condition.group(1)):
                     found.append(f"{name} {job_id}: mints a write-app token without requiring ref master")
         return found
 
@@ -1310,6 +1320,19 @@ class WriteEnvironmentTest(unittest.TestCase):
             "b.yml: names delivery-platform",
             "b.yml: asks an app for actions",
         ])
+
+    def test_master_must_be_required_not_just_named(self):
+        for condition in ("github.event_name == 'release' || github.ref == 'refs/heads/master'",
+                          "github.ref != 'refs/heads/master'", "contains(github.ref, 'refs/heads/master')"):
+            self.assertFalse(requires_master(condition), condition)
+        for condition in ("github.ref == 'refs/heads/master'",
+                          "needs.resolve.outputs.run == 'true' && github.ref == 'refs/heads/master'",
+                          "${{ (github.event_name == 'schedule' || inputs.mode == 'merge') && github.ref == 'refs/heads/master' }}"):
+            self.assertTrue(requires_master(condition), condition)
+        bypass = {"c.yml": "on: release\njobs:\n  r:\n    environment: release-write\n"
+                           "    if: github.event_name == 'release' || github.ref == 'refs/heads/master'\n    env:\n"
+                           "      KEY: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}\n"}
+        self.assertEqual(self.problems(bypass), ["c.yml r: mints a write-app token without requiring ref master"])
 
 
 if __name__ == "__main__":
