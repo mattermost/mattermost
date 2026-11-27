@@ -31,12 +31,37 @@ var ScopeReadPermissions = []string{
 	"view_team",
 }
 
+const SessionScopeMaxWriteChannelIDs = 5
+
+// ScopeWritePermissions are the only permissions a session scope may grant as
+// writes. Literals for the same reason as ScopeReadPermissions.
+var ScopeWritePermissions = []string{
+	"add_reaction",
+	"add_bookmark_public_channel",
+	"add_bookmark_private_channel",
+	"edit_bookmark_public_channel",
+	"edit_bookmark_private_channel",
+	"order_bookmark_public_channel",
+	"order_bookmark_private_channel",
+}
+
+// IsSessionScopeWritePermission reports whether permissionID is one a scope can
+// only grant through WritePermissions.
+func IsSessionScopeWritePermission(permissionID string) bool {
+	return slices.Contains(ScopeWritePermissions, permissionID)
+}
+
 // SessionScope restricts a session to a set of read permissions over a set of
 // channels. For a scoped session, read access is exactly the scope: channel and
 // team memberships neither add to it nor are required for it.
+//
+// A scope may also grant a few writes (WritePermissions) on a short list of its
+// channels (Resources.WriteChannelIDs). Unlike reads, writes also need the user
+// to hold the permission on the channel: the grant only narrows them.
 type SessionScope struct {
-	Permissions []string              `json:"permissions"`
-	Resources   SessionScopeResources `json:"resources"`
+	Permissions      []string              `json:"permissions"`
+	WritePermissions []string              `json:"write_permissions,omitempty"`
+	Resources        SessionScopeResources `json:"resources"`
 
 	// OnBehalfOfUserID records the user who triggered the session, for audit only.
 	// It grants nothing.
@@ -48,6 +73,10 @@ type SessionScope struct {
 
 type SessionScopeResources struct {
 	ChannelIDs []string `json:"channel_ids,omitempty"`
+
+	// WriteChannelIDs are the channels WritePermissions apply to. Each must also
+	// be in ChannelIDs.
+	WriteChannelIDs []string `json:"write_channel_ids,omitempty"`
 
 	// OpenTeamPublicChannels adds every public channel on a team that any user
 	// can join, see Team.IsOpenToAllUsers.
@@ -78,7 +107,7 @@ func (l SessionScopeLimits) openTeamGrantOff() bool {
 
 // WithLimits returns the resources without the grants limits turns off.
 func (r SessionScopeResources) WithLimits(limits SessionScopeLimits) SessionScopeResources {
-	effective := SessionScopeResources{ChannelIDs: slices.Clone(r.ChannelIDs)}
+	effective := SessionScopeResources{ChannelIDs: slices.Clone(r.ChannelIDs), WriteChannelIDs: slices.Clone(r.WriteChannelIDs)}
 	if !limits.openTeamGrantOff() {
 		effective.OpenTeamPublicChannels = r.OpenTeamPublicChannels
 	}
@@ -116,6 +145,10 @@ func (s *SessionScope) IsValid() *AppError {
 		}
 	}
 
+	if appErr := s.isValidWriteGrant(); appErr != nil {
+		return appErr
+	}
+
 	if s.OnBehalfOfUserID != "" && !IsValidId(s.OnBehalfOfUserID) {
 		return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.on_behalf_of_user_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -127,12 +160,61 @@ func (s *SessionScope) IsValid() *AppError {
 	return nil
 }
 
+// isValidWriteGrant requires write permissions and write channels to come
+// together, the channels to be few, readable and listed in ChannelIDs.
+func (s *SessionScope) isValidWriteGrant() *AppError {
+	if len(s.WritePermissions) == 0 && len(s.Resources.WriteChannelIDs) == 0 {
+		return nil
+	}
+	if len(s.WritePermissions) == 0 {
+		return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.write_permissions.app_error", nil, "write channels without write permissions", http.StatusBadRequest)
+	}
+	for _, permission := range s.WritePermissions {
+		if !IsSessionScopeWritePermission(permission) {
+			return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.write_permissions.app_error", nil, "permission="+permission, http.StatusBadRequest)
+		}
+	}
+	if !s.HasPermission(PermissionReadChannelContent.Id) {
+		return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.write_permissions.app_error", nil, "write permissions without read_channel_content", http.StatusBadRequest)
+	}
+
+	writeChannelsErr := func(details string) *AppError {
+		return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.write_channel_ids.app_error", map[string]any{"Max": SessionScopeMaxWriteChannelIDs}, details, http.StatusBadRequest)
+	}
+	if len(s.Resources.WriteChannelIDs) == 0 {
+		return writeChannelsErr("write permissions without write channels")
+	}
+	if len(s.Resources.WriteChannelIDs) > SessionScopeMaxWriteChannelIDs {
+		return writeChannelsErr("")
+	}
+	for _, channelID := range s.Resources.WriteChannelIDs {
+		if !IsValidId(channelID) || !s.ListsChannel(channelID) {
+			return writeChannelsErr("channel_id=" + channelID)
+		}
+	}
+	return nil
+}
+
+// HasPermission reports whether the scope holds a read permission.
 func (s *SessionScope) HasPermission(permissionID string) bool {
 	return slices.Contains(s.Permissions, permissionID)
 }
 
+func (s *SessionScope) HasWritePermission(permissionID string) bool {
+	return slices.Contains(s.WritePermissions, permissionID)
+}
+
+// GrantsWrites reports whether the scope grants any write at all.
+func (s *SessionScope) GrantsWrites() bool {
+	return s != nil && len(s.WritePermissions) > 0 && len(s.Resources.WriteChannelIDs) > 0
+}
+
 func (s *SessionScope) ListsChannel(channelID string) bool {
 	return slices.Contains(s.Resources.ChannelIDs, channelID)
+}
+
+func (s *SessionScope) ListsWriteChannel(channelID string) bool {
+	return slices.Contains(s.Resources.WriteChannelIDs, channelID)
 }
 
 // IsScoped reports whether the session carries a scope, without parsing it.

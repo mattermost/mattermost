@@ -93,6 +93,10 @@ type Handler struct {
 	// handler rejects them.
 	AllowScopedSession bool
 
+	// AllowScopedSessionWrite lets scoped sessions whose scope grants writes
+	// reach this handler. The handler's permission checks decide each write.
+	AllowScopedSessionWrite bool
+
 	cspShaDirective string
 }
 
@@ -352,7 +356,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
-	if c.Err == nil && c.AppContext.Session().IsScoped() && !h.AllowScopedSession {
+	if c.Err == nil && c.AppContext.Session().IsScoped() && !h.allowsScopedSession(c.AppContext.Session()) {
 		c.Err = NewScopedSessionOutOfScopeError("ServeHTTP")
 		c.Err.DetailedError = ScopedSessionRouteDeniedDetail
 	}
@@ -393,8 +397,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// A scoped session gets the same error for a missing object as for one out of
-	// its scope, so it can't learn which out-of-scope IDs exist.
-	if c.Err != nil && (c.Err.Id == "api.context.permissions.app_error" || c.Err.StatusCode == http.StatusNotFound) && c.AppContext.Session().IsScoped() {
+	// its scope, so it can't learn which out-of-scope IDs exist. On write routes
+	// that covers every refusal, since some, like writing to an archived
+	// channel, are checked before the permission.
+	if c.Err != nil && c.Err.Id != scopedSessionOutOfScopeErrorID && c.AppContext.Session().IsScoped() &&
+		(c.Err.Id == "api.context.permissions.app_error" || c.Err.StatusCode == http.StatusNotFound || (h.AllowScopedSessionWrite && c.Err.StatusCode == http.StatusForbidden)) {
 		c.Err = NewScopedSessionOutOfScopeError(c.Err.Where).Wrap(c.Err)
 	}
 

@@ -15,8 +15,23 @@ import (
 // scope does not cover.
 const ScopedSessionRouteDeniedDetail = "route not allowed for scoped sessions"
 
+// scopedSessionOutOfScopeErrorID is spelled out in NewScopedSessionOutOfScopeError
+// too, where i18n extraction can find it.
+const scopedSessionOutOfScopeErrorID = "api.context.scoped_session_out_of_scope.app_error"
+
 func NewScopedSessionOutOfScopeError(where string) *model.AppError {
 	return model.NewAppError(where, "api.context.scoped_session_out_of_scope.app_error", nil, "", http.StatusForbidden)
+}
+
+func (h Handler) allowsScopedSession(session *model.Session) bool {
+	if h.AllowScopedSession {
+		return true
+	}
+	if !h.AllowScopedSessionWrite {
+		return false
+	}
+	scope, _ := session.Scope()
+	return scope.GrantsWrites()
 }
 
 // scopedSessionAttribution returns the audit attribution of a scoped session,
