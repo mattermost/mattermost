@@ -460,9 +460,10 @@ export default function ClassificationMarkings({disabled}: Props) {
     // Only a saved level of a set that channels use can be held by a channel.
     const levelUsageCheck: OptionUsageCheck | undefined = requiredEnforcementEnabled && hasChannelField && existingField ? {objectType: 'template', fieldId: existingField.id} : undefined;
     const removalGuard = useOptionRemovalGuard(levelUsageCheck);
+    const {requestRemoval} = removalGuard;
     const requestDeleteLevel = useCallback((id: string) => {
-        removalGuard.requestRemoval(id, () => deleteLevel(id));
-    }, [removalGuard, deleteLevel]);
+        requestRemoval(id, () => deleteLevel(id));
+    }, [requestRemoval, deleteLevel]);
 
     // The server refused to drop a level channels use, so show the levels it has.
     const reloadLevels = useCallback(async () => {
