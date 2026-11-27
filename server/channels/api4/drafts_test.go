@@ -208,4 +208,25 @@ func TestDeleteDraft(t *testing.T) {
 	assert.Equal(t, draft2.Message, draftResp[0].Message)
 	assert.Equal(t, draft2.ChannelId, draftResp[0].ChannelId)
 	assert.Len(t, draftResp, 1)
+
+	// Re-create channel draft in channel2 alongside thread draft2, then delete only the thread draft
+	draft3 := &model.Draft{
+		CreateAt:  22222,
+		UserId:    user.Id,
+		ChannelId: channel2.Id,
+		Message:   "draft3",
+		RootId:    "",
+	}
+	_, _, err = client.UpsertDraft(context.Background(), draft3)
+	require.NoError(t, err)
+
+	_, _, err = client.DeleteDraft(context.Background(), user.Id, channel2.Id, draft2.RootId)
+	require.NoError(t, err)
+
+	draftResp, _, err = client.GetDrafts(context.Background(), user.Id, team.Id)
+	require.NoError(t, err)
+	require.Len(t, draftResp, 1)
+	assert.Equal(t, draft3.Message, draftResp[0].Message)
+	assert.Equal(t, draft3.ChannelId, draftResp[0].ChannelId)
+	assert.Empty(t, draftResp[0].RootId)
 }
