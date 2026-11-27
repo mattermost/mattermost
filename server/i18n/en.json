@@ -4240,6 +4240,11 @@
     "description": "API error when a user tries to edit a message after the admin-configured edit window has closed; {{.timeLimit}} is the number of seconds edits are allowed."
   },
   {
+    "id": "api.post.update_post.plugin_route_actions.app_error",
+    "translation": "Message buttons that call a plugin can't be added or changed by editing this post.",
+    "description": "API error when an edit to an integration post adds or changes a message button or menu whose action is handled by a plugin."
+  },
+  {
     "id": "api.post.update_post.system_message.app_error",
     "translation": "Unable to update system message.",
     "description": "API error when a user tries to edit an automated system message, which is not allowed."

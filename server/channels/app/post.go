@@ -795,7 +795,8 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 //     which is a human SSO login)
 //   - flags.FromIncomingWebhook — set only by app.CreateWebhookPost and
 //     app.CreateCommandPost (trusted server entry points)
-//   - flags.FromPlugin        — set only by PluginAPI.CreatePost
+//   - flags.FromPlugin        — set only by PluginAPI.CreatePost and
+//     app.createCommandPost for plugin slash command responses
 //
 // Do NOT add Session.IsUserAccessToken() here to "align" with IsIntegration():
 // that would re-open silent-post forgery for every PAT-holding human user.

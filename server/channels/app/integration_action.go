@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -52,6 +53,14 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	}
 	if gotoURL != "" {
 		return "", gotoURL, nil
+	}
+
+	// Plugin routes on a stored post are dispatched when the post was created on
+	// this server by a bot, incoming webhook, or plugin. The decision uses the
+	// markers CreatePost persists for those authors. The check runs before
+	// DoActionRequest.
+	if appErr = a.pluginActionRouteError(rctx, setup); appErr != nil {
+		return "", "", appErr
 	}
 
 	upstreamRequest := setup.upstreamRequest
@@ -129,6 +138,160 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	}
 
 	return clientTriggerId, response.GotoLocation, nil
+}
+
+// pluginActionRouteError reports when a stored post's action URL is a plugin
+// route and the post author is not a bot, incoming webhook, or plugin.
+// Ephemeral actions have no stored post and keep the current dispatch.
+func (a *App) pluginActionRouteError(rctx request.CTX, setup *postActionSetup) *model.AppError {
+	if setup == nil || setup.post == nil || !a.actionURLIsPluginRoute(setup.upstreamURL) {
+		return nil
+	}
+
+	dispatch, appErr := a.storedPostDispatchesPluginAction(rctx, setup.post)
+	if appErr != nil {
+		return appErr
+	}
+	if dispatch {
+		return nil
+	}
+
+	return model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
+}
+
+// storedPostDispatchesPluginAction reports whether the stored post was created
+// on this server by a bot, incoming webhook, or plugin. Those entry points
+// persist from_bot, from_webhook, and from_plugin; a bot user is also read from
+// the author record. A normal create does not set those props. Shared Channels
+// posts keep the props sent by the remote cluster, so they never dispatch.
+func (a *App) storedPostDispatchesPluginAction(rctx request.CTX, post *model.Post) (bool, *model.AppError) {
+	if post.IsRemote() {
+		return false, nil
+	}
+	if postPropIsTrue(post, model.PostPropsFromBot) ||
+		postPropIsTrue(post, model.PostPropsFromWebhook) ||
+		postPropIsTrue(post, model.PostPropsFromPlugin) {
+		return true, nil
+	}
+
+	user, appErr := a.GetUser(rctx, post.UserId)
+	if appErr != nil {
+		return false, appErr
+	}
+	return user.IsBot, nil
+}
+
+func postPropIsTrue(post *model.Post, key string) bool {
+	if post == nil {
+		return false
+	}
+	return post.GetProp(key) == "true"
+}
+
+// actionURLIsPluginRoute reports whether rawURL is a plugin route handled by
+// DoActionRequest in-process (a relative /plugins/ or plugins/ path) or by the
+// SiteURL client in getPostActionClient (same host, path under the plugin
+// prefix, including a configured subpath).
+func (a *App) actionURLIsPluginRoute(rawURL string) bool {
+	cleaned := path.Clean(rawURL)
+	if strings.HasPrefix(cleaned, "/plugins/") || strings.HasPrefix(cleaned, "plugins/") {
+		return true
+	}
+
+	inURL, err := url.Parse(rawURL)
+	if err != nil || inURL == nil {
+		return false
+	}
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if siteURL == nil || inURL.Hostname() != siteURL.Hostname() {
+		return false
+	}
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	return strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins"))
+}
+
+// CheckPostEditPluginRouteActions rejects a client edit that adds or changes a
+// plugin-route action on a post whose plugin-route actions are dispatched,
+// unless the editor is the post's bot author.
+func (a *App) CheckPostEditPluginRouteActions(rctx request.CTX, oldPost *model.Post, newProps model.StringInterface) *model.AppError {
+	updated := &model.Post{}
+	updated.SetProps(newProps)
+
+	existing := a.pluginRouteActions(oldPost)
+	changed := false
+	for _, action := range a.pluginRouteActions(updated) {
+		if !slices.Contains(existing, action) {
+			changed = true
+			break
+		}
+	}
+	if !changed {
+		return nil
+	}
+
+	dispatch, appErr := a.storedPostDispatchesPluginAction(rctx, oldPost)
+	if appErr != nil {
+		return appErr
+	}
+	if !dispatch {
+		return nil
+	}
+
+	if rctx.Session().UserId == oldPost.UserId {
+		editor, appErr := a.GetUser(rctx, oldPost.UserId)
+		if appErr != nil {
+			return appErr
+		}
+		if editor.IsBot {
+			return nil
+		}
+	}
+
+	return model.NewAppError("CheckPostEditPluginRouteActions", "api.post.update_post.plugin_route_actions.app_error", nil, "", http.StatusBadRequest)
+}
+
+// pluginRouteActions returns the JSON of each attachment action and
+// mm_blocks_actions entry on post that a click sends to a plugin route.
+func (a *App) pluginRouteActions(post *model.Post) []string {
+	var actions []string
+	add := func(v any) {
+		if b, err := json.Marshal(v); err == nil {
+			actions = append(actions, string(b))
+		}
+	}
+
+	for _, attachment := range post.Attachments() {
+		for _, action := range attachment.Actions {
+			if action != nil && action.Integration != nil && a.actionURLIsPluginRoute(action.Integration.URL) {
+				add(struct {
+					Attachment *model.PostAction
+				}{action})
+			}
+		}
+	}
+
+	raw := post.GetProp(model.PostPropsMmBlocksActions)
+	if raw == nil {
+		return actions
+	}
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return actions
+	}
+	var entries map[string]json.RawMessage
+	if json.Unmarshal(encoded, &entries) != nil {
+		return actions
+	}
+	for id := range entries {
+		spec := post.GetMmBlocksActionSpec(id)
+		if spec != nil && spec.Type == model.MmBlocksActionTypeExternal && a.actionURLIsPluginRoute(spec.URL) {
+			add(struct {
+				MmBlocksID string
+				Spec       *model.MmBlocksActionSpec
+			}{id, spec})
+		}
+	}
+	return actions
 }
 
 // DoActionRequest performs an HTTP POST request to an integration's action endpoint.
