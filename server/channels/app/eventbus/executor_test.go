@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"encoding/json"
@@ -23,8 +23,8 @@ func newActionBus(t *testing.T) *testBus {
 	t.Helper()
 	tb := newTestBus(t, 0)
 	action := createItemAction()
-	action.Fields = append(action.Fields, model.SignalField{Key: "body", Type: model.SignalTypeTextarea})
-	action.Results = append(action.Results, model.SignalField{Key: "count", Type: model.SignalTypeInt})
+	action.Fields = append(action.Fields, model.EventField{Key: "body", Type: model.EventTypeTextarea})
+	action.Results = append(action.Results, model.EventField{Key: "count", Type: model.EventTypeInt})
 	require.NoError(t, tb.RegisterAction(publisherID, action))
 	tb.hooks.bots[subscriberID] = callerBotID
 	return tb
@@ -34,7 +34,7 @@ func createItemRequest() *model.ActionRequest {
 	return &model.ActionRequest{
 		PluginID: publisherID,
 		Action:   "create_item",
-		Fields:   map[string]model.SignalValue{"title": {Text: "Hello"}},
+		Fields:   map[string]model.EventValue{"title": {Text: "Hello"}},
 	}
 }
 
@@ -42,10 +42,10 @@ func TestExecuteAction(t *testing.T) {
 	t.Run("calls the target and returns only declared results", func(t *testing.T) {
 		tb := newActionBus(t)
 		tb.hooks.onActionCall = func(string, *model.ActionCall) (*model.ActionResult, error) {
-			return &model.ActionResult{Fields: map[string]model.SignalValue{
+			return &model.ActionResult{Fields: map[string]model.EventValue{
 				"item_id":    {Text: "i1"},
-				"count":      model.SignalIntValue(7),
-				"undeclared": model.SignalTextValue("secret"),
+				"count":      model.EventIntValue(7),
+				"undeclared": model.EventTextValue("secret"),
 			}}, nil
 		}
 
@@ -54,16 +54,16 @@ func TestExecuteAction(t *testing.T) {
 		req.Attributes = map[string]string{"run_as": "author"}
 		resp, err := tb.ExecuteAction(subscriberID, req, "cause-token")
 		require.NoError(t, err)
-		assert.Equal(t, map[string]model.SignalValue{
-			"item_id": model.SignalTextValue("i1"),
-			"count":   model.SignalIntValue(7),
+		assert.Equal(t, map[string]model.EventValue{
+			"item_id": model.EventTextValue("i1"),
+			"count":   model.EventIntValue(7),
 		}, resp.Fields)
 
 		calls := tb.hooks.actionCalls(publisherID)
 		require.Len(t, calls, 1)
 		assert.Equal(t, &model.ActionCall{
 			Action:         "create_item",
-			Fields:         map[string]model.SignalValue{"title": model.SignalTextValue("Hello")},
+			Fields:         map[string]model.EventValue{"title": model.EventTextValue("Hello")},
 			CallerPluginID: subscriberID,
 			ActingUserID:   callerBotID,
 			Cause:          "cause-token",
@@ -143,7 +143,7 @@ func TestExecuteAction(t *testing.T) {
 			name: "undeclared input",
 			req: func() *model.ActionRequest {
 				r := createItemRequest()
-				r.Fields["undeclared"] = model.SignalTextValue("x")
+				r.Fields["undeclared"] = model.EventTextValue("x")
 				return r
 			},
 			wantErr: model.ErrActionFieldsInvalid,
@@ -152,7 +152,7 @@ func TestExecuteAction(t *testing.T) {
 			name: "input with the wrong type",
 			req: func() *model.ActionRequest {
 				r := createItemRequest()
-				r.Fields["title"] = model.SignalIntValue(1)
+				r.Fields["title"] = model.EventIntValue(1)
 				return r
 			},
 			wantErr: model.ErrActionFieldsInvalid,
@@ -161,7 +161,7 @@ func TestExecuteAction(t *testing.T) {
 			name: "input text over the cap",
 			req: func() *model.ActionRequest {
 				r := createItemRequest()
-				r.Fields["title"] = model.SignalTextValue(strings.Repeat("x", model.ActionTextMaxRunes+1))
+				r.Fields["title"] = model.EventTextValue(strings.Repeat("x", model.ActionTextMaxRunes+1))
 				return r
 			},
 			wantErr: model.ErrActionFieldsInvalid,
@@ -204,7 +204,7 @@ func TestExecuteAction(t *testing.T) {
 			name: "invalid result",
 			setup: func(tb *testBus) {
 				tb.hooks.onActionCall = func(string, *model.ActionCall) (*model.ActionResult, error) {
-					return &model.ActionResult{Fields: map[string]model.SignalValue{"count": model.SignalTextValue("seven")}}, nil
+					return &model.ActionResult{Fields: map[string]model.EventValue{"count": model.EventTextValue("seven")}}, nil
 				}
 			},
 			wantErr:       model.ErrActionResultInvalid,
@@ -214,15 +214,15 @@ func TestExecuteAction(t *testing.T) {
 			name: "encoded response over 1 MiB",
 			setup: func(tb *testBus) {
 				action := createItemAction()
-				action.Results = []model.SignalField{{Key: "body", Type: model.SignalTypeTextarea}}
+				action.Results = []model.EventField{{Key: "body", Type: model.EventTypeTextarea}}
 				require.NoError(t, tb.RegisterAction(publisherID, action))
 
 				// The results alone fit exactly; the response wrapper pushes it over.
-				overhead, err := json.Marshal(map[string]model.SignalValue{"body": model.SignalTextareaValue("")})
+				overhead, err := json.Marshal(map[string]model.EventValue{"body": model.EventTextareaValue("")})
 				require.NoError(t, err)
-				body := model.SignalTextareaValue(strings.Repeat("x", model.ActionMaxBytes-len(overhead)))
+				body := model.EventTextareaValue(strings.Repeat("x", model.ActionMaxBytes-len(overhead)))
 				tb.hooks.onActionCall = func(string, *model.ActionCall) (*model.ActionResult, error) {
-					return &model.ActionResult{Fields: map[string]model.SignalValue{"body": body}}, nil
+					return &model.ActionResult{Fields: map[string]model.EventValue{"body": body}}, nil
 				}
 			},
 			wantErr:       model.ErrActionResultInvalid,

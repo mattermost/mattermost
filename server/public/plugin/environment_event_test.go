@@ -20,7 +20,7 @@ import (
 )
 
 // activationProbeAPI records what the environment reports about a plugin while its OnActivate
-// runs. The plugin calls ListSignalContributions from OnActivate to trigger the probe.
+// runs. The plugin calls ListEventContributions from OnActivate to trigger the probe.
 type activationProbeAPI struct {
 	API
 	env   **Environment
@@ -28,9 +28,9 @@ type activationProbeAPI struct {
 	probe func(env *Environment, id string)
 }
 
-func (a *activationProbeAPI) ListSignalContributions() (*model.SignalCatalog, error) {
+func (a *activationProbeAPI) ListEventContributions() (*model.EventCatalog, error) {
 	a.probe(*a.env, a.id)
-	return &model.SignalCatalog{}, nil
+	return &model.EventCatalog{}, nil
 }
 
 type lifecycleEvents struct {
@@ -91,12 +91,12 @@ func TestEnvironmentLifecycleCallbacks(t *testing.T) {
 		}
 
 		func (p *MyPlugin) OnActivate() error {
-			_, err := p.API.ListSignalContributions()
+			_, err := p.API.ListEventContributions()
 			return err
 		}
 
-		func (p *MyPlugin) OnSignal(c *plugin.Context, d *model.SignalDelivery) {
-			if d.Signal == "crash" {
+		func (p *MyPlugin) OnEvent(c *plugin.Context, d *model.EventDelivery) {
+			if d.Event == "crash" {
 				panic("crash")
 			}
 		}
@@ -138,7 +138,7 @@ func TestEnvironmentLifecycleCallbacks(t *testing.T) {
 		mu.Lock()
 		defer mu.Unlock()
 		probes = append(probes, map[string]bool{
-			"OnSignal":            env.PluginImplements(id, OnSignalID),
+			"OnEvent":             env.PluginImplements(id, OnEventID),
 			"OnActionCall":        env.PluginImplements(id, OnActionCallID),
 			"hooksReady":          hooksErr == nil,
 			"activateCallbackRan": events.has("activate:" + id),
@@ -163,28 +163,28 @@ func TestEnvironmentLifecycleCallbacks(t *testing.T) {
 
 		mu.Lock()
 		require.Len(t, probes, 1)
-		assert.Equal(t, map[string]bool{"OnSignal": true, "OnActionCall": false, "hooksReady": false, "activateCallbackRan": true}, probes[0],
+		assert.Equal(t, map[string]bool{"OnEvent": true, "OnActionCall": false, "hooksReady": false, "activateCallbackRan": true}, probes[0],
 			"the activate callback has run and implemented hooks are known while OnActivate runs, before hooks are reachable")
 		mu.Unlock()
 
-		assert.True(t, env.PluginImplements(okID, OnSignalID))
+		assert.True(t, env.PluginImplements(okID, OnEventID))
 		assert.False(t, env.PluginImplements(okID, OnActionCallID))
 		assert.False(t, env.PluginImplements(okID, -1))
 		assert.False(t, env.PluginImplements(okID, TotalHooksID))
-		assert.False(t, env.PluginImplements("unknown", OnSignalID))
+		assert.False(t, env.PluginImplements("unknown", OnEventID))
 	})
 
 	t.Run("a failed OnActivate runs the deactivate callback", func(t *testing.T) {
 		_, _, err := env.Activate(failID)
 		require.Error(t, err)
 		assert.Equal(t, []string{"activate:" + failID, "deactivate:" + failID}, events.take())
-		assert.False(t, env.PluginImplements(failID, OnSignalID))
+		assert.False(t, env.PluginImplements(failID, OnEventID))
 	})
 
 	t.Run("deactivate", func(t *testing.T) {
 		require.True(t, env.Deactivate(okID))
 		assert.Equal(t, []string{"deactivate:" + okID}, events.take())
-		assert.False(t, env.PluginImplements(okID, OnSignalID))
+		assert.False(t, env.PluginImplements(okID, OnEventID))
 	})
 
 	t.Run("restart", func(t *testing.T) {
@@ -194,13 +194,13 @@ func TestEnvironmentLifecycleCallbacks(t *testing.T) {
 
 		require.NoError(t, env.RestartPlugin(okID))
 		assert.Equal(t, []string{"deactivate:" + okID, "activate:" + okID}, events.take())
-		assert.True(t, env.PluginImplements(okID, OnSignalID))
+		assert.True(t, env.PluginImplements(okID, OnEventID))
 	})
 
 	t.Run("health check restart", func(t *testing.T) {
 		hooks, err := env.HooksForPlugin(okID)
 		require.NoError(t, err)
-		hooks.OnSignal(&Context{}, &model.SignalDelivery{Signal: "crash"})
+		hooks.OnEvent(&Context{}, &model.EventDelivery{Event: "crash"})
 		require.Eventually(t, func() bool { return env.PerformHealthCheck(okID) != nil }, 10*time.Second, 50*time.Millisecond)
 
 		newPluginHealthCheckJob(env).CheckPlugin(okID)

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"cmp"
@@ -17,21 +17,21 @@ import (
 // SetSubscriptions validates subs and swaps them in whole for the plugin's current set. An empty
 // set removes the plugin's queue. Deliveries already queued for removed subscriptions are dropped
 // when dequeued.
-func (b *Bus) SetSubscriptions(pluginID string, subs []model.SignalSubscription, opts model.SubscriptionOptions) error {
+func (b *Bus) SetSubscriptions(pluginID string, subs []model.EventSubscription, opts model.SubscriptionOptions) error {
 	if !b.isEnabled() {
-		return model.ErrSignalBusDisabled
+		return model.ErrEventBusDisabled
 	}
-	if !b.hooks.Implements(pluginID, plugin.OnSignalID) {
+	if !b.hooks.Implements(pluginID, plugin.OnEventID) {
 		return model.ErrSubscriberHookMissing
 	}
 	if opts.QueueSize < 0 || opts.Workers < 0 {
-		return model.ErrSignalSubscriptionInvalid.Wrapf("queue size and workers must not be negative")
+		return model.ErrEventSubscriptionInvalid.Wrapf("queue size and workers must not be negative")
 	}
-	if err := model.ValidateSignalSubscriptions(subs); err != nil {
+	if err := model.ValidateEventSubscriptions(subs); err != nil {
 		return err
 	}
 
-	normalized := make([]*model.SignalSubscription, 0, len(subs))
+	normalized := make([]*model.EventSubscription, 0, len(subs))
 	for _, sub := range subs {
 		n, err := b.normalizeSubscription(sub)
 		if err != nil {
@@ -47,34 +47,34 @@ func (b *Bus) SetSubscriptions(pluginID string, subs []model.SignalSubscription,
 }
 
 // normalizeSubscription copies sub and checks its filters against the declared fields when the
-// pattern names a registered signal. Filters on other patterns are checked when matching.
-func (b *Bus) normalizeSubscription(sub model.SignalSubscription) (*model.SignalSubscription, error) {
-	pattern, err := model.ParseSignalPattern(sub.Signal)
+// pattern names a registered event. Filters on other patterns are checked when matching.
+func (b *Bus) normalizeSubscription(sub model.EventSubscription) (*model.EventSubscription, error) {
+	pattern, err := model.ParseEventPattern(sub.Event)
 	if err != nil {
-		return nil, model.ErrSignalSubscriptionInvalid.Wrapf("subscription %q: %v", sub.ID, err)
+		return nil, model.ErrEventSubscriptionInvalid.Wrapf("subscription %q: %v", sub.ID, err)
 	}
 
-	var declared map[string]model.SignalValueType
-	if pattern.Kind == model.SignalPatternExact {
-		if signal, ok := b.registry.signal(pattern.Publisher, pattern.Name); ok {
-			declared = make(map[string]model.SignalValueType, len(signal.Fields))
-			for _, field := range signal.Fields {
+	var declared map[string]model.EventValueType
+	if pattern.Kind == model.EventPatternExact {
+		if event, ok := b.registry.event(pattern.Publisher, pattern.Name); ok {
+			declared = make(map[string]model.EventValueType, len(event.Fields))
+			for _, field := range event.Fields {
 				declared[field.Key] = field.Type
 			}
 		}
 	}
 
-	filters := make(map[string]model.SignalValue, len(sub.Filters))
+	filters := make(map[string]model.EventValue, len(sub.Filters))
 	for key, value := range sub.Filters {
 		fieldType := value.Type
 		if declared != nil {
 			var ok bool
 			if fieldType, ok = declared[key]; !ok {
-				return nil, model.ErrSignalSubscriptionInvalid.Wrapf("subscription %q filters on undeclared field %q", sub.ID, key)
+				return nil, model.ErrEventSubscriptionInvalid.Wrapf("subscription %q filters on undeclared field %q", sub.ID, key)
 			}
 		}
-		if err := value.Validate(fieldType, model.SignalTextMaxRunes, false); err != nil {
-			return nil, model.ErrSignalSubscriptionInvalid.Wrapf("subscription %q filter %q: %v", sub.ID, key, err)
+		if err := value.Validate(fieldType, model.EventTextMaxRunes, false); err != nil {
+			return nil, model.ErrEventSubscriptionInvalid.Wrapf("subscription %q filter %q: %v", sub.ID, key, err)
 		}
 		filters[key] = value
 	}
@@ -84,13 +84,13 @@ func (b *Bus) normalizeSubscription(sub model.SignalSubscription) (*model.Signal
 }
 
 type subscriber struct {
-	byID  map[string]*model.SignalSubscription
+	byID  map[string]*model.EventSubscription
 	queue *queue
 }
 
 type subRef struct {
 	pluginID string
-	sub      *model.SignalSubscription
+	sub      *model.EventSubscription
 }
 
 // subscriptionIndex is rebuilt whole on every change, so matching never sees a partial update.
@@ -129,7 +129,7 @@ func (s *subscriptionSet) retire(pluginID string) {
 	s.rebuildIndex()
 }
 
-func (s *subscriptionSet) set(pluginID string, subs []*model.SignalSubscription, newQueue func(prevDone <-chan struct{}) *queue) {
+func (s *subscriptionSet) set(pluginID string, subs []*model.EventSubscription, newQueue func(prevDone <-chan struct{}) *queue) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -141,7 +141,7 @@ func (s *subscriptionSet) set(pluginID string, subs []*model.SignalSubscription,
 
 	// A subscription kept unchanged keeps its pointer, which is how current tells it apart from
 	// one that was removed and then restored.
-	byID := make(map[string]*model.SignalSubscription, len(subs))
+	byID := make(map[string]*model.EventSubscription, len(subs))
 	for _, sub := range subs {
 		if existing != nil {
 			if cur, ok := existing.byID[sub.ID]; ok && cur.Equal(sub) {
@@ -188,17 +188,17 @@ func (s *subscriptionSet) rebuildIndex() {
 		for _, sub := range existing.byID {
 			ref := subRef{pluginID: pluginID, sub: sub}
 			// Patterns were validated by SetSubscriptions.
-			pattern, _ := model.ParseSignalPattern(sub.Signal)
+			pattern, _ := model.ParseEventPattern(sub.Event)
 			switch pattern.Kind {
-			case model.SignalPatternExact:
+			case model.EventPatternExact:
 				key := pattern.Publisher + "/" + pattern.Name
 				index.exact[key] = append(index.exact[key], ref)
-			case model.SignalPatternGroup:
+			case model.EventPatternGroup:
 				key := pattern.Publisher + "/" + pattern.Group
 				index.group[key] = append(index.group[key], ref)
-			case model.SignalPatternPublisher:
+			case model.EventPatternPublisher:
 				index.publisher[pattern.Publisher] = append(index.publisher[pattern.Publisher], ref)
-			case model.SignalPatternAll:
+			case model.EventPatternAll:
 				index.all = append(index.all, ref)
 			}
 		}
@@ -209,11 +209,11 @@ func (s *subscriptionSet) rebuildIndex() {
 type subscriberMatch struct {
 	pluginID string
 	queue    *queue
-	matched  []*model.SignalSubscription
+	matched  []*model.EventSubscription
 }
 
 // match returns one entry per subscriber with every subscription the envelope matches.
-func (s *subscriptionSet) match(env *signalEnvelope) []subscriberMatch {
+func (s *subscriptionSet) match(env *eventEnvelope) []subscriberMatch {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -242,7 +242,7 @@ func (s *subscriptionSet) match(env *signalEnvelope) []subscriberMatch {
 	matches := make([]subscriberMatch, 0, len(byPlugin))
 	for _, pluginID := range slices.Sorted(maps.Keys(byPlugin)) {
 		m := byPlugin[pluginID]
-		slices.SortFunc(m.matched, func(a, b *model.SignalSubscription) int {
+		slices.SortFunc(m.matched, func(a, b *model.EventSubscription) int {
 			return cmp.Compare(a.ID, b.ID)
 		})
 		matches = append(matches, *m)
@@ -250,7 +250,7 @@ func (s *subscriptionSet) match(env *signalEnvelope) []subscriberMatch {
 	return matches
 }
 
-func subscriptionMatches(ref subRef, env *signalEnvelope) bool {
+func subscriptionMatches(ref subRef, env *eventEnvelope) bool {
 	if ref.pluginID == env.PublisherID && !ref.sub.IncludeOwn {
 		return false
 	}
@@ -268,7 +268,7 @@ func subscriptionMatches(ref subRef, env *signalEnvelope) bool {
 
 // current returns the IDs of the matched subscriptions the plugin has held unchanged since the
 // delivery was queued.
-func (s *subscriptionSet) current(pluginID string, matched []*model.SignalSubscription) []string {
+func (s *subscriptionSet) current(pluginID string, matched []*model.EventSubscription) []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	existing := s.subscribers[pluginID]
@@ -286,16 +286,16 @@ func (s *subscriptionSet) current(pluginID string, matched []*model.SignalSubscr
 
 // dispatch is the transport consumer: it matches the envelope and queues one delivery per
 // subscriber without blocking.
-func (b *Bus) dispatch(env *signalEnvelope) {
+func (b *Bus) dispatch(env *eventEnvelope) {
 	for _, m := range b.subs.match(env) {
 		ids := make([]string, len(m.matched))
 		for i, sub := range m.matched {
 			ids[i] = sub.ID
 		}
-		d := &model.SignalDelivery{
+		d := &model.EventDelivery{
 			ID:              env.ID + ":" + m.pluginID,
 			EnvelopeID:      env.ID,
-			Signal:          env.fullName(),
+			Event:           env.fullName(),
 			PublisherID:     env.PublisherID,
 			Version:         env.Version,
 			Payload:         env.Payload,
@@ -307,9 +307,9 @@ func (b *Bus) dispatch(env *signalEnvelope) {
 			EmittedAt:       env.EmittedAt,
 		}
 		if !m.queue.enqueue(&queuedDelivery{delivery: d, matched: m.matched}) {
-			b.logger.Warn("Dropped signal delivery because the subscriber queue is full",
+			b.logger.Warn("Dropped event delivery because the subscriber queue is full",
 				mlog.String("subscriber", m.pluginID),
-				mlog.String("signal", d.Signal),
+				mlog.String("event", d.Event),
 				mlog.String("delivery_id", d.ID),
 			)
 		}

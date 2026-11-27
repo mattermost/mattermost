@@ -390,10 +390,10 @@ func (hooks *hooksTimerLayer) EntityLookup(c *Context, req *model.EntityLookupRe
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) OnSignal(c *Context, delivery *model.SignalDelivery) {
+func (hooks *hooksTimerLayer) OnEvent(c *Context, delivery *model.EventDelivery) {
 	startTime := timePkg.Now()
-	hooks.hooksImpl.OnSignal(c, delivery)
-	hooks.recordTime(startTime, "OnSignal", true)
+	hooks.hooksImpl.OnEvent(c, delivery)
+	hooks.recordTime(startTime, "OnEvent", true)
 }
 
 func (hooks *hooksTimerLayer) OnActionCall(c *Context, call *model.ActionCall) (*model.ActionResult, *model.AppError) {
@@ -711,10 +711,10 @@ func (hooks *hooksTimerLayer) EntityLookupWithRPCErr(c *Context, req *model.Enti
 	return _returnsA, _returnsB, _returnsRPCErr
 }
 
-func (hooks *hooksTimerLayer) OnSignalWithRPCErr(c *Context, delivery *model.SignalDelivery) error {
+func (hooks *hooksTimerLayer) OnEventWithRPCErr(c *Context, delivery *model.EventDelivery) error {
 	startTime := timePkg.Now()
-	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSignalWithRPCErr(c, delivery)
-	hooks.recordTime(startTime, "OnSignalWithRPCErr", _returnsRPCErr == nil)
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnEventWithRPCErr(c, delivery)
+	hooks.recordTime(startTime, "OnEventWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
 }
 

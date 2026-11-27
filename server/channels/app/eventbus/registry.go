@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"cmp"
@@ -16,8 +16,8 @@ import (
 )
 
 type pluginEntry struct {
-	groups  map[string]model.SignalGroup
-	signals map[string]model.SignalDescriptor
+	groups  map[string]model.EventGroup
+	events  map[string]model.EventDescriptor
 	actions map[string]model.ActionDescriptor
 }
 
@@ -35,8 +35,8 @@ func (r *registry) entry(pluginID string) *pluginEntry {
 	e := r.plugins[pluginID]
 	if e == nil {
 		e = &pluginEntry{
-			groups:  map[string]model.SignalGroup{},
-			signals: map[string]model.SignalDescriptor{},
+			groups:  map[string]model.EventGroup{},
+			events:  map[string]model.EventDescriptor{},
 			actions: map[string]model.ActionDescriptor{},
 		}
 		r.plugins[pluginID] = e
@@ -54,7 +54,7 @@ func (r *registry) hasGroup(pluginID, group string) bool {
 	return ok
 }
 
-func (r *registry) registerGroup(pluginID string, group model.SignalGroup) error {
+func (r *registry) registerGroup(pluginID string, group model.EventGroup) error {
 	if err := group.IsValid(); err != nil {
 		return err
 	}
@@ -66,19 +66,19 @@ func (r *registry) registerGroup(pluginID string, group model.SignalGroup) error
 	return nil
 }
 
-func (r *registry) registerSignal(pluginID string, signal model.SignalDescriptor) error {
-	signal = cloneSignal(signal)
-	if err := signal.Validate(); err != nil {
+func (r *registry) registerEvent(pluginID string, event model.EventDescriptor) error {
+	event = cloneEvent(event)
+	if err := event.Validate(); err != nil {
 		return err
 	}
-	signal.PublisherID = pluginID
+	event.PublisherID = pluginID
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if signal.Group != "" && !r.hasGroup(pluginID, signal.Group) {
-		return model.ErrSignalGroupNotRegistered.Wrapf("signal %q names group %q", signal.Name, signal.Group)
+	if event.Group != "" && !r.hasGroup(pluginID, event.Group) {
+		return model.ErrEventGroupNotRegistered.Wrapf("event %q names group %q", event.Name, event.Group)
 	}
-	r.entry(pluginID).signals[signal.Name] = signal
+	r.entry(pluginID).events[event.Name] = event
 	return nil
 }
 
@@ -92,22 +92,22 @@ func (r *registry) registerAction(pluginID string, action model.ActionDescriptor
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if action.Group != "" && !r.hasGroup(pluginID, action.Group) {
-		return model.ErrSignalGroupNotRegistered.Wrapf("action %q names group %q", action.Type, action.Group)
+		return model.ErrEventGroupNotRegistered.Wrapf("action %q names group %q", action.Type, action.Group)
 	}
 	r.entry(pluginID).actions[action.Type] = action
 	return nil
 }
 
-// signal returns the descriptor. Its slices are shared and must not be modified.
-func (r *registry) signal(pluginID, name string) (model.SignalDescriptor, bool) {
+// event returns the descriptor. Its slices are shared and must not be modified.
+func (r *registry) event(pluginID, name string) (model.EventDescriptor, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	e := r.plugins[pluginID]
 	if e == nil {
-		return model.SignalDescriptor{}, false
+		return model.EventDescriptor{}, false
 	}
-	signal, ok := e.signals[name]
-	return signal, ok
+	event, ok := e.events[name]
+	return event, ok
 }
 
 // action returns the descriptor. Its slices are shared and must not be modified.
@@ -130,10 +130,10 @@ func (r *registry) drop(pluginID string) {
 
 // catalog returns copies of every entry, sorted by publisher, then group, then name, with a
 // SHA-256 hash over their canonical JSON.
-func (r *registry) catalog() (*model.SignalCatalog, error) {
-	c := &model.SignalCatalog{
-		Groups:  []model.SignalGroup{},
-		Signals: []model.SignalDescriptor{},
+func (r *registry) catalog() (*model.EventCatalog, error) {
+	c := &model.EventCatalog{
+		Groups:  []model.EventGroup{},
+		Events:  []model.EventDescriptor{},
 		Actions: []model.ActionDescriptor{},
 	}
 
@@ -142,8 +142,8 @@ func (r *registry) catalog() (*model.SignalCatalog, error) {
 		for _, group := range e.groups {
 			c.Groups = append(c.Groups, group)
 		}
-		for _, signal := range e.signals {
-			c.Signals = append(c.Signals, cloneSignal(signal))
+		for _, event := range e.events {
+			c.Events = append(c.Events, cloneEvent(event))
 		}
 		for _, action := range e.actions {
 			c.Actions = append(c.Actions, cloneAction(action))
@@ -151,10 +151,10 @@ func (r *registry) catalog() (*model.SignalCatalog, error) {
 	}
 	r.mu.RUnlock()
 
-	slices.SortFunc(c.Groups, func(a, b model.SignalGroup) int {
+	slices.SortFunc(c.Groups, func(a, b model.EventGroup) int {
 		return cmp.Or(cmp.Compare(a.PublisherID, b.PublisherID), cmp.Compare(a.Name, b.Name))
 	})
-	slices.SortFunc(c.Signals, func(a, b model.SignalDescriptor) int {
+	slices.SortFunc(c.Events, func(a, b model.EventDescriptor) int {
 		return cmp.Or(cmp.Compare(a.PublisherID, b.PublisherID), cmp.Compare(a.Group, b.Group), cmp.Compare(a.Name, b.Name))
 	})
 	slices.SortFunc(c.Actions, func(a, b model.ActionDescriptor) int {
@@ -162,12 +162,12 @@ func (r *registry) catalog() (*model.SignalCatalog, error) {
 	})
 
 	canonical, err := json.Marshal(struct {
-		Groups  []model.SignalGroup      `json:"groups"`
-		Signals []model.SignalDescriptor `json:"signals"`
+		Groups  []model.EventGroup       `json:"groups"`
+		Events  []model.EventDescriptor  `json:"events"`
 		Actions []model.ActionDescriptor `json:"actions"`
-	}{c.Groups, c.Signals, c.Actions})
+	}{c.Groups, c.Events, c.Actions})
 	if err != nil {
-		return nil, fmt.Errorf("failed to encode the signal catalog: %w", err)
+		return nil, fmt.Errorf("failed to encode the event catalog: %w", err)
 	}
 	sum := sha256.Sum256(canonical)
 	c.Hash = hex.EncodeToString(sum[:])
@@ -175,10 +175,10 @@ func (r *registry) catalog() (*model.SignalCatalog, error) {
 	return c, nil
 }
 
-func cloneSignal(signal model.SignalDescriptor) model.SignalDescriptor {
-	signal.Fields = slices.Clone(signal.Fields)
-	signal.AllowedSubscribers = slices.Clone(signal.AllowedSubscribers)
-	return signal
+func cloneEvent(event model.EventDescriptor) model.EventDescriptor {
+	event.Fields = slices.Clone(event.Fields)
+	event.AllowedSubscribers = slices.Clone(event.AllowedSubscribers)
+	return event
 }
 
 func cloneAction(action model.ActionDescriptor) model.ActionDescriptor {

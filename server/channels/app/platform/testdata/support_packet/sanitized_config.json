@@ -773,6 +773,6 @@
         "HealthDashboard": false,
         "EnableBrotliCompression": false,
         "OpenIdAttributeSync": false,
-        "PluginSignalBus": false
+        "PluginEventBus": false
     }
 }

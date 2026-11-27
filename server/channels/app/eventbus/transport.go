@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"fmt"
@@ -11,49 +11,49 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// signalEnvelope is one emitted signal, before it is matched to subscribers.
-type signalEnvelope struct {
+// eventEnvelope is one emitted event, before it is matched to subscribers.
+type eventEnvelope struct {
 	ID                 string
 	PublisherID        string
 	Name               string
 	Group              string
 	Version            int
-	Visibility         model.SignalVisibility
+	Visibility         model.EventVisibility
 	AllowedSubscribers []string
-	Payload            map[string]model.SignalValue
+	Payload            map[string]model.EventValue
 	TraceID            string
 	Hop                int
 	OriginUserID       string
-	Cause              model.SignalCause
+	Cause              model.EventCause
 	EmittedAt          int64
 }
 
-func (e *signalEnvelope) fullName() string {
+func (e *eventEnvelope) fullName() string {
 	return e.PublisherID + "/" + e.Name
 }
 
-func (e *signalEnvelope) isVisibleTo(subscriberID string) bool {
-	return e.Visibility != model.SignalVisibilityAllowlist || slices.Contains(e.AllowedSubscribers, subscriberID)
+func (e *eventEnvelope) isVisibleTo(subscriberID string) bool {
+	return e.Visibility != model.EventVisibilityAllowlist || slices.Contains(e.AllowedSubscribers, subscriberID)
 }
 
 // Implementations may deliver an envelope more than once; subscribers dedupe on ID.
-type signalTransport interface {
-	Publish(env *signalEnvelope) error
-	Subscribe(consumer string, deliver func(*signalEnvelope)) (unsubscribe func(), err error)
+type eventTransport interface {
+	Publish(env *eventEnvelope) error
+	Subscribe(consumer string, deliver func(*eventEnvelope)) (unsubscribe func(), err error)
 }
 
 // memoryTransport hands each envelope to every consumer on this node, synchronously. Consumers
 // must not block.
 type memoryTransport struct {
 	mu        sync.RWMutex
-	consumers map[string]func(*signalEnvelope)
+	consumers map[string]func(*eventEnvelope)
 }
 
 func newMemoryTransport() *memoryTransport {
-	return &memoryTransport{consumers: map[string]func(*signalEnvelope){}}
+	return &memoryTransport{consumers: map[string]func(*eventEnvelope){}}
 }
 
-func (t *memoryTransport) Publish(env *signalEnvelope) error {
+func (t *memoryTransport) Publish(env *eventEnvelope) error {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	for _, deliver := range t.consumers {
@@ -62,7 +62,7 @@ func (t *memoryTransport) Publish(env *signalEnvelope) error {
 	return nil
 }
 
-func (t *memoryTransport) Subscribe(consumer string, deliver func(*signalEnvelope)) (func(), error) {
+func (t *memoryTransport) Subscribe(consumer string, deliver func(*eventEnvelope)) (func(), error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if _, ok := t.consumers[consumer]; ok {

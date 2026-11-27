@@ -221,11 +221,11 @@ type FeatureFlags struct {
 	// untouched.
 	OpenIdAttributeSync bool
 
-	// FEATURE_FLAG_REMOVAL: PluginSignalBus - Remove this when the plugin signal bus is GA.
-	// Gates the plugin signal bus: registering signals and actions, subscriptions, emits and
-	// action calls between plugins. While off, every signal bus API method returns
-	// ErrSignalBusDisabled and no signal bus hook is invoked.
-	PluginSignalBus bool
+	// FEATURE_FLAG_REMOVAL: PluginEventBus - Remove this when the plugin event bus is GA.
+	// Gates the plugin event bus: registering events and actions, subscriptions, emits and
+	// action calls between plugins. While off, every event bus API method returns
+	// ErrEventBusDisabled and no event bus hook is invoked.
+	PluginEventBus bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -312,7 +312,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.OpenIdAttributeSync = true
 
-	f.PluginSignalBus = false
+	f.PluginEventBus = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

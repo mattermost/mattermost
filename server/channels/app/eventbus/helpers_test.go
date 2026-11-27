@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"sync"
@@ -34,11 +34,11 @@ type fakeHooks struct {
 	bots          map[string]string
 	botErr        error
 	inactiveUsers map[string]bool
-	deliveries    map[string][]*model.SignalDelivery
+	deliveries    map[string][]*model.EventDelivery
 	calls         map[string][]*model.ActionCall
 
-	// onSignal, if set, runs before the delivery is recorded. It may block.
-	onSignal     func(pluginID string, d *model.SignalDelivery) error
+	// onEvent, if set, runs before the delivery is recorded. It may block.
+	onEvent      func(pluginID string, d *model.EventDelivery) error
 	onActionCall func(pluginID string, call *model.ActionCall) (*model.ActionResult, error)
 	// onBotLookup, if set, runs at the start of BotUserID without the lock held.
 	onBotLookup func()
@@ -52,7 +52,7 @@ func newFakeHooks() *fakeHooks {
 		missingHooks:  map[string]map[int]bool{},
 		bots:          map[string]string{},
 		inactiveUsers: map[string]bool{},
-		deliveries:    map[string][]*model.SignalDelivery{},
+		deliveries:    map[string][]*model.EventDelivery{},
 		calls:         map[string][]*model.ActionCall{},
 	}
 }
@@ -90,14 +90,14 @@ func (f *fakeHooks) Implements(pluginID string, hookID int) bool {
 	return !f.inactive[pluginID] && !f.missingHooks[pluginID][hookID]
 }
 
-func (f *fakeHooks) OnSignal(pluginID string, d *model.SignalDelivery) error {
+func (f *fakeHooks) OnEvent(pluginID string, d *model.EventDelivery) error {
 	f.mu.Lock()
-	onSignal := f.onSignal
+	onEvent := f.onEvent
 	f.mu.Unlock()
 
 	var err error
-	if onSignal != nil {
-		err = onSignal(pluginID, d)
+	if onEvent != nil {
+		err = onEvent(pluginID, d)
 	}
 
 	f.mu.Lock()
@@ -148,16 +148,16 @@ func (f *fakeHooks) setMissingHook(pluginID string, hookID int) {
 	f.missingHooks[pluginID][hookID] = true
 }
 
-func (f *fakeHooks) setOnSignal(fn func(pluginID string, d *model.SignalDelivery) error) {
+func (f *fakeHooks) setOnEvent(fn func(pluginID string, d *model.EventDelivery) error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	f.onSignal = fn
+	f.onEvent = fn
 }
 
-func (f *fakeHooks) delivered(pluginID string) []*model.SignalDelivery {
+func (f *fakeHooks) delivered(pluginID string) []*model.EventDelivery {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	return append([]*model.SignalDelivery(nil), f.deliveries[pluginID]...)
+	return append([]*model.EventDelivery(nil), f.deliveries[pluginID]...)
 }
 
 func (f *fakeHooks) actionCalls(pluginID string) []*model.ActionCall {
@@ -188,38 +188,38 @@ func newTestBus(t *testing.T, queueSize int) *testBus {
 	return &testBus{Bus: b, hooks: hooks, enabled: enabled}
 }
 
-// registerItemSignals registers the items group with item_created and item_deleted for
+// registerItemEvents registers the items group with item_created and item_deleted for
 // publisherID, an ungrouped publisherID/other, and publisher2ID/item_created.
-func (tb *testBus) registerItemSignals(t *testing.T) {
+func (tb *testBus) registerItemEvents(t *testing.T) {
 	t.Helper()
-	require.NoError(t, tb.RegisterGroup(publisherID, model.SignalGroup{Name: "items", Label: "Items"}))
+	require.NoError(t, tb.RegisterGroup(publisherID, model.EventGroup{Name: "items", Label: "Items"}))
 	for _, name := range []string{"item_created", "item_deleted"} {
-		require.NoError(t, tb.RegisterSignal(publisherID, itemSignal(name, "items")))
+		require.NoError(t, tb.RegisterEvent(publisherID, itemEvent(name, "items")))
 	}
-	require.NoError(t, tb.RegisterSignal(publisherID, itemSignal("other", "")))
-	require.NoError(t, tb.RegisterSignal(publisher2ID, itemSignal("item_created", "")))
+	require.NoError(t, tb.RegisterEvent(publisherID, itemEvent("other", "")))
+	require.NoError(t, tb.RegisterEvent(publisher2ID, itemEvent("item_created", "")))
 }
 
-func itemSignal(name, group string) model.SignalDescriptor {
-	return model.SignalDescriptor{
+func itemEvent(name, group string) model.EventDescriptor {
+	return model.EventDescriptor{
 		Name:    name,
 		Group:   group,
 		Label:   name,
 		Version: 1,
-		Fields: []model.SignalField{
+		Fields: []model.EventField{
 			{Key: "item_id"},
-			{Key: "count", Type: model.SignalTypeInt},
-			{Key: "urgent", Type: model.SignalTypeBool},
+			{Key: "count", Type: model.EventTypeInt},
+			{Key: "urgent", Type: model.EventTypeBool},
 		},
 	}
 }
 
-func itemPayload(itemID string) map[string]model.SignalValue {
-	return map[string]model.SignalValue{"item_id": model.SignalTextValue(itemID)}
+func itemPayload(itemID string) map[string]model.EventValue {
+	return map[string]model.EventValue{"item_id": model.EventTextValue(itemID)}
 }
 
 // waitForDeliveries waits until pluginID has received n deliveries.
-func waitForDeliveries(t *testing.T, hooks *fakeHooks, pluginID string, n int) []*model.SignalDelivery {
+func waitForDeliveries(t *testing.T, hooks *fakeHooks, pluginID string, n int) []*model.EventDelivery {
 	t.Helper()
 	require.Eventually(t, func() bool {
 		return len(hooks.delivered(pluginID)) >= n
@@ -228,7 +228,7 @@ func waitForDeliveries(t *testing.T, hooks *fakeHooks, pluginID string, n int) [
 }
 
 // flush waits until every delivery queued so far for pluginID has been handled, by emitting a
-// marker signal the plugin is subscribed to through flushSubscription.
+// marker event the plugin is subscribed to through flushSubscription.
 func (tb *testBus) flush(t *testing.T, pluginID string) {
 	t.Helper()
 	marker := model.NewId()
@@ -247,14 +247,14 @@ const flushPublisherID = "com.example.flush"
 
 func (tb *testBus) registerFlush(t *testing.T) {
 	t.Helper()
-	require.NoError(t, tb.RegisterSignal(flushPublisherID, itemSignal("flush", "")))
+	require.NoError(t, tb.RegisterEvent(flushPublisherID, itemEvent("flush", "")))
 }
 
-var flushSubscription = model.SignalSubscription{ID: "flush", Signal: flushPublisherID + "/flush"}
+var flushSubscription = model.EventSubscription{ID: "flush", Event: flushPublisherID + "/flush"}
 
 // nonFlush filters out flush markers.
-func nonFlush(deliveries []*model.SignalDelivery) []*model.SignalDelivery {
-	var out []*model.SignalDelivery
+func nonFlush(deliveries []*model.EventDelivery) []*model.EventDelivery {
+	var out []*model.EventDelivery
 	for _, d := range deliveries {
 		if d.PublisherID != flushPublisherID {
 			out = append(out, d)

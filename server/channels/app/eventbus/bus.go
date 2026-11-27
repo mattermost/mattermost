@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Package signalbus lets plugins publish typed signals, subscribe to each other's signals, and
+// Package eventbus lets plugins publish typed events, subscribe to each other's events, and
 // call each other's actions. It holds per-node state only and reaches plugins through
 // HookInvoker, so it never depends on the app layer.
-package signalbus
+package eventbus
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ type HookInvoker interface {
 	// hooks can't be called until then.
 	IsStarting(pluginID string) bool
 	Implements(pluginID string, hookID int) bool
-	OnSignal(pluginID string, d *model.SignalDelivery) error
+	OnEvent(pluginID string, d *model.EventDelivery) error
 	// OnActionCall returns the target's *model.AppError as is; any other error is a transport failure.
 	OnActionCall(pluginID string, call *model.ActionCall) (*model.ActionResult, error)
 	BotUserID(pluginID string) (string, error)
@@ -51,16 +51,16 @@ type Bus struct {
 
 	registry    *registry
 	subs        *subscriptionSet
-	transport   signalTransport
+	transport   eventTransport
 	unsubscribe func()
 }
 
 func New(opts Options) (*Bus, error) {
 	if opts.Hooks == nil {
-		return nil, fmt.Errorf("signal bus requires a hook invoker")
+		return nil, fmt.Errorf("event bus requires a hook invoker")
 	}
 	if opts.Logger == nil {
-		return nil, fmt.Errorf("signal bus requires a logger")
+		return nil, fmt.Errorf("event bus requires a logger")
 	}
 	if opts.QueueSize <= 0 {
 		opts.QueueSize = DefaultQueueSize
@@ -78,7 +78,7 @@ func New(opts Options) (*Bus, error) {
 
 	unsubscribe, err := b.transport.Subscribe(localConsumer, b.dispatch)
 	if err != nil {
-		return nil, fmt.Errorf("failed to subscribe to the signal transport: %w", err)
+		return nil, fmt.Errorf("failed to subscribe to the event transport: %w", err)
 	}
 	b.unsubscribe = unsubscribe
 
@@ -95,9 +95,9 @@ func (b *Bus) isEnabled() bool {
 	return b.enabled == nil || b.enabled()
 }
 
-func (b *Bus) RegisterGroup(pluginID string, group model.SignalGroup) error {
+func (b *Bus) RegisterGroup(pluginID string, group model.EventGroup) error {
 	if !b.isEnabled() {
-		return model.ErrSignalBusDisabled
+		return model.ErrEventBusDisabled
 	}
 	// A call still in flight when the plugin was dropped must not register it again.
 	if !b.hooks.IsActive(pluginID) {
@@ -106,19 +106,19 @@ func (b *Bus) RegisterGroup(pluginID string, group model.SignalGroup) error {
 	return b.registry.registerGroup(pluginID, group)
 }
 
-func (b *Bus) RegisterSignal(pluginID string, signal model.SignalDescriptor) error {
+func (b *Bus) RegisterEvent(pluginID string, event model.EventDescriptor) error {
 	if !b.isEnabled() {
-		return model.ErrSignalBusDisabled
+		return model.ErrEventBusDisabled
 	}
 	if !b.hooks.IsActive(pluginID) {
 		return model.ErrPluginNotActive.Wrapf("%s", pluginID)
 	}
-	return b.registry.registerSignal(pluginID, signal)
+	return b.registry.registerEvent(pluginID, event)
 }
 
 func (b *Bus) RegisterAction(pluginID string, action model.ActionDescriptor) error {
 	if !b.isEnabled() {
-		return model.ErrSignalBusDisabled
+		return model.ErrEventBusDisabled
 	}
 	if !b.hooks.Implements(pluginID, plugin.OnActionCallID) {
 		return model.ErrActionHookMissing
@@ -126,31 +126,31 @@ func (b *Bus) RegisterAction(pluginID string, action model.ActionDescriptor) err
 	return b.registry.registerAction(pluginID, action)
 }
 
-// Emit validates the payload against the plugin's registered signal and publishes it. It
+// Emit validates the payload against the plugin's registered event and publishes it. It
 // returns without waiting on any subscriber.
-func (b *Bus) Emit(pluginID, name string, payload map[string]model.SignalValue, cause model.SignalCause, opts *model.EmitOptions) error {
+func (b *Bus) Emit(pluginID, name string, payload map[string]model.EventValue, cause model.EventCause, opts *model.EmitOptions) error {
 	if !b.isEnabled() {
-		return model.ErrSignalBusDisabled
+		return model.ErrEventBusDisabled
 	}
 
-	signal, ok := b.registry.signal(pluginID, name)
+	event, ok := b.registry.event(pluginID, name)
 	if !ok {
-		return model.ErrSignalNotRegistered.Wrapf("%s/%s", pluginID, name)
+		return model.ErrEventNotRegistered.Wrapf("%s/%s", pluginID, name)
 	}
 
-	normalized, err := model.ValidateSignalPayload(signal.Fields, payload)
+	normalized, err := model.ValidateEventPayload(event.Fields, payload)
 	if err != nil {
-		return model.ErrSignalPayloadInvalid.Wrapf("%s: %v", signal.FullName(), err)
+		return model.ErrEventPayloadInvalid.Wrapf("%s: %v", event.FullName(), err)
 	}
 
-	env := &signalEnvelope{
+	env := &eventEnvelope{
 		ID:                 model.NewId(),
 		PublisherID:        pluginID,
-		Name:               signal.Name,
-		Group:              signal.Group,
-		Version:            signal.Version,
-		Visibility:         signal.Visibility,
-		AllowedSubscribers: signal.AllowedSubscribers,
+		Name:               event.Name,
+		Group:              event.Group,
+		Version:            event.Version,
+		Visibility:         event.Visibility,
+		AllowedSubscribers: event.AllowedSubscribers,
 		Payload:            normalized,
 		TraceID:            model.NewId(),
 		Cause:              cause,
@@ -161,15 +161,15 @@ func (b *Bus) Emit(pluginID, name string, payload map[string]model.SignalValue, 
 	}
 
 	if err := b.transport.Publish(env); err != nil {
-		return fmt.Errorf("failed to publish signal %s: %w", signal.FullName(), err)
+		return fmt.Errorf("failed to publish event %s: %w", event.FullName(), err)
 	}
 	return nil
 }
 
-// Catalog returns every registered group, signal and action.
-func (b *Bus) Catalog() (*model.SignalCatalog, error) {
+// Catalog returns every registered group, event and action.
+func (b *Bus) Catalog() (*model.EventCatalog, error) {
 	if !b.isEnabled() {
-		return nil, model.ErrSignalBusDisabled
+		return nil, model.ErrEventBusDisabled
 	}
 	return b.registry.catalog()
 }

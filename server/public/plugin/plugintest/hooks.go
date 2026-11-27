@@ -619,6 +619,11 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// OnEvent provides a mock function with given fields: c, delivery
+func (_m *Hooks) OnEvent(c *plugin.Context, delivery *model.EventDelivery) {
+	_m.Called(c, delivery)
+}
+
 // OnInstall provides a mock function with given fields: c, event
 func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error {
 	ret := _m.Called(c, event)
@@ -750,11 +755,6 @@ func (_m *Hooks) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteClu
 	}
 
 	return r0, r1
-}
-
-// OnSignal provides a mock function with given fields: c, delivery
-func (_m *Hooks) OnSignal(c *plugin.Context, delivery *model.SignalDelivery) {
-	_m.Called(c, delivery)
 }
 
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID

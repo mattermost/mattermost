@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"sync"
@@ -12,9 +12,9 @@ import (
 )
 
 type queuedDelivery struct {
-	delivery *model.SignalDelivery
+	delivery *model.EventDelivery
 	// matched are the subscriptions as they were when the delivery was queued.
-	matched []*model.SignalSubscription
+	matched []*model.EventSubscription
 }
 
 // startingPollInterval is how often a worker checks whether its plugin has finished OnActivate.
@@ -116,32 +116,32 @@ func (b *Bus) deliver(q *queue, qd *queuedDelivery) {
 	d := *qd.delivery
 	logFields := []mlog.Field{
 		mlog.String("subscriber", pluginID),
-		mlog.String("signal", d.Signal),
+		mlog.String("event", d.Event),
 		mlog.String("delivery_id", d.ID),
 	}
 
 	if !b.waitUntilStarted(q) {
-		b.logger.Debug("Dropped signal delivery because the subscriber stopped while starting", logFields...)
+		b.logger.Debug("Dropped event delivery because the subscriber stopped while starting", logFields...)
 		return
 	}
 
 	if !b.isEnabled() {
-		b.logger.Debug("Dropped signal delivery because the signal bus is disabled", logFields...)
+		b.logger.Debug("Dropped event delivery because the event bus is disabled", logFields...)
 		return
 	}
 
 	d.SubscriptionIDs = b.subs.current(pluginID, qd.matched)
 	if len(d.SubscriptionIDs) == 0 {
-		b.logger.Debug("Dropped signal delivery because its subscriptions were removed", logFields...)
+		b.logger.Debug("Dropped event delivery because its subscriptions were removed", logFields...)
 		return
 	}
 
 	if !b.hooks.IsActive(pluginID) {
-		b.logger.Debug("Dropped signal delivery because the subscriber is not active", logFields...)
+		b.logger.Debug("Dropped event delivery because the subscriber is not active", logFields...)
 		return
 	}
 
-	if err := b.hooks.OnSignal(pluginID, &d); err != nil {
-		b.logger.Warn("Failed to deliver signal", append(logFields, mlog.Err(err))...)
+	if err := b.hooks.OnEvent(pluginID, &d); err != nil {
+		b.logger.Warn("Failed to deliver event", append(logFields, mlog.Err(err))...)
 	}
 }

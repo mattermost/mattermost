@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"errors"
@@ -23,7 +23,7 @@ import (
 func blockFirst(t *testing.T, tb *testBus, pluginID string) (started chan struct{}, release func()) {
 	started = make(chan struct{})
 	block, release := newRelease(t)
-	tb.hooks.setOnSignal(func(id string, d *model.SignalDelivery) error {
+	tb.hooks.setOnEvent(func(id string, d *model.EventDelivery) error {
 		if id == pluginID && d.Payload["item_id"].Text == "block" {
 			close(started)
 			<-block
@@ -60,7 +60,7 @@ func waitClosed(t *testing.T, ch chan struct{}) {
 	}
 }
 
-func itemIDs(deliveries []*model.SignalDelivery) []string {
+func itemIDs(deliveries []*model.EventDelivery) []string {
 	ids := []string{}
 	for _, d := range nonFlush(deliveries) {
 		ids = append(ids, d.Payload["item_id"].Text)
@@ -70,8 +70,8 @@ func itemIDs(deliveries []*model.SignalDelivery) []string {
 
 func TestQueueDeliversInOrder(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
+	tb.registerItemEvents(t)
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
 
 	want := []string{}
 	for i := range 50 {
@@ -85,8 +85,8 @@ func TestQueueDeliversInOrder(t *testing.T) {
 
 func TestQueueFullDropsDeliveries(t *testing.T) {
 	tb := newTestBus(t, 2)
-	tb.registerItemSignals(t)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
+	tb.registerItemEvents(t)
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
 	started, release := blockFirst(t, tb, subscriberID)
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
@@ -103,9 +103,9 @@ func TestQueueFullDropsDeliveries(t *testing.T) {
 
 func TestSlowSubscriberDoesNotBlockEmitOrOthers(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
+	tb.registerItemEvents(t)
 	for _, id := range []string{subscriberID, otherID} {
-		require.NoError(t, tb.SetSubscriptions(id, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
+		require.NoError(t, tb.SetSubscriptions(id, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
 	}
 	started, _ := blockFirst(t, tb, subscriberID)
 
@@ -127,46 +127,46 @@ func TestSlowSubscriberDoesNotBlockEmitOrOthers(t *testing.T) {
 func TestSetSubscriptionsAppliesToQueuedDeliveries(t *testing.T) {
 	tests := []struct {
 		name    string
-		replace []model.SignalSubscription
+		replace []model.EventSubscription
 		// restore, if set, is applied after replace.
-		restore []model.SignalSubscription
+		restore []model.EventSubscription
 		wantIDs [][]string
 	}{
 		{
 			name:    "removed subscription drops the delivery",
-			replace: []model.SignalSubscription{{ID: "b", Signal: publisherID + "/other"}},
+			replace: []model.EventSubscription{{ID: "b", Event: publisherID + "/other"}},
 			wantIDs: nil,
 		},
 		{
 			name:    "changed subscription under the same ID drops the delivery",
-			replace: []model.SignalSubscription{{ID: "a", Signal: "*", Filters: map[string]model.SignalValue{"item_id": model.SignalTextValue("queued")}}},
+			replace: []model.EventSubscription{{ID: "a", Event: "*", Filters: map[string]model.EventValue{"item_id": model.EventTextValue("queued")}}},
 			wantIDs: nil,
 		},
 		{
 			name:    "identical set keeps the delivery",
-			replace: []model.SignalSubscription{{ID: "a", Signal: "*"}, {ID: "b", Signal: publisherID + "/items/*"}},
+			replace: []model.EventSubscription{{ID: "a", Event: "*"}, {ID: "b", Event: publisherID + "/items/*"}},
 			wantIDs: [][]string{{"a", "b"}},
 		},
 		{
 			name:    "partially removed set keeps the remaining IDs",
-			replace: []model.SignalSubscription{{ID: "b", Signal: publisherID + "/items/*"}},
+			replace: []model.EventSubscription{{ID: "b", Event: publisherID + "/items/*"}},
 			wantIDs: [][]string{{"b"}},
 		},
 		{
 			name:    "removed and restored subscription drops its ID",
-			replace: []model.SignalSubscription{{ID: "b", Signal: publisherID + "/items/*"}},
-			restore: []model.SignalSubscription{{ID: "a", Signal: "*"}, {ID: "b", Signal: publisherID + "/items/*"}},
+			replace: []model.EventSubscription{{ID: "b", Event: publisherID + "/items/*"}},
+			restore: []model.EventSubscription{{ID: "a", Event: "*"}, {ID: "b", Event: publisherID + "/items/*"}},
 			wantIDs: [][]string{{"b"}},
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			tb := newTestBus(t, 0)
-			tb.registerItemSignals(t)
+			tb.registerItemEvents(t)
 			tb.registerFlush(t)
-			require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{
-				{ID: "a", Signal: "*"},
-				{ID: "b", Signal: publisherID + "/items/*"},
+			require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{
+				{ID: "a", Event: "*"},
+				{ID: "b", Event: publisherID + "/items/*"},
 				flushSubscription,
 			}, model.SubscriptionOptions{}))
 			started, release := blockFirst(t, tb, subscriberID)
@@ -196,7 +196,7 @@ func TestSetSubscriptionsAppliesToQueuedDeliveries(t *testing.T) {
 func TestDropPlugin(t *testing.T) {
 	t.Run("clears the publisher's registry entries", func(t *testing.T) {
 		tb := newTestBus(t, 0)
-		tb.registerItemSignals(t)
+		tb.registerItemEvents(t)
 		require.NoError(t, tb.RegisterAction(publisherID, createItemAction()))
 
 		tb.DropPlugin(publisherID)
@@ -205,15 +205,15 @@ func TestDropPlugin(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, catalog.Groups)
 		assert.Empty(t, catalog.Actions)
-		require.Len(t, catalog.Signals, 1)
-		assert.Equal(t, publisher2ID, catalog.Signals[0].PublisherID)
-		require.ErrorIs(t, tb.Emit(publisherID, "item_created", itemPayload("1"), "", nil), model.ErrSignalNotRegistered)
+		require.Len(t, catalog.Events, 1)
+		assert.Equal(t, publisher2ID, catalog.Events[0].PublisherID)
+		require.ErrorIs(t, tb.Emit(publisherID, "item_created", itemPayload("1"), "", nil), model.ErrEventNotRegistered)
 	})
 
 	t.Run("drops subscriptions and pending deliveries", func(t *testing.T) {
 		tb := newTestBus(t, 0)
-		tb.registerItemSignals(t)
-		require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
+		tb.registerItemEvents(t)
+		require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
 		started, release := blockFirst(t, tb, subscriberID)
 
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
@@ -228,28 +228,28 @@ func TestDropPlugin(t *testing.T) {
 		waitClosed(t, q.done)
 		assert.Equal(t, []string{"block"}, itemIDs(tb.hooks.delivered(subscriberID)))
 		assert.False(t, q.enqueue(&queuedDelivery{}), "a retired queue accepts nothing")
-		assert.Empty(t, tb.subs.match(&signalEnvelope{PublisherID: publisherID, Name: "item_created"}))
+		assert.Empty(t, tb.subs.match(&eventEnvelope{PublisherID: publisherID, Name: "item_created"}))
 	})
 
 	t.Run("runs while the bus is disabled", func(t *testing.T) {
 		tb := newTestBus(t, 0)
-		tb.registerItemSignals(t)
+		tb.registerItemEvents(t)
 		tb.enabled.Store(false)
 		tb.DropPlugin(publisherID)
 		tb.enabled.Store(true)
 
 		catalog, err := tb.Catalog()
 		require.NoError(t, err)
-		assert.Len(t, catalog.Signals, 1)
+		assert.Len(t, catalog.Events, 1)
 	})
 }
 
 func TestDeliveryToInactiveSubscriberIsDropped(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
+	tb.registerItemEvents(t)
 	tb.registerFlush(t)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
-	require.NoError(t, tb.SetSubscriptions(otherID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/*"}, flushSubscription}, model.SubscriptionOptions{}))
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
+	require.NoError(t, tb.SetSubscriptions(otherID, []model.EventSubscription{{ID: "s", Event: publisherID + "/*"}, flushSubscription}, model.SubscriptionOptions{}))
 	started, release := blockFirst(t, tb, subscriberID)
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
@@ -263,11 +263,11 @@ func TestDeliveryToInactiveSubscriberIsDropped(t *testing.T) {
 	assert.Equal(t, []string{"block"}, itemIDs(tb.hooks.delivered(subscriberID)))
 }
 
-func TestOnSignalErrorDoesNotStopTheQueue(t *testing.T) {
+func TestOnEventErrorDoesNotStopTheQueue(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
-	tb.hooks.setOnSignal(func(string, *model.SignalDelivery) error { return errors.New("rpc failed") })
+	tb.registerItemEvents(t)
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
+	tb.hooks.setOnEvent(func(string, *model.EventDelivery) error { return errors.New("rpc failed") })
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("1"), "", nil))
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("2"), "", nil))
@@ -275,27 +275,27 @@ func TestOnSignalErrorDoesNotStopTheQueue(t *testing.T) {
 }
 
 func TestDisabledBus(t *testing.T) {
-	t.Run("every operation returns ErrSignalBusDisabled", func(t *testing.T) {
+	t.Run("every operation returns ErrEventBusDisabled", func(t *testing.T) {
 		tb := newTestBus(t, 0)
 		tb.enabled.Store(false)
 
-		require.ErrorIs(t, tb.RegisterGroup(publisherID, model.SignalGroup{Name: "items", Label: "Items"}), model.ErrSignalBusDisabled)
-		require.ErrorIs(t, tb.RegisterSignal(publisherID, itemSignal("item_created", "")), model.ErrSignalBusDisabled)
-		require.ErrorIs(t, tb.RegisterAction(publisherID, createItemAction()), model.ErrSignalBusDisabled)
-		require.ErrorIs(t, tb.SetSubscriptions(subscriberID, nil, model.SubscriptionOptions{}), model.ErrSignalBusDisabled)
-		require.ErrorIs(t, tb.Emit(publisherID, "item_created", nil, "", nil), model.ErrSignalBusDisabled)
+		require.ErrorIs(t, tb.RegisterGroup(publisherID, model.EventGroup{Name: "items", Label: "Items"}), model.ErrEventBusDisabled)
+		require.ErrorIs(t, tb.RegisterEvent(publisherID, itemEvent("item_created", "")), model.ErrEventBusDisabled)
+		require.ErrorIs(t, tb.RegisterAction(publisherID, createItemAction()), model.ErrEventBusDisabled)
+		require.ErrorIs(t, tb.SetSubscriptions(subscriberID, nil, model.SubscriptionOptions{}), model.ErrEventBusDisabled)
+		require.ErrorIs(t, tb.Emit(publisherID, "item_created", nil, "", nil), model.ErrEventBusDisabled)
 		_, err := tb.ExecuteAction(subscriberID, &model.ActionRequest{PluginID: publisherID, Action: "create_item"}, "")
-		require.ErrorIs(t, err, model.ErrSignalBusDisabled)
+		require.ErrorIs(t, err, model.ErrEventBusDisabled)
 		_, err = tb.Catalog()
-		require.ErrorIs(t, err, model.ErrSignalBusDisabled)
+		require.ErrorIs(t, err, model.ErrEventBusDisabled)
 
 		assert.Empty(t, tb.hooks.actionCalls(publisherID))
 	})
 
 	t.Run("queued deliveries are not delivered after the bus turns off", func(t *testing.T) {
 		tb := newTestBus(t, 0)
-		tb.registerItemSignals(t)
-		require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: "*"}}, model.SubscriptionOptions{}))
+		tb.registerItemEvents(t)
+		require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: "*"}}, model.SubscriptionOptions{}))
 		started, release := blockFirst(t, tb, subscriberID)
 
 		require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("block"), "", nil))
@@ -311,20 +311,20 @@ func TestDisabledBus(t *testing.T) {
 
 func TestEmitValidation(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
+	tb.registerItemEvents(t)
 
-	require.ErrorIs(t, tb.Emit(publisherID, "missing", nil, "", nil), model.ErrSignalNotRegistered)
-	require.ErrorIs(t, tb.Emit(subscriberID, "item_created", nil, "", nil), model.ErrSignalNotRegistered, "a plugin can only emit its own signals")
-	require.ErrorIs(t, tb.Emit(publisherID, "item_created", map[string]model.SignalValue{"undeclared": model.SignalTextValue("x")}, "", nil), model.ErrSignalPayloadInvalid)
-	require.ErrorIs(t, tb.Emit(publisherID, "item_created", map[string]model.SignalValue{"count": model.SignalTextValue("x")}, "", nil), model.ErrSignalPayloadInvalid)
+	require.ErrorIs(t, tb.Emit(publisherID, "missing", nil, "", nil), model.ErrEventNotRegistered)
+	require.ErrorIs(t, tb.Emit(subscriberID, "item_created", nil, "", nil), model.ErrEventNotRegistered, "a plugin can only emit its own events")
+	require.ErrorIs(t, tb.Emit(publisherID, "item_created", map[string]model.EventValue{"undeclared": model.EventTextValue("x")}, "", nil), model.ErrEventPayloadInvalid)
+	require.ErrorIs(t, tb.Emit(publisherID, "item_created", map[string]model.EventValue{"count": model.EventTextValue("x")}, "", nil), model.ErrEventPayloadInvalid)
 	require.NoError(t, tb.Emit(publisherID, "item_created", nil, "", nil))
 }
 
 func TestDeliveryWaitsForSubscriberToFinishStarting(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
+	tb.registerItemEvents(t)
 	tb.hooks.setStarting(subscriberID, true)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
 
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("early"), "", nil))
 	time.Sleep(3 * startingPollInterval)
@@ -337,9 +337,9 @@ func TestDeliveryWaitsForSubscriberToFinishStarting(t *testing.T) {
 
 func TestDropPluginWhileStartingStopsTheWait(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
+	tb.registerItemEvents(t)
 	tb.hooks.setStarting(subscriberID, true)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
 	require.NoError(t, tb.Emit(publisherID, "item_created", itemPayload("early"), "", nil))
 
 	q := subscriberQueue(t, tb, subscriberID)
@@ -352,9 +352,9 @@ func TestDropPluginWhileStartingStopsTheWait(t *testing.T) {
 
 func TestBusDisabledWhileSubscriberStartsDropsTheDelivery(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
+	tb.registerItemEvents(t)
 	tb.hooks.setStarting(subscriberID, true)
-	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
+	require.NoError(t, tb.SetSubscriptions(subscriberID, []model.EventSubscription{{ID: "s", Event: publisherID + "/item_created"}}, model.SubscriptionOptions{}))
 
 	// Run the delivery directly so the test can wait for it to finish.
 	q := subscriberQueue(t, tb, subscriberID)
@@ -362,8 +362,8 @@ func TestBusDisabledWhileSubscriberStartsDropsTheDelivery(t *testing.T) {
 	sub := tb.subs.subscribers[subscriberID].byID["s"]
 	tb.subs.mu.RUnlock()
 	qd := &queuedDelivery{
-		delivery: &model.SignalDelivery{ID: "early", Signal: publisherID + "/item_created", Payload: itemPayload("early")},
-		matched:  []*model.SignalSubscription{sub},
+		delivery: &model.EventDelivery{ID: "early", Event: publisherID + "/item_created", Payload: itemPayload("early")},
+		matched:  []*model.EventSubscription{sub},
 	}
 	done := make(chan struct{})
 	go func() {
@@ -382,14 +382,14 @@ func TestBusDisabledWhileSubscriberStartsDropsTheDelivery(t *testing.T) {
 
 func TestResubscribingDoesNotOverlapDeliveries(t *testing.T) {
 	tb := newTestBus(t, 0)
-	tb.registerItemSignals(t)
-	subs := []model.SignalSubscription{{ID: "s", Signal: publisherID + "/item_created"}}
+	tb.registerItemEvents(t)
+	subs := []model.EventSubscription{{ID: "s", Event: publisherID + "/item_created"}}
 	require.NoError(t, tb.SetSubscriptions(subscriberID, subs, model.SubscriptionOptions{}))
 
 	var inFlight, maxInFlight atomic.Int32
 	started := make(chan struct{})
 	block, release := newRelease(t)
-	tb.hooks.setOnSignal(func(id string, d *model.SignalDelivery) error {
+	tb.hooks.setOnEvent(func(id string, d *model.EventDelivery) error {
 		n := inFlight.Add(1)
 		defer inFlight.Add(-1)
 		for {

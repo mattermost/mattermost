@@ -2353,53 +2353,53 @@ func (s *hooksRPCServer) EntityLookup(args *Z_EntityLookupArgs, returns *Z_Entit
 }
 
 func init() {
-	hookNameToId["OnSignal"] = OnSignalID
+	hookNameToId["OnEvent"] = OnEventID
 }
 
-type Z_OnSignalArgs struct {
+type Z_OnEventArgs struct {
 	A *Context
-	B *model.SignalDelivery
+	B *model.EventDelivery
 }
 
-type Z_OnSignalReturns struct {
+type Z_OnEventReturns struct {
 }
 
-func (g *hooksRPCClient) OnSignal(c *Context, delivery *model.SignalDelivery) {
-	_args := &Z_OnSignalArgs{c, delivery}
-	_returns := &Z_OnSignalReturns{}
-	if g.implemented[OnSignalID] {
-		if err := g.client.Call("Plugin.OnSignal", _args, _returns); err != nil {
-			g.log.Error("RPC call OnSignal to plugin failed.", mlog.Err(err))
+func (g *hooksRPCClient) OnEvent(c *Context, delivery *model.EventDelivery) {
+	_args := &Z_OnEventArgs{c, delivery}
+	_returns := &Z_OnEventReturns{}
+	if g.implemented[OnEventID] {
+		if err := g.client.Call("Plugin.OnEvent", _args, _returns); err != nil {
+			g.log.Error("RPC call OnEvent to plugin failed.", mlog.Err(err))
 		}
 	}
 
 }
 
-// OnSignalWithRPCErr returns the same values as OnSignal, with an additional trailing error
+// OnEventWithRPCErr returns the same values as OnEvent, with an additional trailing error
 // for the RPC transport — always the LAST return slot.
-func (g *hooksRPCClient) OnSignalWithRPCErr(c *Context, delivery *model.SignalDelivery) error {
-	_args := &Z_OnSignalArgs{c, delivery}
-	_returns := &Z_OnSignalReturns{}
+func (g *hooksRPCClient) OnEventWithRPCErr(c *Context, delivery *model.EventDelivery) error {
+	_args := &Z_OnEventArgs{c, delivery}
+	_returns := &Z_OnEventReturns{}
 	var _err error
-	if g.implemented[OnSignalID] {
-		_err = g.client.Call("Plugin.OnSignal", _args, _returns)
+	if g.implemented[OnEventID] {
+		_err = g.client.Call("Plugin.OnEvent", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
 			// values past a transport failure (HooksWithRPCErrGenerated contract).
-			_returns = &Z_OnSignalReturns{}
-			g.log.Debug("RPC call OnSignal to plugin failed.", mlog.Err(_err))
+			_returns = &Z_OnEventReturns{}
+			g.log.Debug("RPC call OnEvent to plugin failed.", mlog.Err(_err))
 		}
 	}
 	return _err
 }
 
-func (s *hooksRPCServer) OnSignal(args *Z_OnSignalArgs, returns *Z_OnSignalReturns) error {
+func (s *hooksRPCServer) OnEvent(args *Z_OnEventArgs, returns *Z_OnEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		OnSignal(c *Context, delivery *model.SignalDelivery)
+		OnEvent(c *Context, delivery *model.EventDelivery)
 	}); ok {
-		hook.OnSignal(args.A, args.B)
+		hook.OnEvent(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnSignal called but not implemented."))
+		return encodableError(fmt.Errorf("Hook OnEvent called but not implemented."))
 	}
 	return nil
 }
@@ -2557,7 +2557,7 @@ type HooksWithRPCErrGenerated interface {
 
 	EntityLookupWithRPCErr(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error, error)
 
-	OnSignalWithRPCErr(c *Context, delivery *model.SignalDelivery) error
+	OnEventWithRPCErr(c *Context, delivery *model.EventDelivery) error
 
 	OnActionCallWithRPCErr(c *Context, call *model.ActionCall) (*model.ActionResult, *model.AppError, error)
 }
@@ -10418,60 +10418,60 @@ func (s *apiRPCServer) RegisterEntityTerms(args *Z_RegisterEntityTermsArgs, retu
 	return nil
 }
 
-type Z_RegisterSignalGroupArgs struct {
-	A model.SignalGroup
+type Z_RegisterEventGroupArgs struct {
+	A model.EventGroup
 }
 
-type Z_RegisterSignalGroupReturns struct {
+type Z_RegisterEventGroupReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) RegisterSignalGroup(group model.SignalGroup) error {
-	_args := &Z_RegisterSignalGroupArgs{group}
-	_returns := &Z_RegisterSignalGroupReturns{}
-	if err := g.client.Call("Plugin.RegisterSignalGroup", _args, _returns); err != nil {
-		log.Printf("RPC call to RegisterSignalGroup API failed: %s", err.Error())
+func (g *apiRPCClient) RegisterEventGroup(group model.EventGroup) error {
+	_args := &Z_RegisterEventGroupArgs{group}
+	_returns := &Z_RegisterEventGroupReturns{}
+	if err := g.client.Call("Plugin.RegisterEventGroup", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEventGroup API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) RegisterSignalGroup(args *Z_RegisterSignalGroupArgs, returns *Z_RegisterSignalGroupReturns) error {
+func (s *apiRPCServer) RegisterEventGroup(args *Z_RegisterEventGroupArgs, returns *Z_RegisterEventGroupReturns) error {
 	if hook, ok := s.impl.(interface {
-		RegisterSignalGroup(group model.SignalGroup) error
+		RegisterEventGroup(group model.EventGroup) error
 	}); ok {
-		returns.A = hook.RegisterSignalGroup(args.A)
+		returns.A = hook.RegisterEventGroup(args.A)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API RegisterSignalGroup called but not implemented."))
+		return encodableError(fmt.Errorf("API RegisterEventGroup called but not implemented."))
 	}
 	return nil
 }
 
-type Z_RegisterSignalArgs struct {
-	A model.SignalDescriptor
+type Z_RegisterEventArgs struct {
+	A model.EventDescriptor
 }
 
-type Z_RegisterSignalReturns struct {
+type Z_RegisterEventReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) RegisterSignal(signal model.SignalDescriptor) error {
-	_args := &Z_RegisterSignalArgs{signal}
-	_returns := &Z_RegisterSignalReturns{}
-	if err := g.client.Call("Plugin.RegisterSignal", _args, _returns); err != nil {
-		log.Printf("RPC call to RegisterSignal API failed: %s", err.Error())
+func (g *apiRPCClient) RegisterEvent(event model.EventDescriptor) error {
+	_args := &Z_RegisterEventArgs{event}
+	_returns := &Z_RegisterEventReturns{}
+	if err := g.client.Call("Plugin.RegisterEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEvent API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) RegisterSignal(args *Z_RegisterSignalArgs, returns *Z_RegisterSignalReturns) error {
+func (s *apiRPCServer) RegisterEvent(args *Z_RegisterEventArgs, returns *Z_RegisterEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		RegisterSignal(signal model.SignalDescriptor) error
+		RegisterEvent(event model.EventDescriptor) error
 	}); ok {
-		returns.A = hook.RegisterSignal(args.A)
+		returns.A = hook.RegisterEvent(args.A)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API RegisterSignal called but not implemented."))
+		return encodableError(fmt.Errorf("API RegisterEvent called but not implemented."))
 	}
 	return nil
 }
@@ -10506,7 +10506,7 @@ func (s *apiRPCServer) RegisterAction(args *Z_RegisterActionArgs, returns *Z_Reg
 }
 
 type Z_SetSubscriptionsArgs struct {
-	A []model.SignalSubscription
+	A []model.EventSubscription
 	B model.SubscriptionOptions
 }
 
@@ -10514,7 +10514,7 @@ type Z_SetSubscriptionsReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) SetSubscriptions(subs []model.SignalSubscription, opts model.SubscriptionOptions) error {
+func (g *apiRPCClient) SetSubscriptions(subs []model.EventSubscription, opts model.SubscriptionOptions) error {
 	_args := &Z_SetSubscriptionsArgs{subs, opts}
 	_returns := &Z_SetSubscriptionsReturns{}
 	if err := g.client.Call("Plugin.SetSubscriptions", _args, _returns); err != nil {
@@ -10525,7 +10525,7 @@ func (g *apiRPCClient) SetSubscriptions(subs []model.SignalSubscription, opts mo
 
 func (s *apiRPCServer) SetSubscriptions(args *Z_SetSubscriptionsArgs, returns *Z_SetSubscriptionsReturns) error {
 	if hook, ok := s.impl.(interface {
-		SetSubscriptions(subs []model.SignalSubscription, opts model.SubscriptionOptions) error
+		SetSubscriptions(subs []model.EventSubscription, opts model.SubscriptionOptions) error
 	}); ok {
 		returns.A = hook.SetSubscriptions(args.A, args.B)
 		returns.A = encodableError(returns.A)
@@ -10535,41 +10535,41 @@ func (s *apiRPCServer) SetSubscriptions(args *Z_SetSubscriptionsArgs, returns *Z
 	return nil
 }
 
-type Z_EmitSignalArgs struct {
+type Z_EmitEventArgs struct {
 	A string
-	B map[string]model.SignalValue
-	C model.SignalCause
+	B map[string]model.EventValue
+	C model.EventCause
 	D *model.EmitOptions
 }
 
-type Z_EmitSignalReturns struct {
+type Z_EmitEventReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) EmitSignal(name string, payload map[string]model.SignalValue, cause model.SignalCause, opts *model.EmitOptions) error {
-	_args := &Z_EmitSignalArgs{name, payload, cause, opts}
-	_returns := &Z_EmitSignalReturns{}
-	if err := g.client.Call("Plugin.EmitSignal", _args, _returns); err != nil {
-		log.Printf("RPC call to EmitSignal API failed: %s", err.Error())
+func (g *apiRPCClient) EmitEvent(name string, payload map[string]model.EventValue, cause model.EventCause, opts *model.EmitOptions) error {
+	_args := &Z_EmitEventArgs{name, payload, cause, opts}
+	_returns := &Z_EmitEventReturns{}
+	if err := g.client.Call("Plugin.EmitEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to EmitEvent API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) EmitSignal(args *Z_EmitSignalArgs, returns *Z_EmitSignalReturns) error {
+func (s *apiRPCServer) EmitEvent(args *Z_EmitEventArgs, returns *Z_EmitEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		EmitSignal(name string, payload map[string]model.SignalValue, cause model.SignalCause, opts *model.EmitOptions) error
+		EmitEvent(name string, payload map[string]model.EventValue, cause model.EventCause, opts *model.EmitOptions) error
 	}); ok {
-		returns.A = hook.EmitSignal(args.A, args.B, args.C, args.D)
+		returns.A = hook.EmitEvent(args.A, args.B, args.C, args.D)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API EmitSignal called but not implemented."))
+		return encodableError(fmt.Errorf("API EmitEvent called but not implemented."))
 	}
 	return nil
 }
 
 type Z_ExecuteActionArgs struct {
 	A *model.ActionRequest
-	B model.SignalCause
+	B model.EventCause
 }
 
 type Z_ExecuteActionReturns struct {
@@ -10577,7 +10577,7 @@ type Z_ExecuteActionReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) ExecuteAction(req *model.ActionRequest, cause model.SignalCause) (*model.ActionResponse, error) {
+func (g *apiRPCClient) ExecuteAction(req *model.ActionRequest, cause model.EventCause) (*model.ActionResponse, error) {
 	_args := &Z_ExecuteActionArgs{req, cause}
 	_returns := &Z_ExecuteActionReturns{}
 	if err := g.client.Call("Plugin.ExecuteAction", _args, _returns); err != nil {
@@ -10588,7 +10588,7 @@ func (g *apiRPCClient) ExecuteAction(req *model.ActionRequest, cause model.Signa
 
 func (s *apiRPCServer) ExecuteAction(args *Z_ExecuteActionArgs, returns *Z_ExecuteActionReturns) error {
 	if hook, ok := s.impl.(interface {
-		ExecuteAction(req *model.ActionRequest, cause model.SignalCause) (*model.ActionResponse, error)
+		ExecuteAction(req *model.ActionRequest, cause model.EventCause) (*model.ActionResponse, error)
 	}); ok {
 		returns.A, returns.B = hook.ExecuteAction(args.A, args.B)
 		returns.B = encodableError(returns.B)
@@ -10598,31 +10598,31 @@ func (s *apiRPCServer) ExecuteAction(args *Z_ExecuteActionArgs, returns *Z_Execu
 	return nil
 }
 
-type Z_ListSignalContributionsArgs struct {
+type Z_ListEventContributionsArgs struct {
 }
 
-type Z_ListSignalContributionsReturns struct {
-	A *model.SignalCatalog
+type Z_ListEventContributionsReturns struct {
+	A *model.EventCatalog
 	B error
 }
 
-func (g *apiRPCClient) ListSignalContributions() (*model.SignalCatalog, error) {
-	_args := &Z_ListSignalContributionsArgs{}
-	_returns := &Z_ListSignalContributionsReturns{}
-	if err := g.client.Call("Plugin.ListSignalContributions", _args, _returns); err != nil {
-		log.Printf("RPC call to ListSignalContributions API failed: %s", err.Error())
+func (g *apiRPCClient) ListEventContributions() (*model.EventCatalog, error) {
+	_args := &Z_ListEventContributionsArgs{}
+	_returns := &Z_ListEventContributionsReturns{}
+	if err := g.client.Call("Plugin.ListEventContributions", _args, _returns); err != nil {
+		log.Printf("RPC call to ListEventContributions API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) ListSignalContributions(args *Z_ListSignalContributionsArgs, returns *Z_ListSignalContributionsReturns) error {
+func (s *apiRPCServer) ListEventContributions(args *Z_ListEventContributionsArgs, returns *Z_ListEventContributionsReturns) error {
 	if hook, ok := s.impl.(interface {
-		ListSignalContributions() (*model.SignalCatalog, error)
+		ListEventContributions() (*model.EventCatalog, error)
 	}); ok {
-		returns.A, returns.B = hook.ListSignalContributions()
+		returns.A, returns.B = hook.ListEventContributions()
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListSignalContributions called but not implemented."))
+		return encodableError(fmt.Errorf("API ListEventContributions called but not implemented."))
 	}
 	return nil
 }

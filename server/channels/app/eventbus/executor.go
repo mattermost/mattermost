@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package signalbus
+package eventbus
 
 import (
 	"encoding/json"
@@ -15,9 +15,9 @@ import (
 // ExecuteAction validates the request against the target's action descriptor, calls the target's
 // OnActionCall hook, and returns only the declared results. An AppError from the target is
 // returned unchanged.
-func (b *Bus) ExecuteAction(callerID string, req *model.ActionRequest, cause model.SignalCause) (*model.ActionResponse, error) {
+func (b *Bus) ExecuteAction(callerID string, req *model.ActionRequest, cause model.EventCause) (*model.ActionResponse, error) {
 	if !b.isEnabled() {
-		return nil, model.ErrSignalBusDisabled
+		return nil, model.ErrEventBusDisabled
 	}
 	if req == nil || req.PluginID == "" || req.Action == "" {
 		return nil, model.ErrActionNotFound.Wrapf("a plugin ID and an action are required")
@@ -65,7 +65,7 @@ func (b *Bus) ExecuteAction(callerID string, req *model.ActionRequest, cause mod
 		return nil, model.ErrActionCallFailed.Wrapf("%s/%s: %v", req.PluginID, req.Action, err)
 	}
 
-	var returned map[string]model.SignalValue
+	var returned map[string]model.EventValue
 	if result != nil {
 		returned = result.Fields
 	}
