@@ -154,11 +154,20 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectTyp
 }
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
+	// A search for one subject (the requester checks run before a policy save) reads that
+	// user's attributes live, so a value written just before is matched. Aliased to the
+	// materialized view's name, so the CEL-generated SQL resolves the same way. Every other
+	// search reads the materialized view.
+	attributesJoin := "UserAttributeView ON Users.Id = UserAttributeView.TargetID"
+	if opts.SubjectID != "" {
+		attributesJoin = "UserAttributeLiveView AS UserAttributeView ON Users.Id = UserAttributeView.TargetID"
+	}
+
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").LeftJoin(attributesJoin).
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin(attributesJoin)
 
 	if opts.Query != "" {
 		// Wrap the CEL-derived expression in parentheses so that any top-level
