@@ -228,7 +228,7 @@ test('runs the first health check from the page', {tag: '@system_console'}, asyn
     await expect(siteHealth.runningButton).toHaveAttribute('aria-busy', 'true');
 
     // * Verify the page shows the run's findings once it finishes
-    await expect(siteHealth.lastEvaluated).toHaveText('Last evaluated just now', {timeout: 60000});
+    await expect(siteHealth.lastEvaluated).toHaveText('Last checked just now', {timeout: 60000});
     await expect(siteHealth.notEvaluated).not.toBeVisible();
     await expect(siteHealth.rerunButton).toBeEnabled();
     await expect(siteHealth.finding(SESSION_EXTEND_OFF.title).container).toBeVisible();
@@ -257,7 +257,7 @@ test('lists a firing finding in Open and in its severity tab', {tag: '@system_co
     await expect(openRow.container).toBeVisible();
     await expect(openRow.area).toHaveText('Authentication');
     // The finding may have been firing since before this test on a reused server.
-    await expect(openRow.trend).toHaveText(/^Firing for (\d+d( \d+h)?|\d+h( \d+m)?|\d+m)$/);
+    await expect(openRow.trend).toHaveText(/^Open for \d+ (minute|hour|day)s?$/);
 
     // # Select the Info tab
     await siteHealth.infoTab.click();
@@ -560,9 +560,9 @@ test('filters findings by severity and groups them by category', {tag: '@system_
 });
 
 /**
- * @objective Verify Last evaluated moves forward when the checks run again.
+ * @objective Verify Last checked moves forward when the checks run again.
  */
-test('updates Last evaluated after another run', {tag: '@system_console'}, async ({pw}) => {
+test('updates Last checked after another run', {tag: '@system_console'}, async ({pw}) => {
     await skipUnlessLicensed(pw, ENTERPRISE_TIER);
 
     const {adminUser, adminClient} = await pw.initSetup();
@@ -576,7 +576,7 @@ test('updates Last evaluated after another run', {tag: '@system_console'}, async
     // # Run the checks again
     await siteHealth.runChecks();
 
-    // * Verify Last evaluated is later than before
+    // * Verify Last checked is later than before
     const after = await siteHealth.lastEvaluatedTime.getAttribute('datetime');
     expect(Date.parse(after!)).toBeGreaterThan(Date.parse(before!));
 });
@@ -653,7 +653,7 @@ test('hides Site health from admins who cannot read Site Statistics', {tag: '@sy
     // * Verify they land on another System Console page instead
     await expect(systemConsolePage.page).toHaveURL(/\/admin_console\/(?!reporting\/site_health)/);
     await expect(systemConsolePage.header.title).toBeVisible();
-    await expect(systemConsolePage.header.title).not.toHaveText('Site health');
+    await expect(systemConsolePage.header.title).not.toHaveText('Site Health');
 
     // * Verify the findings API refuses them
     await expect(userClient.getHealthFindings()).rejects.toMatchObject({status_code: 403});
@@ -726,8 +726,8 @@ test(
         await systemConsolePage.sidebar.reporting.siteHealth.click();
 
         // * Verify the page loaded from the findings API without an error
-        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site health');
-        await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last evaluated)/)).toBeVisible();
+        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site Health');
+        await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last checked)/)).toBeVisible();
         await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
     },
 );

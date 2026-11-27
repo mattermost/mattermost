@@ -37,7 +37,7 @@ export class SiteHealthFinding {
         this.header = container.getByRole('button', {name: new RegExp(`^${escapeRegExp(title)}`)});
         this.severityBadge = container.getByTestId('healthFindingBadge');
         this.area = container.getByTestId('healthFindingArea');
-        this.trend = container.getByText(/^(Firing for|Resolved|Unevaluated for) /);
+        this.trend = container.getByText(/^(Open for|Resolved|Not checked for) /);
         this.mutedBy = container.getByTestId('healthFindingMutedBy');
         this.muteButton = container.getByRole('button', {name: 'Mute', exact: true});
         this.unmuteButton = container.getByRole('button', {name: 'Unmute', exact: true});
@@ -140,7 +140,7 @@ export default class SiteHealth {
         );
 
         this.notEvaluated = container.getByText('Not evaluated yet', {exact: true});
-        this.lastEvaluated = container.getByText(/^Last evaluated /);
+        this.lastEvaluated = container.getByText(/^Last checked /);
         this.lastEvaluatedTime = this.lastEvaluated.locator('time');
         this.rerunButton = container.getByRole('button', {name: 'Re-run checks'});
         this.runningButton = container.getByRole('button', {name: 'Running checks…'});
@@ -158,7 +158,7 @@ export default class SiteHealth {
     }
 
     async toBeVisible() {
-        await expect(this.container.getByTestId('admin-console-header')).toHaveText('Site health');
+        await expect(this.container.getByTestId('admin-console-header')).toHaveText('Site Health');
         await expect(this.notEvaluated.or(this.lastEvaluated)).toBeVisible();
     }
 
@@ -180,7 +180,7 @@ export default class SiteHealth {
 
     /** Starts a run with Re-run checks and waits until the page shows its findings. */
     async runChecks() {
-        // Last evaluated and the findings load together, so a new time means the new findings are shown.
+        // Last checked and the findings load together, so a new time means the new findings are shown.
         const before = (await this.lastEvaluatedTime.count())
             ? await this.lastEvaluatedTime.getAttribute('datetime')
             : null;
@@ -191,6 +191,6 @@ export default class SiteHealth {
             await expect(this.lastEvaluatedTime).toBeVisible({timeout: 60000});
         }
         await expect(this.rerunButton).toBeEnabled();
-        await expect(this.lastEvaluated).toHaveText('Last evaluated just now');
+        await expect(this.lastEvaluated).toHaveText('Last checked just now');
     }
 }

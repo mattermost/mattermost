@@ -36,7 +36,7 @@ const systemManager = viewedBy('system_user system_manager');
 
 async function renderDashboard(state: ReturnType<typeof viewedBy>) {
     renderWithContext(<HealthDashboard/>, state);
-    await screen.findByText(/^Last evaluated/);
+    await screen.findByText(/^Last checked/);
 }
 
 async function openMenu() {
@@ -143,6 +143,8 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         const button = screen.getByTestId('healthDashboardExportButton');
         await waitFor(() => expect(button).toBeDisabled());
         expect(button).toHaveAccessibleName('Exporting…');
+        expect(button).toHaveAttribute('aria-busy', 'true');
+        expect(button).toHaveTextContent(/^Export$/);
 
         resolve({content: 'report', filename: 'site-health.html'});
 

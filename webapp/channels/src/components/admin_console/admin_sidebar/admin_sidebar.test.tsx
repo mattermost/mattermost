@@ -152,39 +152,39 @@ describe('components/AdminSidebar', () => {
 
         test('shows a delegated admin who can read Site Statistics Site health and not Workspace Optimization', () => {
             renderSidebar('enterprise', true, delegatedAdmin(true));
-            expect(screen.getByText('Site health')).toBeInTheDocument();
+            expect(screen.getByText('Site Health')).toBeInTheDocument();
             expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
         });
 
         test('shows a delegated admin who can read Site Statistics Workspace Optimization with the flag off', () => {
             renderSidebar('enterprise', false, delegatedAdmin(true));
             expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
-            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+            expect(screen.queryByText('Site Health')).not.toBeInTheDocument();
         });
 
         test('shows a delegated admin who cannot read Site Statistics neither dashboard', () => {
             renderSidebar('enterprise', true, delegatedAdmin(false));
             expect(screen.getByText('Team Statistics')).toBeInTheDocument();
-            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+            expect(screen.queryByText('Site Health')).not.toBeInTheDocument();
             expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
         });
 
         test.each(['professional', 'enterprise'])('shows Site health and not Workspace Optimization with the flag on and a %s license', (sku) => {
             renderSidebar(sku, true);
-            expect(screen.getByText('Site health')).toBeInTheDocument();
+            expect(screen.getByText('Site Health')).toBeInTheDocument();
             expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
         });
 
         test('shows Workspace Optimization and not Site health with the flag off', () => {
             renderSidebar('enterprise', false);
             expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
-            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+            expect(screen.queryByText('Site Health')).not.toBeInTheDocument();
         });
 
         test('shows Workspace Optimization and not Site health with the flag on below Professional', () => {
             renderSidebar('starter', true);
             expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
-            expect(screen.queryByText('Site health')).not.toBeInTheDocument();
+            expect(screen.queryByText('Site Health')).not.toBeInTheDocument();
         });
     });
 

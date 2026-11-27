@@ -7705,7 +7705,7 @@
   },
   "admin.health_dashboard.export.exporting": {
     "defaultMessage": "Exporting…",
-    "description": "Screen reader label of the spinner shown in the Export button on the System Console Site health page while the export is being fetched from the server."
+    "description": "Screen reader name of the Export button on the System Console Site health page while the export is being fetched from the server; the visible label stays Export and a spinner shows instead."
   },
   "admin.health_dashboard.export.html": {
     "defaultMessage": "Download HTML",

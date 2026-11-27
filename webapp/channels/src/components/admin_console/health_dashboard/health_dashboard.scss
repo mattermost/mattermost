@@ -508,6 +508,11 @@
         padding-top: 12px;
     }
 
+    // The System Console text colour, like the rest of the page; the theme's is too light at 0.72.
+    &__action &__muteButton:not(:hover, :focus-visible, :active) {
+        --button-fg: rgba(var(--sys-center-channel-color-rgb), 0.72);
+    }
+
     &__chevron {
         display: flex;
         flex-shrink: 0;
@@ -589,6 +594,10 @@
         dt {
             color: rgba(var(--sys-center-channel-color-rgb), 0.72);
             font-weight: 400;
+
+            code {
+                color: rgba(var(--sys-center-channel-color-rgb), 0.8);
+            }
         }
 
         dd {

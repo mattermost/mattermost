@@ -27,6 +27,7 @@ const MuteButton = ({finding, onMute, onUnmute}: Props) => {
 
     return (
         <Button
+            className='HealthFinding__muteButton'
             emphasis='dim'
             size='small'
             leadingIcon={<Icon glyph={<BellIcon/>}/>}

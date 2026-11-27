@@ -39,10 +39,11 @@ const ExportMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps
             emphasis='secondary'
             size='small'
             aria-busy={exporting}
+            aria-label={exporting ? formatMessage(msg.exporting) : undefined}
             trailingIcon={exporting ? (
                 <Spinner
                     size='12'
-                    aria-label={formatMessage(msg.exporting)}
+                    aria-hidden={true}
                 />
             ) : (
                 <Icon glyph={<ChevronDownIcon/>}/>
