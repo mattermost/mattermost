@@ -5,11 +5,38 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 <PlanAvailability slug="entry-ent" />
 
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], when the product rail is enabled, the Boards item in the product rail shows an empty state page and a Browse Boards modal.
+
 ## Access boards
 
 To access Mattermost Boards, select the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu in the top left corner of Mattermost, and then select **Boards** to view all the boards for your team.
 
 To access boards linked to a channel, select the **Toggle Linked Boards** icon to the far right.
+
+## Boards empty state
+
+When you select **Boards** in the product rail and your team has no boards you are a member of, Mattermost opens a page that explains what boards are. If you have permission to create channels, a **Create a board** button is shown. Selecting it opens the board creation dialog. Once a board exists that you are a member of, the page automatically opens that board.
+
+If the Boards plugin is not installed, selecting **Boards** returns you to the team's default view.
+
+## Browse boards
+
+With the product rail enabled, you can open a **Browse Boards** modal that lists only boards — not regular channels.
+
+To open Browse Boards:
+
+- Select **Add Boards** in the Boards sidebar, then select **Browse boards** from the menu.
+- Select **+** in the Boards sidebar header, then select **Browse boards** from the menu.
+
+The modal uses board-specific wording throughout: the title reads **Browse Boards**, the search field reads **Search boards**, and the type filter reads **Board Type**. Search results are narrowed to boards only.
+
+If the Boards plugin is installed and provides a board creation menu item, a **Create New Board** button appears in the modal. Selecting it opens the board creation dialog. If the Boards plugin does not provide a create item, the button is not shown.
+
+<Note>
+
+Browse Boards currently lists only boards you are already a member of. Public boards you have not joined are not shown.
+
+</Note>
 
 ## Link a board to a channel
 
@@ -45,11 +72,11 @@ Categories are organized per-user, so you can arrange your boards under categori
 
 <Note>
 
-If you belonged to a workspace prior to v7.2, you’ll see that the workspaces have been migrated to custom categories in the sidebar. All boards from a workspace are listed under a category of the same name. Boards from direct messages and group messages appear under the default **Boards** category.
+If you belonged to a workspace prior to v7.2, you'll see that the workspaces have been migrated to custom categories in the sidebar. All boards from a workspace are listed under a category of the same name. Boards from direct messages and group messages appear under the default **Boards** category.
 
-Categories are per-user, and can be renamed or deleted by each user after migration. New users won’t have default categories, and boards they join will appear under the default **Boards** category.
+Categories are per-user, and can be renamed or deleted by each user after migration. New users won't have default categories, and boards they join will appear under the default **Boards** category.
 
-Boards that you create after the migration won’t be linked to a workspace and will always appear under the default **Boards** category unless you move or hide the boards.
+Boards that you create after the migration won't be linked to a workspace and will always appear under the default **Boards** category unless you move or hide the boards.
 
 </Note>
 
@@ -73,8 +100,8 @@ In addition to moving boards to other categories, from the <img src={useBaseUrl(
 
 ## Find a board
 
-From the top of the boards left hand sidebar, select the **Find Boards** field (CMD+K/CTRL+K) to open the board switcher, and start typing the name of the board you’re looking for.
+From the top of the boards left hand sidebar, select the **Find Boards** field (CMD+K/CTRL+K) to open the board switcher, and start typing the name of the board you're looking for.
 
 ## Team sidebar
 
-If you’re a member of multiple teams, the team sidebar will appear on the left hand side of Boards. To switch teams, select any of the team icons from the team sidebar.
+If you're a member of multiple teams, the team sidebar will appear on the left hand side of Boards. To switch teams, select any of the team icons from the team sidebar.
