@@ -13,18 +13,16 @@ func init() {
 }
 
 var tlsVerifyOutgoingOff = healthcheck.Rule{
-	Code:     "TLS_VERIFY_OUTGOING_OFF",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.tls_verify_outgoing_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.tls_verify_outgoing_off.remediation"),
-		ConsolePath:   "/admin_console/environment/web_server",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ServiceSettings.EnableInsecureOutgoingConnections",
-	Eval:       healthcheck.Single(evalTLSVerifyOutgoingOff),
+	Code:          "TLS_VERIFY_OUTGOING_OFF",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.tls_verify_outgoing_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.tls_verify_outgoing_off.remediation"),
+	ConsolePath:   "/admin_console/environment/web_server",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ServiceSettings.EnableInsecureOutgoingConnections",
+	Eval:          healthcheck.Single(evalTLSVerifyOutgoingOff),
 }
 
 func evalTLSVerifyOutgoingOff(s *healthcheck.Snapshot) healthcheck.Result {

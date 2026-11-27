@@ -25,15 +25,13 @@ var (
 )
 
 var samlSignatureSHA1 = healthcheck.Rule{
-	Code:     "SAML_SIGNATURE_SHA1",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_signature_sha1.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_signature_sha1.remediation"),
-		DocsURL:       samlDocsURL,
-		ConsolePath:   samlConsolePath,
-	},
+	Code:           "SAML_SIGNATURE_SHA1",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityInfo,
+	TitleID:        healthcheck.TranslationId("health.rule.saml_signature_sha1.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.saml_signature_sha1.remediation"),
+	DocsURL:        samlDocsURL,
+	ConsolePath:    samlConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -42,15 +40,13 @@ var samlSignatureSHA1 = healthcheck.Rule{
 }
 
 var samlVerifyOff = healthcheck.Rule{
-	Code:     "SAML_VERIFY_OFF",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_verify_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_verify_off.remediation"),
-		DocsURL:       samlDocsURL,
-		ConsolePath:   samlConsolePath,
-	},
+	Code:           "SAML_VERIFY_OFF",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityCritical,
+	TitleID:        healthcheck.TranslationId("health.rule.saml_verify_off.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.saml_verify_off.remediation"),
+	DocsURL:        samlDocsURL,
+	ConsolePath:    samlConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -59,15 +55,13 @@ var samlVerifyOff = healthcheck.Rule{
 }
 
 var samlEncryptOff = healthcheck.Rule{
-	Code:     "SAML_ENCRYPT_OFF",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_encrypt_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_encrypt_off.remediation"),
-		DocsURL:       samlDocsURL,
-		ConsolePath:   samlConsolePath,
-	},
+	Code:           "SAML_ENCRYPT_OFF",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityInfo,
+	TitleID:        healthcheck.TranslationId("health.rule.saml_encrypt_off.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.saml_encrypt_off.remediation"),
+	DocsURL:        samlDocsURL,
+	ConsolePath:    samlConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -76,15 +70,13 @@ var samlEncryptOff = healthcheck.Rule{
 }
 
 var samlIDIsEmail = healthcheck.Rule{
-	Code:     "SAML_ID_IS_EMAIL",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_id_is_email.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_id_is_email.remediation"),
-		DocsURL:       samlDocsURL,
-		ConsolePath:   samlConsolePath,
-	},
+	Code:           "SAML_ID_IS_EMAIL",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityInfo,
+	TitleID:        healthcheck.TranslationId("health.rule.saml_id_is_email.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.saml_id_is_email.remediation"),
+	DocsURL:        samlDocsURL,
+	ConsolePath:    samlConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -93,15 +85,13 @@ var samlIDIsEmail = healthcheck.Rule{
 }
 
 var samlIDMutable = healthcheck.Rule{
-	Code:     "SAML_ID_MUTABLE",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_id_mutable.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_id_mutable.remediation"),
-		DocsURL:       samlDocsURL,
-		ConsolePath:   samlConsolePath,
-	},
+	Code:           "SAML_ID_MUTABLE",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityInfo,
+	TitleID:        healthcheck.TranslationId("health.rule.saml_id_mutable.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.saml_id_mutable.remediation"),
+	DocsURL:        samlDocsURL,
+	ConsolePath:    samlConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
