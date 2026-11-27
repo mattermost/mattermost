@@ -49,6 +49,8 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+		// Render answers through enforcement, which caches decisions; a new mock answers afresh.
+		clearAccessDecisionCache(th)
 		return mockACS
 	}
 
@@ -168,10 +170,11 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Actions:  []string{model.AccessControlPolicyActionDownloadFileAttachment},
 		})
 		require.Nil(t, appErr)
+		// Enforcement denies on an error, and render answers through enforcement, so an
+		// error reads as a plain denial.
 		d := resp.Decisions[model.AccessControlPolicyActionDownloadFileAttachment]
 		require.False(t, d.Allowed)
 		require.True(t, d.Evaluated)
-		require.Equal(t, model.RenderDecisionReasonRestrictedByPolicy, d.Reason)
 	})
 
 	t.Run("builds subject once and evaluates once per action", func(t *testing.T) {
@@ -246,8 +249,16 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		t.Cleanup(func() { th.App.Srv().SetLicense(originalLicense) })
 		mockACS := withMockACS(t)
-		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
-			Return(true, (*model.AppError)(nil))
+		// The channel-access actions are answered by their enforcement gates, which only reach
+		// the PDP when a policy governs the action.
+		for _, action := range []string{
+			model.AccessControlPolicyActionChannelReadAccess,
+			model.AccessControlPolicyActionChannelWriteAccess,
+			model.AccessControlPolicyActionChannelManagementAccess,
+		} {
+			mockACS.On("ActionHasPermissionPolicy", mock.Anything, action).
+				Return(true, (*model.AppError)(nil))
+		}
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
@@ -421,6 +432,7 @@ func TestSearchAllowedActionsExemptsDirectAndGroupChannels(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+		clearAccessDecisionCache(th)
 		return mockACS
 	}
 
@@ -510,4 +522,13 @@ func TestSearchAllowedActionsExemptsDirectAndGroupChannels(t *testing.T) {
 			"only channel_management_access exempts system admins")
 		require.False(t, resp.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
 	})
+}
+
+func TestRenderableActionsFailClosedOnError(t *testing.T) {
+	// SearchAllowedActionsForCurrentUser answers every action through its enforcement
+	// function, which denies on errors; an action that set FailClosedOnError false would
+	// need its own error path back.
+	for action, cfg := range renderableABACActions {
+		require.True(t, cfg.FailClosedOnError, action)
+	}
 }

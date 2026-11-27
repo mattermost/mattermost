@@ -1802,7 +1802,9 @@ func TestListChannelBookmarksForChannelFileInfoABAC(t *testing.T) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 	}).InitBasic(t)
 
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	// The PDP answers only under Enterprise Advanced, which is also what lets a changed
+	// policy drop the decisions cached under the old one.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	mockDownloadDecision := func(t *testing.T, allowed bool) {
@@ -1818,6 +1820,9 @@ func TestListChannelBookmarksForChannelFileInfoABAC(t *testing.T) {
 		t.Cleanup(func() {
 			th.App.Srv().Channels().AccessControl = original
 		})
+		// The mocked policy changed, so drop the decisions cached under the old one, as a
+		// real policy change does.
+		th.App.InvalidateAccessDecisionsForPolicyChange()
 	}
 
 	miniPreview := []byte{1, 2, 3, 4}
@@ -1926,7 +1931,9 @@ func TestChannelBookmarkWriteEndpointsFileInfoABAC(t *testing.T) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 	}).InitBasic(t)
 
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	// The PDP answers only under Enterprise Advanced, which is also what lets a changed
+	// policy drop the decisions cached under the old one.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	mockDownloadDecision := func(t *testing.T, allowed bool) {
@@ -1942,6 +1949,9 @@ func TestChannelBookmarkWriteEndpointsFileInfoABAC(t *testing.T) {
 		t.Cleanup(func() {
 			th.App.Srv().Channels().AccessControl = original
 		})
+		// The mocked policy changed, so drop the decisions cached under the old one, as a
+		// real policy change does.
+		th.App.InvalidateAccessDecisionsForPolicyChange()
 	}
 
 	newBookmarkFile := func(t *testing.T) *model.FileInfo {

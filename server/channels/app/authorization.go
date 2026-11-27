@@ -994,6 +994,12 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 // evaluated with a channel resource — the file actions, create_burn_on_read_post,
 // and any added later.
 // Returns true if allowed (or if ABAC is not active), false if denied.
+//
+// The decision is cached under the subject accessSubjectRefFor picks: the session when
+// userID is the session's user, otherwise the user. roles is not part of that key, and the
+// subject is built from the session's roles or the user's stored roles, not from roles.
+// Callers must therefore pass the session's roles for the session's user, or the user's
+// stored roles otherwise, or the cached and evaluated subjects would disagree.
 func (a *App) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	// Read access has one enforcement path, with its own gates (DM/GM exemption, governance)
 	// and the decision cache. Evaluating it here instead could disagree with what is enforced.
@@ -1014,30 +1020,25 @@ func (a *App) HasPermissionToChannelAction(rctx request.CTX, userID string, role
 		return true
 	}
 
-	var subject *model.Subject
-	var appErr *model.AppError
-	if rctx.Session().UserId == userID {
-		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, channelID)
-	} else {
-		subject, appErr = a.BuildAccessControlSubject(rctx, userID, roles, channelID)
-	}
-	if appErr != nil {
+	ref := accessSubjectRefFor(rctx, userID)
+	var buildErr error
+	decision, evalErr := a.evaluateAccessCached(rctx, ref,
+		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
+		action,
+		func() (model.Subject, error) {
+			subject, err := a.channelAccessSubject(rctx, ref, channelID, true)
+			buildErr = err
+			return subject, err
+		},
+	)
+	if buildErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for channel action evaluation",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
-			mlog.Err(appErr),
+			mlog.Err(buildErr),
 		)
 		return false
 	}
-
-	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject: *subject,
-		Resource: model.Resource{
-			Type: model.AccessControlPolicyTypeChannel,
-			ID:   channelID,
-		},
-		Action: action,
-	})
 	if evalErr != nil {
 		rctx.Logger().Debug("ABAC channel action evaluation failed, denying by default",
 			mlog.String("user_id", userID),

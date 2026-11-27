@@ -442,8 +442,9 @@ func TestCreateScheduledPost(t *testing.T) {
 // so scheduling and updating are where the upload_file_attachment policy applies.
 func TestScheduledPostUploadFileAttachmentABACEnforcement(t *testing.T) {
 	mainHelper.Parallel(t)
+	// Keep the helper's Enterprise Advanced license: it covers scheduled posts, and the decision
+	// cache drops entries on a policy change only under it.
 	th := setupUploadFileAttachmentABAC(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	newScheduledPost := func(fileIDs ...string) *model.ScheduledPost {
 		return &model.ScheduledPost{

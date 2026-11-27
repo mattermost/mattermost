@@ -496,6 +496,10 @@ func TestGenerateFlaggedPostReportFileDownloadPolicy(t *testing.T) {
 		// Only the decision under test is pinned; unrelated evaluations must not trip the mock.
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+
+		// The mocked policy changed, so drop the decisions cached under the old one, as a
+		// real policy change does.
+		th.App.InvalidateAccessDecisionsForPolicyChange()
 	}
 
 	t.Run("Should include attachments when the download policy allows the reviewer", func(t *testing.T) {
@@ -681,6 +685,12 @@ func TestGenerateFlaggedPostReportEvaluatesSessionAttributes(t *testing.T) {
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil)).Maybe()
+
+		// setVPNActive wrote the session attribute straight to the store, past the app's
+		// session attribute refresh, so drop the decisions cached under the old value as that
+		// refresh would. Invalidations are skipped while no access control service is
+		// installed, so this runs once the mock is.
+		th.App.Srv().Channels().InvalidateAccessDecisionsForSession(session.Id, false)
 	}
 
 	t.Run("Should include attachments when the session attribute satisfies the policy", func(t *testing.T) {

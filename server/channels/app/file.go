@@ -1609,30 +1609,15 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.
 		return nil, nil
 	}
 
-	var subject *model.Subject
-	var appErr *model.AppError
-	if rctx.Session().UserId == userID {
-		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
-	} else {
-		user, err := a.GetUser(rctx, userID)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get user for file download permission filtering",
-				mlog.String("user_id", userID),
-				mlog.Err(err),
-			)
-			return nil, err
-		}
-		// channelID is intentionally empty here: the subject is reused across many
-		// channels in the file-search loop. hasFileDownloadPermission attaches the
-		// channel-scoped role per-evaluation via attachChannelScopedRole.
-		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
-	}
+	// The subject hasFileDownloadPermission caches decisions under, built once for every
+	// channel in the search. Its channel-scoped role is attached per evaluation.
+	subject, appErr := a.channelAccessBaseSubject(rctx, accessSubjectRefFor(rctx, userID))
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),
 			mlog.Err(appErr),
 		)
-		return nil, appErr
+		return nil, model.AsAppError(appErr)
 	}
 	return subject, nil
 }
@@ -1681,7 +1666,21 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
-	subjectForChannel, attachErr := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+	// The same cache entries the file endpoints use (HasPermissionToChannelAction): subject
+	// was built for the same ref, by buildFileDownloadSubject.
+	var attachErr *model.AppError
+	decision, evalErr := a.evaluateAccessCached(rctx, accessSubjectRefFor(rctx, userID),
+		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
+		model.AccessControlPolicyActionDownloadFileAttachment,
+		func() (model.Subject, error) {
+			subjectForChannel, err := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+			if err != nil {
+				attachErr = err
+				return model.Subject{}, err
+			}
+			return subjectForChannel, nil
+		},
+	)
 	if attachErr != nil {
 		// Channel-role lookup failed (e.g. transient ChannelMember store
 		// error). Fail-secure: refuse access rather than evaluating against
@@ -1689,11 +1688,6 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		// emitted by attachChannelScopedRole.
 		return false
 	}
-	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject:  subjectForChannel,
-		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
-		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
-	})
 	if evalErr != nil {
 		rctx.Logger().Warn("ABAC file download evaluation failed during search, denying",
 			mlog.String("user_id", userID),

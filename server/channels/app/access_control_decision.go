@@ -8,7 +8,6 @@ import (
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -16,8 +15,9 @@ import (
 type renderableActionConfig struct {
 	ResourceType        string
 	DefaultWhenInactive bool
-	// FailClosedOnError returns denied+evaluated on subject-build or PDP errors
-	// rather than falling back to DefaultWhenInactive. Set for security-sensitive actions.
+	// FailClosedOnError records that a subject-build or PDP error answers denied+evaluated
+	// rather than DefaultWhenInactive. Every action is answered by its enforcement function,
+	// which denies on errors, so every action must set it.
 	FailClosedOnError bool
 }
 
@@ -61,13 +61,13 @@ var renderableABACActions = map[string]renderableActionConfig{
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
-// decisions for the current session user on a single resource. It mirrors the
-// enforcement path (BuildAccessControlSubjectForSession + AccessEvaluation with
-// the same Resource shape) so a render "allowed" can never disagree with what
-// enforcement would decide. channel_read_access is answered by its enforcement
-// gate outright, since that gate decides more than the PDP does. Results MUST NOT
-// be used to authorize an action; the protected endpoints always re-evaluate the
-// PDP live.
+// decisions for the current session user on a single resource. Each action is
+// answered by its enforcement function (HasChannelReadAccessByID,
+// channelWriteAccessDecisionByID, channelManagementAccessDecisionByID,
+// HasPermissionToChannelAction), so a render "allowed" can never disagree with what
+// enforcement would decide, and both share the decision cache's entries. Results
+// MUST NOT be used to authorize an action; the protected endpoints always check
+// again, from the decision cache or the PDP.
 //
 // When req.Actions is nil/empty the function operates in discovery mode: it
 // evaluates all renderable actions registered for the resource type and returns
@@ -141,15 +141,18 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		return true
 	}
 
-	var subject *model.Subject
-	var subjectErr *model.AppError
+	// Every action is answered by its enforcement function, so render and enforcement read
+	// and fill the same decision-cache entries with the same subject. The memo builds the
+	// session's subject once for the whole request.
+	rctx = WithChannelAccessMemo(rctx)
+	userID := rctx.Session().UserId
 	for _, action := range candidates {
 		if action == model.AccessControlPolicyActionChannelReadAccess {
 			// Its enforcement gate also exempts DMs and GMs, requires Enterprise Advanced,
 			// and allows without evaluating when no policy governs the action, so a bare
 			// PDP call would disagree with enforcement on each of those.
 			record(action, model.RenderPermissionDecision{
-				Allowed:   a.HasChannelReadAccessByID(rctx, rctx.Session().UserId, req.Resource.ID),
+				Allowed:   a.HasChannelReadAccessByID(rctx, userID, req.Resource.ID),
 				Evaluated: true,
 			})
 			continue
@@ -170,38 +173,19 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 			continue
 		}
 
-		// Built once, by the first action the PDP answers.
-		if subject == nil && subjectErr == nil {
-			subject, subjectErr = a.BuildAccessControlSubjectForSession(rctx, channelID)
-			if subjectErr != nil {
-				rctx.Logger().Info("Failed to build ABAC subject for render-decision search",
-					mlog.String("resource_type", req.Resource.Type),
-					mlog.String("resource_id", req.Resource.ID),
-					mlog.Err(subjectErr),
-				)
-			}
-		}
-		if subjectErr != nil {
-			record(action, renderDecisionOnError(action))
-			continue
-		}
-
-		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-			Subject:  *subject,
-			Resource: req.Resource,
-			Action:   action,
-		})
-		if evalErr != nil {
-			rctx.Logger().Debug("ABAC render-decision evaluation failed",
-				mlog.String("action", action),
-				mlog.String("resource_id", req.Resource.ID),
-				mlog.Err(evalErr),
-			)
-			record(action, renderDecisionOnError(action))
-			continue
+		// An enforcement function denies on a subject-build or PDP error, which is what
+		// FailClosedOnError asks for; every renderable action sets it.
+		var allowed bool
+		switch action {
+		case model.AccessControlPolicyActionChannelWriteAccess:
+			allowed = a.channelWriteAccessDecisionByID(rctx, userID, channelID)
+		case model.AccessControlPolicyActionChannelManagementAccess:
+			allowed = a.channelManagementAccessDecisionByID(rctx, userID, channelID)
+		default:
+			allowed = a.HasPermissionToChannelAction(rctx, userID, rctx.Session().Roles, channelID, action)
 		}
 		record(action, model.RenderPermissionDecision{
-			Allowed:   decision.Decision,
+			Allowed:   allowed,
 			Evaluated: true,
 		})
 	}
@@ -215,22 +199,4 @@ func (a *App) channelAccessExemptByID(rctx request.CTX, channelID string) bool {
 		return false
 	}
 	return channelAccessExempt(channel)
-}
-
-// renderDecisionOnError returns the conservative decision for an action whose
-// subject build or PDP evaluation failed: fail closed (deny + generic reason)
-// for security-sensitive actions, otherwise fall back to the inactive default.
-func renderDecisionOnError(action string) model.RenderPermissionDecision {
-	cfg := renderableABACActions[action]
-	if cfg.FailClosedOnError {
-		return model.RenderPermissionDecision{
-			Allowed:   false,
-			Evaluated: true,
-			Reason:    model.RenderDecisionReasonRestrictedByPolicy,
-		}
-	}
-	return model.RenderPermissionDecision{
-		Allowed:   cfg.DefaultWhenInactive,
-		Evaluated: true,
-	}
 }

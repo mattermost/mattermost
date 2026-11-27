@@ -1062,6 +1062,8 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		defer func() { th.App.Srv().ch.AccessControl = original }()
+		// A new mocked policy: drop the decisions cached under the previous one.
+		clearAccessDecisionCache(th)
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Resource.ID == th.BasicChannel.Id && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
@@ -1089,6 +1091,8 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		defer func() { th.App.Srv().ch.AccessControl = original }()
+		// A new mocked policy: drop the decisions cached under the previous one.
+		clearAccessDecisionCache(th)
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Resource.ID == th.BasicChannel.Id && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
@@ -1114,6 +1118,8 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		defer func() { th.App.Srv().ch.AccessControl = original }()
+		// A new mocked policy: drop the decisions cached under the previous one.
+		clearAccessDecisionCache(th)
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{}, model.NewAppError("test", "test.error", nil, "", 500))
@@ -1138,6 +1144,8 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		defer func() { th.App.Srv().ch.AccessControl = original }()
+		// A new mocked policy: drop the decisions cached under the previous one.
+		clearAccessDecisionCache(th)
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Resource.ID == th.BasicChannel.Id
@@ -1167,6 +1175,8 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		defer func() { th.App.Srv().ch.AccessControl = original }()
+		// A new mocked policy: drop the decisions cached under the previous one.
+		clearAccessDecisionCache(th)
 
 		fileList := model.NewFileInfoList()
 		fi := &model.FileInfo{

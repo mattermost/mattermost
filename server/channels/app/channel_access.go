@@ -530,7 +530,7 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 
 	userID := ref.userID
 	var buildErr error
-	decision, evalErr := a.evaluateAccessCached(rctx, channelAccessCacheRef(ref, action),
+	decision, evalErr := a.evaluateAccessCached(rctx, ref,
 		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channel.Id},
 		action,
 		func() (model.Subject, error) {
@@ -647,7 +647,6 @@ func (a *App) prepareChannelAccess(rctx request.CTX, userID string, channels []*
 	}
 
 	ref := accessSubjectRefFor(rctx, userID)
-	cacheRef := channelAccessCacheRef(ref, action)
 	var channelIDs []string
 	for _, channel := range channels {
 		if channel == nil || channelAccessExempt(channel) {
@@ -665,7 +664,7 @@ func (a *App) prepareChannelAccess(rctx request.CTX, userID string, channels []*
 		}
 		// A cached decision needs no subject, so its role isn't fetched. byChannelPolicy
 		// implies governed, so this is the answer hasChannelAccess would reach.
-		if allowed, hit := a.peekAccessDecision(cacheRef, model.AccessControlPolicyTypeChannel, channel.Id, action); hit {
+		if allowed, hit := a.peekAccessDecision(ref, model.AccessControlPolicyTypeChannel, channel.Id, action); hit {
 			memo.set(key, allowed)
 			continue
 		}

@@ -5749,6 +5749,8 @@ func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
 		original := th.App.Srv().ch.AccessControl
 		th.App.Srv().ch.AccessControl = mockACS
 		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+		// A new mocked policy: drop the decisions cached under the previous one.
+		clearAccessDecisionCache(th)
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionUploadFileAttachment && req.Resource.ID == deniedChannelID
