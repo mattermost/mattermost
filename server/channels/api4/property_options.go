@@ -39,7 +39,7 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 		return nil, nil
 	}
 
-	if !requireChannelAttributeLicense(c, group, callerName, c.Params.ObjectType) {
+	if !requireResourceAttributeLicense(c, group, callerName, c.Params.ObjectType) {
 		return nil, nil
 	}
 
@@ -64,7 +64,7 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 		return nil, nil
 	}
 
-	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, field, callerName) {
+	if !requireResourceAttributeLicenseForTemplate(c, rctx, group, field, callerName) {
 		return nil, nil
 	}
 

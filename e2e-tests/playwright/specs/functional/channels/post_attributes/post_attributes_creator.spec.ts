@@ -45,7 +45,7 @@ test.afterEach(async ({pw}) => {
  * payload the console sends.
  *
  * @precondition The PostAttributes feature flag is enabled, and the server has an
- * Enterprise-level licence (Entry counts).
+ * Enterprise Advanced licence (Entry counts).
  */
 test(
     'lets the author and a channel admin set a console-created post field, not another member',

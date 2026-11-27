@@ -24,8 +24,7 @@ func setupPostPropertyTest(t *testing.T) *postPropertyTestHelper {
 		cfg.FeatureFlags.PostAttributes = true
 	}).InitBasic(t)
 
-	// access_control answers only to an Enterprise licence, in the API and in its hooks.
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -154,6 +153,9 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		})
 
 		t.Run("session_attributes stays gated", func(t *testing.T) {
+			th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+			t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)) })
+
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
 				model.GetPostOptions{PropertyGroup: model.SessionAttributesPropertyGroupName})
 			require.Error(t, err)

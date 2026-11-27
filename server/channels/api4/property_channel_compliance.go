@@ -28,7 +28,7 @@ func resolveChannelAttributeComplianceGroup(c *Context, callerName string) *mode
 		return nil
 	}
 
-	if !requireChannelAttributeLicense(c, group, callerName, c.Params.ObjectType) {
+	if !requireResourceAttributeLicense(c, group, callerName, c.Params.ObjectType) {
 		return nil
 	}
 

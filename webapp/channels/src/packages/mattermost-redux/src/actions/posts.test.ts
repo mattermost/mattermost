@@ -1836,7 +1836,7 @@ describe('post attribute hydration', () => {
         }));
     }
 
-    function storeWithFlag(enabled: boolean, preferences: Record<string, PreferenceType> = {}, license: Record<string, string> = {IsLicensed: 'true', SkuShortName: 'enterprise'}) {
+    function storeWithFlag(enabled: boolean, preferences: Record<string, PreferenceType> = {}, license: Record<string, string> = {IsLicensed: 'true', SkuShortName: 'advanced'}) {
         return configureStore({
             entities: {
                 general: {
@@ -1908,8 +1908,8 @@ describe('post attribute hydration', () => {
         expect(sentGroups()).toEqual(new Array(calls).fill(undefined));
     });
 
-    it.each(surfaces)('%s asks for nothing when the flag is on but the licence is Professional', async (_name, action, calls) => {
-        const store = storeWithFlag(true, {}, {IsLicensed: 'true', SkuShortName: 'professional'});
+    it.each(surfaces)('%s asks for nothing when the flag is on but the licence is Enterprise', async (_name, action, calls) => {
+        const store = storeWithFlag(true, {}, {IsLicensed: 'true', SkuShortName: 'enterprise'});
 
         await store.dispatch(action());
 

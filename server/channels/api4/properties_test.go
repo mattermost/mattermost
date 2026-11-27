@@ -178,8 +178,7 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 		cfg.FeatureFlags.PostAttributes = true
 	}).InitBasic(t)
 
-	// access_control answers only to an Enterprise licence.
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	groupName := model.AccessControlPropertyGroupName
 
@@ -8729,6 +8728,161 @@ func TestChannelAttributesRequireEnterpriseAdvanced(t *testing.T) {
 
 		_, _, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, optionsOnlyPatch)
 		require.NoError(t, err)
+	})
+}
+
+func TestPostAttributesRequireEnterpriseAdvanced(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostAttributes = true
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	groupName := model.AccessControlPropertyGroupName
+	field, _, err := th.SystemAdminClient.CreatePropertyField(context.Background(), groupName, model.PropertyFieldObjectTypePost, &model.PropertyField{
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)) })
+
+	requireRefused := func(t *testing.T, resp *model.Response, err error) {
+		t.Helper()
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.post_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	}
+
+	t.Run("creating a post field is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), groupName, model.PropertyFieldObjectTypePost, &model.PropertyField{
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		requireRefused(t, resp, err)
+	})
+
+	t.Run("listing post fields is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyFieldObjectTypePost, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		requireRefused(t, resp, err)
+	})
+
+	t.Run("reading post values is refused", func(t *testing.T) {
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), groupName, model.PropertyFieldObjectTypePost, th.BasicPost.Id, model.PropertyValueSearch{PerPage: 100})
+		requireRefused(t, resp, err)
+	})
+
+	t.Run("writing post values is refused", func(t *testing.T) {
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), groupName, model.PropertyFieldObjectTypePost, th.BasicPost.Id, []model.PropertyValuePatchItem{
+			{FieldID: field.ID, Value: json.RawMessage(`"x"`)},
+		})
+		requireRefused(t, resp, err)
+	})
+
+	t.Run("searching post fields alongside user fields is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.SearchPropertyFields(context.Background(), groupName, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypePost},
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			PerPage:     100,
+		})
+		requireRefused(t, resp, err)
+	})
+
+	t.Run("patching and deleting a post field are refused and leave it untouched", func(t *testing.T) {
+		newName := celSafeName()
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypePost, field.ID, &model.PropertyFieldPatch{Name: &newName})
+		requireRefused(t, resp, err)
+
+		resp, err = th.SystemAdminClient.DeletePropertyField(context.Background(), groupName, model.PropertyFieldObjectTypePost, field.ID)
+		requireRefused(t, resp, err)
+
+		stored, appErr := th.App.GetPropertyField(th.Context, field.GroupID, field.ID)
+		require.Nil(t, appErr)
+		assert.Equal(t, field.Name, stored.Name)
+		assert.Zero(t, stored.DeleteAt)
+	})
+
+	t.Run("post field options are refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypePost, field.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		requireRefused(t, resp, err)
+
+		_, resp, err = th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypePost, field.ID, []*model.PropertyFieldOption{
+			{Name: "x"},
+		})
+		requireRefused(t, resp, err)
+	})
+
+	t.Run("a template serving a post field is refused", func(t *testing.T) {
+		group, appErr := th.App.GetPropertyGroup(th.Context, groupName)
+		require.Nil(t, appErr)
+		template, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "alpha"}},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		_, appErr = th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeSelect,
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypePost,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		_, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		requireRefused(t, resp, err)
+
+		_, resp, err = th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "beta"}},
+		}})
+		requireRefused(t, resp, err)
+
+		resp, err = th.SystemAdminClient.DeletePropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID)
+		requireRefused(t, resp, err)
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, template.ID)
+		require.Nil(t, appErr)
+		assert.Zero(t, stored.DeleteAt)
+	})
+
+	t.Run("user attributes in the same group are unaffected", func(t *testing.T) {
+		_, _, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyFieldObjectTypeUser, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("Enterprise Advanced is admitted", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		fields, _, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyFieldObjectTypePost, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		require.NoError(t, err)
+		ids := make([]string, 0, len(fields))
+		for _, f := range fields {
+			ids = append(ids, f.ID)
+		}
+		assert.Contains(t, ids, field.ID)
 	})
 }
 

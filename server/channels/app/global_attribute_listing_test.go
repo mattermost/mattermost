@@ -246,7 +246,7 @@ func TestSearchGlobalAttributeListingGating(t *testing.T) {
 							setListingLicense(t, th, l.license)
 
 							channelAllowed := channelFlag && l.advanced
-							postAllowed := postFlag
+							postAllowed := postFlag && l.advanced
 							classificationReachable := classificationFlag && l.advanced
 
 							listing := env.mustSearch()

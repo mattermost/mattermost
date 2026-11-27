@@ -709,7 +709,7 @@ describe('components/dot_menu/DotMenu', () => {
                             ...initialState.entities!.general!.config,
                             FeatureFlagPostAttributes: flag ? 'true' : 'false',
                         },
-                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                        license: {IsLicensed: 'true', SkuShortName: 'advanced'},
                     },
                     channels: {
                         ...initialState.entities!.channels,

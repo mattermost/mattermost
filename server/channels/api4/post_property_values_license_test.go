@@ -101,8 +101,7 @@ func getStatus(t *testing.T, th *postPropertyTestHelper, path string) (int, stri
 }
 
 // TestPostReadPropertyGroupLicenseGate covers the 501 that stops a post read from asking
-// to hydrate access_control without an Enterprise licence. Without it the licence hook
-// refuses every hydration read and every post comes back property_values_unavailable.
+// to hydrate access_control without an Enterprise Advanced licence.
 func TestPostReadPropertyGroupLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -119,8 +118,16 @@ func TestPostReadPropertyGroupLicenseGate(t *testing.T) {
 				assert.Equal(t, postAttributesLicenseErrorID, id)
 			})
 
-			t.Run("licensed with access_control is served", func(t *testing.T) {
+			t.Run("Enterprise with access_control is refused with 501", func(t *testing.T) {
 				th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+				status, id := getStatus(t, th, withGroup(path))
+				require.Equal(t, http.StatusNotImplemented, status)
+				assert.Equal(t, postAttributesLicenseErrorID, id)
+			})
+
+			t.Run("Enterprise Advanced with access_control is served", func(t *testing.T) {
+				th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 				status, _ := getStatus(t, th, withGroup(path))
 				assert.Equal(t, http.StatusOK, status)
@@ -143,9 +150,9 @@ func TestPostReadPropertyGroupLicenseGate(t *testing.T) {
 	}
 }
 
-// TestPostReadPropertyGroupLicenseTier pins which licences count as Enterprise for the
-// gate: it follows model.MinimumEnterpriseLicense, which accepts Entry (tier 30) because
-// the tier number sits above Enterprise (20), and rejects Professional (10).
+// TestPostReadPropertyGroupLicenseTier pins which licences the gate admits: it follows
+// model.MinimumEnterpriseAdvancedLicense, which accepts Entry because it shares the
+// Enterprise Advanced tier (30), and rejects Enterprise (20) and Professional (10).
 func TestPostReadPropertyGroupLicenseTier(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -155,7 +162,7 @@ func TestPostReadPropertyGroupLicenseTier(t *testing.T) {
 		expected int
 	}{
 		{"professional is refused", model.NewTestLicenseSKU(model.LicenseShortSkuProfessional), http.StatusNotImplemented},
-		{"enterprise is served", model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise), http.StatusOK},
+		{"enterprise is refused", model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise), http.StatusNotImplemented},
 		{"entry is served", model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry), http.StatusOK},
 		{"enterprise advanced is served", model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced), http.StatusOK},
 		// NewTestLicense leaves the SKU empty, which maps to no tier.

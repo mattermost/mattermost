@@ -1368,7 +1368,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                         config: {
                             FeatureFlagPostAttributes: flag,
                         },
-                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                        license: {IsLicensed: 'true', SkuShortName: 'advanced'},
                     },
                     properties: {
                         fields: {
@@ -1831,7 +1831,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     config: {
                         FeatureFlagPostAttributes: 'true',
                     },
-                    license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
                 },
                 properties: {
                     fields: {

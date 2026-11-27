@@ -17,12 +17,10 @@ import type {ResourceObjectType} from './attribute_details/attribute_applies_to_
 // Posts order. Shared by the listing table and the details page so both pages
 // offer, fetch, and display exactly the same set.
 //
-// Global Attributes is Enterprise, but a channel attribute is refused below
-// Enterprise Advanced (the server 501s a channel-scoped access_control
-// request), so Channels needs the licence as well as its flag. Posts is gated
-// by isPostAttributesEnabled: the PostAttributes flag plus the minimum
-// Enterprise licence, because the server refuses post requests in the
-// access_control group below that.
+// Global Attributes is Enterprise, but channel and post attributes are refused
+// below Enterprise Advanced (the server 501s a channel- or post-scoped
+// access_control request), so Channels needs the licence as well as its flag,
+// and Posts is gated by isPostAttributesEnabled, which checks both.
 export default function useAllowedResourceTypes(): ResourceObjectType[] {
     const channelAttributesEnabled = useSelector((state: GlobalState) =>
         isChannelAttributesEnabled(state) && isMinimumEnterpriseAdvancedLicense(getLicense(state)));

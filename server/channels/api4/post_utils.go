@@ -148,6 +148,9 @@ func postAttributeValuesForCreate(c *Context, post *model.Post) ([]*model.Proper
 	if !c.App.Config().FeatureFlags.PostAttributes {
 		return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 	}
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		return nil, model.NewAppError("Api4.createPost", "api.property.post_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+	}
 
 	// Fetched only once there are values to check: the team ID decides which team-scoped
 	// fields apply. CreatePostAsUserWithFlags reads the same channel again a moment later.

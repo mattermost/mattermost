@@ -4281,8 +4281,8 @@
   },
   {
     "id": "api.property.post_attributes.license.app_error",
-    "translation": "Post attributes require an Enterprise license.",
-    "description": "API error when posts are read with the access_control property group (post attributes) on a server without an Enterprise license."
+    "translation": "Post attributes require an Enterprise Advanced license.",
+    "description": "API error when post attributes (custom fields admins define for posts) are read, written or managed on a server without the required license. 'Enterprise Advanced' is a Mattermost license tier name; keep it in English."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
