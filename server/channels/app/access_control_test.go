@@ -6568,10 +6568,12 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 		return th.App.Srv().Channels(), mockACP, mockAttributes
 	}
 
-	t.Run("clears both caches when ABAC is switched on", func(t *testing.T) {
+	t.Run("clears the render and attribute caches when ABAC is switched on", func(t *testing.T) {
 		ch, mockACP, mockAttributes := setup(t)
 		mockACP.On("ClearEtagCache").Once()
 		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+		mockAttributes.On("ClearUserAttributesCache").Once()
+		mockAttributes.On("ClearChannelAttributesCache").Once()
 
 		ch.clearABACRenderCachesOnFlip(newConfig(false), newConfig(true))
 
@@ -6579,10 +6581,12 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 		mockAttributes.AssertExpectations(t)
 	})
 
-	t.Run("clears both caches when ABAC is switched off", func(t *testing.T) {
+	t.Run("clears the render and attribute caches when ABAC is switched off", func(t *testing.T) {
 		ch, mockACP, mockAttributes := setup(t)
 		mockACP.On("ClearEtagCache").Once()
 		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+		mockAttributes.On("ClearUserAttributesCache").Once()
+		mockAttributes.On("ClearChannelAttributesCache").Once()
 
 		ch.clearABACRenderCachesOnFlip(newConfig(true), newConfig(false))
 
@@ -6601,5 +6605,7 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 
 		mockACP.AssertNotCalled(t, "ClearEtagCache")
 		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
+		mockAttributes.AssertNotCalled(t, "ClearUserAttributesCache")
+		mockAttributes.AssertNotCalled(t, "ClearChannelAttributesCache")
 	})
 }

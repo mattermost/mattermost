@@ -840,6 +840,21 @@ func (s *TimerLayerAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.C
 	return result, err
 }
 
+func (s *TimerLayerAttributesStore) ClearChannelAttributesCache() {
+	start := time.Now()
+
+	s.AttributesStore.ClearChannelAttributesCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.ClearChannelAttributesCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAttributesStore) ClearUserAttributesCache() {
 	start := time.Now()
 
@@ -948,6 +963,21 @@ func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX,
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetUserPropertyValuesEpoch", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAttributesStore) InvalidateChannelAttributes(channelID string) {
+	start := time.Now()
+
+	s.AttributesStore.InvalidateChannelAttributes(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.InvalidateChannelAttributes", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAttributesStore) InvalidateUserAttributes(userID string) {

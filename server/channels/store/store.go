@@ -1422,6 +1422,16 @@ type AttributesStore interface {
 	// that can affect many users at once (e.g. deleting a field). No-op outside the local cache
 	// layer.
 	ClearUserAttributesCache()
+
+	// InvalidateChannelAttributes drops the cached channel-attributes Subject for a single
+	// channel. Call after that channel's property values change. No-op outside the local cache
+	// layer.
+	InvalidateChannelAttributes(channelID string)
+
+	// ClearChannelAttributesCache drops all cached channel-attributes Subjects. Call after a
+	// change that can affect many channels at once (e.g. deleting a field). No-op outside the
+	// local cache layer.
+	ClearChannelAttributesCache()
 }
 
 type SessionAttributeStore interface {

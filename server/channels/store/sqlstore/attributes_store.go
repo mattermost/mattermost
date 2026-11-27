@@ -386,10 +386,12 @@ func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID
 func (s *SqlAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {}
 func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
 
-// No-op at the SQL layer; the user-attributes Subject is cached in and invalidated by the local
-// cache layer.
-func (s *SqlAttributesStore) InvalidateUserAttributes(userID string) {}
-func (s *SqlAttributesStore) ClearUserAttributesCache()              {}
+// No-op at the SQL layer; the user- and channel-attributes Subjects are cached in and
+// invalidated by the local cache layer.
+func (s *SqlAttributesStore) InvalidateUserAttributes(userID string)       {}
+func (s *SqlAttributesStore) ClearUserAttributesCache()                    {}
+func (s *SqlAttributesStore) InvalidateChannelAttributes(channelID string) {}
+func (s *SqlAttributesStore) ClearChannelAttributesCache()                 {}
 
 // teamMembersToRemoveQuery renders GetTeamMembersToRemove's query.
 func (s *SqlAttributesStore) teamMembersToRemoveQuery(teamID string, opts model.SubjectSearchOptions) (string, []any, error) {

@@ -19,6 +19,11 @@ type AttributesStore struct {
 	mock.Mock
 }
 
+// ClearChannelAttributesCache provides a mock function with no fields
+func (_m *AttributesStore) ClearChannelAttributesCache() {
+	_m.Called()
+}
+
 // ClearUserAttributesCache provides a mock function with no fields
 func (_m *AttributesStore) ClearUserAttributesCache() {
 	_m.Called()
@@ -173,6 +178,11 @@ func (_m *AttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID s
 	}
 
 	return r0, r1
+}
+
+// InvalidateChannelAttributes provides a mock function with given fields: channelID
+func (_m *AttributesStore) InvalidateChannelAttributes(channelID string) {
+	_m.Called(channelID)
 }
 
 // InvalidateUserAttributes provides a mock function with given fields: userID

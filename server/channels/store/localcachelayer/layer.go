@@ -113,6 +113,11 @@ const (
 	// AccessControlSettings.DecisionCacheMaxAgeSeconds, the bound decisions already have. It is
 	// a constant because the cache layer receives no config.
 	UserAttributesCacheSec = 60
+
+	// ChannelAttributesCacheSize mirrors the user attributes cache: per-channel CPA attribute
+	// blobs, read by rules on resource.attributes.*. Entries expire after
+	// UserAttributesCacheSec, for the same reason.
+	ChannelAttributesCacheSize = 25000
 )
 
 var clearCacheMessageData = []byte("")
@@ -203,6 +208,7 @@ type LocalCacheStore struct {
 	attributes                   LocalCacheAttributesStore
 	userPropertyValuesEpochCache cache.Cache
 	userAttributesCache          cache.Cache
+	channelAttributesCache       cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -588,6 +594,16 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+
+	// Channel attributes (CPA), for rules on resource.attributes.*
+	if localCacheStore.channelAttributesCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ChannelAttributesCacheSize,
+		Name:                   "ChannelAttributes",
+		DefaultExpiry:          UserAttributesCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelAttributes,
+	}); err != nil {
+		return
+	}
 	localCacheStore.attributes = LocalCacheAttributesStore{AttributesStore: baseStore.Attributes(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -626,6 +642,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAccessControlPolicyEtag, localCacheStore.accessControlPolicy.handleClusterInvalidateAccessControlPolicyEtag)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch, localCacheStore.attributes.handleClusterInvalidateUserPropertyValuesEpoch)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAttributes, localCacheStore.attributes.handleClusterInvalidateUserAttributes)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelAttributes, localCacheStore.attributes.handleClusterInvalidateChannelAttributes)
 	}
 	return
 }
@@ -862,6 +879,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.accessControlPolicyEtagCache)
 	s.doClearCacheCluster(s.userPropertyValuesEpochCache)
 	s.doClearCacheCluster(s.userAttributesCache)
+	s.doClearCacheCluster(s.channelAttributesCache)
 }
 
 // allocateCacheTargets is used to fill target value types
