@@ -1,12 +1,14 @@
 @use "utils/functions";
 
 .modal {
-    .channel-switcher,
     .channel-invite {
         &.modal-dialog {
             margin-top: calc(50vh - 240px);
         }
+    }
 
+    .channel-switcher,
+    .channel-invite {
         .modal-header {
             padding-top: 26px;
             padding-right: 32px;
@@ -32,7 +34,6 @@
 
     .channel-switcher__suggestion-box {
         position: relative;
-        height: 362px;
         padding: 0;
 
         .input-wrapper {

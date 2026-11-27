@@ -23,6 +23,9 @@ export interface Props {
     results: SuggestionResults;
     selection: string;
 
+    // Optional override for the maximum height of the suggestion list.
+    maxHeight?: number;
+
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
     suggestionBoxAlgn?: {
@@ -59,7 +62,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (hasResults(this.props.results) && !hasResults(prevProps.results)) {
+        if (this.props.maxHeight !== prevProps.maxHeight || (hasResults(this.props.results) && !hasResults(prevProps.results))) {
             this.updateMaxHeight();
         }
     }
@@ -73,7 +76,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
         this.maxHeight = Math.min(
             window.innerHeight - (inputHeight + Constants.POST_MODAL_PADDING),
-            Constants.SUGGESTION_LIST_MAXHEIGHT,
+            this.props.maxHeight ?? Constants.SUGGESTION_LIST_MAXHEIGHT,
         );
 
         if (this.contentRef.current) {
