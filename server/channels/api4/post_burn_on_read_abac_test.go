@@ -66,6 +66,9 @@ func denyBurnOnReadPolicy(th *TestHelper) {
 	denyACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
 	ungovernedChannelAccess(denyACS)
+	// The policy tightened, so drop the allow cached under the old one, as a real policy
+	// change does.
+	th.App.InvalidateAccessDecisionsForPolicyChange()
 }
 
 func burnOnReadScheduledPost(th *TestHelper) *model.ScheduledPost {

@@ -2851,6 +2851,10 @@ func setupUploadFileAttachmentABAC(t *testing.T) *TestHelper {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
+	// The PDP answers only under Enterprise Advanced, which is also what lets a changed
+	// policy drop the decisions cached under the old one.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 	return th
 }
 
@@ -2877,6 +2881,10 @@ func mockUploadFileAttachmentPolicy(t *testing.T, th *TestHelper, deniedChannelI
 		Return(nil, (*model.AppError)(nil)).Maybe()
 	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
 		Return((*model.AppError)(nil)).Maybe()
+
+	// The mocked policy changed, so drop the decisions cached under the old one, as a real
+	// policy change does.
+	th.App.InvalidateAccessDecisionsForPolicyChange()
 
 	return mockACS
 }

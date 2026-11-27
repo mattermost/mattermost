@@ -6649,6 +6649,10 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
+	// The PDP answers only under Enterprise Advanced, which is also what lets a changed
+	// policy drop the decisions cached under the old one.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 	createPostWithFile := func(t *testing.T) *model.Post {
 		t.Helper()
 
@@ -6681,6 +6685,9 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 		t.Cleanup(func() {
 			th.App.Srv().Channels().AccessControl = original
 		})
+		// The mocked policy changed, so drop the decisions cached under the old one, as a
+		// real policy change does.
+		th.App.InvalidateAccessDecisionsForPolicyChange()
 
 		return mockACS
 	}
