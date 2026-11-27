@@ -2,6 +2,8 @@
 """Tests for release resolution, release-diff notes, doc links and reviewer routing."""
 
 import json
+import os
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -266,53 +268,112 @@ class DerivedNotesTest(unittest.TestCase):
         self.assertEqual(cr.derived_notes("", "origin/release-12.1"), [])
 
 
-BENCHMARK_REPORT = """# v12.0 Performance Comparison
+FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "performance-comparisons")
 
-### Supported users in unbounded test
 
-| v11.7.0 | v12.0.0 | Change |
-|---|---|---|
-| 16533 | 15820 | \\-4.31% |
+def performance_readme(short):
+    """The real performance comparison README of a release, as published in mattermost/performance-reports."""
+    with open(os.path.join(FIXTURES, f"{short}-README.md"), encoding="utf-8") as f:
+        return f.read()
 
-### Other results
-| 1 | 2 | 100% |
-"""
+
+V121, V120 = performance_readme("v12.1"), performance_readme("v12.0")
+REPO_API = '{"default_branch": "main", "private": false}'
+
+
+def reports(by_version, repo=REPO_API):
+    """A fake anonymous fetch: the repository's metadata, and each release's README (None: no folder)."""
+    def fetch(url):
+        if url == cr.BENCHMARK_REPO_API:
+            if isinstance(repo, Exception):
+                raise repo
+            return repo
+        match = re.fullmatch(r"https://raw\.githubusercontent\.com/mattermost/performance-reports/([^/]+)/"
+                             r"performance-comparisons/([^/]+)/README\.md", url)
+        assert match, url
+        found = by_version.get((match.group(1), match.group(2)))
+        if isinstance(found, Exception):
+            raise found
+        return found
+    return fetch
 
 
 class BenchmarkTest(unittest.TestCase):
-    def test_delta_from_the_unbounded_table(self):
-        self.assertEqual(cr.benchmark_delta(BENCHMARK_REPORT), -4.31)
+    def test_the_delta_is_read_from_the_real_reports(self):
+        self.assertEqual(cr.benchmark_delta_text(V121), "-0.18")  # "\\-0.18%": the backslash is stripped
+        self.assertEqual(cr.benchmark_delta_text(V120), "-4.31")
+        self.assertEqual(cr.benchmark_delta(V121), -0.18)
 
-    def test_delta_computed_when_the_change_column_is_missing(self):
-        self.assertEqual(cr.benchmark_delta(BENCHMARK_REPORT.replace("| \\-4.31% |", "| |")), -4.31)
+    def test_v12_1_writes_the_playbook_sentence(self):
+        result = cr.benchmark("v12.1.0", reports({("main", "v12.1"): V121}))
+        self.assertEqual(len(result["notes"]), 1)
+        self.assertEqual(result["notes"][0]["text"], (
+            "Benchmarking test results showed no significant difference: a 0.18% decrease in the number of "
+            "supported users for the new release, which lies within the ``[-5%, +5%]`` prediction interval. "
+            "View the full raw data and methodology in our [Performance Reports repository]"
+            "(https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/v12.1)."))
+        self.assertEqual(result["notes"][0]["source"], "benchmark:v12.1")
+        self.assertEqual(result["gap"]["status"], "ready")
+        self.assertFalse(result["gap"]["blocks_publish"])
 
-    def test_no_table_no_delta(self):
-        self.assertIsNone(cr.benchmark_delta("# Report\n\nNo results yet."))
+    def test_v12_0_is_a_decrease_without_its_sign(self):
+        text = cr.benchmark("v12.0.0", reports({("main", "v12.0"): V120}))["notes"][0]["text"]
+        self.assertIn("no significant difference: a 4.31% decrease in the number", text)
 
-    def test_text_within_and_outside_the_interval(self):
-        within = cr.benchmark_text("v12.0.0", -4.31)
-        self.assertIn("no significant difference: a 4.31% decrease", within)
-        self.assertIn("lies within the ``[-5%, +5%]``", within)
-        self.assertIn("performance-comparisons/v12.0)", within)
-        outside = cr.benchmark_text("v12.0.0", 7.5)
-        self.assertIn("showed a 7.50% increase", outside)
-        self.assertIn("outside the ``[-5%, +5%]``", outside)
+    def test_an_increase_from_a_positive_delta(self):
+        report = V121.replace("\\-0.18%", "1.44%")
+        self.assertIn("a 1.44% increase", cr.benchmark("v12.1.0", reports({("main", "v12.1"): report}))["notes"][0]["text"])
 
-    def test_notes_once_published(self):
-        urls = []
-        notes = cr.benchmark_notes("v12.0.0", fetch=lambda url: urls.append(url) or BENCHMARK_REPORT)
-        self.assertEqual(urls, [cr.BENCHMARK_REPORT_URL.format(version="v12.0")])
-        self.assertEqual(len(notes), 1)
-        self.assertEqual(notes[0]["source"], "benchmark:v12.0")
-        self.assertEqual(notes[0]["text"], notes[0]["fallback"])
-        self.assertTrue(notes[0]["derived"])
+    def test_the_link_names_the_default_branch(self):
+        fetch = reports({("trunk", "v12.1"): V121}, repo='{"default_branch": "trunk"}')
+        self.assertIn("/tree/trunk/performance-comparisons/v12.1)", cr.benchmark("v12.1.0", fetch)["notes"][0]["text"])
+        # The repository's metadata can't be read: the usual branch.
+        fetch = reports({("main", "v12.1"): V121}, repo=OSError("rate limited"))
+        self.assertEqual(len(cr.benchmark("v12.1.0", fetch)["notes"]), 1)
 
-    def test_no_notes_when_unpublished_or_unreachable(self):
-        self.assertEqual(cr.benchmark_notes("v12.1.0", fetch=lambda url: None), [])
+    def test_outside_the_interval_is_flagged_not_written(self):
+        for delta in ("\\-5.01%", "7.50%"):
+            result = cr.benchmark("v12.1.0", reports({("main", "v12.1"): V121.replace("\\-0.18%", delta)}))
+            self.assertEqual(result["notes"], [], delta)
+            self.assertEqual(result["gap"]["status"], "needs_review")
+            self.assertTrue(result["gap"]["blocks_publish"])
+            self.assertIn("outside the [-5%, +5%] prediction interval; write the Performance bullet", result["gap"]["detail"])
+            self.assertIn("which clears this for the AutoMerge label", result["gap"]["detail"])
+            self.assertEqual(result["gap"]["delta"], delta.replace("\\", "").rstrip("%"))
+        on_the_edge = cr.benchmark("v12.1.0", reports({("main", "v12.1"): V121.replace("\\-0.18%", "5.00%")}))
+        self.assertEqual(len(on_the_edge["notes"]), 1)
 
-        def fail(url):
-            raise OSError("network down")
-        self.assertEqual(cr.benchmark_notes("v12.1.0", fetch=fail), [])
+    def test_a_missing_or_unreadable_table_is_flagged(self):
+        no_table = V121.replace("### Supported users in unbounded test", "### Supported users")
+        no_delta = V121.replace("| \\-0.18% |", "| n/a |")
+        no_column = V121.replace("| Delta   |", "| Change  |")
+        for report in (no_table, no_delta, no_column):
+            result = cr.benchmark("v12.1.0", reports({("main", "v12.1"): report}))
+            self.assertEqual((result["notes"], result["gap"]["status"]), ([], "needs_review"))
+            self.assertIn("has no readable Delta", result["gap"]["detail"])
+            self.assertTrue(result["gap"]["blocks_publish"])
+
+    def test_no_folder_for_the_release_stays_pending(self):
+        result = cr.benchmark("v12.2.0", reports({("main", "v12.1"): V121}))
+        self.assertEqual((result["notes"], result["gap"]["status"]), ([], "not_yet_checked"))
+        self.assertEqual(result["gap"]["detail"], "no performance comparison published for v12.2 yet")
+        self.assertTrue(result["gap"]["blocks_publish"])
+
+    def test_only_the_releases_own_vx_y_folder_is_read(self):
+        asked = []
+        fetch = reports({})
+
+        def recording(url):
+            asked.append(url)
+            return fetch(url)
+        cr.benchmark("v12.2.0", recording)
+        folders = [url.split("/performance-comparisons/")[1] for url in asked if "/performance-comparisons/" in url]
+        self.assertEqual(folders, ["v12.2/README.md"])  # never esr-12.2 or a range such as v9.11-v10.5
+
+    def test_an_unreachable_report_stays_pending(self):
+        result = cr.benchmark("v12.1.0", reports({("main", "v12.1"): OSError("network down")}))
+        self.assertEqual((result["notes"], result["gap"]["status"]), ([], "not_yet_checked"))
+        self.assertEqual(cr.benchmark_notes("v12.1.0", reports({("main", "v12.1"): None})), [])
 
 
 def docs_file(path, status="modified", added=(), removed=0):

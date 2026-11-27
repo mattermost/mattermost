@@ -344,18 +344,24 @@ def migration_note(name: str, sql: str) -> dict:
     return {"source": f"migration:{name}", "text": text, "fallback": f"Added database migration ``{name}``."}
 
 
-BENCHMARK_REPORT_URL = "https://raw.githubusercontent.com/mattermost/performance-reports/main/performance-comparisons/{version}/README.md"
-BENCHMARK_PAGE_URL = "https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/{version}"
-# The range the performance team treats as usual run-to-run variance.
+BENCHMARK_REPO = "mattermost/performance-reports"
+BENCHMARK_REPO_API = f"https://api.github.com/repos/{BENCHMARK_REPO}"
+BENCHMARK_REPORT_URL = "https://raw.githubusercontent.com/" + BENCHMARK_REPO + "/{branch}/performance-comparisons/{version}/README.md"
+BENCHMARK_PAGE_URL = "https://github.com/" + BENCHMARK_REPO + "/tree/{branch}/performance-comparisons/{version}"
+BENCHMARK_DEFAULT_BRANCH = "main"
+# The range the performance team treats as usual run-to-run variance. A delta outside it is
+# never written automatically: a person reads the report and writes the bullet.
 BENCHMARK_VARIANCE = 5.0
 
 
 def fetch_url(url: str) -> str | None:
-    """The body at ``url``, or None for a 404 (the report is not published yet)."""
+    """The body at ``url``, or None for a 404 (the report is not published yet). Anonymous:
+    the performance reports repository is public."""
     import urllib.error
     import urllib.request
+    request = urllib.request.Request(url, headers={"User-Agent": "mattermost-changelog-automation"})
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:
             return response.read().decode("utf-8")
     except urllib.error.HTTPError as err:
         if err.code == 404:
@@ -363,59 +369,120 @@ def fetch_url(url: str) -> str | None:
         raise
 
 
-def benchmark_delta(report: str) -> float | None:
-    """The supported-user delta from a performance comparison README, in percent.
+def benchmark_branch(fetch=fetch_url) -> str:
+    """The performance reports repository's default branch, read anonymously; ``main`` when
+    it can't be read."""
+    try:
+        branch = (json.loads(fetch(BENCHMARK_REPO_API) or "{}") or {}).get("default_branch")
+    except Exception:  # noqa: BLE001 - the usual branch is a good enough answer
+        branch = None
+    return branch if isinstance(branch, str) and re.fullmatch(r"[\w./-]+", branch) else BENCHMARK_DEFAULT_BRANCH
 
-    Read from the "Supported users in unbounded test" table: ``| 16533 | 15820 | \\-4.31% |``.
+
+def _table_cells(row: str) -> list[str]:
+    return [cell.strip().replace("\\", "") for cell in row.strip().strip("|").split("|")]
+
+
+def benchmark_delta_text(report: str) -> str | None:
+    """The Delta of the "Supported users in unbounded test" table, as written (``-0.18``),
+    without the escaping backslash or the percent sign; None when the table or its Delta
+    can't be read.
+
+    The table, in every report since v11.7::
+
+        | v12.0.1 | v12.1.0-rc2 | Delta   |
+        | ------- | ----------- | ------- |
+        | 16933   | 16903       | \\-0.18% |
     """
     section = re.search(r"(?ims)^#+\s*Supported users in unbounded test\s*$(.*?)(?=^#|\Z)", report or "")
     if not section:
         return None
-    for row in section.group(1).splitlines():
-        cells = [cell.strip().replace("\\", "") for cell in row.strip().strip("|").split("|")]
-        if len(cells) >= 3 and re.fullmatch(r"\d+", cells[0]) and re.fullmatch(r"\d+", cells[1]):
-            delta = re.fullmatch(r"([+-]?\d+(?:\.\d+)?)%", cells[2])
-            if delta:
-                return float(delta.group(1))
-            return round((int(cells[1]) - int(cells[0])) / int(cells[0]) * 100, 2)
-    return None
+    rows = [line for line in section.group(1).splitlines() if line.strip().startswith("|")]
+    if len(rows) < 3:
+        return None
+    header = [cell.lower() for cell in _table_cells(rows[0])]
+    if "delta" not in header or not re.fullmatch(r"[\s|:-]+", rows[1]):
+        return None
+    cells = _table_cells(rows[2])
+    column = header.index("delta")
+    if column >= len(cells):
+        return None
+    delta = re.fullmatch(r"([+-]?\d+(?:\.\d+)?)\s*%", cells[column])
+    return delta.group(1) if delta else None
 
 
-def benchmark_text(version: str, delta: float) -> str:
-    """The Performance bullet every recent changelog uses, for a supported-user delta."""
-    change = "no change" if delta == 0 else f"a {abs(delta):.2f}% {'increase' if delta > 0 else 'decrease'}"
-    link = f"[Performance Reports repository]({BENCHMARK_PAGE_URL.format(version=short_version(version))})"
-    if abs(delta) <= BENCHMARK_VARIANCE:
-        return (
-            f"Benchmarking test results showed no significant difference: {change} in the number of "
-            "supported users for the new release, which lies within the ``[-5%, +5%]`` prediction "
-            f"interval. View the full raw data and methodology in our {link}."
-        )
+def benchmark_delta(report: str) -> float | None:
+    """The supported-user delta of a performance comparison README, in percent."""
+    text = benchmark_delta_text(report)
+    return float(text) if text is not None else None
+
+
+def benchmark_text(version: str, delta: str, branch: str = BENCHMARK_DEFAULT_BRANCH) -> str:
+    """The playbook's Performance bullet for a delta within the prediction interval: the
+    number as the report writes it, without its sign, and "increase" or "decrease" from it."""
+    number = delta.lstrip("+-")
+    if float(delta) == 0:
+        change = "no change"
+    else:
+        change = f"a {number}% {'decrease' if delta.startswith('-') else 'increase'}"
+    link = f"[Performance Reports repository]({BENCHMARK_PAGE_URL.format(branch=branch, version=short_version(version))})"
     return (
-        f"Benchmarking test results showed {change} in the number of supported users for the new "
-        "release, outside the ``[-5%, +5%]`` prediction interval. View the full raw data and "
-        f"methodology in our {link}."
+        f"Benchmarking test results showed no significant difference: {change} in the number of "
+        "supported users for the new release, which lies within the ``[-5%, +5%]`` prediction "
+        f"interval. View the full raw data and methodology in our {link}."
     )
 
 
-def benchmark_notes(version: str, fetch=fetch_url) -> list[dict]:
-    """The benchmarking bullet, once the release's performance comparison is published.
+def benchmark(version: str, fetch=fetch_url) -> dict:
+    """The benchmarking bullet and the Benchmarking section's status, from the release's
+    performance comparison (``performance-comparisons/vX.Y/README.md``; only a vX.Y folder
+    is the release's, never ``esr-*`` or a range such as ``v9.11-v10.5``).
 
-    An unpublished report is picked up by the first run after it lands. The source key
-    is per release, so a later correction to the report is left to the reviewer.
+    ``{"notes": [the bullet] or [], "gap": {"section": "Benchmarking", "status", "detail", ...}}``.
+    No folder for the release yet: pending, as before. A Delta outside ``[-5%, +5%]``, or a
+    report whose table can't be read: no bullet, and the section is flagged for a person. The
+    section blocks publishing until it is ready. The source key is per release, so a later
+    correction to the report is left to the reviewer.
     """
-    url = BENCHMARK_REPORT_URL.format(version=short_version(version))
+    short = short_version(version)
+    branch = benchmark_branch(fetch)
+    url = BENCHMARK_REPORT_URL.format(branch=branch, version=short)
+    page = BENCHMARK_PAGE_URL.format(branch=branch, version=short)
+
+    def gap(status: str, detail: str) -> dict:
+        return {"section": "Benchmarking", "status": status, "detail": detail, "blocks_publish": status != "ready"}
+
     try:
         report = fetch(url)
     except Exception as err:  # noqa: BLE001 - a network failure must not block the changelog
         print(f"⚠️  Could not read the performance comparison at {url}: {err}")
-        return []
-    delta = benchmark_delta(report) if report else None
+        return {"notes": [], "gap": gap("not_yet_checked", f"the performance comparison for {short} couldn't be read; "
+                                                           "checked again next run")}
+    if report is None:
+        print(f"ℹ️  No performance comparison for {short} at {url} yet")
+        return {"notes": [], "gap": gap("not_yet_checked", f"no performance comparison published for {short} yet")}
+    delta = benchmark_delta_text(report)
     if delta is None:
-        print(f"ℹ️  No performance comparison with a supported-user delta at {url} yet")
-        return []
-    text = benchmark_text(version, delta)
-    return [{"source": f"benchmark:{short_version(version)}", "text": text, "fallback": text, "derived": True}]
+        print(f"⚠️  The performance comparison at {url} has no readable Delta in its supported users table")
+        return {"notes": [], "gap": gap("needs_review", f"the [{short} performance comparison]({page}) has no readable "
+                                        "Delta in its \"Supported users in unbounded test\" table; write the "
+                                        "Performance bullet (\"Benchmarking test results ...\") in the PR by hand, "
+                                        "which clears this for the AutoMerge label")}
+    if abs(float(delta)) > BENCHMARK_VARIANCE:
+        print(f"⚠️  The {short} supported-user delta, {delta}%, is outside [-5%, +5%]; not written")
+        return {"notes": [], "gap": gap("needs_review", f"the supported-user Delta in the [{short} performance "
+                                        f"comparison]({page}) is {delta}%, outside the [-5%, +5%] prediction "
+                                        "interval; write the Performance bullet (\"Benchmarking test results ...\") in the "
+                                        "PR by hand with the performance team, which clears this for the AutoMerge label")
+                | {"delta": delta}}
+    text = benchmark_text(version, delta, branch)
+    return {"notes": [{"source": f"benchmark:{short}", "text": text, "fallback": text, "derived": True}],
+            "gap": gap("ready", f"{delta}% from the [{short} performance comparison]({page})")}
+
+
+def benchmark_notes(version: str, fetch=fetch_url) -> list[dict]:
+    """The benchmarking bullet alone (see ``benchmark``)."""
+    return benchmark(version, fetch)["notes"]
 
 
 def derived_notes(base_ref: str, head_ref: str, show=git_show, added=git_added_files) -> list[dict]:
@@ -782,6 +849,9 @@ def broken_links(lines: list[tuple[str, int, str]], site: DocsSite) -> list[dict
 
 # ── Reviewers ───────────────────────────────────────────────────────────────────────
 
+SUBSECTION_ALIASES = {"Important Upgrade Notes": ("Compatibility",), "Compatibility": ("Important Upgrade Notes",)}
+
+
 def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
     """Reviewers for the sections a run added bullets to.
 
@@ -796,7 +866,12 @@ def reviewers_for(sections: list[dict], mapping: dict) -> list[str]:
         section = group.get("section") or ""
         touched.add(section)
         if group.get("subsection"):
-            touched.add(f"{section}/{group['subsection']}")
+            subsection = group["subsection"]
+            touched.add(f"{section}/{subsection}")
+            # "Compatibility" became "Important Upgrade Notes" in v12.2: a pattern or a report
+            # with either name matches the other.
+            for name in SUBSECTION_ALIASES.get(subsection, ()):
+                touched.add(f"{section}/{name}")
     reviewers = []
     if not touched:
         return reviewers
@@ -819,6 +894,172 @@ def _write_outputs(outputs: dict) -> None:
         with open(path, "a", encoding="utf-8") as f:
             for key, value in outputs.items():
                 f.write(f"{key}={value}\n")
+
+
+# ── The plan each new config.json setting belongs to ─────────────────────────────────
+#
+# The changelog groups new settings by plan. The plan is read from the code and the docs in
+# this repo, never from the model: a System Console gate that names a plan, else the
+# PlanAvailability badge of the setting's own section in the configuration docs, else a
+# System Console license-feature gate, read as the plan that feature first comes with
+# (FEATURE_PLANS). Settings with none of these go under All plans as "plan not confirmed"
+# for a person to check.
+
+PLAN_ORDER = ("Enterprise Advanced", "Enterprise", "Professional", "All")
+# Each heading names every plan that gets the setting, as published entries word them.
+PLAN_HEADINGS = {
+    "Enterprise Advanced": "**Changes to Enterprise Advanced plan:**",
+    "Enterprise": "**Changes to Enterprise and Enterprise Advanced plans:**",
+    "Professional": "**Changes to Professional, Enterprise, and Enterprise Advanced plans:**",
+    "All": "**Changes to All plans:**",
+}
+
+
+def heading_plan(line: str) -> str | None:
+    """The plan a config.json plan heading names: the first (least restricted) plan it lists.
+
+    Older wordings ("Changes to Enterprise Plans:", "Changes to all plans:") read the same, so a
+    later run adds to an existing heading instead of writing a second one.
+    """
+    match = re.match(r"^\s*[-*+]\s+\*\*Changes to (.+?) [Pp]lans?:?\*\*:?\s*$", line)
+    if not match:
+        return None
+    name = match.group(1).strip().lower()
+    for prefix, plan in (("all", "All"), ("professional", "Professional"),
+                         ("enterprise advanced", "Enterprise Advanced"), ("enterprise", "Enterprise")):
+        if name.startswith(prefix):
+            return plan
+    return None
+# docs/site/src/components/PlanAvailability: the lowest plan each badge includes.
+BADGE_PLANS = {
+    "ent-adv": "Enterprise Advanced", "ent-plus": "Enterprise", "ent-cloud-dedicated": "Enterprise",
+    "pro-plus": "Professional", "all-commercial": "All",
+    # Also on Entry, which has no heading of its own: the plan is right, the wording needs a person.
+    "entry-adv": "Enterprise Advanced", "entry-ent": "Enterprise",
+}
+_SKU_PLANS = {"EnterpriseAdvanced": "Enterprise Advanced", "Enterprise": "Enterprise", "Professional": "Professional"}
+# The license features the System Console gates settings on, and the plan each first comes with.
+# Cloud is a deployment, not a plan, so it is not listed.
+FEATURE_PLANS = {
+    "Cluster": "Enterprise", "Elasticsearch": "Enterprise", "Compliance": "Enterprise",
+    "DataRetention": "Enterprise", "MessageExport": "Enterprise", "CustomTermsOfService": "Enterprise",
+    "SharedChannels": "Enterprise", "Announcement": "Enterprise", "LDAPGroups": "Enterprise",
+    "IDLoadedPushNotifications": "Enterprise", "EmailNotificationContents": "Enterprise",
+    "LockTeammateNameDisplay": "Enterprise", "CustomPermissionsSchemes": "Enterprise",
+    "LDAP": "Professional", "SAML": "Professional", "MFA": "Professional", "GoogleOAuth": "Professional",
+    "Office365OAuth": "Professional", "OpenId": "Professional", "GuestAccounts": "Professional",
+    "GuestAccountsPermissions": "Professional",
+}
+ADMIN_DEFINITION = "webapp/channels/src/components/admin_console/admin_definition.tsx"
+CONFIGURE_DOCS = "docs/main/administration-guide/configure"
+# Gates that require a plan: hidden unless the license is at least that tier.
+_PLAN_GATE_RES = (
+    re.compile(r"it\.not\(\s*it\.minLicenseTier\(\s*LicenseSkus\.(\w+)\s*\)\s*\)"),
+    re.compile(r"it\.not\(\s*it\.licensedForSku\(\s*LicenseSkus\.(\w+)\s*\)\s*\)"),
+    re.compile(r"getRestrictedIndicator\(\s*true\s*,\s*LicenseSkus\.(\w+)\s*\)"),
+)
+_FEATURE_GATE_RE = re.compile(r"it\.not\(\s*it\.licensedForFeature\(\s*'(\w+)'\s*\)\s*\)")
+_BADGE_RE = re.compile(r'<PlanAvailability slug="([^"]+)"')
+
+
+class PlanResolver:
+    """``plan(section, name)`` -> ``{"plan", "basis", "confirmed"}`` for a ``config.json`` setting.
+
+    ``read(path)`` reads a repo file (None when missing) and ``docs`` lists the configuration
+    docs pages; both default to the working tree, which the workflow checks out.
+    """
+
+    def __init__(self, read=None, docs: list[str] | None = None, root: str = "."):
+        self.read = read or (lambda path: _read_file(os.path.join(root, path)))
+        if docs is None:
+            folder = os.path.join(root, CONFIGURE_DOCS)
+            docs = sorted(os.path.join(CONFIGURE_DOCS, f) for f in os.listdir(folder) if f.endswith(".mdx")) \
+                if os.path.isdir(folder) else []
+        self.docs = docs
+        self._admin = None
+
+    def _admin_lines(self) -> list[str]:
+        if self._admin is None:
+            self._admin = (self.read(ADMIN_DEFINITION) or "").split("\n")
+        return self._admin
+
+    def console_gates(self, section: str, name: str) -> tuple[list[str], list[str]]:
+        """(plans, license features) the System Console requires for the setting: its own
+        definition and its page's."""
+        lines = self._admin_lines()
+        keys = [i for i, line in enumerate(lines) if re.search(rf"key:\s*'{re.escape(section)}\.{re.escape(name)}'", line)]
+        if not keys:  # the bullet may name the settings type (SSOSettings) rather than its key's section
+            keys = [i for i, line in enumerate(lines) if re.search(rf"key:\s*'\w+\.{re.escape(name)}'", line)]
+            keys = keys if len(keys) == 1 else []
+        if not keys:
+            return [], []
+        start = keys[0]
+        # The setting's own definition ends at the next setting or, for the last one on its page,
+        # at the next page: that page's gates are not this setting's.
+        end = next((i for i in range(start + 1, len(lines)) if re.search(r"\b(?:key|url):\s*'", lines[i])), len(lines))
+        page = next((i for i in range(start, -1, -1) if re.search(r"\burl:\s*'", lines[i])), None)
+        header_end = next((i for i in range(page, start) if "schema:" in lines[i]), start) if page is not None else start
+        text = "\n".join(lines[start:end] + (lines[page:header_end] if page is not None else []))
+        plans = [_SKU_PLANS[m] for pattern in _PLAN_GATE_RES for m in pattern.findall(text) if m in _SKU_PLANS]
+        return plans, _FEATURE_GATE_RE.findall(text)
+
+    def docs_badge(self, section: str, name: str) -> tuple[str | None, bool, str]:
+        """(badge slug, whether it is the setting's own section's rather than the page's, page)."""
+        found = None
+        pages = [(path, (self.read(path) or "").split("\n")) for path in self.docs]
+        # The exact section and name on any page outranks the name alone: two pages can each
+        # document a setting called Enable.
+        exact = [(path, lines, i) for path, lines in pages for i, line in enumerate(lines)
+                 if f"<code>{name}</code>" in line and f"<code>{section}</code>" in line]
+        named = [(path, lines, next(i for i, line in enumerate(lines) if f"<code>{name}</code>" in line))
+                 for path, lines in pages if any(f"<code>{name}</code>" in line for line in lines)]
+        for path, lines, best in (exact[:1] or named):
+            heads, page_badge = [], None
+            for i, line in enumerate(lines[:best]):
+                heading = re.match(r"^(#{1,6}) ", line)
+                badge = _BADGE_RE.search(line)
+                if heading:
+                    heads.append([len(heading.group(1)), None])
+                elif badge:
+                    if heads:
+                        heads[-1][1] = heads[-1][1] or badge.group(1)
+                    else:
+                        page_badge = badge.group(1)
+            level = 99
+            for head_level, slug in reversed(heads):
+                if head_level < level:
+                    if slug:
+                        return slug, True, path
+                    level = head_level
+            found = found or (page_badge, False, path)
+        return found or (None, False, "")
+
+    def plan(self, section: str, name: str) -> dict:
+        key = f"{section}.{name}" if section else name
+        plans, features = self.console_gates(section, name)
+        if plans:
+            plan = min(plans, key=PLAN_ORDER.index)
+            return {"setting": key, "plan": plan, "confirmed": True, "basis": "the System Console's license check"}
+        slug, own, path = self.docs_badge(section, name)
+        if slug in BADGE_PLANS and (own or (slug == "all-commercial" and not features)):
+            plan = BADGE_PLANS[slug]
+            entry = slug.startswith("entry-")
+            return {"setting": key, "plan": plan, "confirmed": not entry,
+                    "basis": f"the {slug} badge in {os.path.basename(path)}"
+                             + (" (also on Entry, which has no heading of its own)" if entry else "")}
+        known = [FEATURE_PLANS[feature] for feature in features if feature in FEATURE_PLANS]
+        if known:
+            plan = min(known, key=PLAN_ORDER.index)
+            listed = ", ".join(sorted({f for f in features if FEATURE_PLANS.get(f) == plan}))
+            return {"setting": key, "plan": plan, "confirmed": True,
+                    "basis": f"the System Console's {listed} license feature, which comes with {plan}"}
+        if features:
+            why = f"the System Console needs the {', '.join(sorted(set(features)))} license feature, which names no plan"
+        elif path:
+            why = f"no plan badge on its section of {os.path.basename(path)}"
+        else:
+            why = "no configuration docs entry or System Console license check found"
+        return {"setting": key, "plan": "All", "confirmed": False, "basis": why}
 
 
 def _read_file(path: str) -> str | None:
