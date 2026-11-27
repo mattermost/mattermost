@@ -57,7 +57,7 @@ func TestPopulateWebConnConfigRejectedResume(t *testing.T) {
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
-	wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+	wc := registerUnpumpedWebConn(t, th, s.Listener.Addr(), model.NewId())
 
 	cfg, err := th.Service.PopulateWebConnConfig(&model.Session{UserId: wc.UserId}, &WebConnConfig{
 		ConnectionID:      wc.GetConnectionID(),

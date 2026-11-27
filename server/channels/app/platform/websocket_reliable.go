@@ -17,7 +17,7 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 	if hub == nil {
 		return nil, nil
 	}
-	connRes, active := hub.CheckConn(userID, connectionID)
+	connRes, active := ps.checkHubConn(hub, userID, connectionID)
 	if connRes == nil {
 		if active {
 			return &model.WSQueues{Status: model.WSQueuesStatusOldConnStillOpen}, nil

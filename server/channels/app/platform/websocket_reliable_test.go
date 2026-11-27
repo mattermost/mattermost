@@ -18,8 +18,24 @@ func TestGetWSQueuesStatus(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	t.Run("should report a connection that is still active", func(t *testing.T) {
-		wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+	t.Run("should take over a connection that is still active", func(t *testing.T) {
+		var deadQueue []*model.WebSocketEvent
+		for i := range 5 {
+			deadQueue = append(deadQueue, model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "").SetSequence(int64(i)))
+		}
+		wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId(), deadQueue...)
+
+		queues, err := th.Service.GetWSQueues(wc.UserId, wc.GetConnectionID(), 5)
+		require.NoError(t, err)
+		require.NotNil(t, queues)
+		assert.Empty(t, queues.Status)
+		assert.NotNil(t, queues.ActiveQ)
+		assert.Equal(t, 1, queues.ReuseCount)
+		assert.False(t, wc.Active.Load())
+	})
+
+	t.Run("should report a connection that could not be closed in time", func(t *testing.T) {
+		wc := registerUnpumpedWebConn(t, th, s.Listener.Addr(), model.NewId())
 
 		queues, err := th.Service.GetWSQueues(wc.UserId, wc.GetConnectionID(), 5)
 		require.NoError(t, err)
