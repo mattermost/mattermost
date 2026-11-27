@@ -112,3 +112,21 @@ func (s LocalCacheAttributesStore) ClearUserAttributesCache() {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAttributesCache.Name())
 	}
 }
+
+// RemoveUserAttributesLocal drops the given users' cached subjects on this node only, for a peer's
+// attribute write whose own best-effort eviction may arrive after its decision invalidation.
+func (s LocalCacheStore) RemoveUserAttributesLocal(userIDs []string) {
+	if len(userIDs) == 0 {
+		return
+	}
+	if err := s.userAttributesCache.RemoveMulti(userIDs); err != nil {
+		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", s.userAttributesCache.Name()))
+	}
+}
+
+// PurgeUserAttributesLocal is RemoveUserAttributesLocal for every user.
+func (s LocalCacheStore) PurgeUserAttributesLocal() {
+	if err := s.userAttributesCache.Purge(); err != nil {
+		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", s.userAttributesCache.Name()))
+	}
+}

@@ -1069,6 +1069,8 @@ export type AccessControlSettings = {
     EnableAccessControlAuditLogging: boolean;
     SyncJobIntervalSeconds: number;
     AttributeRefreshIntervalSeconds: number;
+    DecisionCacheMaxAgeSeconds: number;
+    DecisionCacheSize: number;
 };
 
 export type ContentFlaggingNotificationSettings = {
