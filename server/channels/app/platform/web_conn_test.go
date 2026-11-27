@@ -50,6 +50,7 @@ func TestPopulateWebConnConfigRejectedResume(t *testing.T) {
 	metricsMock.On("IncrementWebSocketBroadcastBufferSize", mock.Anything, mock.Anything).Maybe()
 	metricsMock.On("DecrementWebSocketBroadcastBufferSize", mock.Anything, mock.Anything).Maybe()
 	metricsMock.On("IncrementWebSocketBroadcast", mock.Anything).Maybe()
+	metricsMock.On("IncrementWebSocketSlowConnectionClose").Maybe()
 	metricsMock.On("IncrementWebsocketReconnectEvent", reconnectNotFound, "1006", "mobile").Once()
 	metricsMock.On("IncrementWebsocketReconnectFailure", "old_conn_still_open", false, "1006", "mobile").Once()
 	th := Setup(t)

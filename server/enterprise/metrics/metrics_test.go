@@ -616,3 +616,26 @@ func TestAttributeViewRefreshMetrics(t *testing.T) {
 	require.True(t, names["mattermost_access_control_attribute_view_refreshes_total"], "the counter is registered")
 	require.True(t, names["mattermost_access_control_attribute_view_staleness_seconds"], "the gauge is registered")
 }
+
+func TestWebSocketSlowConnectionClosesMetric(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+	configureMetrics(th)
+
+	mi, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	mi.IncrementWebSocketSlowConnectionClose()
+	mi.IncrementWebSocketSlowConnectionClose()
+
+	m := &prometheusModels.Metric{}
+	require.NoError(t, mi.WebSocketSlowConnectionCloses.Write(m))
+	require.Equal(t, 2.0, m.Counter.GetValue())
+
+	families, err := mi.Registry.Gather()
+	require.NoError(t, err)
+	names := map[string]bool{}
+	for _, family := range families {
+		names[family.GetName()] = true
+	}
+	require.True(t, names["mattermost_websocket_slow_connection_closes_total"])
+}
