@@ -58,3 +58,51 @@ scheduler.
 
 Use `await pw.skipIfNoLicense()` to skip a test when the server has no
 license.
+
+## Lessons from master failures
+
+`npm run lint:lessons` (part of `npm run check`) reports the syntax-level rules
+on the files you change (L-002 no XPath, L-003 `force: true`, L-007 timeouts and
+`isVisible`, L-010 branching on page state, plus L-001 report-only): fix what it
+reports. Before editing specs, read `docs/lessons.md` for each lesson's full
+text, source and lint coverage, and cite the ids that apply in the PR.
+
+- **L-001** Specs never build locators (`page.locator`, `getByRole`,
+  `getByTestId`, ...): add or reuse a member of a page or component object in
+  `lib`. _(lint, report-only for now)_
+- **L-002** In page objects prefer `getByRole` with an accessible name, then
+  label or text, then `getByTestId`; CSS class chains only when nothing else
+  works.
+- **L-003** Fix or report a product bug; never work around it in the test.
+  Find what intercepts the click.
+- **L-004** Fix a defect that several specs share once, in a shared helper in
+  `lib`, and use it in every spec that has it.
+- **L-006** Each test restores only `getOnPremServerConfigPatch()`
+  (`lib/src/server/default_config.ts`). A config setting a spec changes that
+  isn't in it leaks into later specs: add it there, with every other setting
+  earlier specs change that it misses. `MM_*` env is reset per spec file
+  (`ensureDefaultServerEnv`) and never belongs in the patch. Data (teams,
+  policies, users) has no reset: a spec creates or reads the state it needs.
+- **L-009** A server that silently degrades (a fallback, a swallowed error) is
+  a product bug to report, not something for the test to wait out.
+
+L-010, fail fast instead of branching on page state:
+
+```ts
+// Bad: a missing card silently becomes another post's card
+if ((await this.reportCard.count()) === 0) {
+    this.reportCard = this.page.getByTestId('data-spillage-report').first();
+}
+// Good: the test fails here when the post's card is missing
+await expect(this.reportCard).toBeVisible();
+```
+
+Playwright rules, enforced by review:
+
+- Call `check()` and `uncheck()` directly, with no read-then-act guard.
+- `waitForResponse`: create the promise before the action and await both with
+  `Promise.all`.
+- `expect.poll` and `toPass` bodies are idempotent: no creating, posting or
+  patching inside them.
+- No non-null assertions (`!`) on results; assert they exist with `expect`.
+- No `.first()` or `.nth()` unless order is what the test checks.
