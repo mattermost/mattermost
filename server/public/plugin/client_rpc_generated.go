@@ -2352,6 +2352,61 @@ func (s *hooksRPCServer) EntityLookup(args *Z_EntityLookupArgs, returns *Z_Entit
 	return nil
 }
 
+func init() {
+	hookNameToId["EntityBadges"] = EntityBadgesID
+}
+
+type Z_EntityBadgesArgs struct {
+	A *Context
+	B *model.EntityBadgeRequest
+}
+
+type Z_EntityBadgesReturns struct {
+	A []*model.EntityBadge
+	B error
+}
+
+func (g *hooksRPCClient) EntityBadges(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error) {
+	_args := &Z_EntityBadgesArgs{c, req}
+	_returns := &Z_EntityBadgesReturns{}
+	if g.implemented[EntityBadgesID] {
+		if err := g.client.Call("Plugin.EntityBadges", _args, _returns); err != nil {
+			g.log.Error("RPC call EntityBadges to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+// EntityBadgesWithRPCErr returns the same values as EntityBadges, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) EntityBadgesWithRPCErr(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error, error) {
+	_args := &Z_EntityBadgesArgs{c, req}
+	_returns := &Z_EntityBadgesReturns{}
+	var _err error
+	if g.implemented[EntityBadgesID] {
+		_err = g.client.Call("Plugin.EntityBadges", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_EntityBadgesReturns{}
+			g.log.Debug("RPC call EntityBadges to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+func (s *hooksRPCServer) EntityBadges(args *Z_EntityBadgesArgs, returns *Z_EntityBadgesReturns) error {
+	if hook, ok := s.impl.(interface {
+		EntityBadges(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error)
+	}); ok {
+		returns.A, returns.B = hook.EntityBadges(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook EntityBadges called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2450,6 +2505,8 @@ type HooksWithRPCErrGenerated interface {
 	PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error
 
 	EntityLookupWithRPCErr(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error, error)
+
+	EntityBadgesWithRPCErr(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error, error)
 }
 
 type Z_RegisterCommandArgs struct {

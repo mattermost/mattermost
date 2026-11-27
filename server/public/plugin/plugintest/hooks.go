@@ -213,6 +213,36 @@ func (_m *Hooks) EmailNotificationWillBeSent(emailNotification *model.EmailNotif
 	return r0, r1
 }
 
+// EntityBadges provides a mock function with given fields: c, req
+func (_m *Hooks) EntityBadges(c *plugin.Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error) {
+	ret := _m.Called(c, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EntityBadges")
+	}
+
+	var r0 []*model.EntityBadge
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.EntityBadgeRequest) ([]*model.EntityBadge, error)); ok {
+		return rf(c, req)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.EntityBadgeRequest) []*model.EntityBadge); ok {
+		r0 = rf(c, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.EntityBadge)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.EntityBadgeRequest) error); ok {
+		r1 = rf(c, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // EntityLookup provides a mock function with given fields: c, req
 func (_m *Hooks) EntityLookup(c *plugin.Context, req *model.EntityLookupRequest) (*model.EntityCard, error) {
 	ret := _m.Called(c, req)

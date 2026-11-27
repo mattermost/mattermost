@@ -128,17 +128,28 @@ func TestTermCardNeedsAPost(t *testing.T) {
 }
 
 func TestEntityCardLinksAreQualifiedByTheProvider(t *testing.T) {
-	card := &model.EntityCard{Related: []model.EntityCardLink{
-		{Label: "own", TypeID: "vuln"},
-		{Label: "core", TypeID: "mm:time"},
-		{Label: "bad", TypeID: "Not Valid"},
-		{Label: "plain"},
-	}}
+	card := &model.EntityCard{
+		Related: []model.EntityCardLink{
+			{Label: "own", TypeID: "vuln"},
+			{Label: "core", TypeID: "mm:time"},
+			{Label: "bad", TypeID: "Not Valid"},
+			{Label: "plain"},
+		},
+		Rows: []model.EntityCardRow{
+			{Label: "CVSS", Value: "CVSS:3.1/AV:N", TypeID: "vuln"},
+			{Label: "Bad", Value: "x", TypeID: "Not Valid"},
+		},
+		Blocks: []byte(`[{"type":"fields","fields":[{"label":"CVSS","value":"CVSS:3.1/AV:N","type_id":"vuln"},{"label":"Bad","value":"x","type_id":"Not Valid"}]}]`),
+	}
 	qualifyEntityCardLinks("com.example.security", card)
 	assert.Equal(t, "com.example.security:vuln", card.Related[0].TypeID)
 	assert.Equal(t, "mm:time", card.Related[1].TypeID)
 	assert.Empty(t, card.Related[2].TypeID)
 	assert.Empty(t, card.Related[3].TypeID)
+	assert.Equal(t, "com.example.security:vuln", card.Rows[0].TypeID)
+	assert.Empty(t, card.Rows[1].TypeID)
+	assert.Contains(t, string(card.Blocks), `"type_id":"com.example.security:vuln"`)
+	assert.NotContains(t, string(card.Blocks), `"type_id":"Not Valid"`)
 }
 
 func TestRelatedTermTakesItsStoredLink(t *testing.T) {
@@ -181,4 +192,43 @@ func TestLocalizeEntityCardTranslatesCoreTime(t *testing.T) {
 	other := &model.EntityCard{TypeID: "com.example:ticket", Title: "Ticket"}
 	localizeEntityCard(rctx, other)
 	assert.Equal(t, "Ticket", other.Title)
+}
+
+// TestApplyEntityBadges covers the paths reachable with entityEnabledApp(nil)
+// (no plugins environment). Success/error/timeout from Hooks.EntityBadges
+// require a live plugin install and are not covered here.
+func TestApplyEntityBadges(t *testing.T) {
+	app := entityEnabledApp(nil)
+	rctx := request.TestContext(t)
+
+	t.Run("no dynamic hits returns true", func(t *testing.T) {
+		ok := app.applyEntityBadges(rctx, nil)
+		assert.True(t, ok)
+
+		ok = app.applyEntityBadges(rctx, []*model.PostEntity{
+			{MatcherID: "", Value: "x"},
+			{Value: "y"},
+		})
+		assert.True(t, ok)
+	})
+
+	t.Run("nil plugins env returns true with dynamic hits", func(t *testing.T) {
+		const owner = "com.example.badges.post"
+		t.Cleanup(func() { entities.RemoveOwner(owner) })
+		require.NoError(t, entities.AddType(owner, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
+		require.NoError(t, entities.AddMatcher(owner, &model.EntityMatcher{
+			Name:         "mark.scan",
+			Type:         "mark",
+			Pattern:      `POSTBADGE-[0-9]{4}`,
+			DynamicBadge: true,
+		}))
+
+		found, _ := entities.Detect("see POSTBADGE-1001")
+		require.Len(t, found, 1)
+		require.NotEmpty(t, entities.DynamicBadgeHits(found))
+
+		require.Nil(t, app.GetPluginsEnvironment())
+		assert.True(t, app.applyEntityBadges(rctx, found))
+		assert.Nil(t, found[0].Badge)
+	})
 }

@@ -188,6 +188,34 @@ export type MmCollapsibleBlock = {
     collapsed?: boolean;
 };
 
+/** Semantic emphasis on a field value (status / severity). */
+export type MmFieldTone = 'default' | 'good' | 'warning' | 'danger' | 'critical';
+
+/**
+ * One labelled fact — Slack attachment field / Adaptive Card FactSet parity.
+ * Optional `type_id` opens an entity card when a field-open handler is registered.
+ */
+export type MmField = {
+    label: string;
+    value: string;
+
+    /** Pair two-across when consecutive fields are short. */
+    short?: boolean;
+
+    /** http(s) or root-relative link on the value. */
+    url?: string;
+
+    /** Entity type id for RHS hops when a handler is registered; ignored otherwise. */
+    type_id?: string;
+
+    tone?: MmFieldTone;
+};
+
+export type MmFieldsBlock = {
+    type: 'fields';
+    fields: MmField[];
+};
+
 export type MmBlock =
     | MmTextBlock |
     MmImageBlock |
@@ -197,4 +225,5 @@ export type MmBlock =
     MmColumnSetBlock |
     MmColumnBlock |
     MmContainerBlock |
-    MmCollapsibleBlock;
+    MmCollapsibleBlock |
+    MmFieldsBlock;

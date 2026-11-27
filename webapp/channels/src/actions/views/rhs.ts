@@ -34,6 +34,10 @@ import {
     getMentionFilters,
     getFilesSearchExtFilter,
     getPreviousRhsState,
+    getPreviousSelectedPostId,
+    getPreviousPluggableId,
+    getSelectedEntity,
+    getSelectedPostId,
     getSearchTeam,
 } from 'selectors/rhs';
 
@@ -530,12 +534,36 @@ export function showChannelInfo(channelId: string) {
 }
 
 export function showEntity(entity: EntitySelection): ActionFunc<boolean> {
-    return (dispatch) => {
-        dispatch({
+    return (dispatch, getState) => {
+        const state = getState();
+        const selectedPostId = getSelectedPostId(state);
+        const rhsState = getRhsState(state);
+        const alreadyEntity = rhsState === RHSStates.ENTITY;
+
+        // Threads are selectedPostId with a null rhsState. Remember the thread so Back can
+        // restore it; when already on an entity card, keep any thread we came from.
+        const previousSelectedPostId = selectedPostId || (alreadyEntity ? getPreviousSelectedPostId(state) : '');
+        const previousPluggableId = (rhsState === RHSStates.PLUGIN && getPluggableId(state)) ||
+            (alreadyEntity ? getPreviousPluggableId(state) : '');
+
+        const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: RHSStates.ENTITY,
             entity,
-        });
+            previousSelectedPostId,
+            previousPluggableId,
+        };
+
+        if (selectedPostId) {
+            // Keep the stack under the thread (e.g. search → thread → entity).
+            action.preservePreviousRhsStates = true;
+        } else if (alreadyEntity) {
+            action.preservePreviousRhsStates = true;
+        } else if (rhsState) {
+            action.previousRhsState = rhsState;
+        }
+
+        dispatch(action);
 
         return {data: true};
     };
@@ -557,6 +585,59 @@ export function closeRightHandSide(): ActionFunc {
         ];
 
         dispatch(batchActions(actionsBatch));
+        return {data: true};
+    };
+}
+
+// closeEntity leaves the entity RHS and restores whatever it covered (thread or a
+// previous RHS panel). With nothing underneath it closes the RHS. Used by both X and
+// root-level Back so a habitual close does not destroy the working thread.
+export function closeEntity(): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const closingEntity = getSelectedEntity(state);
+        const returnPostId = getPreviousSelectedPostId(state);
+        const previousRhsState = getPreviousRhsState(state);
+        const previousPluggableId = getPreviousPluggableId(state);
+
+        if (returnPostId) {
+            const post = getPost(state, returnPostId);
+            if (post && post.state !== 'DELETED' && !post.delete_at) {
+                // Preserve the stack under the thread (e.g. search → thread → entity)
+                // instead of appending previousRhsState again via selectPost.
+                dispatch(selectPostPreservingRhsStack(post));
+                return {data: true};
+            }
+            const fetched = (await dispatch(fetchPost(returnPostId))).data as Post | undefined;
+            const stillClosingSameEntity = getRhsState(getState()) === RHSStates.ENTITY &&
+                getSelectedEntity(getState()) === closingEntity;
+            if (!stillClosingSameEntity) {
+                return {data: true};
+            }
+            const restored = fetched && fetched.state !== 'DELETED' && fetched.delete_at === 0 ? fetched : undefined;
+            if (restored) {
+                const channel = getChannelSelector(getState(), restored.channel_id);
+                if (!channel) {
+                    await dispatch(getChannel(restored.channel_id));
+                }
+                if (getRhsState(getState()) !== RHSStates.ENTITY || getSelectedEntity(getState()) !== closingEntity) {
+                    return {data: true};
+                }
+                dispatch(selectPostPreservingRhsStack(restored));
+                return {data: true};
+            }
+            dispatch(closeRightHandSide());
+            return {data: true};
+        }
+        if (previousRhsState === RHSStates.PLUGIN && previousPluggableId) {
+            dispatch(showRHSPlugin(previousPluggableId));
+            return {data: true};
+        }
+        if (previousRhsState) {
+            dispatch(goBack());
+            return {data: true};
+        }
+        dispatch(closeRightHandSide());
         return {data: true};
     };
 }
@@ -598,7 +679,20 @@ export function selectPost(post: Post, previousRhsState?: RhsState) {
     };
 }
 
-export function selectPostById(postId: string): ActionFuncAsync {
+// selectPostPreservingRhsStack restores a thread without pushing onto previousRhsStates.
+export function selectPostPreservingRhsStack(post: Post) {
+    performance.mark(Mark.PostSelected);
+
+    return {
+        type: ActionTypes.SELECT_POST,
+        postId: post.root_id || post.id,
+        channelId: post.channel_id,
+        preservePreviousRhsStates: true,
+        timestamp: Date.now(),
+    };
+}
+
+export function selectPostById(postId: string, opts?: {preservePreviousRhsStates?: boolean}): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const post: Post | undefined = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
@@ -607,7 +701,11 @@ export function selectPostById(postId: string): ActionFuncAsync {
             if (!channel) {
                 await dispatch(getChannel(post.channel_id));
             }
-            dispatch(selectPost(post));
+            if (opts?.preservePreviousRhsStates) {
+                dispatch(selectPostPreservingRhsStack(post));
+            } else {
+                dispatch(selectPost(post));
+            }
             return {data: true};
         }
         return {data: false};

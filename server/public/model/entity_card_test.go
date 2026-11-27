@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -75,5 +76,42 @@ func TestNormalizeEntityCardKeepsRenderOnlyBlocks(t *testing.T) {
 	}
 	if len(blocks) != 2 || blocks[0]["type"] != "text" || blocks[1]["type"] != "divider" {
 		t.Fatalf("blocks = %#v", blocks)
+	}
+}
+
+func TestNormalizeEntityCardMigratesLegacyBodyToBlocks(t *testing.T) {
+	card := &EntityCard{
+		Summary: "About this CVE",
+		Rows: []EntityCardRow{
+			{Label: "State", Value: "PUBLISHED"},
+			{Label: "CVSS", Value: "CVSS:3.1/AV:N", TypeID: "cvss"},
+		},
+		Vector: []EntityCardMetric{
+			{Metric: "Attack vector", Value: "Network"},
+			{Metric: "Confidentiality", Value: "High", Severe: true},
+		},
+		Sections: []EntityCardSection{{
+			Title: "References",
+			Count: 1,
+			Items: []EntityCardItem{{Head: "Advisory", URL: "https://example.com/a"}},
+		}},
+	}
+	NormalizeEntityCard(card)
+	if len(card.Blocks) == 0 {
+		t.Fatalf("expected migrated blocks")
+	}
+	raw := string(card.Blocks)
+	for _, needle := range []string{
+		`"type":"text"`, "About this CVE",
+		`"type":"fields"`, `"label":"State"`, `"type_id":"cvss"`,
+		`"short":true`, `"tone":"danger"`,
+		`"type":"collapsible"`, "References (1)",
+	} {
+		if !strings.Contains(raw, needle) {
+			t.Fatalf("blocks missing %q: %s", needle, raw)
+		}
+	}
+	if len(card.Rows) == 0 || card.Summary == "" {
+		t.Fatalf("legacy fields should remain for dual-write: %#v", card)
 	}
 }

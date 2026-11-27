@@ -26,8 +26,68 @@ type Props = {
     hasCard?: boolean;
     postId?: string;
     occurrence?: string;
+    badgeText?: string;
+    badgeIcon?: string;
+    badgeColor?: string;
     children?: React.ReactNode;
 };
+
+const BADGE_COLORS: Record<string, {background: string; color: string}> = {
+    none: {background: '#53aa33', color: '#1f1f1f'},
+    low: {background: '#ffcb0d', color: '#1f1f1f'},
+    medium: {background: '#f9a009', color: '#1f1f1f'},
+    high: {background: '#df3d03', color: '#ffffff'},
+    critical: {background: '#cc0500', color: '#ffffff'},
+};
+
+const BADGE_ICONS = new Set(['shield-outline', 'shield-alert-outline', 'alert-outline', 'lock-outline']);
+
+const badgeChip: React.CSSProperties = {
+    flex: 'none',
+    display: 'inline-block',
+    marginInlineEnd: 4,
+    padding: '0 4px',
+    borderRadius: 'var(--radius-s, 2px)',
+    fontSize: 10,
+    lineHeight: '16px',
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+    textDecoration: 'none',
+};
+
+const mentionText: React.CSSProperties = {
+    minWidth: 0,
+    overflowWrap: 'anywhere',
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+    textUnderlineOffset: '0.18em',
+};
+
+function MentionBadge({text, icon, color}: {text?: string; icon?: string; color?: string}) {
+    const hasText = Boolean(text);
+    const hasIcon = Boolean(icon && BADGE_ICONS.has(icon));
+    if (hasText === hasIcon) {
+        return null;
+    }
+    const palette = (color && BADGE_COLORS[color]) || {
+        background: 'rgba(var(--center-channel-color-rgb), 0.08)',
+        color: 'var(--center-channel-color)',
+    };
+    return (
+        <span
+            aria-hidden={true}
+            data-testid='entity-mention-badge'
+            style={{...badgeChip, ...palette}}
+        >
+            {hasIcon ? (
+                <i
+                    className={`icon icon-${icon}`}
+                    style={{fontSize: 12, margin: 0}}
+                />
+            ) : text}
+        </span>
+    );
+}
 
 type CardCacheEntry = {
     card: EntityCard;
@@ -103,10 +163,19 @@ const mention: React.CSSProperties = {
     background: 'none',
     font: 'inherit',
     color: 'inherit',
+    textAlign: 'start',
     textDecorationLine: 'underline',
     textDecorationStyle: 'dotted',
     textUnderlineOffset: '0.18em',
     cursor: 'pointer',
+};
+
+const mentionWithBadge: React.CSSProperties = {
+    ...mention,
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    maxWidth: '100%',
+    textDecorationLine: 'none',
 };
 
 const card: React.CSSProperties = {
@@ -142,7 +211,7 @@ function placeCard(anchor: DOMRect, cardBox: DOMRect) {
     return {top, left: Math.max(margin, left)};
 }
 
-export default function EntityMention({typeId, value, url, label: labelProp, title, hasCard, postId, occurrence, children}: Props) {
+export default function EntityMention({typeId, value, url, label: labelProp, title, hasCard, postId, occurrence, badgeText, badgeIcon, badgeColor, children}: Props) {
     const dispatch = useDispatch();
     const intl = useIntl();
     const timezone = useSelector(getCurrentTimezone);
@@ -281,19 +350,59 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
         document.getElementById('root-portal') ?? document.body,
     ) : null;
 
+    const badge = (
+        <MentionBadge
+            text={badgeText}
+            icon={badgeIcon}
+            color={badgeColor}
+        />
+    );
+    const hasBadge = Boolean(
+        (badgeText && !(badgeIcon && BADGE_ICONS.has(badgeIcon))) ||
+        (!badgeText && badgeIcon && BADGE_ICONS.has(badgeIcon)),
+    );
+    const ariaLabel = [value, label, badgeText].filter(Boolean).join(', ');
+    const rootStyle = hasBadge ? mentionWithBadge : mention;
+    const body = hasBadge ? (
+        <>
+            {badge}
+            <span style={mentionText}>{children}</span>
+        </>
+    ) : (
+        <>
+            {badge}
+            {children}
+        </>
+    );
+
     if (!hasCard && safeURL) {
         const showTitle = Boolean(title && title !== value);
+        const linkStyle = hasBadge ? {
+            ...mentionWithBadge,
+            color: 'var(--link-color)',
+        } : {
+            ...mention,
+            textDecorationStyle: 'solid' as const,
+            color: 'var(--link-color)',
+        };
+        const linkBody = hasBadge ? (
+            <>
+                {badge}
+                <span style={{...mentionText, textDecorationStyle: 'solid'}}>{children}</span>
+            </>
+        ) : body;
         return (
             <a
                 ref={anchorRef as React.RefObject<HTMLAnchorElement>}
                 href={safeURL}
                 className='entity-mention'
                 data-testid='entity-mention'
-                style={{...mention, textDecorationStyle: 'solid', color: 'var(--link-color)'}}
+                aria-label={ariaLabel}
+                style={linkStyle}
                 onMouseEnter={showTitle ? scheduleOpen : undefined}
                 onMouseLeave={showTitle ? scheduleClose : undefined}
             >
-                {children}
+                {linkBody}
                 {showTitle ? tip : null}
             </a>
         );
@@ -305,14 +414,15 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             type='button'
             className='entity-mention'
             data-testid='entity-mention'
-            style={mention}
+            aria-label={ariaLabel}
+            style={rootStyle}
             onMouseEnter={scheduleOpen}
             onMouseLeave={scheduleClose}
             onFocus={() => setOpen(true)}
             onBlur={scheduleClose}
             onClick={openSidebar}
         >
-            {children}
+            {body}
             {tip}
         </button>
     );

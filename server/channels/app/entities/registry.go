@@ -40,6 +40,7 @@ type Remote struct {
 type entityType struct {
 	ref         Ref
 	displayName string
+	badge       *model.EntityBadge
 }
 
 type storedProvider struct {
@@ -286,7 +287,11 @@ func (r *registry) generation() string {
 		if t, ok := r.types[stored.typeID]; ok {
 			name = t.displayName
 		}
-		fmt.Fprintf(h, "%s\n%s\n%s\n%d\n%d\n%s\n%t\n%s\n%s\n", stored.id, stored.typeID, stored.pattern.String(), stored.valueGroup, stored.spanGroup, stored.boundary, stored.skipBots, stored.urlTemplate, name)
+		badgeKey := ""
+		if t, ok := r.types[stored.typeID]; ok && t.badge != nil {
+			badgeKey = t.badge.Text + "|" + t.badge.Icon + "|" + t.badge.Color
+		}
+		fmt.Fprintf(h, "%s\n%s\n%s\n%d\n%d\n%s\n%t\n%s\n%s\n%t\n%s\n", stored.id, stored.typeID, stored.pattern.String(), stored.valueGroup, stored.spanGroup, stored.boundary, stored.skipBots, stored.urlTemplate, name, stored.dynamicBadge, badgeKey)
 	}
 	return hex.EncodeToString(h.Sum(nil))[:16]
 }
@@ -530,9 +535,12 @@ func AddType(owner string, t *model.EntityType) error {
 	if name == "" || utf8.RuneCountInString(name) > maxDisplayNameRune {
 		return fmt.Errorf("display name is not allowed")
 	}
+	if t.Badge != nil && !t.Badge.IsValid() {
+		return fmt.Errorf("badge is not allowed")
+	}
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
-	reg.types[id] = entityType{ref: ref, displayName: name}
+	reg.types[id] = entityType{ref: ref, displayName: name, badge: cloneBadge(t.Badge)}
 	renamed := false
 	for i := range reg.terms {
 		if reg.terms[i].typeID == id && reg.terms[i].displayName != name {
@@ -612,6 +620,7 @@ func AddMatcher(owner string, spec *model.EntityMatcher) error {
 		scope:        append([]string(nil), spec.Scope...),
 		skipBots:     spec.SkipBots,
 		displayName:  t.displayName,
+		dynamicBadge: spec.DynamicBadge,
 	}
 	for i, stored := range reg.matchers {
 		if stored.id == id {
@@ -676,9 +685,90 @@ func Present(entities []*model.PostEntity, ctx ReadContext) []*model.PostEntity 
 		}
 		next := *entity
 		next.HasCard = slices.ContainsFunc(entity.TypeIDs, reg.typeHasCard)
+		if next.Badge == nil {
+			next.Badge = reg.typeBadge(entity.TypeIDs)
+		} else if !next.Badge.IsValid() {
+			next.Badge = nil
+		}
 		out = append(out, &next)
 	}
 	return out
+}
+
+func (r *registry) typeBadge(typeIDs []string) *model.EntityBadge {
+	for _, typeID := range typeIDs {
+		t, ok := r.types[typeID]
+		if !ok || t.badge == nil || !t.badge.IsValid() {
+			continue
+		}
+		return cloneBadge(t.badge)
+	}
+	return nil
+}
+
+// DynamicBadgeHits groups values that need a plugin EntityBadges call, by owner.
+func DynamicBadgeHits(entities []*model.PostEntity) map[string][]model.EntityBadgeItem {
+	if len(entities) == 0 {
+		return nil
+	}
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	out := map[string][]model.EntityBadgeItem{}
+	seen := map[string]struct{}{}
+	for _, entity := range entities {
+		if entity == nil || entity.MatcherID == "" || entity.Value == "" {
+			continue
+		}
+		stored, ok := reg.matcher(entity.MatcherID)
+		if !ok || !stored.dynamicBadge {
+			continue
+		}
+		key := stored.ref.Owner + "\n" + stored.typeID + "\n" + entity.Value
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out[stored.ref.Owner] = append(out[stored.ref.Owner], model.EntityBadgeItem{
+			Type:  LocalRef(stored.ref.Owner, stored.typeID),
+			Value: entity.Value,
+		})
+	}
+	return out
+}
+
+// ApplyBadges writes validated per-value badges onto matching entities.
+func ApplyBadges(entities []*model.PostEntity, owner string, items []model.EntityBadgeItem, badges []*model.EntityBadge) {
+	if len(entities) == 0 || len(items) == 0 {
+		return
+	}
+	byKey := map[string]*model.EntityBadge{}
+	for i, item := range items {
+		if i >= len(badges) || badges[i] == nil || !badges[i].IsValid() {
+			continue
+		}
+		ref, ok := ResolveRef(owner, item.Type)
+		if !ok {
+			continue
+		}
+		byKey[ref.String()+"\n"+item.Value] = cloneBadge(badges[i])
+	}
+	if len(byKey) == 0 {
+		return
+	}
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	for _, entity := range entities {
+		if entity == nil || entity.MatcherID == "" {
+			continue
+		}
+		stored, ok := reg.matcher(entity.MatcherID)
+		if !ok || !stored.dynamicBadge || stored.ref.Owner != owner {
+			continue
+		}
+		if badge, ok := byKey[stored.typeID+"\n"+entity.Value]; ok {
+			entity.Badge = badge
+		}
+	}
 }
 
 // ReadFlags reports whether presenting these spans needs the channel or the author.

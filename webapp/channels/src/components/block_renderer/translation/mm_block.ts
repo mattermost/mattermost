@@ -15,6 +15,9 @@ import type {
     MmContainerGap,
     MmContainerMaxHeight,
     MmDividerBlock,
+    MmField,
+    MmFieldTone,
+    MmFieldsBlock,
     MmImageBlock,
     MmImageSize,
     MmStaticSelectBlock,
@@ -34,12 +37,14 @@ const COLUMN_REQUIRED_KEYS = ['type', 'items'];
 const COLUMN_SET_REQUIRED_KEYS = ['type', 'columns'];
 const CONTAINER_REQUIRED_KEYS = ['type', 'content'];
 const COLLAPSIBLE_REQUIRED_KEYS = ['type', 'header', 'content'];
+const FIELDS_REQUIRED_KEYS = ['type', 'fields'];
 const STATIC_SELECT_OPTION_REQUIRED_KEYS = ['text', 'value'];
 
 const MM_IMAGE_SIZES = new Set<MmImageSize>(['auto', 'xsmall', 'small', 'medium', 'large', 'stretch']);
 const MM_CONTAINER_GAPS = new Set<MmContainerGap>(['none', 'small', 'medium', 'large', 'xlarge']);
 const MM_CONTAINER_BACKGROUNDS = new Set<MmContainerBackground>(['none', 'gray']);
 const MM_CONTAINER_MAX_HEIGHTS = new Set<MmContainerMaxHeight>(['none', 'small', 'medium', 'large']);
+const MM_FIELD_TONES = new Set<MmFieldTone>(['default', 'good', 'warning', 'danger', 'critical']);
 
 function isRecord(v: unknown): v is Record<string, unknown> {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -604,6 +609,85 @@ function translateCollapsibleBlock(raw: Record<string, unknown>): MmCollapsibleB
     return out;
 }
 
+function translateField(raw: unknown): MmField | null {
+    if (!isRecord(raw)) {
+        return null;
+    }
+    const label = typeof raw.label === 'string' ? raw.label : '';
+    const value = typeof raw.value === 'string' ? raw.value : '';
+    if (!label && !value) {
+        return null;
+    }
+    if (raw.label !== undefined && typeof raw.label !== 'string') {
+        return null;
+    }
+    if (raw.value !== undefined && typeof raw.value !== 'string') {
+        return null;
+    }
+    const short = asBoolean(raw.short);
+    if (raw.short !== undefined && short === undefined) {
+        return null;
+    }
+    let url: string | undefined;
+    if (raw.url === undefined) {
+        url = undefined;
+    } else if (typeof raw.url === 'string') {
+        url = raw.url;
+    } else {
+        return null;
+    }
+    let typeId: string | undefined;
+    if (raw.type_id === undefined) {
+        typeId = undefined;
+    } else if (typeof raw.type_id === 'string') {
+        typeId = raw.type_id;
+    } else {
+        return null;
+    }
+    let tone: MmFieldTone | undefined;
+    if (raw.tone === undefined) {
+        tone = undefined;
+    } else if (typeof raw.tone === 'string' && MM_FIELD_TONES.has(raw.tone as MmFieldTone)) {
+        tone = raw.tone as MmFieldTone;
+    } else {
+        return null;
+    }
+    const out: MmField = {label, value};
+    if (short === true) {
+        out.short = true;
+    }
+    if (url) {
+        out.url = url;
+    }
+    if (typeId) {
+        out.type_id = typeId;
+    }
+    if (tone) {
+        out.tone = tone;
+    }
+    return out;
+}
+
+function translateFieldsBlock(raw: Record<string, unknown>): MmFieldsBlock | null {
+    if (!hasRequiredKeys(raw, FIELDS_REQUIRED_KEYS)) {
+        return null;
+    }
+    if (!Array.isArray(raw.fields)) {
+        return null;
+    }
+    const fields: MmField[] = [];
+    for (const el of raw.fields) {
+        const field = translateField(el);
+        if (field) {
+            fields.push(field);
+        }
+    }
+    if (fields.length === 0) {
+        return null;
+    }
+    return {type: 'fields', fields};
+}
+
 /**
  * Validates a single native mm_blocks entry and returns a normalised `MmBlock`, or null if invalid.
  * Unknown block `type` values are rejected (reserved for future composite desugaring).
@@ -635,6 +719,8 @@ export function translateMMBlock(raw: unknown): MmBlock | null {
         return translateContainerBlock(raw);
     case 'collapsible':
         return translateCollapsibleBlock(raw);
+    case 'fields':
+        return translateFieldsBlock(raw);
     default:
         return null;
     }

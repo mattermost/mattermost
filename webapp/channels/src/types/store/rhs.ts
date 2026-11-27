@@ -58,6 +58,12 @@ export type RhsViewState = {
     selectedPostCardId: Post['id'];
     selectedChannelId: Channel['id'];
     highlightedPostId: Post['id'];
+
+    /** Thread root to restore when leaving the entity RHS opened from a thread. */
+    previousSelectedPostId: Post['id'];
+
+    /** Plugin panel id to restore when leaving the entity RHS opened over a plugin RHS. */
+    previousPluggableId: string;
     previousRhsStates: RhsState[];
     filesSearchExtFilter: string[];
     rhsState: RhsState;

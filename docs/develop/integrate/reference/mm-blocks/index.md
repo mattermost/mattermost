@@ -155,6 +155,7 @@ Each element of `props.mm_blocks` is an object with a required `type` field. The
 | Type | Purpose |
 | --- | --- |
 | [`text`](#text) | Markdown-formatted text |
+| [`fields`](#fields) | Labelled key/value facts, optionally paired into two columns |
 | [`image`](#image) | Remote image with optional sizing and alignment |
 | [`divider`](#divider) | Horizontal rule between blocks |
 | [`button`](#button) | Interactive button |
@@ -184,6 +185,41 @@ Malformed blocks are omitted at render time; valid sibling blocks still display.
 | `text` | yes | Markdown-formatted content. Supports @mentions. All `text` and [button](#button) `text` fields in a post share a combined limit of 16,000 characters. |
 | `is_subtle` | no | When `true`, renders in a muted color. Does not change font size. |
 | `size` | no | Typography scale: `small` or `default`. Omitted is equivalent to `default`. |
+
+### Fields
+
+A `fields` block renders a list of labelled facts. Consecutive entries with `short: true` pair into two columns; a long (`short` omitted or `false`) field spans the full width.
+
+```json
+{
+  "type": "fields",
+  "fields": [
+    {"label": "Status", "value": "Open", "short": true},
+    {"label": "Priority", "value": "High", "short": true, "tone": "danger"},
+    {"label": "Summary", "value": "Needs follow-up before release."},
+    {
+      "label": "CVE",
+      "value": "CVE-2024-3400",
+      "type_id": "com.example.plugin:cve",
+      "url": "https://www.cve.org/CVERecord?id=CVE-2024-3400"
+    }
+  ]
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `fields` | yes | Non-empty array of field objects. Empty or omitted fields are dropped. |
+| `fields[].label` | no\* | Field title. Rendered as muted uppercase text. |
+| `fields[].value` | no\* | Field body. Supports markdown. |
+| `fields[].short` | no | When `true`, the field may share a row with the next short field. |
+| `fields[].url` | no | Optional link for the value (`https`, `http`, or a root-relative path). Unsafe URLs are stripped. |
+| `fields[].type_id` | no | When set with a value, the client can open that entity card instead of following `url`. |
+| `fields[].tone` | no | Optional emphasis on the value: `default`, `good`, `warning`, `danger`, or `critical`. |
+
+\*At least one of `label` or `value` must be non-empty for the field to be kept.
+
+Entity cards often emit `fields` blocks via `model.MarshalMmFieldsBlock`. Incoming webhook message attachments with `fields` are translated into this block type when Mattermost Blocks rendering is enabled.
 
 ### Image
 

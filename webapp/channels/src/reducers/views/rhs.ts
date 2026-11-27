@@ -132,6 +132,9 @@ function selectedChannelId(state = '', action: MMAction) {
 function previousRhsStates(state: any = [], action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
+        if (action.preservePreviousRhsStates) {
+            return state;
+        }
         if (action.previousRhsState) {
             return [
                 ...state,
@@ -154,6 +157,9 @@ function previousRhsStates(state: any = [], action: MMAction) {
                 action.previousRhsState,
             ];
         }
+        if (action.preservePreviousRhsStates) {
+            return state;
+        }
         return [];
     case ActionTypes.RHS_GO_BACK:
         // eslint-disable-next-line no-case-declarations
@@ -162,6 +168,44 @@ function previousRhsStates(state: any = [], action: MMAction) {
         return newState;
     case UserTypes.LOGOUT_SUCCESS:
         return [];
+    default:
+        return state;
+    }
+}
+
+// previousSelectedPostId remembers the thread that was open when the entity RHS took over,
+// so Back can restore it. Threads are not an rhsState — they live in selectedPostId.
+function previousSelectedPostId(state = '', action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state === RHSStates.ENTITY) {
+            return action.previousSelectedPostId ?? '';
+        }
+        return '';
+    case ActionTypes.SELECT_POST:
+    case ActionTypes.SELECT_POST_CARD:
+    case ActionTypes.RHS_GO_BACK:
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
+// previousPluggableId remembers the plugin panel covered by the entity RHS. goBack only
+// restores the PLUGIN enum; without this id getActiveRhsComponent has nothing to mount.
+function previousPluggableId(state = '', action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state === RHSStates.ENTITY) {
+            return action.previousPluggableId ?? '';
+        }
+        return '';
+    case ActionTypes.SELECT_POST:
+    case ActionTypes.SELECT_POST_CARD:
+    case ActionTypes.RHS_GO_BACK:
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
     default:
         return state;
     }
@@ -485,6 +529,8 @@ export default combineReducers({
     selectedPostCardId,
     selectedChannelId,
     highlightedPostId,
+    previousSelectedPostId,
+    previousPluggableId,
     previousRhsStates,
     filesSearchExtFilter,
     selectedEntity,

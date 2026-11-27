@@ -301,8 +301,12 @@ function replaceEntitySentinels(text: string, tokens: Tokens, entities?: PostEnt
         const labelAttr = entity.display_name ? ` data-entity-label="${escapeHtml(entity.display_name)}"` : '';
         const titleAttr = entity.title ? ` data-entity-title="${escapeHtml(entity.title)}"` : '';
         const cardAttr = entity.has_card ? ' data-entity-card="1"' : '';
+        const badge = entity.badge;
+        const badgeTextAttr = badge?.text ? ` data-entity-badge-text="${escapeHtml(badge.text)}"` : '';
+        const badgeIconAttr = badge?.icon ? ` data-entity-badge-icon="${escapeHtml(badge.icon)}"` : '';
+        const badgeColorAttr = badge?.color ? ` data-entity-badge-color="${escapeHtml(badge.color)}"` : '';
         tokens.set(alias, {
-            value: `<span data-entity="${escapeHtml(entity.id)}" data-entity-type="${escapeHtml(entity.type_ids[0] || '')}" data-entity-value="${escapeHtml(entity.value)}"${urlAttr}${labelAttr}${titleAttr}${cardAttr}>${escapeHtml(entity.value)}</span>`,
+            value: `<span data-entity="${escapeHtml(entity.id)}" data-entity-type="${escapeHtml(entity.type_ids[0] || '')}" data-entity-value="${escapeHtml(entity.value)}"${urlAttr}${labelAttr}${titleAttr}${cardAttr}${badgeTextAttr}${badgeIconAttr}${badgeColorAttr}>${escapeHtml(entity.value)}</span>`,
             originalText: entity.value,
         });
         return alias;

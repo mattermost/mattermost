@@ -12,8 +12,9 @@ const EntitiesDisabledError = "app.entities.disabled.app_error"
 // segments. Everywhere else the type is known by its id, "owner:name", where
 // the owner is the plugin id. Built-in types are owned by "mm", such as "mm:time".
 type EntityType struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
+	Name        string       `json:"name"`
+	DisplayName string       `json:"display_name"`
+	Badge       *EntityBadge `json:"badge,omitempty"`
 }
 
 // EntityMatcher is a RE2 pattern that finds one type in message text.
@@ -36,6 +37,10 @@ type EntityMatcher struct {
 	Scope      []string `json:"scope,omitempty"`
 	Boundary   string   `json:"boundary,omitempty"`
 	SkipBots   bool     `json:"skip_bots,omitempty"`
+	// DynamicBadge asks the owning plugin's EntityBadges hook for a per-value
+	// badge when the post is scanned. The answer is stored with the pattern
+	// cache and does not call EntityLookup.
+	DynamicBadge bool `json:"dynamic_badge,omitempty"`
 }
 
 const (

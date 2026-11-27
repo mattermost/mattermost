@@ -110,16 +110,11 @@ describe('translatePostProps', () => {
                 {title: 'Great (1 vote)', value: '', short: true},
                 {title: 'Meh (0 votes)', value: '', short: true},
             ])).toEqual({
-                type: 'container',
-                flow: 'vertical',
-                gap: 'medium',
-                content: [{
-                    type: 'column_set',
-                    columns: [
-                        {type: 'column', width: 'stretch', gap: 'none', items: [{type: 'text', text: '**Great (1 vote):**'}]},
-                        {type: 'column', width: 'stretch', gap: 'none', items: [{type: 'text', text: '**Meh (0 votes):**'}]},
-                    ],
-                }],
+                type: 'fields',
+                fields: [
+                    {label: 'Great (1 vote)', value: '', short: true},
+                    {label: 'Meh (0 votes)', value: '', short: true},
+                ],
             });
         });
 
@@ -128,12 +123,10 @@ describe('translatePostProps', () => {
                 {title: 'Monday', value: '@alice, @bob'},
                 {title: 'Friday', value: null},
             ])).toEqual({
-                type: 'container',
-                flow: 'vertical',
-                gap: 'medium',
-                content: [
-                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: '**Monday:**'}, {type: 'text', text: '@alice, @bob'}]},
-                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: '**Friday:**'}]},
+                type: 'fields',
+                fields: [
+                    {label: 'Monday', value: '@alice, @bob'},
+                    {label: 'Friday', value: ''},
                 ],
             });
         });
@@ -144,11 +137,9 @@ describe('translatePostProps', () => {
                 {title: ' ', value: null},
                 {value: 'kept'},
             ])).toEqual({
-                type: 'container',
-                flow: 'vertical',
-                gap: 'medium',
-                content: [
-                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: 'kept'}]},
+                type: 'fields',
+                fields: [
+                    {label: '', value: 'kept'},
                 ],
             });
         });

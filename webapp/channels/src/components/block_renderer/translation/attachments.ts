@@ -10,6 +10,8 @@ import type {
     MmColumnBlock,
     MmColumnSetBlock,
     MmContainerBlock,
+    MmField,
+    MmFieldsBlock,
     MmStaticSelectOption,
 } from '@mattermost/types/mm_blocks';
 import {ensureString} from '@mattermost/types/utilities';
@@ -257,70 +259,18 @@ function parseAttachmentFields(fields: unknown): ParsedAttachmentField[] {
     return result;
 }
 
-function attachmentFieldBlocks(f: ParsedAttachmentField): MmBlock[] {
-    const blocks: MmBlock[] = [];
-    if (f.title) {
-        blocks.push({type: 'text', text: `**${f.title}:**`});
-    }
-    if (f.value) {
-        blocks.push({type: 'text', text: f.value});
-    }
-    return blocks;
-}
-
-function wrapAttachmenFieldBlocks(blocks: MmBlock[]): MmBlock {
-    return {
-        type: 'container',
-        flow: 'vertical',
-        gap: 'none',
-        content: blocks,
-    };
-}
-
-function attachmentFieldsToMmBlocks(parsed: ParsedAttachmentField[]): MmContainerBlock | null {
+function attachmentFieldsToMmBlocks(parsed: ParsedAttachmentField[]): MmFieldsBlock | null {
     if (parsed.length === 0) {
         return null;
     }
-    const content: MmBlock[] = [];
-    let pending: ParsedAttachmentField | null = null;
-
-    for (const field of parsed) {
-        if (field.short) {
-            if (pending) {
-                const left: MmColumnBlock = {
-                    type: 'column',
-                    width: 'stretch',
-                    gap: 'none',
-                    items: attachmentFieldBlocks(pending),
-                };
-                const right: MmColumnBlock = {
-                    type: 'column',
-                    width: 'stretch',
-                    gap: 'none',
-                    items: attachmentFieldBlocks(field),
-                };
-                content.push({type: 'column_set', columns: [left, right]});
-                pending = null;
-            } else {
-                pending = field;
-            }
-        } else {
-            if (pending) {
-                content.push(wrapAttachmenFieldBlocks(attachmentFieldBlocks(pending)));
-                pending = null;
-            }
-            content.push(wrapAttachmenFieldBlocks(attachmentFieldBlocks(field)));
+    const fields: MmField[] = parsed.map((f) => {
+        const field: MmField = {label: f.title, value: f.value};
+        if (f.short) {
+            field.short = true;
         }
-    }
-    if (pending) {
-        content.push(wrapAttachmenFieldBlocks(attachmentFieldBlocks(pending)));
-    }
-    return {
-        type: 'container',
-        flow: 'vertical',
-        gap: 'medium',
-        content,
-    };
+        return field;
+    });
+    return {type: 'fields', fields};
 }
 
 function formatAttachmentFieldValue(value: unknown): string {

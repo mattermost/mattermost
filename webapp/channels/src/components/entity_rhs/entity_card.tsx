@@ -12,6 +12,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isUseMilitaryTime} from 'selectors/preferences';
 
 import {BlockRenderer} from 'components/block_renderer';
+import {MmBlocksFieldOpenContext} from 'components/block_renderer/context';
 import {translateMMBlocks} from 'components/block_renderer/translation/mm_block';
 import ExternalLink from 'components/external_link';
 
@@ -42,12 +43,14 @@ const severityMessages = defineMessages({
 
 const rule = '1px solid rgba(var(--center-channel-color-rgb), 0.08)';
 
+// FIRST CVSS calculator qualitative scoreRating colors
+// (https://www.first.org/cvss/calculator/3.1 — .scoreRating.none|low|medium|high|critical).
 const severityStyle: Record<string, React.CSSProperties> = {
-    critical: {background: '#b3261e', color: '#ffffff'},
-    high: {background: '#d9531e', color: '#ffffff'},
-    medium: {background: '#f2b21b', color: '#1f1f1f'},
-    low: {background: '#3b7fc4', color: '#ffffff'},
-    none: {background: 'rgba(var(--center-channel-color-rgb), 0.12)', color: 'var(--center-channel-color)'},
+    none: {background: '#53aa33', color: '#1f1f1f'},
+    low: {background: '#ffcb0d', color: '#1f1f1f'},
+    medium: {background: '#f9a009', color: '#1f1f1f'},
+    high: {background: '#df3d03', color: '#ffffff'},
+    critical: {background: '#cc0500', color: '#ffffff'},
 };
 
 const badge: React.CSSProperties = {
@@ -113,6 +116,14 @@ function hostOf(url: string) {
     }
 }
 
+function sectionItemLabel(item: {head?: string; url?: string}) {
+    const host = item.url ? hostOf(item.url) : '';
+    if (item.head && host) {
+        return `${item.head} — ${host}`;
+    }
+    return item.head || host;
+}
+
 function externalHref(value: string) {
     if (value.startsWith('https://') || value.startsWith('http://')) {
         return value;
@@ -136,6 +147,39 @@ function ValueText({value}: {value: string}) {
     );
 }
 
+function RowValue({
+    row,
+    onOpen,
+}: {
+    row: NonNullable<EntityCard['rows']>[number];
+    onOpen?: (target: EntityOpenTarget) => void;
+}) {
+    if (row.type_id && row.value && onOpen) {
+        return (
+            <button
+                type='button'
+                onClick={() => onOpen({typeId: row.type_id!, value: row.value, label: row.label})}
+                style={{background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--link-color)', cursor: 'pointer', textAlign: 'left', overflowWrap: 'anywhere'}}
+            >{row.value}</button>
+        );
+    }
+    return <ValueText value={row.value}/>;
+}
+
+/** Prefer explicit hop Value; otherwise the leading id token in Text (CWE-502 Name → CWE-502). */
+function relatedHopValue(link: NonNullable<EntityCard['related']>[number]): string {
+    if (link.value) {
+        return link.value;
+    }
+    const text = (link.text || '').trim();
+    const id = text.match(/^(CVE-\d{4}-\d+|CWE-\d+|CAPEC-\d+|T\d{4}(?:\.\d+)?)\b/i);
+    if (!id) {
+        return text;
+    }
+    const token = id[1];
+    return (/^T/i).test(token) ? `T${token.slice(1)}` : token.toUpperCase();
+}
+
 function RelatedValue({
     link,
     onOpen,
@@ -152,13 +196,14 @@ function RelatedValue({
             >{link.text || link.label}</ExternalLink>
         );
     }
-    if (link.type_id && link.text && onOpen) {
+    const hopValue = relatedHopValue(link);
+    if (link.type_id && hopValue && onOpen) {
         return (
             <button
                 type='button'
-                onClick={() => onOpen({typeId: link.type_id!, value: link.text!, label: link.label})}
+                onClick={() => onOpen({typeId: link.type_id!, value: hopValue, label: link.label})}
                 style={{background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--link-color)', cursor: 'pointer', textAlign: 'left'}}
-            >{link.text}</button>
+            >{link.text || hopValue}</button>
         );
     }
     return <span>{link.text}</span>;
@@ -222,7 +267,8 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const mapParts = parts.filter((part) => part.part === 'map');
     const clockParts = parts.filter((part) => part.part === 'clocks');
     const extraParts = parts.filter((part) => part.part !== 'map' && part.part !== 'clocks');
-    const severity = card.severity && Object.hasOwn(severityStyle, card.severity) ? card.severity : '';
+    const severityKey = (card.severity || '').toLowerCase();
+    const severity = severityKey && Object.hasOwn(severityStyle, severityKey) ? severityKey : '';
     const cardHref = card.url ? externalHref(card.url) : '';
     const bodyBlocks = useMemo(
         () => (Array.isArray(card.blocks) && card.blocks.length > 0 ? translateMMBlocks(card.blocks) : []),
@@ -232,6 +278,14 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const urlInRows = Boolean(!hasBlockBody && cardHref && card.rows?.some((row) => row.value === card.url));
     const localInstant = card.instant ? formatCardInstant(card.instant, timezone, military, intl) : '';
     const heading = localInstant || card.title;
+    const fieldOpen = useMemo(() => {
+        if (!onOpen) {
+            return undefined;
+        }
+        return (target: {typeId: string; value: string; label: string}) => {
+            onOpen({typeId: target.typeId, value: target.value, label: target.label});
+        };
+    }, [onOpen]);
 
     return (
         <div data-testid='entity-card'>
@@ -266,12 +320,14 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     style={{marginTop: 16}}
                     data-testid='entity-card-blocks'
                 >
-                    <BlockRenderer
-                        blocks={bodyBlocks}
-                        postId=''
-                        onAction={async () => undefined}
-                        interactionsDisabled={true}
-                    />
+                    <MmBlocksFieldOpenContext.Provider value={fieldOpen}>
+                        <BlockRenderer
+                            blocks={bodyBlocks}
+                            postId=''
+                            onAction={async () => undefined}
+                            interactionsDisabled={true}
+                        />
+                    </MmBlocksFieldOpenContext.Provider>
                 </div>
             ) : (
                 card.summary && <Summary text={card.summary}/>
@@ -313,7 +369,12 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                                     scope='row'
                                     style={labelCell}
                                 >{row.label}</th>
-                                <td style={valueCell}><ValueText value={row.value}/></td>
+                                <td style={valueCell}>
+                                    <RowValue
+                                        row={row}
+                                        onOpen={onOpen}
+                                    />
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -340,34 +401,10 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                         {card.vector.map((metric) => (
                             <React.Fragment key={metric.metric}>
                                 <dt style={{margin: 0, opacity: 0.72}}>{metric.metric}</dt>
-                                <dd style={{margin: 0, textAlign: 'right', color: metric.severe ? 'var(--error-text, #d24b4e)' : undefined, fontWeight: metric.severe ? 600 : 400}}>{metric.value}</dd>
+                                <dd style={{margin: 0, textAlign: 'right'}}>{metric.value}</dd>
                             </React.Fragment>
                         ))}
                     </dl>
-                </>
-            )}
-            {card.related && card.related.length > 0 && (
-                <>
-                    <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>
-                        <FormattedMessage
-                            id='entity_card.related'
-                            defaultMessage='Related'
-                        />
-                    </p>
-                    <ul style={{listStyle: 'none', padding: 0, margin: 0}}>
-                        {card.related.map((link) => (
-                            <li
-                                key={link.label}
-                                style={{display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
-                            >
-                                <span style={{...ident, margin: 0}}>{link.label}</span>
-                                <RelatedValue
-                                    link={link}
-                                    onOpen={onOpen}
-                                />
-                            </li>
-                        ))}
-                    </ul>
                 </>
             )}
             {!hasBlockBody && card.sections?.map((section) => (
@@ -380,20 +417,32 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                         <span style={{marginLeft: 6, padding: '0 6px', borderRadius: 8, background: 'rgba(var(--center-channel-color-rgb), 0.08)'}}>{section.count}</span>
                     </summary>
                     <div style={{marginTop: 10, fontSize: 13}}>
-                        {section.items && section.items.length > 0 ? section.items.map((item) => (
-                            <div
-                                key={item.url || item.head}
-                                style={{padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
-                            >
-                                {item.url ? (
+                        {section.items && section.items.length > 0 ? section.items.map((item, index) => {
+                            const label = sectionItemLabel(item);
+                            const textIsURL = Boolean(item.url && item.text && item.text === item.url);
+                            let heading: React.ReactNode = null;
+                            if (item.url && label) {
+                                heading = (
                                     <ExternalLink
                                         href={item.url}
                                         location='entity_card'
-                                    >{hostOf(item.url)}</ExternalLink>
-                                ) : <span>{item.head}</span>}
-                                {item.text && <div style={{opacity: 0.64}}>{item.text}</div>}
-                            </div>
-                        )) : section.url && (
+                                    >{label}</ExternalLink>
+                                );
+                            } else if (label) {
+                                heading = <span style={{fontWeight: 600}}>{label}</span>;
+                            }
+                            return (
+                                <div
+                                    key={`${item.url || ''}-${item.head || ''}-${index}`}
+                                    style={{padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
+                                >
+                                    {heading}
+                                    {item.text && !textIsURL && (
+                                        <div style={{opacity: 0.72, whiteSpace: 'pre-line', marginTop: label ? 2 : 0}}>{item.text}</div>
+                                    )}
+                                </div>
+                            );
+                        }) : section.url && (
                             <ExternalLink
                                 href={section.url}
                                 location='entity_card'
@@ -407,6 +456,32 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     </div>
                 </details>
             ))}
+            {card.related && card.related.length > 0 && (
+                <>
+                    <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>
+                        <FormattedMessage
+                            id='entity_card.related'
+                            defaultMessage='Related'
+                        />
+                    </p>
+                    <ul style={{listStyle: 'none', padding: 0, margin: 0}}>
+                        {card.related.map((link, index) => (
+                            <li
+                                key={`${link.label}-${link.text || link.url || index}`}
+                                style={{display: 'flex', gap: 8, alignItems: 'flex-start', padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
+                            >
+                                <span style={{...ident, margin: 0, flex: '0 0 7.5rem', whiteSpace: 'nowrap'}}>{link.label}</span>
+                                <span style={{minWidth: 0, overflowWrap: 'anywhere'}}>
+                                    <RelatedValue
+                                        link={link}
+                                        onOpen={onOpen}
+                                    />
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
             {extraParts.map((part) => {
                 const Part = part.component;
                 return (

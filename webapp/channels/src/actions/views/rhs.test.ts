@@ -26,6 +26,7 @@ import {
     showPinnedPosts,
     showMentions,
     showEntity,
+    closeEntity,
     closeRightHandSide,
     showRHSPlugin,
     hideRHSPlugin,
@@ -1162,6 +1163,136 @@ describe('rhs view actions', () => {
                 type: ActionTypes.UPDATE_RHS_STATE,
                 state: RHSStates.ENTITY,
                 entity,
+                previousSelectedPostId: '',
+                previousPluggableId: '',
+            }]);
+        });
+
+        it('remembers the open thread so Back can restore it', () => {
+            const entity: EntitySelection = {
+                typeId: 'mm:time',
+                value: '16:30',
+                label: 'Time',
+            };
+            const testState = {...initialState};
+            testState.views.rhs.selectedPostId = 'post1';
+            testState.views.rhs.previousRhsStates = [RHSStates.SEARCH as RhsState];
+            const threadStore = mockStore(testState);
+
+            threadStore.dispatch(showEntity(entity));
+
+            expect(threadStore.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.ENTITY,
+                entity,
+                previousSelectedPostId: 'post1',
+                previousPluggableId: '',
+                preservePreviousRhsStates: true,
+            }]);
+        });
+
+        it('remembers the covered plugin panel id', () => {
+            const entity: EntitySelection = {
+                typeId: 'mm:time',
+                value: '16:30',
+                label: 'Time',
+            };
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.PLUGIN as RhsState;
+            testState.views.rhs.pluggableId = pluggableId;
+            testState.views.rhs.selectedPostId = '';
+            const pluginStore = mockStore(testState);
+
+            pluginStore.dispatch(showEntity(entity));
+
+            expect(pluginStore.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.ENTITY,
+                entity,
+                previousSelectedPostId: '',
+                previousPluggableId: pluggableId,
+                previousRhsState: RHSStates.PLUGIN,
+            }]);
+        });
+    });
+
+    describe('closeEntity', () => {
+        it('restores the covered thread without duplicating previousRhsStates', async () => {
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
+            testState.views.rhs.previousSelectedPostId = previousSelectedPost.id;
+            testState.views.rhs.previousRhsStates = [RHSStates.SEARCH as RhsState];
+            const entityStore = mockStore(testState);
+
+            await entityStore.dispatch(closeEntity());
+
+            const actions = entityStore.getActions();
+            expect(actions[0]).toMatchObject({
+                type: ActionTypes.SELECT_POST,
+                postId: previousSelectedPost.root_id,
+                channelId: previousSelectedPost.channel_id,
+                preservePreviousRhsStates: true,
+            });
+            expect(actions[0].previousRhsState).toBeUndefined();
+        });
+
+        it('emits preservePreviousRhsStates so search → thread → entity → X keeps search under the thread', async () => {
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
+            testState.views.rhs.previousSelectedPostId = previousSelectedPost.id;
+            testState.views.rhs.previousRhsStates = [RHSStates.SEARCH as RhsState];
+            const entityStore = mockStore(testState);
+
+            await entityStore.dispatch(closeEntity());
+
+            expect(entityStore.getActions()[0]).toMatchObject({
+                type: ActionTypes.SELECT_POST,
+                preservePreviousRhsStates: true,
+            });
+            expect(entityStore.getActions()[0].previousRhsState).toBeUndefined();
+        });
+
+        it('closes the RHS when nothing was underneath', async () => {
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
+            testState.views.rhs.previousSelectedPostId = '';
+            testState.views.rhs.previousRhsStates = [];
+            const entityStore = mockStore(testState);
+
+            await entityStore.dispatch(closeEntity());
+
+            expect(entityStore.getActions()).toEqual([{
+                type: 'BATCHING_REDUCER.BATCH',
+                meta: {batch: true},
+                payload: [
+                    {
+                        type: ActionTypes.UPDATE_RHS_STATE,
+                        state: null,
+                    },
+                    {
+                        type: ActionTypes.SELECT_POST,
+                        postId: '',
+                        channelId: '',
+                        timestamp: 0,
+                    },
+                ],
+            }]);
+        });
+
+        it('restores the covered plugin panel with its pluggableId', async () => {
+            const testState = cloneDeep(initialState);
+            testState.views.rhs.rhsState = RHSStates.ENTITY as RhsState;
+            testState.views.rhs.previousSelectedPostId = '';
+            testState.views.rhs.previousRhsStates = [RHSStates.PLUGIN as RhsState];
+            testState.views.rhs.previousPluggableId = pluggableId;
+            const entityStore = mockStore(testState);
+
+            await entityStore.dispatch(closeEntity());
+
+            expect(entityStore.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.PLUGIN,
+                pluggableId,
             }]);
         });
     });

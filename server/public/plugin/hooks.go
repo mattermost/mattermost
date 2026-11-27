@@ -77,6 +77,7 @@ const (
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
 	EntityLookupID                            = 59
+	EntityBadgesID                            = 60
 	TotalHooksID                              = iota
 )
 
@@ -596,4 +597,13 @@ type Hooks interface {
 	//
 	// Minimum server version: 12.2
 	EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)
+
+	// EntityBadges asks the plugin for leading mention chrome for values of
+	// types whose matchers set DynamicBadge. The request carries no user or
+	// post: the answer is stored once per post for every reader. Return one
+	// entry per request item, in the same order; nil means no badge. Do not
+	// call the network. Invalid badges are dropped by the server.
+	//
+	// Minimum server version: 12.2
+	EntityBadges(c *Context, req *model.EntityBadgeRequest) ([]*model.EntityBadge, error)
 }

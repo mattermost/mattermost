@@ -39,6 +39,10 @@ The server will trigger the [OnActivate](/developers/integrate/reference/server#
 
 To attach typed data to Mattermost objects, such as a status for posts or a region for channels, without managing your own database tables, see [Store custom data with the property system](/developers/integrate/plugins/components/server/property-system). To protect your plugin's own resources with attribute-based access policies, and to respect Mattermost's file upload and download policies, see [Enforce access control in your plugin](/developers/integrate/plugins/components/server/access-control).
 
+## Entities
+
+To recognize tokens in posts and show entity cards (and optional dynamic mention badges), see [Entities](/developers/integrate/plugins/components/server/entities).
+
 ## High availability
 
 Considerations for plugins in a high availability configuration are documented here: [High Availability](/developers/integrate/plugins/components/server/ha)

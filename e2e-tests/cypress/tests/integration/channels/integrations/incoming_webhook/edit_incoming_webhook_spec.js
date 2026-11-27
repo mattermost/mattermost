@@ -76,10 +76,10 @@ describe('Incoming webhook', () => {
 
         cy.getLastPost().within(() => {
             cy.get('.mm-blocks-image').should('be.visible');
-            cy.contains('.mm-blocks-text', 'Area').should('be.visible');
-            cy.contains('.mm-blocks-text', 'Iteration').should('be.visible');
-            cy.contains('.mm-blocks-text', 'State').should('be.visible');
-            cy.contains('.mm-blocks-text', 'Reason').should('be.visible');
+            cy.contains('.mm-blocks-field__label', 'Area').should('be.visible');
+            cy.contains('.mm-blocks-field__label', 'Iteration').should('be.visible');
+            cy.contains('.mm-blocks-field__label', 'State').should('be.visible');
+            cy.contains('.mm-blocks-field__label', 'Reason').should('be.visible');
         });
     });
 });

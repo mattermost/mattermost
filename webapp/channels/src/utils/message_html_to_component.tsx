@@ -230,6 +230,9 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     label={node.attribs['data-entity-label']}
                     title={node.attribs['data-entity-title']}
                     hasCard={node.attribs['data-entity-card'] === '1'}
+                    badgeText={node.attribs['data-entity-badge-text']}
+                    badgeIcon={node.attribs['data-entity-badge-icon']}
+                    badgeColor={node.attribs['data-entity-badge-color']}
                 >
                     {children}
                 </EntityMention>

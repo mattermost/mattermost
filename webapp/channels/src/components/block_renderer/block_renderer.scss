@@ -498,4 +498,91 @@ $mm-blocks-container-max-heights: (
             }
         }
     }
+
+    .mm-blocks-fields {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .mm-blocks-fields__row {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 10px;
+
+        &--pair {
+            flex-direction: row;
+            gap: 16px;
+
+            > .mm-blocks-field {
+                min-width: 0;
+                flex: 1 1 0;
+            }
+        }
+    }
+
+    .mm-blocks-field {
+        min-width: 0;
+    }
+
+    .mm-blocks-field__label {
+        margin-bottom: 2px;
+        color: $mm-blocks-text-muted;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        line-height: 16px;
+        overflow-wrap: anywhere;
+        text-transform: uppercase;
+    }
+
+    .mm-blocks-field__value {
+        font-size: 13px;
+        line-height: 18px;
+        overflow-wrap: anywhere;
+
+        &--hop {
+            padding: 0;
+            border: none;
+            background: none;
+            color: var(--link-color);
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+        }
+
+        &--tone-good,
+        &--tone-warning,
+        &--tone-danger,
+        &--tone-critical {
+            display: inline-block;
+            padding: 0 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            line-height: 18px;
+        }
+
+        &--tone-good {
+            background: rgba(var(--semantic-color-success), 0.16);
+            color: rgb(var(--semantic-color-success));
+        }
+
+        &--tone-warning {
+            background: rgba(var(--semantic-color-warning), 0.2);
+            color: rgb(var(--semantic-color-warning));
+        }
+
+        &--tone-danger {
+            background: rgba(var(--semantic-color-danger), 0.16);
+            color: rgb(var(--semantic-color-danger));
+        }
+
+        &--tone-critical {
+            background: #cc0500;
+            color: #ffffff;
+        }
+    }
 }
