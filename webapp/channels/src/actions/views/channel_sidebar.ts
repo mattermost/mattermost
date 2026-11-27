@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {createCategory as createCategoryRedux, moveChannelsToCategory} from 'mattermost-redux/actions/channel_categories';
-import {General} from 'mattermost-redux/constants';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+import {canChannelBeInCategoryType, isAgentDirectChannel} from 'mattermost-redux/utils/channel_utils';
 
 import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
 import {getProductRailFilter, toFullListIndex} from 'selectors/views/product_rail';
@@ -76,10 +76,13 @@ export function moveChannelsInSidebar(categoryId: string, targetIndex: number, d
 
             // Filter out channels that can't go in the category specified
             const targetCategory = categories.find((category) => category.id === categoryId);
+            const currentUserId = getCurrentUserId(state);
             channelsToMove = multiSelectedChannelIds.filter((channelId) => {
                 const selectedChannel = displayedChannels.find((channel) => channelId === channel.id);
-                const isDMGM = selectedChannel?.type === General.DM_CHANNEL || selectedChannel?.type === General.GM_CHANNEL;
-                return targetCategory?.type === CategoryTypes.CUSTOM || targetCategory?.type === CategoryTypes.FAVORITES || (isDMGM && targetCategory?.type === CategoryTypes.DIRECT_MESSAGES) || (!isDMGM && targetCategory?.type !== CategoryTypes.DIRECT_MESSAGES);
+                if (!selectedChannel || !targetCategory) {
+                    return false;
+                }
+                return canChannelBeInCategoryType(selectedChannel, targetCategory.type, isAgentDirectChannel(selectedChannel, currentUserId, state.entities.users.profiles));
             });
 
             // Reorder such that the channels move in the order that they appear in the sidebar

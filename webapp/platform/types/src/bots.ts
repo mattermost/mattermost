@@ -7,6 +7,7 @@ export type Bot = {
     display_name?: string;
     description?: string;
     owner_id: string;
+    is_agent?: boolean;
     create_at: number;
     update_at: number;
     delete_at: number;

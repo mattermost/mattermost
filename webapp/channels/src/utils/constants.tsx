@@ -1054,6 +1054,7 @@ export const DraggingStateTypes = {
     CATEGORY: 'category',
     CHANNEL: 'channel',
     DM: 'DM',
+    AGENT_DM: 'agent_DM',
     MIXED_CHANNELS: 'mixed_channels',
 };
 

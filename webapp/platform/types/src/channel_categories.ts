@@ -6,7 +6,7 @@ import type {Team} from './teams';
 import type {UserProfile} from './users';
 import type {IDMappedObjects, RelationOneToOne} from './utilities';
 
-export type ChannelCategoryType = 'favorites' | 'channels' | 'direct_messages' | 'custom' | 'managed';
+export type ChannelCategoryType = 'favorites' | 'channels' | 'direct_messages' | 'agents' | 'custom' | 'managed';
 
 export enum CategorySorting {
     Alphabetical = 'alpha',

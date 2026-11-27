@@ -25,6 +25,7 @@ type bot struct {
 	CreateAt       int64  `json:"create_at"`
 	UpdateAt       int64  `json:"update_at"`
 	DeleteAt       int64  `json:"delete_at"`
+	IsAgent        bool   `json:"is_agent"`
 }
 
 func botFromModel(b *model.Bot) *bot {
@@ -36,6 +37,7 @@ func botFromModel(b *model.Bot) *bot {
 		CreateAt:       b.CreateAt,
 		UpdateAt:       b.UpdateAt,
 		DeleteAt:       b.DeleteAt,
+		IsAgent:        b.IsAgent,
 	}
 }
 
@@ -59,7 +61,7 @@ func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) st
 
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
 	bs.botsQuery = bs.getQueryBuilder().
-		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
+		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt", "b.IsAgent").
 		From("Bots b").
 		Join("Users u ON ( u.Id = b.UserId )")
 
@@ -83,7 +85,8 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 			COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			b.CreateAt,
 			b.UpdateAt,
-			b.DeleteAt
+			b.DeleteAt,
+			b.IsAgent
 		FROM
 			Bots b
 		JOIN
@@ -136,7 +139,8 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 			    COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			    b.CreateAt,
 			    b.UpdateAt,
-			    b.DeleteAt
+			    b.DeleteAt,
+			    b.IsAgent
 			FROM
 			    Bots b
 			JOIN
@@ -173,9 +177,9 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	}
 
 	if _, err := us.GetMaster().NamedExec(`INSERT INTO Bots
-		(UserId, Description, OwnerId, LastIconUpdate, CreateAt, UpdateAt, DeleteAt)
+		(UserId, Description, OwnerId, LastIconUpdate, CreateAt, UpdateAt, DeleteAt, IsAgent)
 		VALUES
-		(:UserId, :Description, :OwnerId, :LastIconUpdate, :CreateAt, :UpdateAt, :DeleteAt)`, botFromModel(bot)); err != nil {
+		(:UserId, :Description, :OwnerId, :LastIconUpdate, :CreateAt, :UpdateAt, :DeleteAt, :IsAgent)`, botFromModel(bot)); err != nil {
 		return nil, errors.Wrapf(err, "insert: user_id=%s", bot.UserId)
 	}
 
@@ -202,11 +206,12 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	oldBot.LastIconUpdate = bot.LastIconUpdate
 	oldBot.UpdateAt = bot.UpdateAt
 	oldBot.DeleteAt = bot.DeleteAt
+	oldBot.IsAgent = bot.IsAgent
 	bot = oldBot
 
 	res, err := us.GetMaster().NamedExec(`UPDATE Bots
 		SET Description=:Description, OwnerId=:OwnerId, LastIconUpdate=:LastIconUpdate,
-			UpdateAt=:UpdateAt, DeleteAt=:DeleteAt
+			UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, IsAgent=:IsAgent
 		WHERE UserId=:UserId`, botFromModel(bot))
 	if err != nil {
 		return nil, errors.Wrapf(err, "update: user_id=%s", bot.UserId)

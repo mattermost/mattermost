@@ -27,6 +27,73 @@ func makeBotWithUser(t *testing.T, rctx request.CTX, ss store.Store, bot *model.
 	return bot, user
 }
 
+func testBotStoreIsAgent(t *testing.T, rctx request.CTX, ss store.Store) {
+	bot, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
+		Username: "agent_bot",
+		OwnerId:  model.NewId(),
+		IsAgent:  true,
+	})
+	defer func() { require.NoError(t, ss.Bot().PermanentDelete(bot.UserId)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, bot.UserId)) }()
+
+	t.Run("is persisted on save", func(t *testing.T) {
+		require.True(t, bot.IsAgent)
+
+		got, err := ss.Bot().Get(bot.UserId, false)
+		require.NoError(t, err)
+		require.True(t, got.IsAgent)
+
+		got, err = ss.Bot().GetByUsername(bot.Username)
+		require.NoError(t, err)
+		require.True(t, got.IsAgent)
+
+		user, err := ss.User().Get(rctx, bot.UserId)
+		require.NoError(t, err)
+		require.True(t, user.IsAgent)
+	})
+
+	t.Run("is returned in bulk fetches", func(t *testing.T) {
+		all, err := ss.Bot().GetAll(&model.BotGetOptions{PerPage: 100})
+		require.NoError(t, err)
+		var found bool
+		for _, b := range all {
+			if b.UserId == bot.UserId {
+				found = true
+				require.True(t, b.IsAgent)
+			}
+		}
+		require.True(t, found)
+	})
+
+	t.Run("is persisted on update", func(t *testing.T) {
+		updated := bot.Clone()
+		updated.IsAgent = false
+		_, err := ss.Bot().Update(updated)
+		require.NoError(t, err)
+
+		got, err := ss.Bot().Get(bot.UserId, false)
+		require.NoError(t, err)
+		require.False(t, got.IsAgent)
+
+		user, err := ss.User().Get(rctx, bot.UserId)
+		require.NoError(t, err)
+		require.False(t, user.IsAgent)
+	})
+
+	t.Run("defaults to false", func(t *testing.T) {
+		regular, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
+			Username: "regular_bot",
+			OwnerId:  model.NewId(),
+		})
+		defer func() { require.NoError(t, ss.Bot().PermanentDelete(regular.UserId)) }()
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, regular.UserId)) }()
+
+		got, err := ss.Bot().Get(regular.UserId, false)
+		require.NoError(t, err)
+		require.False(t, got.IsAgent)
+	})
+}
+
 func TestBotStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Get", func(t *testing.T) { testBotStoreGet(t, rctx, ss, s) })
 	t.Run("GetByUsername", func(t *testing.T) { testBotStoreGetByUsername(t, rctx, ss) })
@@ -35,6 +102,7 @@ func TestBotStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testBotStoreUpdate(t, rctx, ss) })
 	t.Run("PermanentDelete", func(t *testing.T) { testBotStorePermanentDelete(t, rctx, ss) })
+	t.Run("IsAgent", func(t *testing.T) { testBotStoreIsAgent(t, rctx, ss) })
 }
 
 func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {

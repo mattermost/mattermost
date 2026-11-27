@@ -48,6 +48,7 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 				Username:    &bot.Username,
 				DisplayName: &bot.DisplayName,
 				Description: &bot.Description,
+				IsAgent:     &bot.IsAgent,
 			}
 
 			if _, appErr = a.PatchBot(rctx, botID, botPatch); appErr != nil {
@@ -61,9 +62,14 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
+			if _, appErr := a.PatchBot(rctx, user.Id, &model.BotPatch{IsAgent: &bot.IsAgent}); appErr != nil {
+				return "", fmt.Errorf("failed to patch bot: %w", appErr)
+			}
+
 			if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(user.Id)); appErr != nil {
 				return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 			}
+
 			return user.Id, nil
 		}
 
@@ -314,6 +320,14 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 		// last fallback in case it doesn't map to an existing app error.
 		return nil, model.NewAppError("PatchBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	// IsAgent comes from the Bots table, so the cache and the event above still carry the previous value.
+	if bot.IsAgent != ruser.IsAgent {
+		a.InvalidateCacheForUser(user.Id)
+		ruser.IsAgent = bot.IsAgent
+		a.sendUpdatedUserEvent(ruser)
+	}
+
 	return bot, nil
 }
 

@@ -475,6 +475,22 @@ func TestBotPatch(t *testing.T) {
 	}
 }
 
+func TestBotPatchIsAgent(t *testing.T) {
+	b := &Bot{UserId: NewId()}
+
+	patch := &BotPatch{IsAgent: new(true)}
+	assert.True(t, b.WouldPatch(patch))
+	b.Patch(patch)
+	assert.True(t, b.IsAgent)
+	assert.False(t, b.WouldPatch(patch))
+
+	b.Patch(&BotPatch{DisplayName: new("name")})
+	assert.True(t, b.IsAgent, "a patch without the flag should leave it untouched")
+
+	b.Patch(&BotPatch{IsAgent: new(false)})
+	assert.False(t, b.IsAgent)
+}
+
 func TestBotWouldPatch(t *testing.T) {
 	b := &Bot{
 		UserId: NewId(),

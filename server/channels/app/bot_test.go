@@ -166,6 +166,72 @@ func TestEnsureBot(t *testing.T) {
 		assert.Equal(t, "another bot", bot.Description)
 	})
 
+	t.Run("ensure bot should create and sync the agent flag", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginId := "agentPluginId"
+
+		botID, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username: "agent_username",
+			OwnerId:  pluginId,
+			IsAgent:  true,
+		})
+		require.NoError(t, err)
+
+		bot, appErr := th.App.GetBot(th.Context, botID, true)
+		require.Nil(t, appErr)
+		assert.True(t, bot.IsAgent)
+
+		_, err = th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username: "agent_username",
+			OwnerId:  pluginId,
+			IsAgent:  false,
+		})
+		require.NoError(t, err)
+
+		bot, appErr = th.App.GetBot(th.Context, botID, true)
+		require.Nil(t, appErr)
+		assert.False(t, bot.IsAgent)
+
+		_, err = th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username: "agent_username",
+			OwnerId:  pluginId,
+			IsAgent:  true,
+		})
+		require.NoError(t, err)
+
+		bot, appErr = th.App.GetBot(th.Context, botID, true)
+		require.Nil(t, appErr)
+		assert.True(t, bot.IsAgent)
+	})
+
+	t.Run("ensure bot should sync the agent flag of an existing bot it adopts", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		existing, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username: "adopted_agent",
+			OwnerId:  th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		require.False(t, existing.IsAgent)
+
+		botID, err := th.App.EnsureBot(th.Context, "adoptingPluginId", &model.Bot{
+			Username: "adopted_agent",
+			OwnerId:  "adoptingPluginId",
+			IsAgent:  true,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, existing.UserId, botID)
+
+		bot, appErr := th.App.GetBot(th.Context, botID, true)
+		require.Nil(t, appErr)
+		assert.True(t, bot.IsAgent)
+
+		user, appErr := th.App.GetUser(th.Context, botID)
+		require.Nil(t, appErr)
+		assert.True(t, user.IsAgent)
+	})
+
 	t.Run("ensure bot should fail if username belongs to a non-bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 

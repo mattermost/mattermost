@@ -345,6 +345,11 @@
     "description": "API error when creating a bot account is attempted while bot creation is disabled by configuration; 'Bot' is a bot account."
   },
   {
+    "id": "api.bot.is_agent.forbidden.app_error",
+    "translation": "The agent flag of a bot can only be set by a plugin.",
+    "description": "API error returned when a bot is created or patched through the REST API with the is_agent field set; only plugins may mark a bot as an agent, which places its direct messages in the Agents sidebar category."
+  },
+  {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App.",
     "description": "Message a bot sends to a mobile user asking to be added to teams and channels; instructs them to use the browser or the Mattermost Desktop App because mobile cannot do it."
@@ -7781,6 +7786,11 @@
     "id": "app.channel.set_members.get_members.app_error",
     "translation": "Unable to get channel members for role reconciliation.",
     "description": "API error returned when the server cannot re-load channel members to reconcile their roles during a bulk membership update."
+  },
+  {
+    "id": "app.channel.sidebar_categories.agents_only.app_error",
+    "translation": "The Agents category can only contain direct channels with agents.",
+    "description": "API error returned when a request puts a channel in the Agents sidebar category (the user's left-hand sidebar group for agent bots) that is not a direct message channel with an agent."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",

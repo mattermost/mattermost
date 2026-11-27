@@ -367,6 +367,34 @@ func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64,
 	return r0, r1
 }
 
+// CreateAgentsSidebarCategoryIfNeeded provides a mock function with given fields: userID, teamID
+func (_m *ChannelStore) CreateAgentsSidebarCategoryIfNeeded(userID string, teamID string) (bool, error) {
+	ret := _m.Called(userID, teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAgentsSidebarCategoryIfNeeded")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
+		return rf(userID, teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(userID, teamID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateDirectChannel provides a mock function with given fields: rctx, userID, otherUserID, channelOptions
 func (_m *ChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	_va := make([]interface{}, len(channelOptions))

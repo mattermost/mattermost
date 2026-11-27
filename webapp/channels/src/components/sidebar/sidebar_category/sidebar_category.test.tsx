@@ -9,6 +9,7 @@ import {CategorySorting} from '@mattermost/types/channel_categories';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {DraggingStateTypes} from 'utils/constants';
 
 import SidebarCategory from './sidebar_category';
 
@@ -227,5 +228,54 @@ describe('components/sidebar/sidebar_category', () => {
         renderWithDnd(<SidebarCategory {...props}/>);
 
         expect(screen.getByText('Active Operations')).toBeInTheDocument();
+    });
+
+    test('should render the Agents category with a translated name', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.AGENTS,
+                display_name: 'Agents',
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(screen.getByText('AGENTS')).toBeInTheDocument();
+        expect(document.querySelector('#mock-category-menu')).toBeInTheDocument();
+        expect(document.querySelector('#mock-sorting-menu')).not.toBeInTheDocument();
+    });
+
+    describe('drop rules', () => {
+        const dragging = (type: string) => ({state: 'during', type, id: 'dragged'});
+        const renderCategory = (categoryType: string, draggedType: string) => {
+            renderWithDnd(
+                <SidebarCategory
+                    {...baseProps}
+                    category={{...baseProps.category, type: categoryType as typeof baseProps.category.type}}
+                    draggingState={dragging(draggedType)}
+                />,
+            );
+            return Boolean(document.querySelector('.SidebarChannelGroup.dropDisabled'));
+        };
+
+        test.each([
+            [CategoryTypes.AGENTS, DraggingStateTypes.AGENT_DM, false],
+            [CategoryTypes.AGENTS, DraggingStateTypes.MIXED_CHANNELS, false],
+            [CategoryTypes.AGENTS, DraggingStateTypes.DM, true],
+            [CategoryTypes.AGENTS, DraggingStateTypes.CHANNEL, true],
+            [CategoryTypes.DIRECT_MESSAGES, DraggingStateTypes.AGENT_DM, true],
+            [CategoryTypes.DIRECT_MESSAGES, DraggingStateTypes.DM, false],
+            [CategoryTypes.DIRECT_MESSAGES, DraggingStateTypes.CHANNEL, true],
+            [CategoryTypes.CHANNELS, DraggingStateTypes.AGENT_DM, true],
+            [CategoryTypes.CHANNELS, DraggingStateTypes.DM, true],
+            [CategoryTypes.CHANNELS, DraggingStateTypes.CHANNEL, false],
+            [CategoryTypes.FAVORITES, DraggingStateTypes.AGENT_DM, false],
+            [CategoryTypes.CUSTOM, DraggingStateTypes.AGENT_DM, false],
+        ])('%s category with a %s being dragged should have drops disabled: %s', (categoryType, draggedType, expected) => {
+            expect(renderCategory(categoryType, draggedType)).toBe(expected);
+        });
     });
 });

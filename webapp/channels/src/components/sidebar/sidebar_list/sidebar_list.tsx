@@ -48,6 +48,7 @@ type Props = WrappedComponentProps & {
     unreadChannelIds: string[];
     isUnreadFilterEnabled: boolean;
     displayedChannels: Channel[];
+    displayedAgentChannelIds: string[];
     newCategoryIds: string[];
     draggingState: DraggingState;
     multiSelectedChannelIds: string[];
@@ -423,7 +424,9 @@ export class SidebarList extends React.PureComponent<Props, State> {
             draggingState.type = DraggingStateTypes.CATEGORY;
         } else {
             const draggingChannels = this.props.displayedChannels.filter((channel) => this.props.multiSelectedChannelIds.indexOf(channel.id) !== -1 || channel.id === before.draggableId);
-            if (draggingChannels.every((channel) => channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL)) {
+            if (draggingChannels.length > 0 && draggingChannels.every((channel) => this.props.displayedAgentChannelIds.includes(channel.id))) {
+                draggingState.type = DraggingStateTypes.AGENT_DM;
+            } else if (draggingChannels.every((channel) => channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) && !draggingChannels.some((channel) => this.props.displayedAgentChannelIds.includes(channel.id))) {
                 draggingState.type = DraggingStateTypes.DM;
             } else if (draggingChannels.every((channel) => channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL)) {
                 draggingState.type = DraggingStateTypes.CHANNEL;

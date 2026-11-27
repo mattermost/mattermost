@@ -40,6 +40,9 @@ type Bot struct {
 	CreateAt       int64  `json:"create_at"`
 	UpdateAt       int64  `json:"update_at"`
 	DeleteAt       int64  `json:"delete_at"`
+	// IsAgent marks the bot as an agent, which places its direct messages in the Agents sidebar category.
+	// Only plugins can set it; the REST API rejects any attempt to change it.
+	IsAgent bool `json:"is_agent"`
 }
 
 // IsProtectedBotUsername returns whether username is one of the protected,
@@ -86,6 +89,7 @@ func (b *Bot) Auditable() map[string]any {
 		"create_at":        b.CreateAt,
 		"update_at":        b.UpdateAt,
 		"delete_at":        b.DeleteAt,
+		"is_agent":         b.IsAgent,
 	}
 }
 
@@ -94,6 +98,7 @@ type BotPatch struct {
 	Username    *string `json:"username"`
 	DisplayName *string `json:"display_name"`
 	Description *string `json:"description"`
+	IsAgent     *bool   `json:"is_agent"`
 }
 
 func (b *BotPatch) Auditable() map[string]any {
@@ -101,6 +106,7 @@ func (b *BotPatch) Auditable() map[string]any {
 		"username":     b.Username,
 		"display_name": b.DisplayName,
 		"description":  b.Description,
+		"is_agent":     b.IsAgent,
 	}
 }
 
@@ -197,6 +203,10 @@ func (b *Bot) Patch(patch *BotPatch) {
 	if patch.Description != nil {
 		b.Description = *patch.Description
 	}
+
+	if patch.IsAgent != nil {
+		b.IsAgent = *patch.IsAgent
+	}
 }
 
 // WouldPatch returns whether or not the given patch would be applied or not.
@@ -211,6 +221,9 @@ func (b *Bot) WouldPatch(patch *BotPatch) bool {
 		return true
 	}
 	if patch.Description != nil && *patch.Description != b.Description {
+		return true
+	}
+	if patch.IsAgent != nil && *patch.IsAgent != b.IsAgent {
 		return true
 	}
 	return false

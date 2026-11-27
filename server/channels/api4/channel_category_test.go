@@ -1610,6 +1610,179 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 	})
 }
 
+func TestAgentsSidebarCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	agentBot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+		Username: GenerateTestUsername(),
+		OwnerId:  th.BasicUser.Id,
+		IsAgent:  true,
+	})
+	require.Nil(t, appErr)
+	regularBot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+		Username: GenerateTestUsername(),
+		OwnerId:  th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	categoryOfType := func(categories *model.OrderedSidebarCategories, categoryType model.SidebarCategoryType) *model.SidebarCategoryWithChannels {
+		for _, category := range categories.Categories {
+			if category.Type == categoryType {
+				return category
+			}
+		}
+		return nil
+	}
+
+	t.Run("should not create the Agents category for users without agent DMs", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+		_, appErr := th.App.GetOrCreateDirectChannel(th.Context, user.Id, regularBot.UserId)
+		require.Nil(t, appErr)
+
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		require.Len(t, categories.Categories, 3)
+		require.Nil(t, categoryOfType(categories, model.SidebarCategoryAgents))
+	})
+
+	t.Run("should lazily create the Agents category holding the agent DMs", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		require.Len(t, categories.Categories, 3)
+
+		agentDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, user.Id, agentBot.UserId)
+		require.Nil(t, appErr)
+		regularDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, user.Id, regularBot.UserId)
+		require.Nil(t, appErr)
+
+		categories, _, err = client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		require.Len(t, categories.Categories, 4)
+		require.Len(t, categories.Order, 4)
+
+		agentsCategory := categoryOfType(categories, model.SidebarCategoryAgents)
+		require.NotNil(t, agentsCategory)
+		assert.Equal(t, categories.Order[3], agentsCategory.Id)
+		assert.Equal(t, []string{agentDM.Id}, agentsCategory.Channels)
+		assert.Contains(t, categoryOfType(categories, model.SidebarCategoryDirectMessages).Channels, regularDM.Id)
+		assert.NotContains(t, categoryOfType(categories, model.SidebarCategoryDirectMessages).Channels, agentDM.Id)
+
+		category, _, err := client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, agentsCategory.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, []string{agentDM.Id}, category.Channels)
+	})
+
+	t.Run("should flag agent DMs on the other user's profile", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		botUser, _, err := client.GetUser(context.Background(), agentBot.UserId, "")
+		require.NoError(t, err)
+		assert.True(t, botUser.IsAgent)
+
+		regularBotUser, _, err := client.GetUser(context.Background(), regularBot.UserId, "")
+		require.NoError(t, err)
+		assert.False(t, regularBotUser.IsAgent)
+
+		self, _, err := client.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		assert.False(t, self.IsAgent)
+	})
+
+	t.Run("should only let agent DMs into the Agents category", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+		agentDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, user.Id, agentBot.UserId)
+		require.Nil(t, appErr)
+		regularDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, user.Id, regularBot.UserId)
+		require.Nil(t, appErr)
+
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		agentsCategory := categoryOfType(categories, model.SidebarCategoryAgents)
+		require.NotNil(t, agentsCategory)
+
+		for name, channelID := range map[string]string{"a regular DM": regularDM.Id, "a public channel": th.BasicChannel.Id, "a private channel": th.BasicPrivateChannel.Id} {
+			t.Run("rejects "+name, func(t *testing.T) {
+				updated := *agentsCategory
+				updated.Channels = []string{agentDM.Id, channelID}
+
+				_, resp, err := client.UpdateSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{&updated})
+				CheckErrorID(t, err, "app.channel.sidebar_categories.agents_only.app_error")
+				CheckBadRequestStatus(t, resp)
+
+				_, resp, err = client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, agentsCategory.Id, &updated)
+				CheckErrorID(t, err, "app.channel.sidebar_categories.agents_only.app_error")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+
+		t.Run("cannot turn a custom category into an Agents category", func(t *testing.T) {
+			custom, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+				SidebarCategory: model.SidebarCategory{
+					UserId:      user.Id,
+					TeamId:      th.BasicTeam.Id,
+					DisplayName: "custom",
+					Type:        model.SidebarCategoryAgents,
+				},
+				Channels: []string{regularDM.Id},
+			})
+			require.NoError(t, err)
+			assert.Equal(t, model.SidebarCategoryCustom, custom.Type)
+			assert.Equal(t, []string{regularDM.Id}, custom.Channels)
+
+			custom.Type = model.SidebarCategoryAgents
+			updated, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, custom.Id, custom)
+			require.NoError(t, err)
+			assert.Equal(t, model.SidebarCategoryCustom, updated.Type)
+		})
+	})
+
+	t.Run("should move agent DMs to other categories and back, but never to Direct Messages", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+		agentDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, user.Id, agentBot.UserId)
+		require.Nil(t, appErr)
+
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		agentsCategory := categoryOfType(categories, model.SidebarCategoryAgents)
+		favoritesCategory := categoryOfType(categories, model.SidebarCategoryFavorites)
+		dmsCategory := categoryOfType(categories, model.SidebarCategoryDirectMessages)
+		require.NotNil(t, agentsCategory)
+
+		move := func(from, to *model.SidebarCategoryWithChannels, channelIDs []string) []*model.SidebarCategoryWithChannels {
+			source, destination := *from, *to
+			source.Channels = []string{}
+			destination.Channels = channelIDs
+			updated, _, updateErr := client.UpdateSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{&source, &destination})
+			require.NoError(t, updateErr)
+			return updated
+		}
+
+		updated := move(agentsCategory, favoritesCategory, []string{agentDM.Id})
+		assert.Equal(t, []string{agentDM.Id}, updated[1].Channels)
+		categories, _, err = client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		assert.Empty(t, categoryOfType(categories, model.SidebarCategoryAgents).Channels)
+		assert.Equal(t, []string{agentDM.Id}, categoryOfType(categories, model.SidebarCategoryFavorites).Channels)
+
+		updated = move(favoritesCategory, agentsCategory, []string{agentDM.Id})
+		assert.Equal(t, []string{agentDM.Id}, updated[1].Channels)
+		categories, _, err = client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, []string{agentDM.Id}, categoryOfType(categories, model.SidebarCategoryAgents).Channels)
+		assert.Empty(t, categoryOfType(categories, model.SidebarCategoryFavorites).Channels)
+
+		updated = move(agentsCategory, dmsCategory, []string{agentDM.Id})
+		assert.NotContains(t, updated[1].Channels, agentDM.Id)
+		categories, _, err = client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, []string{agentDM.Id}, categoryOfType(categories, model.SidebarCategoryAgents).Channels)
+		assert.NotContains(t, categoryOfType(categories, model.SidebarCategoryDirectMessages).Channels, agentDM.Id)
+	})
+}
+
 func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Client4) {
 	password := model.NewTestPassword()
 	user, appErr := th.App.CreateUser(th.Context, &model.User{

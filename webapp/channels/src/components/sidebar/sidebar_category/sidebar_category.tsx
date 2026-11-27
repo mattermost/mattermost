@@ -172,6 +172,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         switch (draggingState.type) {
         case DraggingStateTypes.CHANNEL:
         case DraggingStateTypes.DM:
+        case DraggingStateTypes.AGENT_DM:
         case DraggingStateTypes.MIXED_CHANNELS:
             return true;
         default:
@@ -187,9 +188,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
 
         if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            return draggingState.type === DraggingStateTypes.CHANNEL;
+            return draggingState.type === DraggingStateTypes.CHANNEL || draggingState.type === DraggingStateTypes.AGENT_DM;
+        } else if (category.type === CategoryTypes.AGENTS) {
+            return draggingState.type === DraggingStateTypes.CHANNEL || draggingState.type === DraggingStateTypes.DM;
         } else if (category.type === CategoryTypes.CHANNELS) {
-            return draggingState.type === DraggingStateTypes.DM;
+            return draggingState.type === DraggingStateTypes.DM || draggingState.type === DraggingStateTypes.AGENT_DM;
         }
 
         return false;
@@ -478,5 +481,9 @@ const categoryNames = defineMessages({
     favorites: {
         id: 'sidebar.types.favorites',
         defaultMessage: 'FAVORITES',
+    },
+    agents: {
+        id: 'sidebar.types.agents',
+        defaultMessage: 'AGENTS',
     },
 });

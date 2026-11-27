@@ -1598,6 +1598,22 @@ func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timesta
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) CreateAgentsSidebarCategoryIfNeeded(userID string, teamID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.CreateAgentsSidebarCategoryIfNeeded(userID, teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CreateAgentsSidebarCategoryIfNeeded", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	start := time.Now()
 

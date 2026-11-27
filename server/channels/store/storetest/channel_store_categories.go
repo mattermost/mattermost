@@ -29,6 +29,7 @@ func TestChannelStoreCategories(t *testing.T, rctx request.CTX, ss store.Store, 
 	t.Run("ClearSidebarOnTeamLeave", func(t *testing.T) { testClearSidebarOnTeamLeave(t, rctx, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, rctx, ss) })
+	t.Run("AgentsSidebarCategory", func(t *testing.T) { testAgentsSidebarCategory(t, rctx, ss) })
 	t.Run("SidebarCategoryDeadlock", func(t *testing.T) { testSidebarCategoryDeadlock(t, rctx, ss) })
 	t.Run("SidebarCategoryConcurrentAccess", func(t *testing.T) { testSidebarCategoryConcurrentAccess(t, rctx, ss, s) })
 }
@@ -2454,4 +2455,293 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	for channelId, found := range channelFound {
 		require.True(t, found, "Channel %s should be assigned to at least one category", channelId)
 	}
+}
+
+func saveTestDM(t *testing.T, rctx request.CTX, ss store.Store, userID, otherUserID string) *model.Channel {
+	t.Helper()
+
+	dm, err := ss.Channel().SaveDirectChannel(rctx,
+		&model.Channel{
+			Name: model.GetDMNameFromIds(userID, otherUserID),
+			Type: model.ChannelTypeDirect,
+		},
+		&model.ChannelMember{UserId: userID, NotifyProps: model.GetDefaultChannelNotifyProps()},
+		&model.ChannelMember{UserId: otherUserID, NotifyProps: model.GetDefaultChannelNotifyProps()},
+	)
+	require.NoError(t, err)
+	return dm
+}
+
+func saveTestBot(t *testing.T, rctx request.CTX, ss store.Store, isAgent bool) *model.Bot {
+	t.Helper()
+
+	bot := &model.Bot{Username: "bot" + NewTestID(), OwnerId: model.NewId(), IsAgent: isAgent}
+	user, err := ss.User().Save(rctx, model.UserFromBot(bot))
+	require.NoError(t, err)
+	bot.UserId = user.Id
+
+	bot, err = ss.Bot().Save(bot)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, ss.Bot().PermanentDelete(bot.UserId))
+		require.NoError(t, ss.User().PermanentDelete(rctx, bot.UserId))
+	})
+	return bot
+}
+
+func categoryOfType(t *testing.T, categories *model.OrderedSidebarCategories, categoryType model.SidebarCategoryType) *model.SidebarCategoryWithChannels {
+	t.Helper()
+
+	for _, category := range categories.Categories {
+		if category.Type == categoryType {
+			return category
+		}
+	}
+	return nil
+}
+
+func testAgentsSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should not create the Agents category for users without agent DMs", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		regularBot := saveTestBot(t, rctx, ss, false)
+		saveTestDM(t, rctx, ss, userID, regularBot.UserId)
+		saveTestDM(t, rctx, ss, userID, model.NewId())
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+		require.Len(t, res.Categories, 3)
+		require.Nil(t, categoryOfType(t, res, model.SidebarCategoryAgents))
+
+		created, err := ss.Channel().CreateAgentsSidebarCategoryIfNeeded(userID, team.Id)
+		require.NoError(t, err)
+		require.False(t, created)
+	})
+
+	t.Run("should create the Agents category with the initial categories when the user has an agent DM", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		agent := saveTestBot(t, rctx, ss, true)
+		agentDM := saveTestDM(t, rctx, ss, userID, agent.UserId)
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+		require.Len(t, res.Categories, 4)
+		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
+		assert.Equal(t, model.SidebarCategoryAgents, res.Categories[3].Type)
+		assert.Equal(t, fmt.Sprintf("agents_%s_%s", userID, team.Id), res.Categories[3].Id)
+		assert.Equal(t, model.SidebarCategorySortRecent, res.Categories[3].Sorting)
+		assert.Equal(t, int64(model.DefaultSidebarSortOrderAgents), res.Categories[3].SortOrder)
+		assert.Equal(t, []string{agentDM.Id}, res.Categories[3].Channels)
+		assert.Equal(t, []string{}, res.Categories[2].Channels)
+	})
+
+	t.Run("should lazily create the Agents category right after Direct Messages", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+		require.Len(t, res.Categories, 3)
+
+		custom, err := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{})
+		require.NoError(t, err)
+		order, err := ss.Channel().GetSidebarCategoryOrder(userID, team.Id)
+		require.NoError(t, err)
+		dmsCategory := categoryOfType(t, res, model.SidebarCategoryDirectMessages)
+		require.Equal(t, []string{res.Categories[0].Id, custom.Id, res.Categories[1].Id, dmsCategory.Id}, order)
+
+		agent := saveTestBot(t, rctx, ss, true)
+		agentDM := saveTestDM(t, rctx, ss, userID, agent.UserId)
+		regularDM := saveTestDM(t, rctx, ss, userID, model.NewId())
+
+		created, err := ss.Channel().CreateAgentsSidebarCategoryIfNeeded(userID, team.Id)
+		require.NoError(t, err)
+		require.True(t, created)
+
+		created, err = ss.Channel().CreateAgentsSidebarCategoryIfNeeded(userID, team.Id)
+		require.NoError(t, err)
+		require.False(t, created, "the category should only be created once")
+
+		categories, err := ss.Channel().GetSidebarCategories(userID, team.Id)
+		require.NoError(t, err)
+		require.Len(t, categories.Categories, 5)
+
+		agentsCategory := categoryOfType(t, categories, model.SidebarCategoryAgents)
+		require.NotNil(t, agentsCategory)
+		assert.Equal(t, []string{res.Categories[0].Id, custom.Id, res.Categories[1].Id, dmsCategory.Id, agentsCategory.Id}, []string(categories.Order))
+		assert.Equal(t, []string{agentDM.Id}, agentsCategory.Channels)
+		assert.Equal(t, []string{regularDM.Id}, categoryOfType(t, categories, model.SidebarCategoryDirectMessages).Channels)
+	})
+
+	t.Run("should keep agent DMs in Direct Messages until the Agents category exists", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		_, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+
+		agent := saveTestBot(t, rctx, ss, true)
+		agentDM := saveTestDM(t, rctx, ss, userID, agent.UserId)
+
+		categories, err := ss.Channel().GetSidebarCategories(userID, team.Id)
+		require.NoError(t, err)
+		require.Len(t, categories.Categories, 3)
+		assert.Equal(t, []string{agentDM.Id}, categoryOfType(t, categories, model.SidebarCategoryDirectMessages).Channels)
+	})
+
+	t.Run("should only return agent DMs with the Agents category", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		agent := saveTestBot(t, rctx, ss, true)
+		agentDM := saveTestDM(t, rctx, ss, userID, agent.UserId)
+		regularBot := saveTestBot(t, rctx, ss, false)
+		regularBotDM := saveTestDM(t, rctx, ss, userID, regularBot.UserId)
+		userDM := saveTestDM(t, rctx, ss, userID, model.NewId())
+		gmMemberIDs := []string{userID, agent.UserId, model.NewId()}
+		gm, err := ss.Channel().Save(rctx, &model.Channel{
+			Name: model.GetGroupNameFromUserIds(gmMemberIDs),
+			Type: model.ChannelTypeGroup,
+		}, 10)
+		require.NoError(t, err)
+		for _, memberID := range gmMemberIDs {
+			_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   gm.Id,
+				UserId:      memberID,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, err)
+		}
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+
+		agentsCategory := categoryOfType(t, res, model.SidebarCategoryAgents)
+		require.NotNil(t, agentsCategory)
+		assert.ElementsMatch(t, []string{agentDM.Id}, agentsCategory.Channels)
+
+		dmsCategory := categoryOfType(t, res, model.SidebarCategoryDirectMessages)
+		assert.ElementsMatch(t, []string{regularBotDM.Id, userDM.Id, gm.Id}, dmsCategory.Channels)
+	})
+
+	t.Run("should be able to move agent DMs into and out of other categories", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		agent := saveTestBot(t, rctx, ss, true)
+		agentDM := saveTestDM(t, rctx, ss, userID, agent.UserId)
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+		agentsCategory := categoryOfType(t, res, model.SidebarCategoryAgents)
+		favoritesCategory := categoryOfType(t, res, model.SidebarCategoryFavorites)
+		dmsCategory := categoryOfType(t, res, model.SidebarCategoryDirectMessages)
+		require.Equal(t, []string{agentDM.Id}, agentsCategory.Channels)
+
+		updated, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+			{SidebarCategory: agentsCategory.SidebarCategory, Channels: []string{}},
+			{SidebarCategory: favoritesCategory.SidebarCategory, Channels: []string{agentDM.Id}},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, []string{}, updated[0].Channels)
+		assert.Equal(t, []string{agentDM.Id}, updated[1].Channels)
+
+		stored, err := ss.Channel().GetSidebarCategory(agentsCategory.Id)
+		require.NoError(t, err)
+		assert.Equal(t, []string{}, stored.Channels)
+
+		updated, _, err = ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+			{SidebarCategory: agentsCategory.SidebarCategory, Channels: []string{agentDM.Id}},
+			{SidebarCategory: favoritesCategory.SidebarCategory, Channels: []string{}},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, []string{agentDM.Id}, updated[0].Channels)
+		assert.Equal(t, []string{}, updated[1].Channels)
+
+		stored, err = ss.Channel().GetSidebarCategory(agentsCategory.Id)
+		require.NoError(t, err)
+		assert.Equal(t, []string{agentDM.Id}, stored.Channels)
+
+		t.Run("and never into Direct Messages", func(t *testing.T) {
+			updated, _, err = ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+				{SidebarCategory: dmsCategory.SidebarCategory, Channels: []string{agentDM.Id}},
+			})
+			require.NoError(t, err)
+			assert.Equal(t, []string{}, updated[0].Channels)
+
+			stored, err = ss.Channel().GetSidebarCategory(dmsCategory.Id)
+			require.NoError(t, err)
+			assert.Equal(t, []string{}, stored.Channels)
+		})
+	})
+
+	t.Run("should reject channels other than agent DMs in the Agents category", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		agent := saveTestBot(t, rctx, ss, true)
+		saveTestDM(t, rctx, ss, userID, agent.UserId)
+		regularDM := saveTestDM(t, rctx, ss, userID, model.NewId())
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId: team.Id,
+			Name:   NewTestID(),
+			Type:   model.ChannelTypeOpen,
+		}, 10)
+		require.NoError(t, err)
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+		agentsCategory := categoryOfType(t, res, model.SidebarCategoryAgents)
+		require.NotNil(t, agentsCategory)
+
+		for name, channelID := range map[string]string{"a regular DM": regularDM.Id, "a public channel": channel.Id} {
+			t.Run(name, func(t *testing.T) {
+				_, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+					{SidebarCategory: agentsCategory.SidebarCategory, Channels: append([]string{}, agentsCategory.Channels...)},
+				})
+				require.NoError(t, err)
+
+				_, _, err = ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{
+					{SidebarCategory: agentsCategory.SidebarCategory, Channels: []string{channelID}},
+				})
+				var invalidInput *store.ErrInvalidInput
+				require.ErrorAs(t, err, &invalidInput)
+			})
+		}
+	})
+
+	t.Run("should not allow changing the type of a category", func(t *testing.T) {
+		userID := model.NewId()
+		team := setupTeam(t, rctx, ss, userID)
+
+		res, err := ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
+		require.NoError(t, err)
+
+		custom, err := ss.Channel().CreateSidebarCategory(userID, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryAgents, DisplayName: "Agents"},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, model.SidebarCategoryCustom, custom.Type)
+
+		custom.Type = model.SidebarCategoryAgents
+		updated, _, err := ss.Channel().UpdateSidebarCategories(userID, team.Id, []*model.SidebarCategoryWithChannels{custom})
+		require.NoError(t, err)
+		assert.Equal(t, model.SidebarCategoryCustom, updated[0].Type)
+
+		categories, err := ss.Channel().GetSidebarCategories(userID, team.Id)
+		require.NoError(t, err)
+		require.Len(t, categories.Categories, len(res.Categories)+1)
+		require.Nil(t, categoryOfType(t, categories, model.SidebarCategoryAgents))
+	})
 }

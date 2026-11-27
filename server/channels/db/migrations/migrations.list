@@ -483,3 +483,5 @@ channels/db/migrations/postgres/000243_create_channelmembers_scheme_admin_index.
 channels/db/migrations/postgres/000243_create_channelmembers_scheme_admin_index.up.sql
 channels/db/migrations/postgres/000244_drop_post_attributes_group.down.sql
 channels/db/migrations/postgres/000244_drop_post_attributes_group.up.sql
+channels/db/migrations/postgres/000245_add_bots_isagent_column.down.sql
+channels/db/migrations/postgres/000245_add_bots_isagent_column.up.sql
