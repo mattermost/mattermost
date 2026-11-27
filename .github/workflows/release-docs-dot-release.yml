@@ -1,0 +1,89 @@
+name: Release Docs - Dot Release
+
+# The dot release docs (vX.Y.Z with Z > 0), replacing the dot-release-docs skill: deploy
+# page download links, the server releases row, the changelog entry and the version archive
+# entries. Dot releases shipped together share one draft PR on
+# release-agent/dot-release-docs/<first version>; a later version is added to the open one.
+# Runs when the delivery pipeline publishes the vX.Y.Z GitHub release as a pre-release, and
+# again when it stops being one, to drop "Do Not Merge/Awaiting Next Release".
+#
+# Security fixes are never identified before the release, since this PR is public: a PR with a
+# Security label gets no bullet and is left out without a reason; the entry has only the standard
+# "contains <SEVERITY> severity level security fixes" line (the severity input). The release manager
+# adds any security bullets on Release Day, from mattermost/release-automation's Hub post.
+# See release-docs-task.yml for modes and settings, and release_docs/dot_release.py.
+
+# A release event run's ref is the tag, which can't use the write key in `release-write`, so the
+# `trigger` job (release-docs-trigger.yml, no secrets) checks it and starts this workflow on master;
+# the task job runs only on master.
+on:
+  release:
+    types: [published, released]
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: 'Dot release versions, e.g. v12.1.1, v11.7.15'
+        required: true
+        type: string
+      severity:
+        description: 'Security severity per version, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium" (or one value for all; none for no security fixes). Empty writes <SEVERITY>.'
+        required: false
+        default: ''
+        type: string
+      release_date:
+        description: 'Release date (YYYY-MM-DD) for every version. Empty uses each tag''s commit date.'
+        required: false
+        default: ''
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+      source_event:
+        description: 'Set by release-docs-trigger.yml for a release, tag or PR edit; leave empty'
+        required: false
+        default: ''
+        type: string
+
+permissions: {}
+
+jobs:
+  trigger:
+    if: github.event_name == 'release'
+    uses: ./.github/workflows/release-docs-trigger.yml
+    with:
+      task: dot-release-docs
+      workflow: release-docs-dot-release.yml
+      version_input: versions
+    permissions:
+      contents: read
+      actions: write # start this workflow on master
+
+  dot-release-docs:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+    # One run at a time, so dot releases published together land in the same PR. queue: max keeps
+    # every waiting run: by default a newer run would replace the one pending, which could be a
+    # release's. (A release's run also picks up the other recent
+    # dot releases.)
+    concurrency:
+      group: release-docs-dot-release
+      cancel-in-progress: false
+      queue: max
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: dot-release-docs
+      version: ${{ inputs.versions }}
+      mode: ${{ inputs.mode }}
+      severity: ${{ inputs.severity }}
+      release_date: ${{ inputs.release_date }}
+      source_event: ${{ inputs.source_event }}
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)

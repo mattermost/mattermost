@@ -1,0 +1,63 @@
+name: Release Docs - GitHub Release Text
+
+# Playbook T-0: sets the GitHub release description to one plain sentence, "Mattermost
+# Platform Release X.Y.Z contains ...", with highlights from the changelog's Improvements
+# section (master, or the open changelog PR). In dry_run it only shows the text. Runs when
+# the release becomes the latest full release. See release-docs-task.yml.
+
+# A release event run's ref is the tag, which can't use the write key in `release-write`, so the
+# `trigger` job (release-docs-trigger.yml, no secrets) checks it and starts this workflow on master;
+# the task job runs only on master.
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+      source_event:
+        description: 'Set by release-docs-trigger.yml for a release, tag or PR edit; leave empty'
+        required: false
+        default: ''
+        type: string
+
+permissions: {}
+
+jobs:
+  trigger:
+    if: github.event_name == 'release'
+    uses: ./.github/workflows/release-docs-trigger.yml
+    with:
+      task: github-release
+      workflow: release-docs-github-release.yml
+    permissions:
+      contents: read
+      actions: write # start this workflow on master
+
+  github-release:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+    concurrency:
+      group: release-docs-github-release-${{ inputs.version }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: github-release
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+      source_event: ${{ inputs.source_event }}
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)

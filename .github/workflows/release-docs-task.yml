@@ -1,0 +1,248 @@
+name: Release Docs Task
+
+# One release docs task for one version, shared by the release-docs-*.yml workflows. Every task
+# writes only to public GitHub repos; it reports in its PR and in this run's summary. The code is
+# in .github/scripts/release_docs/.
+#
+# Mode: PHASE3_MODE (variable) is dry_run (the default) or live; a manual run's mode input
+# overrides it. dry_run writes the result to the run summary and the release-docs-<task>
+# artifact and changes nothing. live opens or updates a draft PR on the branch
+# release-agent/<version>/<task>, labelled release-agent if that label exists, or sets the release description.
+# dot-release-docs shares one PR between the dot releases shipped together, on
+# release-agent/dot-release-docs/<first version>.
+# A missing input is written as TODO(release-agent) and fails the run.
+#
+# Write key: CHANGELOG_WRITE_PRIVATE_KEY is a secret of the environment `release-write`, which only
+# the master branch can use, so only reviewed, merged workflows can mint write tokens. This job
+# declares it and runs only with ref master: on a schedule, or a workflow_dispatch on master.
+# Tag pushes, release events and PR edits don't run it: their runs' ref is the tag or the PR, so
+# release-docs-trigger.yml checks the event without any secret and starts the calling workflow on
+# master, with the version it resolved and source_event. Every write token names its repository
+# and permissions (contents and pull requests: write), never actions.
+#
+# Release Day is the due date of the release's vX.Y.0 milestone in mattermost/mattermost (the
+# Desktop App's and the mobile app's in mattermost/desktop and mattermost/mattermost-mobile, for
+# their releases pages). A milestone with no due date is a TODO, never a guess.
+#
+# Settings (Settings → Secrets and variables → Actions):
+#   PHASE3_MODE                     (variable) dry_run or live
+#   CHANGELOG_WRITE_CLIENT_ID       (variable) and CHANGELOG_WRITE_PRIVATE_KEY (secret): the changelog
+#                                              write app. Every write (branches, commits, PRs, labels, review
+#                                              requests, the release description) uses its token, limited to the
+#                                              one repo the task writes to: mattermost/mattermost,
+#                                              mattermost/notices (upgrade-notice) or mattermost/docker
+#                                              (docker-env); esr-comms also gets one for
+#                                              mattermost/mattermost-mobile. Required for live runs: PRs opened
+#                                              with GITHUB_TOKEN start no CI. If the app is not installed on a
+#                                              repo, that task fails with a message saying so; other tasks are
+#                                              not affected.
+#   CHANGELOG_GIT_USERNAME          (variable) and CHANGELOG_GIT_EMAIL (variable): author and committer
+#                                              of the commits, required for live runs
+#   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): the changelog
+#                                              read app. Every read uses its token. Without it, a dry run
+#                                              reads with GITHUB_TOKEN.
+#   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
+#   DESKTOP_ESR_VERSIONS            (variable) server ESR -> desktop ESR, e.g. {"v10.11": "v5.13", "v11.7": "v6.2"}
+#   ANTHROPIC_API_KEY               (secret)   highlights for the upgrade notice and the release description,
+#                                              dot release bullets for PRs with no release note, and upgrade
+#                                              notes for confirmed breaking changes with no changelog bullet
+#   RELEASE_DOCS_REVIEWERS          (variable) who reviews the PRs the tasks open: comma-separated GitHub
+#                                              logins and org/team names, e.g. "alice, mattermost/release-team".
+#                                              Asked once, when a PR is opened. Unset: nobody is asked.
+
+on:
+  workflow_call:
+    inputs:
+      task:
+        required: true
+        type: string
+      version:
+        description: >-
+          Version, or one or more versions for dot-release-docs, or the ESR for esr-comms.
+          Empty on release and tag events, weekday runs and PR edits (the version then comes from the branch).
+        required: false
+        type: string
+        default: ''
+      mode:
+        required: false
+        type: string
+        default: ''
+      release_date:
+        description: upgrade-notice and dot-release-docs only
+        required: false
+        type: string
+        default: ''
+      severity:
+        description: dot-release-docs only, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium"
+        required: false
+        type: string
+        default: ''
+      esr_stage:
+        description: esr-comms by hand only, "before" (three months before support ends) or "ended"
+        required: false
+        type: string
+        default: ''
+      source_event:
+        description: The event release-docs-trigger.yml started this run for (release, push or pull_request), or empty
+        required: false
+        type: string
+        default: ''
+
+permissions: {}
+
+jobs:
+  run:
+    # The write key is in `release-write`, which only master can use (see the top of this file).
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: release-write
+    permissions:
+      contents: read
+      actions: read # the changelog runs' sections.json (release-docs)
+      issues: read # the vX.Y.0 milestones' due dates (release-docs)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Resolve version and mode
+        id: resolve
+        working-directory: .github/scripts
+        env:
+          TASK: ${{ inputs.task }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_MODE: ${{ inputs.mode != 'default' && inputs.mode || '' }}
+          PHASE3_MODE: ${{ vars.PHASE3_MODE }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -m release_docs resolve "$TASK"
+
+      - name: Get read token
+        id: read
+        if: steps.resolve.outputs.run == 'true' && vars.CHANGELOG_READ_CLIENT_ID != ''
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          owner: mattermost
+
+      - name: Require the write app and commit author for live runs
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && contains(fromJSON('["version-archive","docker-env","upgrade-notice","release-docs","dot-release-docs","github-release","esr-comms"]'), inputs.task)
+        env:
+          WRITE_CLIENT_ID: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          WRITE_PRIVATE_KEY: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          GIT_USERNAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
+          GIT_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
+        run: |
+          missing=""
+          [ -n "$WRITE_CLIENT_ID" ] || missing="$missing CHANGELOG_WRITE_CLIENT_ID"
+          [ -n "$WRITE_PRIVATE_KEY" ] || missing="$missing CHANGELOG_WRITE_PRIVATE_KEY"
+          [ -n "$GIT_USERNAME" ] || missing="$missing CHANGELOG_GIT_USERNAME"
+          [ -n "$GIT_EMAIL" ] || missing="$missing CHANGELOG_GIT_EMAIL"
+          if [ -n "$missing" ]; then
+            echo "::error::Live runs need these settings:$missing. PRs opened with GITHUB_TOKEN start no CI."
+            exit 1
+          fi
+
+      # Releases from the delivery pipeline are made with an app token, so they start this
+      # workflow; events made with the default GITHUB_TOKEN start no workflows. The token is
+      # limited to the repo this task writes to; tasks that only report write nothing.
+      - name: Get write token
+        id: write
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && contains(fromJSON('["version-archive","docker-env","upgrade-notice","release-docs","dot-release-docs","github-release","esr-comms"]'), inputs.task)
+        continue-on-error: true
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: ${{ inputs.task == 'docker-env' && 'docker' || inputs.task == 'upgrade-notice' && 'notices' || 'mattermost' }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Explain a failed write token
+        if: steps.write.outcome == 'failure'
+        env:
+          REPO: ${{ inputs.task == 'docker-env' && 'mattermost/docker' || inputs.task == 'upgrade-notice' && 'mattermost/notices' || 'mattermost/mattermost' }}
+        run: |
+          echo "::error title=Write token for ${REPO}::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for ${REPO}. Check that the app is installed on ${REPO} with contents and pull requests write access, and that the settings are correct. Nothing was written."
+          exit 1
+
+      # esr-comms also opens the mobile ESR PR in mattermost/mattermost-mobile, with its own token
+      # limited to that repo. Without one, this step fails naming the repo, the run goes on and
+      # fails, and its summary has the PR's exact changes to make by hand.
+      - name: Get write token for mattermost-mobile
+        id: mobile_write
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && inputs.task == 'esr-comms'
+        continue-on-error: true
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost-mobile
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Explain a failed mattermost-mobile write token
+        if: steps.mobile_write.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          echo "::error title=Write token for mattermost/mattermost-mobile::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for mattermost/mattermost-mobile. Check that the app is installed on mattermost/mattermost-mobile with contents and pull requests write access. The mobile ESR PR is not opened; its changes are in the run summary."
+          exit 1
+
+      - name: Install dependencies
+        if: steps.resolve.outputs.run == 'true'
+        run: pip install requests==2.32.3 cryptography==44.0.2 pyyaml==6.0.2 --quiet
+
+      - name: Run ${{ inputs.task }}
+        if: steps.resolve.outputs.run == 'true'
+        working-directory: .github/scripts
+        env:
+          TASK: ${{ inputs.task }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          MODE: ${{ steps.resolve.outputs.mode }}
+          EVENT_NAME: ${{ github.event_name }}
+          SOURCE_EVENT: ${{ inputs.source_event }}
+          GITHUB_TOKEN: ${{ github.token }}
+          # Reads the changelog runs' sections.json (actions: read).
+          ACTIONS_TOKEN: ${{ github.token }}
+          READ_TOKEN: ${{ steps.read.outputs.token }}
+          WRITE_TOKEN: ${{ steps.write.outputs.token }}
+          MOBILE_WRITE_TOKEN: ${{ steps.mobile_write.outputs.token }}
+          COMMIT_USER_NAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
+          COMMIT_USER_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
+          # generate_changelog.py, whose release-note parser the tasks use, reads these when imported.
+          REPOS: mattermost/mattermost
+          MILESTONE: ''
+          ESR_VERSIONS: ${{ vars.CHANGELOG_ESR_VERSIONS }}
+          DESKTOP_ESR_VERSIONS: ${{ vars.DESKTOP_ESR_VERSIONS }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REVIEWERS: ${{ vars.RELEASE_DOCS_REVIEWERS }}
+          SEVERITY: ${{ inputs.severity }}
+          RELEASE_DATE: ${{ inputs.release_date }}
+          ESR_STAGE: ${{ inputs.esr_stage }}
+          OUTPUT_DIR: ${{ runner.temp }}/release-docs-output
+        run: python3 -m release_docs run "$TASK"
+
+      - name: Upload output
+        if: always() && steps.resolve.outputs.run == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: release-docs-${{ inputs.task }}
+          path: ${{ runner.temp }}/release-docs-output/
+          if-no-files-found: ignore
+
+      - name: Not run
+        if: steps.resolve.outputs.run == 'false'
+        env:
+          REASON: ${{ steps.resolve.outputs.reason }}
+        run: |
+          echo "Skipped: $REASON" | tee -a "$GITHUB_STEP_SUMMARY"

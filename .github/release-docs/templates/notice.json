@@ -1,0 +1,19 @@
+{
+  "id": "server_upgrade_v{{short}}",
+  "conditions": {
+    "audience": "sysadmin",
+    "clientType": "all",
+    "serverVersion": ["<{{short}}"],
+    "instanceType": "onprem",
+    "displayDate": ">= {{display_date}}T00:00:00Z"
+  },
+  "localizedMessages": {
+    "en": {
+      "title": "Mattermost {{short}} is here!",
+      "description": {{description_json}},
+      "image": "https://raw.githubusercontent.com/mattermost/notices/master/images/server_upgrade.png",
+      "actionText": "Learn more",
+      "actionParam": "{{changelog_page_url}}"
+    }
+  }
+}
