@@ -601,22 +601,42 @@ func BulkIndexChannels(config *model.Config,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
 	channels []*model.Channel,
 	_ IndexingProgress) (*model.Channel, *model.AppError) {
+	var privateChannelIDs, teamIDs []string
+	seenTeamIDs := make(map[string]bool)
+	for _, channel := range channels {
+		if channel.Type == model.ChannelTypePrivate {
+			privateChannelIDs = append(privateChannelIDs, channel.Id)
+		}
+		if channel.TeamId != "" && !seenTeamIDs[channel.TeamId] {
+			seenTeamIDs[channel.TeamId] = true
+			teamIDs = append(teamIDs, channel.TeamId)
+		}
+	}
+
+	userIDsByChannel, err := store.Channel().GetAllChannelMemberIdsByChannelIds(privateChannelIDs)
+	if err != nil {
+		return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllChannelMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	teamMemberIDsByTeam, err := store.Channel().GetTeamMembersForTeams(request.EmptyContext(logger), teamIDs)
+	if err != nil {
+		return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	for _, channel := range channels {
 		indexName := *config.ElasticsearchSettings.IndexPrefix + IndexBaseChannels
 
 		var userIDs []string
-		var err error
 		if channel.Type == model.ChannelTypePrivate {
-			userIDs, err = store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
-			if err != nil {
-				return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllChannelMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			userIDs = userIDsByChannel[channel.Id]
+			if userIDs == nil {
+				userIDs = []string{}
 			}
 		}
 
-		rctx := request.EmptyContext(logger)
-		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(rctx, channel.Id)
-		if err != nil {
-			return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		teamMemberIDs := teamMemberIDsByTeam[channel.TeamId]
+		if teamMemberIDs == nil {
+			teamMemberIDs = []string{}
 		}
 
 		searchChannel := ESChannelFromChannel(channel, userIDs, teamMemberIDs)

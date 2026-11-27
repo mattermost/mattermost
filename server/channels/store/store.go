@@ -251,6 +251,9 @@ type ChannelStore interface {
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
 	GetAllChannelMemberIdsByChannelId(id string) ([]string, error)
+	// GetAllChannelMemberIdsByChannelIds returns member user IDs keyed by channel ID.
+	// A channel without members is absent from the map.
+	GetAllChannelMemberIdsByChannelIds(channelIDs []string) (map[string][]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error)
@@ -310,6 +313,10 @@ type ChannelStore interface {
 	AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error)
+	// GetTeamMembersForTeams returns team member user IDs keyed by team ID, matching
+	// GetTeamMembersForChannel for every channel of that team. A team without members
+	// is absent from the map.
+	GetTeamMembersForTeams(rctx request.CTX, teamIDs []string) (map[string][]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
 	GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error)
 	Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)

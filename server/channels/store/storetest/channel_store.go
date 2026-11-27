@@ -186,6 +186,8 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, rctx, ss) })
 	t.Run("GetMembersByChannelIds", func(t *testing.T) { testChannelStoreGetMembersByChannelIds(t, rctx, ss) })
 	t.Run("GetMembersInfoByChannelIds", func(t *testing.T) { testChannelStoreGetMembersInfoByChannelIds(t, rctx, ss) })
+	t.Run("GetAllChannelMemberIdsByChannelIds", func(t *testing.T) { testChannelStoreGetAllChannelMemberIdsByChannelIds(t, rctx, ss) })
+	t.Run("GetTeamMembersForTeams", func(t *testing.T) { testChannelStoreGetTeamMembersForTeams(t, rctx, ss) })
 	t.Run("GetAllChannelsMissingPropertyValue", func(t *testing.T) { testChannelStoreGetAllChannelsMissingPropertyValue(t, rctx, ss) })
 	t.Run("GetChannelAdminsInfoByChannelIds", func(t *testing.T) { testChannelStoreGetChannelAdminsInfoByChannelIds(t, rctx, ss) })
 	t.Run("GetChannelAdminsForChannelsMissingPropertyValue", func(t *testing.T) { testChannelStoreGetChannelAdminsForChannelsMissingPropertyValue(t, rctx, ss) })
@@ -7831,6 +7833,123 @@ func testChannelStoreGetMembersInfoByChannelIds(t *testing.T, rctx request.CTX, 
 		_, err := ss.Channel().GetMembersInfoByChannelIds([]string{model.NewId(), model.NewId()})
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
+	})
+}
+
+func testChannelStoreGetAllChannelMemberIdsByChannelIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	newChannel := func() *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: model.NewId(),
+			Name:        NewTestID(),
+			Type:        model.ChannelTypePrivate,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+	addMembers := func(channel *model.Channel, userIDs ...string) {
+		for _, userID := range userIDs {
+			_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   channel.Id,
+				UserId:      userID,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, err)
+		}
+	}
+
+	user1, user2, user3 := model.NewId(), model.NewId(), model.NewId()
+	channel1 := newChannel()
+	channel2 := newChannel()
+	emptyChannel := newChannel()
+	otherChannel := newChannel()
+	addMembers(channel1, user1, user2)
+	addMembers(channel2, user2, user3)
+	addMembers(otherChannel, user1)
+
+	t.Run("returns members keyed by channel, matching GetAllChannelMemberIdsByChannelId", func(t *testing.T) {
+		result, err := ss.Channel().GetAllChannelMemberIdsByChannelIds([]string{channel1.Id, channel2.Id, emptyChannel.Id})
+		require.NoError(t, err)
+
+		require.Len(t, result, 2)
+		assert.ElementsMatch(t, []string{user1, user2}, result[channel1.Id])
+		assert.ElementsMatch(t, []string{user2, user3}, result[channel2.Id])
+		assert.NotContains(t, result, emptyChannel.Id)
+		assert.NotContains(t, result, otherChannel.Id)
+
+		for _, channel := range []*model.Channel{channel1, channel2} {
+			single, err := ss.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, single, result[channel.Id])
+		}
+	})
+
+	t.Run("returns an empty map for no channel IDs", func(t *testing.T) {
+		result, err := ss.Channel().GetAllChannelMemberIdsByChannelIds(nil)
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+}
+
+func testChannelStoreGetTeamMembersForTeams(t *testing.T, rctx request.CTX, ss store.Store) {
+	newTeam := func() *model.Team {
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		return team
+	}
+	addMember := func(teamID, userID string, deleteAt int64) {
+		_, err := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: userID, DeleteAt: deleteAt}, -1)
+		require.NoError(t, err)
+	}
+	newChannel := func(teamID string) *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: model.NewId(),
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+
+	team1 := newTeam()
+	team2 := newTeam()
+	emptyTeam := newTeam()
+	user1, user2, user3, leftUser := model.NewId(), model.NewId(), model.NewId(), model.NewId()
+	addMember(team1.Id, user1, 0)
+	addMember(team1.Id, user2, 0)
+	addMember(team1.Id, leftUser, model.GetMillis())
+	addMember(team2.Id, user3, 0)
+
+	missingTeamID := model.NewId()
+	addMember(missingTeamID, user1, 0)
+
+	t.Run("returns members keyed by team, matching GetTeamMembersForChannel", func(t *testing.T) {
+		result, err := ss.Channel().GetTeamMembersForTeams(rctx, []string{team1.Id, team2.Id, emptyTeam.Id, missingTeamID})
+		require.NoError(t, err)
+
+		require.Len(t, result, 2)
+		assert.ElementsMatch(t, []string{user1, user2, leftUser}, result[team1.Id])
+		assert.ElementsMatch(t, []string{user3}, result[team2.Id])
+		assert.NotContains(t, result, emptyTeam.Id)
+		assert.NotContains(t, result, missingTeamID, "members of a team without a Teams row are excluded")
+
+		for _, team := range []*model.Team{team1, team2, emptyTeam} {
+			single, err := ss.Channel().GetTeamMembersForChannel(rctx, newChannel(team.Id).Id)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, single, result[team.Id])
+		}
+	})
+
+	t.Run("returns an empty map for no team IDs", func(t *testing.T) {
+		result, err := ss.Channel().GetTeamMembersForTeams(rctx, nil)
+		require.NoError(t, err)
+		assert.Empty(t, result)
 	})
 }
 

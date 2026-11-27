@@ -1372,6 +1372,30 @@ func (s SqlChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]
 	return userIDs, nil
 }
 
+func (s SqlChannelStore) GetAllChannelMemberIdsByChannelIds(channelIDs []string) (map[string][]string, error) {
+	membersByChannel := make(map[string][]string, len(channelIDs))
+	for _, chunk := range chunkSlice(channelIDs, 1, defaultMaxInsertParams) {
+		query := s.getQueryBuilder().
+			Select("ChannelId", "UserId").
+			From("ChannelMembers").
+			Where(sq.Eq{"ChannelId": chunk})
+
+		rows := []struct {
+			ChannelId string
+			UserId    string
+		}{}
+		if err := s.GetReplica().SelectBuilder(&rows, query); err != nil {
+			return nil, errors.Wrap(err, "failed to get ChannelMembers by channel IDs")
+		}
+
+		for _, row := range rows {
+			membersByChannel[row.ChannelId] = append(membersByChannel[row.ChannelId], row.UserId)
+		}
+	}
+
+	return membersByChannel, nil
+}
+
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
 	query := s.getAllChannelsQuery(opts, false)
 
@@ -3462,6 +3486,31 @@ func (s SqlChannelStore) GetTeamMembersForChannel(rctx request.CTX, channelID st
 	}
 
 	return teamMemberIDs, nil
+}
+
+func (s SqlChannelStore) GetTeamMembersForTeams(rctx request.CTX, teamIDs []string) (map[string][]string, error) {
+	membersByTeam := make(map[string][]string, len(teamIDs))
+	for _, chunk := range chunkSlice(teamIDs, 1, defaultMaxInsertParams) {
+		query := s.getQueryBuilder().
+			Select("tm.TeamId", "tm.UserId").
+			From("TeamMembers tm").
+			Join("Teams t ON t.Id = tm.TeamId").
+			Where(sq.Eq{"tm.TeamId": chunk})
+
+		rows := []struct {
+			TeamId string
+			UserId string
+		}{}
+		if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&rows, query); err != nil {
+			return nil, errors.Wrap(err, "error while getting team members for teams")
+		}
+
+		for _, row := range rows {
+			membersByTeam[row.TeamId] = append(membersByTeam[row.TeamId], row.UserId)
+		}
+	}
+
+	return membersByTeam, nil
 }
 
 func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {

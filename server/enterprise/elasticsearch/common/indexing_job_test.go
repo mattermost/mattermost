@@ -4,6 +4,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -24,11 +25,13 @@ func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
 	// Create test channels - one active, one deleted
 	activeChannel := &model.Channel{
 		Id:       "ch1",
+		TeamId:   "team1",
 		Type:     model.ChannelTypeOpen,
 		DeleteAt: 0,
 	}
 	deletedChannel := &model.Channel{
 		Id:       "ch2",
+		TeamId:   "team1",
 		Type:     model.ChannelTypeOpen,
 		DeleteAt: 123456,
 	}
@@ -40,10 +43,8 @@ func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
 	mockStore.On("Channel").Return(mockChannelStore)
 	defer mockStore.AssertExpectations(t)
 
-	// Since these are open channels, GetAllChannelMemberIdsByChannelId won't be called
-	// But GetTeamMembersForChannel will be called for both channels
-	mockChannelStore.On("GetTeamMembersForChannel", mock.AnythingOfType("*request.Context"), "ch1").Return([]string{"team1"}, nil)
-	mockChannelStore.On("GetTeamMembersForChannel", mock.AnythingOfType("*request.Context"), "ch2").Return([]string{"team1"}, nil)
+	mockChannelStore.On("GetAllChannelMemberIdsByChannelIds", mock.MatchedBy(func(ids []string) bool { return len(ids) == 0 })).Return(map[string][]string{}, nil)
+	mockChannelStore.On("GetTeamMembersForTeams", mock.AnythingOfType("*request.Context"), []string{"team1"}).Return(map[string][]string{"team1": {"user1"}}, nil)
 
 	// Track which channels were actually indexed
 	indexedChannels := make(map[string]bool)
@@ -66,6 +67,45 @@ func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
 	assert.Equal(t, deletedChannel, lastChannel)
 	assert.True(t, indexedChannels["ch1"], "Active channel should be indexed")
 	assert.True(t, indexedChannels["ch2"], "Deleted channel should also be indexed")
+}
+
+func TestBulkIndexChannelsMemberLookupErrors(t *testing.T) {
+	channels := []*model.Channel{{Id: "ch1", TeamId: "team1", Type: model.ChannelTypePrivate}}
+
+	config := &model.Config{}
+	config.ElasticsearchSettings.IndexPrefix = new("test_")
+
+	run := func(t *testing.T, mockChannelStore *mocks.ChannelStore) *model.AppError {
+		mockStore := &mocks.Store{}
+		mockStore.On("Channel").Return(mockChannelStore)
+
+		addItemToBulkProcessorFn := func(_, _, _ string, _ io.ReadSeeker) error {
+			require.Fail(t, "no document should be indexed when a member lookup fails")
+			return nil
+		}
+
+		_, appErr := BulkIndexChannels(config, mockStore, mlog.CreateConsoleTestLogger(t), addItemToBulkProcessorFn, channels, IndexingProgress{})
+		return appErr
+	}
+
+	t.Run("channel member lookup fails", func(t *testing.T) {
+		mockChannelStore := &mocks.ChannelStore{}
+		mockChannelStore.On("GetAllChannelMemberIdsByChannelIds", []string{"ch1"}).Return(nil, errors.New("db down"))
+
+		appErr := run(t, mockChannelStore)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "ent.elasticsearch.getAllChannelMembers.error", appErr.Id)
+	})
+
+	t.Run("team member lookup fails", func(t *testing.T) {
+		mockChannelStore := &mocks.ChannelStore{}
+		mockChannelStore.On("GetAllChannelMemberIdsByChannelIds", []string{"ch1"}).Return(map[string][]string{"ch1": {"user1"}}, nil)
+		mockChannelStore.On("GetTeamMembersForTeams", mock.AnythingOfType("*request.Context"), []string{"team1"}).Return(nil, errors.New("db down"))
+
+		appErr := run(t, mockChannelStore)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "ent.elasticsearch.getAllTeamMembers.error", appErr.Id)
+	})
 }
 
 func TestCurrentProgressCapsAt100(t *testing.T) {
