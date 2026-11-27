@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 
@@ -50,7 +51,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+	// Channel access policies do not apply to incoming webhooks, so this is the RBAC check alone.
+	if ok, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel); !ok {
 		c.LogAudit("fail - bad channel permissions")
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
@@ -70,9 +72,9 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if appErr := c.App.ValidateIncomingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, channel); appErr != nil {
+		if err := c.App.ValidateIncomingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, channel); err != nil {
 			c.LogAudit("fail - invalid webhook user")
-			c.Err = appErr
+			c.SetError(err)
 			return
 		}
 
@@ -133,9 +135,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(oldHook)
 	auditRec.AddEventObjectType("incoming_webhook")
 
-	if updatedHook.TeamId == "" {
-		updatedHook.TeamId = oldHook.TeamId
-	}
+	updatedHook.TeamId = cmp.Or(updatedHook.TeamId, oldHook.TeamId)
 
 	if updatedHook.TeamId != oldHook.TeamId {
 		c.Err = model.NewAppError("updateIncomingHook", "api.webhook.team_mismatch.app_error", nil, "user_id="+c.AppContext.Session().UserId, http.StatusBadRequest)
@@ -167,7 +167,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type != model.ChannelTypeOpen {
-		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+		if ok, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel); !ok {
 			c.LogAudit("fail - bad channel permissions")
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
@@ -176,9 +176,9 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Moving the hook must not attribute its owner's posts to a channel they cannot access.
 	if updatedHook.ChannelId != oldHook.ChannelId {
-		if appErr := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, oldHook.UserId, channel); appErr != nil {
+		if err := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, oldHook.UserId, channel); err != nil {
 			c.LogAudit("fail - invalid webhook user")
-			c.Err = appErr
+			c.SetError(err)
 			return
 		}
 	}
@@ -306,7 +306,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	isPrivate := channel.Type != model.ChannelTypeOpen
 	restrictedChannel := false
 	if isPrivate {
-		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel)
 		restrictedChannel = !hasChannelPermission
 	}
 
@@ -366,7 +366,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	isPrivate := channel.Type != model.ChannelTypeOpen
 	restrictedChannel := false
 	if isPrivate {
-		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel)
 		restrictedChannel = !hasChannelPermission
 	}
 
@@ -422,9 +422,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if updatedHook.TeamId == "" {
-		updatedHook.TeamId = oldHook.TeamId
-	}
+	updatedHook.TeamId = cmp.Or(updatedHook.TeamId, oldHook.TeamId)
 
 	if updatedHook.TeamId != oldHook.TeamId {
 		c.Err = model.NewAppError("updateOutgoingHook", "api.webhook.team_mismatch.app_error", nil, "user_id="+c.AppContext.Session().UserId, http.StatusBadRequest)
@@ -454,9 +452,9 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		if appErr := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, updatedHook.TeamId, channel); appErr != nil {
+		if err := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, updatedHook.TeamId, channel); err != nil {
 			c.LogAudit("fail - invalid webhook user")
-			c.Err = appErr
+			c.SetError(err)
 			return
 		}
 	}
@@ -517,9 +515,9 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if appErr := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, hook.TeamId, channel); appErr != nil {
+		if err := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, hook.TeamId, channel); err != nil {
 			c.LogAudit("fail - invalid webhook user")
-			c.Err = appErr
+			c.SetError(err)
 			return
 		}
 	}

@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
+    FeatureFlagChannelPermissionActions: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
@@ -997,6 +998,10 @@ export type JobSettings = {
     CleanupConfigThresholdDays: number;
 };
 
+export type SiteHealthSettings = {
+    EnableAutomaticChecks: boolean;
+};
+
 export type PluginSettings = {
     Enable: boolean;
     EnableUploads: boolean;
@@ -1153,6 +1158,7 @@ export type AdminConfig = {
     DataRetentionSettings: DataRetentionSettings;
     MessageExportSettings: MessageExportSettings;
     JobSettings: JobSettings;
+    SiteHealthSettings: SiteHealthSettings;
     PluginSettings: PluginSettings;
     DisplaySettings: DisplaySettings;
     GuestAccountsSettings: GuestAccountsSettings;

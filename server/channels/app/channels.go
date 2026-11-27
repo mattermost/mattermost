@@ -99,9 +99,9 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTask           leaderTask
-	postReminderTask  leaderTask
-	scheduledPostTask leaderTask
+	dndTask           clusterTask
+	postReminderTask  clusterTask
+	scheduledPostTask clusterTask
 
 	healthCheckWorkers *jobs.Workers
 	cancelHealthCheck  context.CancelFunc
@@ -305,6 +305,7 @@ func (ch *Channels) Start() error {
 	})
 
 	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+	ch.AddConfigListener(ch.clearLatestVersionCacheOnFlip)
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {

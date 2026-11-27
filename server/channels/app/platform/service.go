@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
@@ -103,6 +104,9 @@ type PlatformService struct {
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 	samlDiagnostic einterfaces.SamlDiagnosticInterface
 
+	httpService            httpservice.HTTPService
+	pushNotificationClient *http.Client
+
 	Jobs *jobs.JobServer
 
 	hubs     []*Hub
@@ -157,6 +161,10 @@ type PlatformService struct {
 	skipGlobalLogger bool
 
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
+
+	// prePublishHook runs on every event Publish sends, before the cluster copy is
+	// serialized. Set by the app layer, which platform can't call into directly.
+	prePublishHook func(message *model.WebSocketEvent)
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.
@@ -223,6 +231,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 		ps.configStore = configStore
 	}
+
+	ps.initHTTPClients()
 
 	// Step 1: Start logging.
 	err := ps.initLogging()
@@ -685,6 +695,13 @@ func (ps *PlatformService) SetPostDeliveryRecorder(fn func(marker *model.PostDel
 	ps.postDeliveryRecorder = fn
 }
 
+// SetPrePublishHook sets the function Publish runs on each event before delivering
+// it. It runs only on the originating node: the event it leaves behind is what the
+// cluster receives, so other nodes don't run it again.
+func (ps *PlatformService) SetPrePublishHook(fn func(message *model.WebSocketEvent)) {
+	ps.prePublishHook = fn
+}
+
 // GetPluginStatuses meant to be used by cluster implementation
 func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	if ps.pluginEnv == nil || ps.pluginEnv.GetPluginsEnvironment() == nil {
@@ -737,6 +754,21 @@ func (ps *PlatformService) FileBackend() filestore.FileBackend {
 
 func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 	return ps.exportFilestore
+}
+
+func (ps *PlatformService) initHTTPClients() {
+	ps.httpService = httpservice.MakeHTTPService(ps)
+	ps.pushNotificationClient = ps.httpService.MakeClient(true)
+}
+
+func (ps *PlatformService) HTTPService() httpservice.HTTPService {
+	return ps.httpService
+}
+
+// PushNotificationClient returns the client for requests to the push proxy. It is built once, so it keeps
+// the EnableInsecureOutgoingConnections value the server started with.
+func (ps *PlatformService) PushNotificationClient() *http.Client {
+	return ps.pushNotificationClient
 }
 
 func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {

@@ -444,6 +444,30 @@ func (s *MmctlE2ETestSuite) TestImportDeleteCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
+	s.RunForSystemAdminAndLocal("delete import with a path is rejected and keeps the file", func(c client.Client) {
+		importFilePath := filepath.Join(server.GetPackagePath(), "tests", "import_test.zip")
+		importPath, err := filepath.Abs(filepath.Join(*s.th.App.Config().FileSettings.Directory,
+			*s.th.App.Config().ImportSettings.Directory))
+		s.Require().Nil(err)
+
+		importName := "path_import_test.zip"
+		err = utils.CopyFile(importFilePath, filepath.Join(importPath, importName))
+		s.Require().Nil(err)
+		defer func() {
+			s.Require().Nil(s.th.App.DeleteImport(importName))
+		}()
+
+		printer.Clean()
+		err = importDeleteCmdF(c, &cobra.Command{}, []string{filepath.Join(*s.th.App.Config().ImportSettings.Directory, importName)})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "provide only the file name")
+		s.Require().Empty(printer.GetLines())
+
+		imports, appErr := s.th.App.ListImports()
+		s.Require().Nil(appErr)
+		s.Require().Contains(imports, importName)
+	})
+
 	s.RunForSystemAdminAndLocal("delete import", func(c client.Client) {
 		importName := "import_test.zip"
 		importFilePath := filepath.Join(server.GetPackagePath(), "tests", importName)

@@ -97,7 +97,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		for _, plugin := range availablePlugins {
 			pluginID := plugin.Manifest.Id
 			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginID]; ok {
+			if state, ok := config.PluginStates[pluginID]; ok && state != nil {
 				pluginEnabled = state.Enable
 			}
 
@@ -519,7 +519,6 @@ func (ch *Channels) disablePlugin(id string) error {
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
-	ch.unregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {

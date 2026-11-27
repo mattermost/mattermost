@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -460,10 +461,7 @@ func (r *Restrictions) TierFor(action string) PermissionLevel {
 	default:
 		return PermissionLevelNone
 	}
-	if leaf == "" {
-		return PermissionLevelNone
-	}
-	return leaf
+	return cmp.Or(leaf, PermissionLevelNone)
 }
 
 // permissionLevelRank orders the human ladder most restrictive to least

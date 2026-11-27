@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -117,10 +118,7 @@ func (s *SqlChannelJoinRequestStore) GetPendingForChannelAndUser(channelId, user
 // to both the select and count queries. Returning the two filtered builders keeps
 // list and count perfectly in sync.
 func applyJoinRequestStatusFilter(opts model.GetChannelJoinRequestsOpts) sq.Eq {
-	status := opts.Status
-	if status == "" {
-		status = model.ChannelJoinRequestStatusPending
-	}
+	status := cmp.Or(opts.Status, model.ChannelJoinRequestStatusPending)
 	return sq.Eq{"Status": status}
 }
 

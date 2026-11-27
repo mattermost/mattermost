@@ -19,6 +19,7 @@ import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
 import {isModalOpen} from 'selectors/views/modals';
+import {getProductRailFilter} from 'selectors/views/product_rail';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -52,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
         isMobileView: getIsMobileView(state),
         isKeyBoardShortcutModalOpen: isModalOpen(state, ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL),
         canCreateCustomGroups,
+        productRailKind: getProductRailFilter(state) === 'boards' ? 'board' as const : 'channel' as const,
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
     };

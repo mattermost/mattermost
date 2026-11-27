@@ -6,6 +6,7 @@ import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
 
 import type {WebSocketMessages} from '@mattermost/client';
+import type {EntityCard} from '@mattermost/types/posts';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
@@ -269,7 +270,7 @@ export default class PluginRegistry {
 
     /**
      * Register a component fixed to the bottom of the create new channel modal and also registers a callback function to be called after
-     * the channel has been succesfully created
+     * the channel has been successfully created
      * Accepts a React component. Returns a unique identifier.
      */
     registerActionAfterChannelCreation = reArg(['component', 'action'], ({
@@ -1213,7 +1214,7 @@ export default class PluginRegistry {
      * Note that this is a low-level interface primarily meant for internal use, and is not subject
      * to semver guarantees. It may change in the future.
      * Accepts the following:
-     * - func - A function that recieve the admin console config definitions and return a new
+     * - func - A function that receive the admin console config definitions and return a new
      *          version of it, which is used for build the admin console.
      * Each plugin can register at most one admin console plugin function, with newer registrations
      * replacing older ones.
@@ -1989,6 +1990,27 @@ export default class PluginRegistry {
      */
     registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
         return this.dispatchPluginComponentAction('SystemConsoleGroupTable', component);
+    });
+
+    /**
+     * Register a drawing for one part of an entity card.
+     *
+     * `map` replaces the coordinate fallback where the card carries a map payload.
+     * Any other part name is rendered after the card body, so a later kind can
+     * arrive without a new registry method. The component receives the whole card.
+     */
+    registerEntityCardPart = reArg(['part', 'component'], ({part, component}: {
+        part: string;
+        component: React.ComponentType<{card: EntityCard; reload?: () => void}>;
+    }) => {
+        const id = generateId();
+        this.dispatchPluginComponentWithData('EntityCardPart', {
+            id,
+            pluginId: this.id,
+            part,
+            component,
+        });
+        return id;
     });
 
     registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void}) => {

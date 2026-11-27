@@ -1438,11 +1438,63 @@ describe('Selectors.Channels.getRedirectChannelNameForTeam', () => {
         expect(Selectors.getRedirectChannelNameForTeam(modifiedState, team1.id)).toEqual('test-channel');
     });
 
-    it('getRedirectChannelNameForTeam with advanced permissions and with JOIN_PUBLIC_CHANNELS permission', () => {
+    it('getRedirectChannelNameForTeam with JOIN_PUBLIC_CHANNELS permission sends to a channel the user has when town-square is hidden', () => {
+        // The user has the team's channels but not town-square, which a non-guest can't
+        // leave: the server is hiding it (a channel read-access policy), so it can't be
+        // opened and the redirect must not send the user there.
         const modifiedState = {
             ...testState,
             entities: {
                 ...testState.entities,
+                channels: {
+                    ...testState.entities.channels,
+                    channels: {
+                        ...testState.entities.channels.channels,
+                        [channel1.id]: {
+                            id: channel1.id,
+                            display_name: 'aaaaaa',
+                            name: 'test-channel',
+                            team_id: team1.id,
+                        },
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {permissions: ['join_public_channels']},
+                    },
+                },
+                general: {
+                    ...testState.entities.general,
+                    serverVersion: '5.12.0',
+                },
+            },
+        };
+        expect(Selectors.getRedirectChannelNameForTeam(modifiedState, team1.id)).toEqual('test-channel');
+    });
+
+    it('getRedirectChannelNameForTeam with JOIN_PUBLIC_CHANNELS permission and town-square loaded sends to town-square', () => {
+        const modifiedState = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                channels: {
+                    ...testState.entities.channels,
+                    channels: {
+                        ...testState.entities.channels.channels,
+                        [channel1.id]: {
+                            id: channel1.id,
+                            display_name: 'aaaaaa',
+                            name: 'test-channel',
+                            team_id: team1.id,
+                        },
+                        [channel2.id]: {
+                            id: channel2.id,
+                            display_name: 'Town Square',
+                            name: General.DEFAULT_CHANNEL,
+                            team_id: team1.id,
+                        },
+                    },
+                },
                 roles: {
                     roles: {
                         system_user: {permissions: ['join_public_channels']},

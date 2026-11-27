@@ -12,6 +12,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"go/ast"
 	"go/doc"
@@ -157,10 +158,7 @@ func jsonFieldName(field *ast.Field) string {
 		return ""
 	}
 	name := strings.SplitN(jsonTag, ",", 2)[0]
-	if name == "" {
-		return fieldName
-	}
-	return name
+	return cmp.Or(name, fieldName)
 }
 
 func exprTypeDocs(expr ast.Expr, typesByName map[string]*doc.Type, imports map[string]string) *TypeDocs {

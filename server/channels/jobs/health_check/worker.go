@@ -22,10 +22,15 @@ func MakeWorker(jobServer *jobs.JobServer, runHealthCheck func(rctx request.CTX)
 }
 
 // MakeWorkers returns a worker set holding only the health-check worker, with its own watcher
-// that polls only pending health_check jobs, and only while the worker is enabled.
-func MakeWorkers(jobServer *jobs.JobServer, worker model.Worker) *jobs.Workers {
+// that polls only pending health_check jobs, and only while the worker is enabled and the server
+// has a Professional license. The license gates the polling, not the worker: the framework only
+// starts and stops workers on config changes, so a license added later would find no worker
+// running.
+func MakeWorkers(jobServer *jobs.JobServer, worker model.Worker, licenseFunc func() *model.License) *jobs.Workers {
 	workers := jobs.NewWorkers(jobServer.ConfigService)
 	workers.AddWorker(model.JobTypeHealthCheck, worker)
-	workers.Watcher = jobServer.MakeJobTypeWatcher(workers, jobs.DefaultWatcherPollingInterval, model.JobTypeHealthCheck)
+	workers.Watcher = jobServer.MakeJobTypeWatcher(workers, jobs.DefaultWatcherPollingInterval, model.JobTypeHealthCheck, func() bool {
+		return model.MinimumProfessionalLicense(licenseFunc())
+	})
 	return workers
 }

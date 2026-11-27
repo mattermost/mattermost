@@ -385,7 +385,7 @@ func (a *App) revealBurnOnReadPostsForUser(rctx request.CTX, postList *model.Pos
 		// If user is the author, reveal the post with recipients
 		if post.UserId == userID {
 			if err := a.revealPostForAuthor(rctx, postList, post); err != nil {
-				return nil, err
+				return nil, model.AsAppError(err)
 			}
 			continue
 		}
@@ -410,7 +410,7 @@ func (a *App) revealBurnOnReadPostsForUser(rctx request.CTX, postList *model.Pos
 
 		// Reveal post with expiration metadata
 		if err := a.revealPostForUser(rctx, postList, post, receipt); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 	}
 

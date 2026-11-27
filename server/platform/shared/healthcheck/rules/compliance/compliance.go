@@ -24,50 +24,44 @@ const (
 )
 
 var complianceNoDir = healthcheck.Rule{
-	Code:     "COMPLIANCE_NO_DIR",
-	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.compliance_no_dir.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.compliance_no_dir.remediation"),
-		DocsURL:       "https://mattermost.com/pl/compliance-monitoring",
-		ConsolePath:   "/admin_console/compliance/monitoring",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ComplianceSettings.Directory",
-	Eval:       healthcheck.Licensed(healthcheck.FeatureCompliance, healthcheck.Single(evalComplianceNoDir)),
+	Code:          "COMPLIANCE_NO_DIR",
+	Area:          model.AreaCompliance,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.compliance_no_dir.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.compliance_no_dir.remediation"),
+	DocsURL:       "https://mattermost.com/pl/compliance-monitoring",
+	ConsolePath:   "/admin_console/compliance/monitoring",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ComplianceSettings.Directory",
+	Eval:          healthcheck.Licensed(healthcheck.FeatureCompliance, healthcheck.Single(evalComplianceNoDir)),
 }
 
 var retentionTightBatches = healthcheck.Rule{
-	Code:     "RETENTION_TIGHT_BATCHES",
-	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.retention_tight_batches.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.retention_tight_batches.remediation"),
-		DocsURL:       "https://mattermost.com/pl/data-retention-policy",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "DataRetentionSettings.TimeBetweenBatchesMilliseconds",
-	Eval:       healthcheck.Licensed(healthcheck.FeatureDataRetention, healthcheck.Single(evalRetentionTightBatches)),
+	Code:          "RETENTION_TIGHT_BATCHES",
+	Area:          model.AreaCompliance,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.retention_tight_batches.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.retention_tight_batches.remediation"),
+	DocsURL:       "https://mattermost.com/pl/data-retention-policy",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "DataRetentionSettings.TimeBetweenBatchesMilliseconds",
+	Eval:          healthcheck.Licensed(healthcheck.FeatureDataRetention, healthcheck.Single(evalRetentionTightBatches)),
 }
 
 var exportGRTimeoutLow = healthcheck.Rule{
-	Code:     "EXPORT_GR_TIMEOUT_LOW",
-	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.export_gr_timeout_low.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.export_gr_timeout_low.remediation"),
-		DocsURL:       "https://mattermost.com/pl/compliance-export",
-		ConsolePath:   "/admin_console/compliance/export",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout",
-	Eval:       healthcheck.Licensed(healthcheck.FeatureMessageExport, healthcheck.Single(evalExportGRTimeoutLow)),
+	Code:          "EXPORT_GR_TIMEOUT_LOW",
+	Area:          model.AreaCompliance,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.export_gr_timeout_low.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.export_gr_timeout_low.remediation"),
+	DocsURL:       "https://mattermost.com/pl/compliance-export",
+	ConsolePath:   "/admin_console/compliance/export",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout",
+	Eval:          healthcheck.Licensed(healthcheck.FeatureMessageExport, healthcheck.Single(evalExportGRTimeoutLow)),
 }
 
 func evalComplianceNoDir(s *healthcheck.Snapshot) healthcheck.Result {

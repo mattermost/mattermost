@@ -7,17 +7,19 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {get as getPreference, getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMySortedTeamIds} from 'mattermost-redux/selectors/entities/teams';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
 import {getPreviousTeamId} from 'selectors/local_storage';
+import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 import type {ProductRailSection, ProductRailTab} from 'types/store/views';
 
 /**
@@ -59,6 +61,25 @@ function isBoardChannel(state: GlobalState, channel: Channel, registrations: Cha
 export function hasBoardChannelKind(state: GlobalState): boolean {
     return getChannelKindRegistrations(state).some((registration) => registration.kind === 'board');
 }
+
+/** The ids of the plugins that registered a matcher for board channels. */
+export const getBoardPluginIds: (state: GlobalState) => string[] = createSelector(
+    'getBoardPluginIds',
+    getChannelKindRegistrations,
+    (registrations) => registrations.filter((registration) => registration.kind === 'board').map((registration) => registration.pluginId),
+);
+
+/**
+ * The board plugin's own "Create new board" items, which create boards from core. Their placement
+ * only says where they sit in the add channels menu, so an item is a board action when the plugin
+ * that registered it is the one that registered the board kind.
+ */
+export const getBoardCreateMenuItems: (state: GlobalState) => SidebarBrowseOrAddChannelMenuAction[] = createSelector(
+    'getBoardCreateMenuItems',
+    getSidebarBrowseOrAddChannelMenuPluginComponents,
+    getBoardPluginIds,
+    (items: SidebarBrowseOrAddChannelMenuAction[] | undefined, boardPluginIds) => (items ?? []).filter((item) => item.placement === 'afterCreateChannel' && boardPluginIds.includes(item.pluginId)),
+);
 
 /**
  * The ids of every loaded channel a plugin's matcher calls a board.
@@ -118,6 +139,35 @@ export function getProductRailSection(state: GlobalState): ProductRailSection | 
 
 export type ProductRailFilter = ProductRailSection | null;
 
+const noItems: string[] = [];
+
+// A preference holding a JSON array of rail item ids. Anything else names none.
+function parseItemIds(value: string): string[] {
+    try {
+        const parsed: unknown = JSON.parse(value || '[]');
+        return Array.isArray(parsed) ? parsed.filter((itemId): itemId is string => typeof itemId === 'string') : noItems;
+    } catch {
+        return noItems;
+    }
+}
+
+/** The rail items the user has moved into the rail's More menu: 'boards', or a product's plugin id. */
+export const getProductRailHiddenItems: (state: GlobalState) => string[] = createSelector(
+    'getProductRailHiddenItems',
+    (state: GlobalState) => getPreference(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.PRODUCT_RAIL_HIDDEN_ITEMS, ''),
+    parseItemIds,
+);
+
+/**
+ * The order the user has dragged the rail items into: 'channels', 'boards', or a
+ * product's plugin id. Items it doesn't name follow in their default order.
+ */
+export const getProductRailItemOrder: (state: GlobalState) => string[] = createSelector(
+    'getProductRailItemOrder',
+    (state: GlobalState) => getPreference(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.PRODUCT_RAIL_ORDER, ''),
+    parseItemIds,
+);
+
 /** Whether the user has chosen to list boards in the Channels view too. */
 export function areBoardsShownInChannels(state: GlobalState): boolean {
     return getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_BOARDS_IN_CHANNELS, false);
@@ -164,11 +214,14 @@ export function getProductRailTeamIdToRestore(state: GlobalState): string {
     return myTeamIds[0] ?? '';
 }
 
-/** Whether the user has hidden the team sidebar, so the product rail shows a team menu in its place. */
+/**
+ * Whether the team sidebar is collapsed into the product rail's team menu. It is by default with the
+ * rail on, until the user brings the team sidebar back.
+ */
 export function isTeamSidebarHidden(state: GlobalState): boolean {
     // On mobile the rail, and its team menu, are hidden, so the team sidebar stays to switch teams.
     return isProductRailEnabled(state) && !getIsMobileView(state) &&
-        getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.HIDE_TEAM_SIDEBAR, false);
+        getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.HIDE_TEAM_SIDEBAR, true);
 }
 
 export function getProductRailLastPath(state: GlobalState, tab: ProductRailTab, teamId: string): string | undefined {
@@ -241,12 +294,16 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
         };
 
         for (const channel of Object.values(channels)) {
-            if (channel.team_id !== currentTeamId || channel.delete_at > 0) {
+            // Direct and group messages belong to no team, and show in Channels in every team.
+            const isDirect = channel.type === 'D' || channel.type === 'G';
+            if ((!isDirect && channel.team_id !== currentTeamId) || channel.delete_at > 0) {
                 continue;
             }
 
             const unreads = calculateUnreadCount(messageCounts[channel.id], memberships[channel.id], crtEnabled);
-            const sectionUnreads = result[boardChannelIds.has(channel.id) ? 'boards' : 'channels'];
+
+            // Direct and group messages are never boards, whatever a plugin's matcher says.
+            const sectionUnreads = result[!isDirect && boardChannelIds.has(channel.id) ? 'boards' : 'channels'];
             sectionUnreads.mentions += unreads.mentions;
             sectionUnreads.hasUrgent = sectionUnreads.hasUrgent || unreads.hasUrgent;
             sectionUnreads.unread = sectionUnreads.unread || unreads.showUnread;

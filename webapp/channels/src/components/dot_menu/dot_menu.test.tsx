@@ -292,6 +292,28 @@ describe('components/dot_menu/DotMenu', () => {
         expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
     });
 
+    test.each([
+        [true, true],
+        [false, false],
+    ])('pin menu item follows canPin=%s', async (canPin, shown) => {
+        renderWithContext(
+            <DotMenu
+                {...baseProps}
+                canPin={canPin}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`));
+
+        // canPin carries the channel write denial, so the item must follow it like the P shortcut does.
+        if (shown) {
+            expect(screen.getByTestId(`pin_post_${baseProps.post.id}`)).toBeInTheDocument();
+        } else {
+            expect(screen.queryByTestId(`pin_post_${baseProps.post.id}`)).not.toBeInTheDocument();
+        }
+    });
+
     test('should not show move thread menu for burn-on-read posts', async () => {
         const borPost = {
             ...post1,
@@ -687,6 +709,7 @@ describe('components/dot_menu/DotMenu', () => {
                             ...initialState.entities!.general!.config,
                             FeatureFlagPostAttributes: flag ? 'true' : 'false',
                         },
+                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
                     },
                     channels: {
                         ...initialState.entities!.channels,
@@ -713,8 +736,8 @@ describe('components/dot_menu/DotMenu', () => {
                         // chip row, so a field the user can set is the way in.
                         values: {byTargetId: hasValue ? {[post1.id]: {[field.id]: value}} : {}, byFieldId: {}},
                         groups: {
-                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
-                            byName: {post_attributes: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'access_control'}},
+                            byName: {access_control: {id: POST_ATTRIBUTES_GROUP_ID, name: 'access_control'}},
                         },
                     },
                 },

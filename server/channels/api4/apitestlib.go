@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -110,10 +111,7 @@ func setupTestHelperWithBackingStore(tb testing.TB, backingStore config.BackingS
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 
 	// Check for environment variable override for console log level (useful for debugging tests)
-	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	if consoleLevel == "" {
-		consoleLevel = mlog.LvlDebug.Name
-	}
+	consoleLevel := cmp.Or(os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL"), mlog.LvlDebug.Name)
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 	// Use a subdirectory within the logging root (from MM_LOG_PATH or default)
 	// to ensure the path is within the allowed logging root for security validation.

@@ -616,6 +616,9 @@
         "CleanupJobsThresholdDays": null,
         "CleanupConfigThresholdDays": null
     },
+    "SiteHealthSettings": {
+        "EnableAutomaticChecks": null
+    },
     "PluginSettings": {
         "Enable": null,
         "EnableUploads": null,
@@ -736,11 +739,13 @@
         "PermissionPolicies": false,
         "ChannelPermissionPolicies": false,
         "PolicySimulation": false,
+        "ChannelPermissionActions": false,
         "ContentFlagging": false,
         "EnableMattermostEntry": false,
         "MobileSSOCodeExchange": false,
         "EnableShiftEscapeToMarkAllRead": false,
         "AutoTranslation": false,
+        "Entities": false,
         "ClassificationMarkings": false,
         "BurnOnRead": false,
         "EnableAIPluginBridge": false,

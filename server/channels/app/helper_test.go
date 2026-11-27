@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -84,10 +85,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 
 	// Check for environment variable override for console log level (useful for debugging tests)
-	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	if consoleLevel == "" {
-		consoleLevel = mlog.LvlDebug.Name
-	}
+	consoleLevel := cmp.Or(os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL"), mlog.LvlDebug.Name)
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
@@ -260,14 +258,14 @@ func SetupEnterprise(tb testing.TB, options ...Option) *TestHelper {
 	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, options, tb)
 }
 
-func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config), options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
 
 	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
 
-	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, false, true, updateConfig, nil, tb)
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, false, true, updateConfig, options, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -334,14 +332,14 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
-func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *TestHelper {
+func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
 
 	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
 
-	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, []Option{SetCluster(cluster)}, tb)
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, append([]Option{SetCluster(cluster)}, options...), tb)
 }
 
 func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
@@ -714,14 +712,8 @@ func (th *TestHelper) GetSqlStore() *sqlstore.SqlStore {
 }
 
 func (th *TestHelper) ConfigureInbucketMail() {
-	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "localhost"
-	}
-	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "10025"
-	}
+	inbucket_host := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
+	inbucket_port := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.SMTPServer = inbucket_host
 		*cfg.EmailSettings.SMTPPort = inbucket_port

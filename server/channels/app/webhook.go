@@ -262,7 +262,7 @@ func webhookPropsJSONArray(raw any) ([]any, bool) {
 	return arr, ok
 }
 
-func splitWebhookPostPropsTooLarge() *model.AppError {
+func splitWebhookPostPropsTooLarge() error {
 	return model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 }
 
@@ -289,7 +289,7 @@ func cloneWebhookSplitPost(p *model.Post) *model.Post {
 
 // distributeWebhookJSONArrayProp appends each element of a JSON array prop onto webhook post
 // splits, mirroring message attachment distribution.
-func distributeWebhookJSONArrayProp(splits []*model.Post, base *model.Post, propKey string, items []any, allActions any) ([]*model.Post, *model.AppError) {
+func distributeWebhookJSONArrayProp(splits []*model.Post, base *model.Post, propKey string, items []any, allActions any) ([]*model.Post, error) {
 	for _, item := range items {
 		for {
 			lastSplit := splits[len(splits)-1]
@@ -323,7 +323,7 @@ func validateWebhookPostInteractiveActions(post *model.Post) error {
 	return nil
 }
 
-func splitWebhookPost(post *model.Post, maxPostSize int, mmBlocksEnabled bool) ([]*model.Post, *model.AppError) {
+func splitWebhookPost(post *model.Post, maxPostSize int, mmBlocksEnabled bool) ([]*model.Post, error) {
 	// Fast path: message and full props already fit one post. Pairing was validated
 	// before split, so mm_blocks_actions need not be subset/refreshed here.
 	if utf8.RuneCountInString(post.Message) <= maxPostSize {
@@ -421,7 +421,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int, mmBlocksEnabled bool) (
 
 	for _, propKey := range []string{model.PostPropsMmBlocks, model.PostPropsBlockKitBlocks, model.PostPropsAdaptiveCards} {
 		if items, ok := webhookPropsJSONArray(post.GetProp(propKey)); ok && len(items) > 0 {
-			var err *model.AppError
+			var err error
 			splits, err = distributeWebhookJSONArrayProp(splits, base, propKey, items, mmBlocksActions)
 			if err != nil {
 				return nil, err
@@ -510,7 +510,7 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 
 	splits, err := splitWebhookPost(post, a.MaxPostSize(), mmBlocksEnabled)
 	if err != nil {
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	var returnPost *model.Post
@@ -538,7 +538,7 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 
 // ValidateIncomingWebhookUser ensures a user being assigned as an incoming webhook's owner
 // does not hold privileges the requester lacks and can access the target channel.
-func (a *App) ValidateIncomingWebhookUser(rctx request.CTX, session model.Session, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) ValidateIncomingWebhookUser(rctx request.CTX, session model.Session, user *model.User, channel *model.Channel) error {
 	if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 		return model.NewAppError("ValidateIncomingWebhookUser", "api.webhook.incoming.user_role.app_error", nil, "user_id="+user.Id, http.StatusForbidden)
 	}
@@ -548,7 +548,7 @@ func (a *App) ValidateIncomingWebhookUser(rctx request.CTX, session model.Sessio
 
 // ValidateIncomingWebhookUserChannelAccess ensures the incoming webhook owner can read the channel
 // the hook is bound to.
-func (a *App) ValidateIncomingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) *model.AppError {
+func (a *App) ValidateIncomingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) error {
 	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); !hasPermission {
 		return model.NewAppError("ValidateIncomingWebhookUserChannelAccess", "api.webhook.incoming.user_membership.app_error", nil, "user_id="+userID+", channel_id="+channel.Id, http.StatusForbidden)
 	}
@@ -559,7 +559,7 @@ func (a *App) ValidateIncomingWebhookUserChannelAccess(rctx request.CTX, userID 
 // ValidateOutgoingWebhookUser ensures a user being assigned as an outgoing webhook's owner
 // does not hold privileges the requester lacks. When the hook is bound to a channel the user
 // must be able to read it; when ChannelId is empty they must be a member of the team.
-func (a *App) ValidateOutgoingWebhookUser(rctx request.CTX, session model.Session, user *model.User, teamID string, channel *model.Channel) *model.AppError {
+func (a *App) ValidateOutgoingWebhookUser(rctx request.CTX, session model.Session, user *model.User, teamID string, channel *model.Channel) error {
 	if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 		return model.NewAppError("ValidateOutgoingWebhookUser", "api.webhook.incoming.user_role.app_error", nil, "user_id="+user.Id, http.StatusForbidden)
 	}
@@ -573,7 +573,7 @@ func (a *App) ValidateOutgoingWebhookUser(rctx request.CTX, session model.Sessio
 
 // ValidateOutgoingWebhookUserChannelAccess ensures the outgoing webhook owner can read the channel
 // the hook is bound to.
-func (a *App) ValidateOutgoingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) *model.AppError {
+func (a *App) ValidateOutgoingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) error {
 	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); !hasPermission {
 		return model.NewAppError("ValidateOutgoingWebhookUserChannelAccess", "api.webhook.incoming.user_membership.app_error", nil, "user_id="+userID+", channel_id="+channel.Id, http.StatusForbidden)
 	}
@@ -583,7 +583,7 @@ func (a *App) ValidateOutgoingWebhookUserChannelAccess(rctx request.CTX, userID 
 
 // ValidateOutgoingWebhookUserTeamAccess ensures the outgoing webhook owner can access the team
 // when the hook is not bound to a channel.
-func (a *App) ValidateOutgoingWebhookUserTeamAccess(rctx request.CTX, userID string, teamID string) *model.AppError {
+func (a *App) ValidateOutgoingWebhookUserTeamAccess(rctx request.CTX, userID string, teamID string) error {
 	if teamID != "" && !a.HasPermissionToTeam(rctx, userID, teamID, model.PermissionViewTeam) {
 		return model.NewAppError("ValidateOutgoingWebhookUserTeamAccess", "api.webhook.incoming.user_membership.app_error", nil, "user_id="+userID+", team_id="+teamID, http.StatusForbidden)
 	}

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
@@ -563,9 +564,7 @@ func (e *DialogElement) EffectiveMatrixConfig() DialogMatrixConfig {
 		return DialogMatrixConfig{RowSelection: DialogMatrixRowSelectionMultiple}
 	}
 	cfg := *e.MatrixConfig
-	if cfg.RowSelection == "" {
-		cfg.RowSelection = DialogMatrixRowSelectionMultiple
-	}
+	cfg.RowSelection = cmp.Or(cfg.RowSelection, DialogMatrixRowSelectionMultiple)
 	return cfg
 }
 

@@ -4,7 +4,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Keep in sync with server/.go-version. cloud-agent-install.sh reinstalls if they drift.
 ARG GO_VERSION=1.27.3
-# Image pin on the .nvmrc line (currently 24.11). cloud-agent-install.sh uses .nvmrc at bootstrap.
+# Keep in sync with .nvmrc. cloud-agent-install.sh reinstalls if they drift; plugin Node
+# versions come from each plugin's .nvmrc and are installed through nvm by that hook.
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3
 ARG DOCKER_VERSION=5:28.5.2-1~ubuntu.24.04~noble
@@ -155,7 +156,7 @@ RUN { \
       echo 'export NVM_DIR="$HOME/.nvm"'; \
       echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'; \
       echo 'export GOPATH="$HOME/go"'; \
-      echo 'export PATH="$NVM_DIR/versions/node/v24.11.1/bin:/usr/local/go/bin:$GOPATH/bin:$PATH"'; \
+      echo "export PATH=\"\$NVM_DIR/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:\$GOPATH/bin:\$PATH\""; \
     } >> /home/ubuntu/.bashrc && \
     chown ubuntu:ubuntu /home/ubuntu/.bashrc
 

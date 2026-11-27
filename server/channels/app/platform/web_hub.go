@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"cmp"
 	"fmt"
 	"hash/maphash"
 	"iter"
@@ -33,6 +34,7 @@ type SuiteIFace interface {
 	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
 	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
+	HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError)
 	MFARequired(rctx request.CTX, method string) *model.AppError
@@ -237,10 +239,7 @@ func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 
 func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
 	ps.Store.Channel().InvalidateChannel(channel.Id)
-	teamID := channel.TeamId
-	if teamID == "" {
-		teamID = "dm"
-	}
+	teamID := cmp.Or(channel.TeamId, "dm")
 
 	ps.Store.Channel().InvalidateChannelByName(teamID, channel.Name)
 }
@@ -357,9 +356,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		case model.WSQueuesStatusOldConnStillOpen:
 			remoteReason = reconnectFailureOldConnStillOpen
 		case model.WSQueuesStatusMissedEventsEvicted:
-			if remoteReason == "" {
-				remoteReason = reconnectFailureMissedEventsEvicted
-			}
+			remoteReason = cmp.Or(remoteReason, reconnectFailureMissedEventsEvicted)
 		}
 		if queues.ActiveQ == nil {
 			continue
@@ -667,25 +664,33 @@ func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string
 
 // broadcastToConn delivers msg to a single web connection, if it is still registered and
 // should receive the event. A post delivery is recorded only when the event is actually
-// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
-// never on the default branch where the buffer is full and the connection is dropped.
+// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, never
+// for an event a broadcast hook rejected for this connection, and never on the default branch
+// where the buffer is full and the connection is dropped.
 func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, channelKey [16]byte, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
 	if !connIndex.Has(webConn) {
 		return
 	}
-	if webConn.ShouldSendEvent(msg, channelKey) {
-		select {
-		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
-			h.recordPostDelivery(marker, webConn.UserId)
-		default:
-			// Don't log the warning if it's an inactive connection.
-			if webConn.Active.Load() {
-				mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
-					mlog.String("user_id", webConn.UserId),
-					mlog.String("conn_id", webConn.GetConnectionID()))
-			}
-			closeAndRemoveConn(connIndex, webConn)
+	if !webConn.ShouldSendEvent(msg, channelKey) {
+		return
+	}
+
+	hooked := h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs)
+	if hooked.IsRejected() {
+		return
+	}
+
+	select {
+	case webConn.send <- hooked:
+		h.recordPostDelivery(marker, webConn.UserId)
+	default:
+		// Don't log the warning if it's an inactive connection.
+		if webConn.Active.Load() {
+			mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+				mlog.String("user_id", webConn.UserId),
+				mlog.String("conn_id", webConn.GetConnectionID()))
 		}
+		closeAndRemoveConn(connIndex, webConn)
 	}
 }
 
@@ -738,6 +743,10 @@ func (h *Hub) Start() {
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConnReg := <-h.register:
+				if webConnReg.conn.sendClosed.Load() {
+					continue
+				}
+
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
@@ -974,6 +983,9 @@ func areAllInactive(conns iter.Seq[*WebConn]) bool {
 // closeAndRemoveConn closes the send channel which will close the
 // websocket connection, and then it removes the webConn from the conn index.
 func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
+	if !conn.sendClosed.CompareAndSwap(false, true) {
+		return
+	}
 	close(conn.send)
 	connIndex.Remove(conn)
 }

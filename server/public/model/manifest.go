@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -315,9 +316,7 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 		executable = server.Executables[osArch]
 	}
 
-	if executable == "" {
-		executable = server.Executable
-	}
+	executable = cmp.Or(executable, server.Executable)
 
 	return executable
 }

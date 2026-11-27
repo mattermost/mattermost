@@ -323,7 +323,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 
 // GetConfigHistory returns the saved configurations, newest first, skipping the first offset,
 // each with the configuration it saved, loaded as GetHistoricalConfig loads it.
-func (a *App) GetConfigHistory(offset, limit int) ([]*config.HistoryEntry, *model.AppError) {
+func (a *App) GetConfigHistory(offset, limit int) ([]*config.HistoryEntry, error) {
 	history, err := a.Srv().platform.GetConfigHistory(offset, limit)
 	if err != nil {
 		return nil, configHistoryAppError("GetConfigHistory", err)
@@ -333,7 +333,7 @@ func (a *App) GetConfigHistory(offset, limit int) ([]*config.HistoryEntry, *mode
 
 // GetHistoricalConfig returns the saved configuration with the given id, unsanitized, with the
 // environment overrides the server would apply if it were active.
-func (a *App) GetHistoricalConfig(id string) (*model.Config, *model.AppError) {
+func (a *App) GetHistoricalConfig(id string) (*model.Config, error) {
 	cfg, err := a.Srv().platform.GetHistoricalConfig(id)
 	if err != nil {
 		return nil, configHistoryAppError("GetHistoricalConfig", err)
@@ -341,7 +341,7 @@ func (a *App) GetHistoricalConfig(id string) (*model.Config, *model.AppError) {
 	return cfg, nil
 }
 
-func configHistoryAppError(where string, err error) *model.AppError {
+func configHistoryAppError(where string, err error) error {
 	switch {
 	case errors.Is(err, config.ErrHistoryNotSupported):
 		return model.NewAppError(where, "app.config.history.not_supported.app_error", nil, "", http.StatusNotImplemented)

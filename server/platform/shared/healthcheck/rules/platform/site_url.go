@@ -21,35 +21,31 @@ const (
 )
 
 var siteURLEmpty = healthcheck.Rule{
-	Code:     "SITE_URL_EMPTY",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.site_url_empty.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.site_url_empty.remediation"),
-		DocsURL:       siteURLDocsURL,
-		ConsolePath:   siteURLConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    siteURLSubject,
-	Eval:       healthcheck.Single(evalSiteURLEmpty),
+	Code:          "SITE_URL_EMPTY",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.site_url_empty.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.site_url_empty.remediation"),
+	DocsURL:       siteURLDocsURL,
+	ConsolePath:   siteURLConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       siteURLSubject,
+	Eval:          healthcheck.Single(evalSiteURLEmpty),
 }
 
 var siteURLHTTP = healthcheck.Rule{
-	Code:     "SITE_URL_HTTP",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.site_url_http.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.site_url_http.remediation"),
-		DocsURL:       siteURLDocsURL,
-		ConsolePath:   siteURLConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    siteURLSubject,
-	Eval:       healthcheck.Single(evalSiteURLHTTP),
+	Code:          "SITE_URL_HTTP",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.site_url_http.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.site_url_http.remediation"),
+	DocsURL:       siteURLDocsURL,
+	ConsolePath:   siteURLConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       siteURLSubject,
+	Eval:          healthcheck.Single(evalSiteURLHTTP),
 }
 
 func siteURL(s *healthcheck.Snapshot) (string, bool) {

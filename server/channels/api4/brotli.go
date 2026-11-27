@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bufio"
+	"cmp"
 	"fmt"
 	"net"
 	"net/http"
@@ -83,18 +84,13 @@ func (b *brotliResponseWriter) WriteHeader(code int) {
 		b.ResponseWriter.WriteHeader(code)
 		return
 	}
-	if b.code == 0 {
-		b.code = code
-	}
+	b.code = cmp.Or(b.code, code)
 }
 
 // statusCode returns the pending status code, defaulting to 200 if the
 // handler never called WriteHeader, matching net/http's own default.
 func (b *brotliResponseWriter) statusCode() int {
-	if b.code == 0 {
-		return http.StatusOK
-	}
-	return b.code
+	return cmp.Or(b.code, http.StatusOK)
 }
 
 func (b *brotliResponseWriter) Write(p []byte) (int, error) {
@@ -108,9 +104,7 @@ func (b *brotliResponseWriter) Write(p []byte) (int, error) {
 	// Matches net/http: the first Write without a prior WriteHeader locks in
 	// 200, and any WriteHeader call after that is a no-op on the real
 	// ResponseWriter — so it must be a no-op here too.
-	if b.code == 0 {
-		b.code = http.StatusOK
-	}
+	b.code = cmp.Or(b.code, http.StatusOK)
 
 	toAdd := len(p)
 	if len(b.buf)+toAdd > brotliMinSize {
