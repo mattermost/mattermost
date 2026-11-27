@@ -1102,6 +1102,55 @@ func testUpsertPropertyValue(t *testing.T, rctx request.CTX, ss store.Store, s S
 		require.Equal(t, `"updated via upsert"`, string(fetched.Value))
 	})
 
+	t.Run("should keep the stored value of a key field and update a text field's", func(t *testing.T) {
+		groupID := model.NewId()
+		targetID := model.NewId()
+
+		keyField, err := ss.PropertyField().Create(newKeyField(groupID, "KEEP"))
+		require.NoError(t, err)
+		textField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		upsert := func(fieldID, raw, updatedBy string) *model.PropertyValue {
+			t.Helper()
+			upserted, upsertErr := ss.PropertyValue().Upsert([]*model.PropertyValue{{
+				TargetID:   targetID,
+				TargetType: model.PropertyValueTargetTypePost,
+				GroupID:    groupID,
+				FieldID:    fieldID,
+				Value:      json.RawMessage(raw),
+				UpdatedBy:  updatedBy,
+			}})
+			require.NoError(t, upsertErr)
+			require.Len(t, upserted, 1)
+			return upserted[0]
+		}
+
+		firstUpdater, secondUpdater := model.NewId(), model.NewId()
+
+		inserted := upsert(keyField.ID, `7`, firstUpdater)
+		require.Equal(t, `7`, string(inserted.Value))
+
+		again := upsert(keyField.ID, `99`, secondUpdater)
+		require.Equal(t, inserted.ID, again.ID)
+		require.Equal(t, `7`, string(again.Value), "the returned value should be the stored one")
+		require.Equal(t, secondUpdater, again.UpdatedBy)
+
+		stored, err := ss.PropertyValue().Get(groupID, inserted.ID)
+		require.NoError(t, err)
+		require.Equal(t, `7`, string(stored.Value))
+
+		upsert(textField.ID, `"one"`, firstUpdater)
+		updatedText := upsert(textField.ID, `"two"`, secondUpdater)
+		require.Equal(t, `"two"`, string(updatedText.Value))
+	})
+
 	t.Run("null columns, upsert conflict path before createdBy and updatedBy migrations", func(t *testing.T) {
 		groupID, targetID, fieldID, _ := insertPropertyValueWithNullColumns(t, ss, s)
 

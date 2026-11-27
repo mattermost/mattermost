@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -35,7 +37,14 @@ const (
 	// supersedes editable, which can only express change/never-change; the two are
 	// written together for "never" so readers predating this key still lock.
 	PropertyFieldAttrChangePolicy = "change_policy"
+	// PropertyFieldAttrPrefix is the short uppercase prefix of a key field, such
+	// as "MM" for MM-42. It is only meaningful on key fields.
+	PropertyFieldAttrPrefix = "prefix"
 )
+
+const PropertyFieldKeyPrefixMaxRunes = 10
+
+var propertyFieldKeyPrefixRegexp = regexp.MustCompile(`^[A-Z][A-Z0-9]{0,9}$`)
 
 // Valid values for PropertyFieldAttrChangePolicy. Raise and lower compare option
 // ranks, so they are only meaningful on a rank-typed field.
@@ -108,6 +117,43 @@ func SanitizeAndValidatePropertyFieldChangePolicy(field *PropertyField) error {
 	field.Attrs[PropertyFieldAttrChangePolicy] = p
 
 	return nil
+}
+
+// SanitizeAndValidatePropertyFieldPrefix normalizes and validates the prefix
+// attr of a key field: it is required, a string, trimmed and uppercased, and
+// must start with a letter and hold only letters and digits, at most
+// PropertyFieldKeyPrefixMaxRunes of them. On any other field type the attr is
+// removed so it stays inert.
+func SanitizeAndValidatePropertyFieldPrefix(field *PropertyField) error {
+	if field.Type != PropertyFieldTypeKey {
+		delete(field.Attrs, PropertyFieldAttrPrefix)
+		return nil
+	}
+
+	raw, ok := field.Attrs[PropertyFieldAttrPrefix]
+	if !ok || raw == nil {
+		return fmt.Errorf("a key field requires a prefix")
+	}
+
+	prefix, ok := raw.(string)
+	if !ok {
+		return fmt.Errorf("prefix must be a string, got %T", raw)
+	}
+
+	prefix = strings.ToUpper(strings.TrimSpace(prefix))
+	if !propertyFieldKeyPrefixRegexp.MatchString(prefix) {
+		return fmt.Errorf("invalid prefix %q: must start with a letter and contain only letters and digits, at most %d characters", prefix, PropertyFieldKeyPrefixMaxRunes)
+	}
+
+	field.Attrs[PropertyFieldAttrPrefix] = prefix
+
+	return nil
+}
+
+// FormatKeyValue renders a key field's value as clients display it, such as
+// MM-42.
+func FormatKeyValue(prefix string, n int64) string {
+	return prefix + "-" + strconv.FormatInt(n, 10)
 }
 
 // GetPropertyFieldChangePolicy returns the field's change policy, defaulting to

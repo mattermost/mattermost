@@ -318,8 +318,10 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
+		// A key field's number is assigned once and never changes, so a conflict on
+		// a key value keeps the stored number and returns it.
 		builder = builder.SuffixExpr(sq.Expr(
-			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
+			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = CASE WHEN EXISTS (SELECT 1 FROM PropertyFields f WHERE f.ID = PropertyValues.FieldID AND f.Type = 'key') THEN PropertyValues.Value ELSE ? END, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
 			valueJSON,
 			value.UpdateAt,
 			0,

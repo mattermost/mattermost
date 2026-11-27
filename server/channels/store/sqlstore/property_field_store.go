@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
@@ -15,6 +16,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+const keyPrefixIndexName = "idx_propertyfields_key_prefix"
+
+var keyPrefixDetailRegexp = regexp.MustCompile(`=\([^,]*, (.*)\) already exists`)
 
 type SqlPropertyFieldStore struct {
 	*SqlStore
@@ -85,6 +90,9 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, projected.Protected, projected.PermissionField, projected.PermissionValues, projected.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
 
 	if _, err = transaction.ExecBuilder(builder); err != nil {
+		if prefixErr := keyPrefixConflictError(err, field); prefixErr != nil {
+			return nil, prefixErr
+		}
 		return nil, errors.Wrap(err, "property_field_create_insert")
 	}
 
@@ -110,6 +118,59 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	applyProjectedPermissionColumns([]*model.PropertyField{field})
 
 	return field, nil
+}
+
+// keyPrefixConflictError turns a violation of the unique key-prefix index into
+// an ErrInvalidInput naming the prefix, which the app layer reports as a bad
+// request. It returns nil for any other error. The prefix is read from the
+// violation's detail, falling back to the only key field written when Postgres
+// gives none.
+func keyPrefixConflictError(err error, fields ...*model.PropertyField) error {
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) || pqErr.Code != "23505" || pqErr.Constraint != keyPrefixIndexName {
+		return nil
+	}
+
+	prefix := ""
+	if m := keyPrefixDetailRegexp.FindStringSubmatch(pqErr.Detail); m != nil {
+		prefix = m[1]
+	} else {
+		for _, f := range fields {
+			if f.Type != model.PropertyFieldTypeKey {
+				continue
+			}
+			if p, ok := f.Attrs[model.PropertyFieldAttrPrefix].(string); ok {
+				prefix = p
+				break
+			}
+		}
+	}
+
+	return store.NewErrInvalidInput("PropertyField", model.PropertyFieldAttrPrefix, prefix).
+		Wrap(errors.Errorf("the prefix %q is already used by another key field in this group", prefix))
+}
+
+// AllocateKeyNumbers reserves count numbers from the field's counter in one
+// statement, so concurrent callers get disjoint ranges. It always writes to the
+// master.
+func (s *SqlPropertyFieldStore) AllocateKeyNumbers(fieldID string, count int) (int64, error) {
+	if !model.IsValidId(fieldID) {
+		return 0, store.NewErrInvalidInput("PropertyField", "id", fieldID)
+	}
+	if count < 1 {
+		return 0, store.NewErrInvalidInput("PropertyField", "count", count)
+	}
+
+	const query = `INSERT INTO PropertyFieldKeyCounters (FieldID, LastValue) VALUES ($1, $2)
+		ON CONFLICT (FieldID) DO UPDATE SET LastValue = PropertyFieldKeyCounters.LastValue + EXCLUDED.LastValue
+		RETURNING LastValue`
+
+	var last int64
+	if err := s.GetMaster().Get(&last, query, fieldID, int64(count)); err != nil {
+		return 0, errors.Wrap(err, "property_field_allocate_key_numbers")
+	}
+
+	return last, nil
 }
 
 func (s *SqlPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
@@ -619,6 +680,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
+		if prefixErr := keyPrefixConflictError(err, fields...); prefixErr != nil {
+			return nil, prefixErr
+		}
 		return nil, errors.Wrap(err, "property_field_update_exec")
 	}
 

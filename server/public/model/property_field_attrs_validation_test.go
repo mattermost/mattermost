@@ -454,3 +454,57 @@ func TestCallerIDConstants(t *testing.T) {
 	require.False(t, IsValidPluginId(CallerIDSAMLSync),
 		"CallerIDSAMLSync must not be a valid plugin ID")
 }
+
+func TestSanitizeAndValidatePropertyFieldPrefix(t *testing.T) {
+	keyField := func(prefix any) *PropertyField {
+		return &PropertyField{Type: PropertyFieldTypeKey, Attrs: StringInterface{PropertyFieldAttrPrefix: prefix}}
+	}
+
+	t.Run("normalizes a valid prefix", func(t *testing.T) {
+		for in, want := range map[string]string{
+			"MM":                    "MM",
+			"mm":                    "MM",
+			"  mm2 ":                "MM2",
+			"A":                     "A",
+			"ABCDEFGHI0":            "ABCDEFGHI0",
+			strings.Repeat("a", 10): strings.Repeat("A", 10),
+		} {
+			field := keyField(in)
+			require.NoError(t, SanitizeAndValidatePropertyFieldPrefix(field), "prefix %q", in)
+			assert.Equal(t, want, field.Attrs[PropertyFieldAttrPrefix], "prefix %q", in)
+		}
+	})
+
+	t.Run("refuses a missing prefix", func(t *testing.T) {
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(&PropertyField{Type: PropertyFieldTypeKey}))
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(&PropertyField{Type: PropertyFieldTypeKey, Attrs: StringInterface{}}))
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(keyField(nil)))
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(keyField("")))
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(keyField("   ")))
+	})
+
+	t.Run("refuses a prefix that is not a string", func(t *testing.T) {
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(keyField(42)))
+		assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(keyField([]any{"MM"})))
+	})
+
+	t.Run("refuses invalid prefixes", func(t *testing.T) {
+		for _, in := range []string{"1MM", "M-M", "M M", "M_M", "MM!", "-", "É", "ÉA", strings.Repeat("A", PropertyFieldKeyPrefixMaxRunes+1)} {
+			assert.Error(t, SanitizeAndValidatePropertyFieldPrefix(keyField(in)), "prefix %q", in)
+		}
+	})
+
+	t.Run("removes the prefix from fields that are not key fields", func(t *testing.T) {
+		field := &PropertyField{Type: PropertyFieldTypeText, Attrs: StringInterface{PropertyFieldAttrPrefix: "bad prefix", "other": "kept"}}
+		require.NoError(t, SanitizeAndValidatePropertyFieldPrefix(field))
+		assert.NotContains(t, field.Attrs, PropertyFieldAttrPrefix)
+		assert.Equal(t, "kept", field.Attrs["other"])
+
+		require.NoError(t, SanitizeAndValidatePropertyFieldPrefix(&PropertyField{Type: PropertyFieldTypeText}))
+	})
+}
+
+func TestFormatKeyValue(t *testing.T) {
+	assert.Equal(t, "MM-1", FormatKeyValue("MM", 1))
+	assert.Equal(t, "ENG2-9223372036854775807", FormatKeyValue("ENG2", 9223372036854775807))
+}
