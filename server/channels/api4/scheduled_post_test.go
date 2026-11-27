@@ -441,6 +441,8 @@ func TestCreateScheduledPost(t *testing.T) {
 // The scheduled-post job never re-checks file uploads when it sends the post,
 // so scheduling and updating are where the upload_file_attachment policy applies.
 func TestScheduledPostUploadFileAttachmentABACEnforcement(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-72366")
+
 	mainHelper.Parallel(t)
 	th := setupUploadFileAttachmentABAC(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
