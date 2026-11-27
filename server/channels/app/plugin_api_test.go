@@ -5610,6 +5610,119 @@ func TestPluginAPIGetChannelOfType(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
 
+func TestPluginAPIGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	otherTeam := th.CreateTeam(t)
+	otherTeamChannel := th.CreateChannel(t, otherTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
+	require.Nil(t, th.App.DeleteChannel(th.Context, archivedChannel, th.BasicUser.Id))
+	secondChannel := th.CreateChannel(t, th.BasicTeam)
+
+	ids := func(channels []*model.Channel) []string {
+		result := make([]string, 0, len(channels))
+		for _, channel := range channels {
+			result = append(result, channel.Id)
+		}
+		return result
+	}
+
+	t.Run("returns the team's active public channels", func(t *testing.T) {
+		channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, []string{th.BasicChannel.Id, secondChannel.Id})
+		require.Nil(t, appErr)
+		require.ElementsMatch(t, []string{th.BasicChannel.Id, secondChannel.Id}, ids(channels))
+	})
+
+	t.Run("does not require the user to be a team or channel member", func(t *testing.T) {
+		outsider := th.CreateUser(t)
+
+		channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, outsider.Id, []string{th.BasicChannel.Id})
+		require.Nil(t, appErr)
+		require.Equal(t, []string{th.BasicChannel.Id}, ids(channels))
+	})
+
+	t.Run("excludes private, archived and other team channels", func(t *testing.T) {
+		channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, []string{
+			th.BasicChannel.Id, privateChannel.Id, archivedChannel.Id, otherTeamChannel.Id,
+		})
+		require.Nil(t, appErr)
+		require.Equal(t, []string{th.BasicChannel.Id}, ids(channels))
+	})
+
+	t.Run("returns an empty list when nothing matches", func(t *testing.T) {
+		for name, channelIDs := range map[string][]string{
+			"nil":             nil,
+			"empty":           {},
+			"unknown":         {model.NewId()},
+			"private":         {privateChannel.Id},
+			"archived":        {archivedChannel.Id},
+			"other team only": {otherTeamChannel.Id},
+		} {
+			t.Run(name, func(t *testing.T) {
+				channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, channelIDs)
+				require.Nil(t, appErr)
+				require.NotNil(t, channels)
+				require.Empty(t, channels)
+			})
+		}
+	})
+
+	t.Run("rejects invalid ids", func(t *testing.T) {
+		for name, args := range map[string]struct {
+			teamID, userID string
+			channelIDs     []string
+			param          string
+		}{
+			"team":              {"junk", th.BasicUser.Id, []string{th.BasicChannel.Id}, "team_id"},
+			"empty team":        {"", th.BasicUser.Id, []string{th.BasicChannel.Id}, "team_id"},
+			"user":              {th.BasicTeam.Id, "junk", []string{th.BasicChannel.Id}, "user_id"},
+			"empty user":        {th.BasicTeam.Id, "", []string{th.BasicChannel.Id}, "user_id"},
+			"channel":           {th.BasicTeam.Id, th.BasicUser.Id, []string{th.BasicChannel.Id, "junk"}, "channel_id"},
+			"empty channel":     {th.BasicTeam.Id, th.BasicUser.Id, []string{""}, "channel_id"},
+			"invalid with none": {"junk", th.BasicUser.Id, nil, "team_id"},
+		} {
+			t.Run(name, func(t *testing.T) {
+				channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(args.teamID, args.userID, args.channelIDs)
+				require.NotNil(t, appErr)
+				require.Nil(t, channels)
+				require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+				require.Equal(t, "api.context.invalid_param.app_error", appErr.Id)
+				require.Equal(t, args.param, appErr.SystemMessage(func(_ string, params ...any) string {
+					return params[0].(map[string]any)["Name"].(string)
+				}))
+			})
+		}
+	})
+}
+
+func TestPluginAPIGetPublicChannelsByIdsForTeamForUserReadAccess(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == h.th.BasicUser.Id
+	})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+	api := h.th.SetupPluginAPI()
+	ids := []string{h.th.BasicChannel.Id}
+
+	channels, appErr := api.GetPublicChannelsByIdsForTeamForUser(h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+	require.Nil(t, appErr)
+	require.Len(t, channels, 1)
+	require.Equal(t, h.th.BasicChannel.Id, channels[0].Id)
+
+	channels, appErr = api.GetPublicChannelsByIdsForTeamForUser(h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
+	require.Nil(t, appErr)
+	require.NotNil(t, channels)
+	require.Empty(t, channels, "channels the user cannot read under access control are dropped, not reported as an error")
+}
+
 func TestPluginAPIResolveSpaceChannelNotFound(t *testing.T) {
 	mainHelper.Parallel(t)
 

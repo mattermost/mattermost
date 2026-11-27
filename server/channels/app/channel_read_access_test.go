@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"reflect"
 	"slices"
 	"testing"
 
@@ -2051,4 +2052,120 @@ func TestChannelAccessSubjectForStandInSessionUsesStoredRoles(t *testing.T) {
 	rctx := h.th.Context.WithSession(&model.Session{UserId: guest.Id})
 	require.True(t, h.th.App.HasChannelReadAccess(rctx, guest.Id, h.th.BasicChannel))
 	require.Equal(t, model.SystemGuestRoleId, gotRole)
+}
+
+func TestGetPublicChannelsByIdsForTeamForUser(t *testing.T) {
+	channelIDs := func(channels model.ChannelList) []string {
+		ids := make([]string, 0, len(channels))
+		for _, channel := range channels {
+			ids = append(ids, channel.Id)
+		}
+		return ids
+	}
+
+	// Only BasicUser may read channel; every other subject is denied.
+	allowOnlyBasicUser := func(h *channelReadAccessHarness, mockACS *eMocks.AccessControlServiceInterface) {
+		governed(mockACS)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == h.th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+	}
+
+	t.Run("filters by the explicit user rather than the session user", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		allowOnlyBasicUser(h, h.mockACS(t))
+		ids := []string{h.th.BasicChannel.Id}
+
+		channels, err := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.rctx, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+		require.NoError(t, err)
+		require.Equal(t, ids, channelIDs(channels))
+
+		channels, err = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.rctx, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
+		require.NoError(t, err)
+		require.Empty(t, channels, "a denied user must not see the channel, even though the session user may")
+	})
+
+	t.Run("works without a session", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		allowOnlyBasicUser(h, h.mockACS(t))
+		ids := []string{h.th.BasicChannel.Id}
+
+		channels, err := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+		require.NoError(t, err)
+		require.Equal(t, ids, channelIDs(channels))
+
+		channels, err = h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser2.Id, ids)
+		require.NoError(t, err)
+		require.Empty(t, channels)
+	})
+
+	t.Run("builds the subject once across channels when the caller has no memo", func(t *testing.T) {
+		// Plugin API contexts carry no channel-access memo; the call has to install its own.
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+
+		// A memoised subject is one shared object, so its attribute map is the same in
+		// every request; a subject rebuilt per channel has a map of its own each time.
+		attributeMaps := map[uintptr]struct{}{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) {
+				attributes := args.Get(1).(model.AccessRequest).Subject.Attributes
+				attributeMaps[reflect.ValueOf(attributes).Pointer()] = struct{}{}
+			}).
+			Return(model.AccessDecision{Decision: true}, nil)
+
+		ids := []string{h.th.BasicChannel.Id}
+		for range 2 {
+			ids = append(ids, h.th.CreateChannel(t, h.th.BasicTeam).Id)
+		}
+
+		channels, err := h.th.App.GetPublicChannelsByIdsForTeamForUser(h.th.Context, h.th.BasicTeam.Id, h.th.BasicUser.Id, ids)
+		require.NoError(t, err)
+		require.ElementsMatch(t, ids, channelIDs(channels))
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", len(ids))
+		require.Len(t, attributeMaps, 1, "the subject must be built once for the call, not once per channel")
+	})
+
+	t.Run("returns everything when access control is not enforced", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		ids := []string{th.BasicChannel.Id}
+
+		channels, err := th.App.GetPublicChannelsByIdsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, ids)
+		require.NoError(t, err)
+		require.Equal(t, ids, channelIDs(channels))
+	})
+
+	t.Run("returns not found when nothing matches", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		_, err := th.App.GetPublicChannelsByIdsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser.Id, []string{model.NewId()})
+		appErr := model.AsAppError(err)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("the session-based method filters by the session user", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		allowOnlyBasicUser(h, h.mockACS(t))
+		ids := []string{h.th.BasicChannel.Id}
+
+		channels, appErr := h.th.App.GetPublicChannelsByIdsForTeam(h.rctx, h.th.BasicTeam.Id, ids)
+		require.Nil(t, appErr)
+		require.Equal(t, ids, channelIDs(channels))
+
+		session, appErr := h.th.App.CreateSession(h.th.Context, &model.Session{UserId: h.th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx2 := WithChannelAccessMemo(h.th.Context.WithSession(session))
+
+		channels, appErr = h.th.App.GetPublicChannelsByIdsForTeam(rctx2, h.th.BasicTeam.Id, ids)
+		require.Nil(t, appErr)
+		require.Empty(t, channels)
+
+		_, appErr = h.th.App.GetPublicChannelsByIdsForTeam(h.rctx, h.th.BasicTeam.Id, []string{model.NewId()})
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
 }

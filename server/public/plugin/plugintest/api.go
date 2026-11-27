@@ -3480,6 +3480,38 @@ func (_m *API) GetPropertyValues(groupID string, ids []string) ([]*model.Propert
 	return r0, r1
 }
 
+// GetPublicChannelsByIdsForTeamForUser provides a mock function with given fields: teamID, userID, channelIDs
+func (_m *API) GetPublicChannelsByIdsForTeamForUser(teamID string, userID string, channelIDs []string) ([]*model.Channel, *model.AppError) {
+	ret := _m.Called(teamID, userID, channelIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPublicChannelsByIdsForTeamForUser")
+	}
+
+	var r0 []*model.Channel
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, []string) ([]*model.Channel, *model.AppError)); ok {
+		return rf(teamID, userID, channelIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []string) []*model.Channel); ok {
+		r0 = rf(teamID, userID, channelIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []string) *model.AppError); ok {
+		r1 = rf(teamID, userID, channelIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPublicChannelsForTeam provides a mock function with given fields: teamID, page, perPage
 func (_m *API) GetPublicChannelsForTeam(teamID string, page int, perPage int) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(teamID, page, perPage)
