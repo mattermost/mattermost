@@ -1787,8 +1787,7 @@
   },
   {
     "id": "api.command_test.permission.app_error",
-    "translation": "You don't have enough permissions to run this command.",
-    "description": "Ephemeral error when a user without system admin permission runs any /test slash command subcommand other than help. Only shown when testing commands are enabled."
+    "translation": "You don't have enough permissions to run this command."
   },
   {
     "id": "api.config.get_config.restricted_merge.app_error",
