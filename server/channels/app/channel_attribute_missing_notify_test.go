@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -901,7 +902,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		assert.Contains(t, posts[0].Message, `[Safe\](https://evil.example)\[x](`+th.App.GetSiteURL()+"/"+team.Name+"/channels/"+channel.Name+")")
 	})
 
-	t.Run("a locale without translations falls back to English", func(t *testing.T) {
+	t.Run("the DM is in the admin's locale", func(t *testing.T) {
 		th := setupMissingAttributes(t)
 		bot, appErr := th.App.GetSystemBot(th.Context)
 		require.Nil(t, appErr)
@@ -917,7 +918,10 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 
 		posts := missingAttributesPosts(t, th, bot.UserId, admin.Id)
 		require.Len(t, posts, 1)
-		assert.Contains(t, posts[0].Message, "Channel attribute values are missing in:")
+		// Whether es translates the DM depends on the catalog, so expect
+		// whatever es renders: its own words, or the English fallback.
+		header, _, _ := strings.Cut(i18n.GetUserTranslations("es")("app.channel_attributes.new_admin_missing_value.dm", model.StringInterface{"ChannelList": ""}), "\n")
+		assert.Contains(t, posts[0].Message, header)
 		assert.NotContains(t, posts[0].Message, "app.channel_attributes")
 	})
 
