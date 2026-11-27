@@ -22,6 +22,9 @@ All inputs come from environment variables set by the GitHub Actions workflow:
   REPO          — owner/repo  (e.g. mattermost/mattermost)
 """
  
+import base64
+import binascii
+import json
 import os
 import re
 import sys
@@ -87,6 +90,7 @@ class CheckResult:
 def reset_git_caches() -> None:
     """Clear cached git lookups. Tests call this after pointing at a new repo."""
     base_tip_ref.cache_clear()
+    _comparison_base.cache_clear()
 
 
 def _git_output(*args: str) -> str:
@@ -95,6 +99,7 @@ def _git_output(*args: str) -> str:
     ).stdout.strip()
 
 
+@lru_cache(maxsize=1)
 def _comparison_base() -> str:
     """Exclude inherited trunk history while retaining distinct cherry-picks.
 
@@ -554,20 +559,31 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
  
  
 # ── PR description helpers ─────────────────────────────────────────────────────
- 
-# Only explicitly marked content belongs to the checker. Unmarked legacy
-# entries cannot safely be distinguished from human-written release notes.
-_GENERATED_START = "<!-- config-change-checker:start -->"
-_GENERATED_END = "<!-- config-change-checker:end -->"
-_GENERATED_RE = re.compile(
-    re.escape(_GENERATED_START) + r"\n.*?" + re.escape(_GENERATED_END) + r"\n?",
+
+# The checker's lines go inside the release-note fence, where an HTML comment
+# would render as text and end up in the changelog. Instead, a hidden ledger
+# comment after the fence records which lines the checker wrote and what the
+# fence held before, so a later run removes exactly those lines and leaves
+# human-written notes alone.
+_LEDGER_PREFIX = "<!-- config-change-checker: "
+_LEDGER_RE = re.compile(r"\n?" + re.escape(_LEDGER_PREFIX) + r"([A-Za-z0-9+/=]*) -->")
+
+# Blocks written by the first marker-based version of this script, which put
+# the markers inside the fence. Still removed so open PRs don't get duplicates.
+_LEGACY_START = "<!-- config-change-checker:start -->"
+_LEGACY_END = "<!-- config-change-checker:end -->"
+_LEGACY_BLOCK_RE = re.compile(
+    re.escape(_LEGACY_START) + r"\n.*?" + re.escape(_LEGACY_END) + r"\n?",
     re.DOTALL,
 )
+
+_FENCE_RE = re.compile(r"(```release-note)(.*?)(```)", re.DOTALL | re.IGNORECASE)
+_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
 # Matches placeholder content inside a release-note fence that means "nothing
 # to report yet" (e.g. NONE, N/A, ---).  When detected, we replace the
 # placeholder rather than appending alongside it.
-_PLACEHOLDER_RE = re.compile(r"^\s*(?:NONE|N/?A|-+)\s*$", re.IGNORECASE)
+_PLACEHOLDER_RE = re.compile(r"^\s*(?:NONE|N/?A|-+)?\s*$", re.IGNORECASE)
  
  
 def _format_lines(result: CheckResult) -> list[str]:
@@ -617,72 +633,102 @@ def build_pr_note(results: list[CheckResult]) -> str:
     return "\n".join(lines)
  
  
+def _release_note_fence(body: str) -> Optional[re.Match]:
+    """The first release-note fence outside an HTML comment.
+
+    The PR template keeps its example fences inside a comment, ahead of the real one.
+    """
+    comments = [m.span() for m in _COMMENT_RE.finditer(body)]
+    for m in _FENCE_RE.finditer(body):
+        if not any(s <= m.start() < e for s, e in comments):
+            return m
+    return None
+
+
+def _ledger(lines: list[str], placeholder: str) -> str:
+    """Hidden record of a run's lines and the fence content to restore once they are removed."""
+    data = json.dumps({"lines": lines, "placeholder": placeholder})
+    return f"{_LEDGER_PREFIX}{base64.b64encode(data.encode()).decode()} -->"
+
+
+def _read_ledger(encoded: str) -> dict:
+    try:
+        return json.loads(base64.b64decode(encoded, validate=True))
+    except (ValueError, binascii.Error):
+        return {"lines": [], "placeholder": "\nNONE\n"}
+
+
 def strip_old_note(body: str) -> str:
-    """Remove only marked generated entries, restoring an empty fence to NONE."""
-    cleaned = _GENERATED_RE.sub("", body or "")
+    """Remove the lines an earlier run wrote, restoring what the fence held before.
 
-    def restore_placeholder(match: re.Match) -> str:
-        # Cleanup must leave NONE when the last generated entry is removed:
-        # changelog tooling treats an empty fence as a missing release note.
-        if not match.group(2).strip():
-            return match.group(1) + "\nNONE\n" + match.group(3)
-        return match.group(0)
+    A description with no ledger or legacy block is returned unchanged apart from
+    line endings, so a PR without findings is never edited.
+    """
+    body = (body or "").replace("\r\n", "\n")
+    ledger = _LEDGER_RE.search(body)
+    if not ledger and not _LEGACY_BLOCK_RE.search(body):
+        return body
 
-    return re.sub(
-        r"(```release-note)(.*?)(```)", restore_placeholder, cleaned,
-        flags=re.DOTALL | re.IGNORECASE,
-    ).rstrip()
+    # The legacy version restored NONE when its block was the fence's only content.
+    record = {"lines": [], "placeholder": "\nNONE\n"}
+    if ledger:
+        record = _read_ledger(ledger.group(1))
+        body = body[:ledger.start()] + body[ledger.end():]
+    body = _LEGACY_BLOCK_RE.sub("", body)
 
+    fence = _release_note_fence(body)
+    if fence is None:
+        return body
+
+    generated = list(record.get("lines") or [])
+    kept = []
+    for line in fence.group(2).split("\n"):
+        if line.strip() in generated:
+            generated.remove(line.strip())
+        else:
+            kept.append(line)
+    content = "\n".join(kept)
+
+    if not content.strip():
+        content = record.get("placeholder") or "\nNONE\n"
+
+    return body[:fence.start()] + fence.group(1) + content + fence.group(3) + body[fence.end():]
+ 
  
 def inject_note(body: str, note: str) -> str:
     """
-    Insert `note` using this priority order:
- 
-    1. INSIDE the ```release-note block, before its closing ```
-       (Mattermost convention — keeps everything in one place for reviewers)
-    2. After a recognised release-notes section header (## Release Notes, etc.)
-    3. Fallback: append a new ## Release Notes section at the end
+    Replace this checker's earlier lines in the PR description with `note`.
+
+    The lines go INSIDE the first release-note fence outside an HTML comment,
+    replacing a placeholder (NONE, empty) or after the author's own lines. A line
+    the fence already has, such as one written by hand, is not added again. A
+    description with no fence is left alone. A ledger comment after the fence
+    records what was written so the next run can undo it.
     """
     body = strip_old_note(body)
     if not note:
         return body
- 
-    note = f"{_GENERATED_START}\n{note}\n{_GENERATED_END}"
 
-    # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence.
-    #    If the fence currently contains only a placeholder (NONE / N/A / ---),
-    #    replace the placeholder rather than appending alongside it.
-    release_note_block = re.search(
-        r"(```release-note)(.*?)(```)",
-        body,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
-    if release_note_block:
-        open_tag   = release_note_block.group(1)
-        content    = release_note_block.group(2)   # everything between the fences
-        close_tag  = release_note_block.group(3)
-        block_start = release_note_block.start()
-        block_end   = release_note_block.end()
- 
-        # Strip leading/trailing newlines inside the fence for comparison
-        inner = content.strip()
-        if _PLACEHOLDER_RE.match(inner):
-            # Replace the entire fence with a fresh one
-            new_block = f"{open_tag}\n{note}\n{close_tag}"
-        else:
-            # Append before the closing fence
-            new_block = open_tag + content.rstrip("\n") + "\n" + note + "\n" + close_tag
- 
-        return body[:block_start] + new_block + body[block_end:]
- 
-    # 2. Markdown section headers
-    for header in ["## Release Notes", "## Changelog", "## What Changed", "## What's Changed"]:
-        if header.lower() in body.lower():
-            idx = body.lower().index(header.lower()) + len(header)
-            return body[:idx] + "\n\n" + note + body[idx:]
- 
-    # 3. Fallback — append
-    return body + "\n\n## Release Notes\n\n" + note
+    fence = _release_note_fence(body)
+    if fence is None:
+        return body
+
+    content = fence.group(2)
+    existing = {line.strip() for line in content.split("\n")}
+    lines = [line for line in note.split("\n") if line.strip() not in existing]
+    if not lines:
+        return body
+
+    if _PLACEHOLDER_RE.match(content):
+        # An emptied fence gets NONE back rather than staying blank: changelog
+        # tooling reports a blank fence as a missing release note.
+        new_content = "\n" + "\n".join(lines) + "\n"
+        placeholder = content if content.strip() else "\nNONE\n"
+    else:
+        new_content, placeholder = content.rstrip("\n") + "\n" + "\n".join(lines) + "\n", "\nNONE\n"
+
+    return (body[:fence.start()] + fence.group(1) + new_content + fence.group(3)
+            + "\n" + _ledger(lines, placeholder) + body[fence.end():])
  
  
 # ── GitHub API ─────────────────────────────────────────────────────────────────
