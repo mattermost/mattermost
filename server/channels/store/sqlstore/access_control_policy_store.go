@@ -707,6 +707,12 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(condition)
 	}
 
+	if len(opts.ExcludeTypes) > 0 {
+		condition := sq.NotEq{"Type": opts.ExcludeTypes}
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
 	if opts.ParentID != "" {
 		condition := importsPolicyExpr(opts.ParentID)
 		query = query.Where(condition)

@@ -58,17 +58,23 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 
 	a.invalidateAttributeViewCache()
 
-	// Only the epoch half is gated: nothing reads it while ABAC is off, and each invalidation
-	// costs a cluster message. A flip clears both caches wholesale, so nothing skipped here
-	// survives as a stale entry.
-	if !a.attributeBasedAccessControlEnabled() {
+	// Epoch invalidation is gated on PermissionPolicies, while user-attributes invalidation and
+	// override pushes also run when SystemSettingPolicies is active. A flip clears the skipped
+	// caches wholesale, so nothing skipped here survives as a stale entry.
+	epochActive := a.attributeBasedAccessControlEnabled()
+	attrsActive := userAttributesCacheInvalidationEnabled(a.Config())
+	if !epochActive && !attrsActive {
 		return
 	}
 	rctx := request.EmptyContext(a.Log())
 	for targetID, fieldIDs := range fieldIDsByTarget {
-		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
-		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
-		a.pushClientConfigOverridesForUserAttributes(rctx, targetID, fieldIDs)
+		if epochActive {
+			a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+		}
+		if attrsActive {
+			a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+			a.pushClientConfigOverridesForUserAttributes(rctx, targetID, fieldIDs)
+		}
 	}
 }
 
@@ -82,12 +88,18 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string, fie
 
 	a.invalidateAttributeViewCache()
 
-	if !a.attributeBasedAccessControlEnabled() {
+	epochActive := a.attributeBasedAccessControlEnabled()
+	attrsActive := userAttributesCacheInvalidationEnabled(a.Config())
+	if !epochActive && !attrsActive {
 		return
 	}
-	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
-	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
-	a.pushClientConfigOverridesForUserAttributes(request.EmptyContext(a.Log()), targetID, fieldIDs)
+	if epochActive {
+		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+	}
+	if attrsActive {
+		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
+		a.pushClientConfigOverridesForUserAttributes(request.EmptyContext(a.Log()), targetID, fieldIDs)
+	}
 }
 
 // invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
@@ -97,12 +109,18 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string, fie
 func (a *App) invalidateAllUserAttributeCaches(fieldIDs []string) {
 	a.invalidateAttributeViewCache()
 
-	if !a.attributeBasedAccessControlEnabled() {
+	epochActive := a.attributeBasedAccessControlEnabled()
+	attrsActive := userAttributesCacheInvalidationEnabled(a.Config())
+	if !epochActive && !attrsActive {
 		return
 	}
-	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
-	a.Srv().Store().Attributes().ClearUserAttributesCache()
-	a.pushClientConfigOverridesForFields(request.EmptyContext(a.Log()), fieldIDs)
+	if epochActive {
+		a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
+	}
+	if attrsActive {
+		a.Srv().Store().Attributes().ClearUserAttributesCache()
+		a.pushClientConfigOverridesForFields(request.EmptyContext(a.Log()), fieldIDs)
+	}
 }
 
 // CreatePropertyValue creates a new property value.

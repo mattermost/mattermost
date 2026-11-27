@@ -35,16 +35,21 @@ func (a *App) attributeBasedAccessControlEnabled() bool {
 	return attributeBasedAccessControlEnabled(a.Config())
 }
 
-// clearABACRenderCachesOnFlip drops both render-ETag epoch caches when ABAC is toggled: they are
-// only invalidated while ABAC is active, so a change made while it was off would leave a stale
-// epoch for the switch back on to serve.
-func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
-	if attributeBasedAccessControlEnabled(prevCfg) == attributeBasedAccessControlEnabled(cfg) {
-		return
-	}
+func userAttributesCacheInvalidationEnabled(cfg *model.Config) bool {
+	return attributeBasedAccessControlEnabled(cfg) || systemSettingPoliciesEnabled(cfg)
+}
 
-	ch.srv.Store().AccessControlPolicy().ClearEtagCache()
-	ch.srv.Store().Attributes().ClearUserPropertyValuesEpochCache()
+// clearABACRenderCachesOnFlip drops render-ETag epoch caches and the cached user-attributes
+// subject entries when their respective ABAC gates toggle, since writes while a gate is off skip
+// per-key invalidation.
+func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
+	if attributeBasedAccessControlEnabled(prevCfg) != attributeBasedAccessControlEnabled(cfg) {
+		ch.srv.Store().AccessControlPolicy().ClearEtagCache()
+		ch.srv.Store().Attributes().ClearUserPropertyValuesEpochCache()
+	}
+	if userAttributesCacheInvalidationEnabled(prevCfg) != userAttributesCacheInvalidationEnabled(cfg) {
+		ch.srv.Store().Attributes().ClearUserAttributesCache()
+	}
 }
 
 // ResourceAttributesInPoliciesEnabled reports whether access rules may compare a
@@ -2041,13 +2046,39 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
+	if opts.Type == model.AccessControlPolicyTypeSystemSetting {
+		if !a.Config().FeatureFlags.SystemSettingPolicies {
+			return nil, 0, model.NewAppError("SearchAccessControlPolicies", "api.access_control_policy.system_setting_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		}
+		if !model.MinimumEnterpriseAdvancedLicense(a.License()) {
+			return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.init.app_error", nil, "enterprise advanced license required", http.StatusNotImplemented)
+		}
+		if a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+			return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.is_ready.app_error", nil, "access control is disabled", http.StatusNotAcceptable)
+		}
+	} else if opts.Type == "" && !a.systemSettingPoliciesEvaluated() {
+		opts.ExcludeTypes = append(slices.Clone(opts.ExcludeTypes), model.AccessControlPolicyTypeSystemSetting)
+	}
+
 	policies, total, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("SearchAccessControlPolicies", "app.pap.search_access_control_policies.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if opts.Type == "" && !a.systemSettingPoliciesEvaluated() {
+		filtered := policies[:0]
+		for _, policy := range policies {
+			if policy.Type == model.AccessControlPolicyTypeSystemSetting {
+				total--
+				continue
+			}
+			filtered = append(filtered, policy)
+		}
+		policies = filtered
+	}
+
 	for i, policy := range policies {
-		if policy.Type != model.AccessControlPolicyTypeParent {
+		if policy.Type != model.AccessControlPolicyTypeParent && policy.Type != model.AccessControlPolicyTypeSystemSetting {
 			continue
 		}
 

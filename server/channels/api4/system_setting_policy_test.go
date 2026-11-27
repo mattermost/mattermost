@@ -77,12 +77,62 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 			Maybe()
 
 		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything).Return().Maybe()
+		mockACS.On("NormalizePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, p *model.AccessControlPolicy) *model.AccessControlPolicy { return p }, nil).
+			Maybe()
 
 		return mockACS
 	}
 
-	t.Run("feature flag gating on create and search", func(t *testing.T) {
+	t.Run("feature flag, license, and ABAC gating across create, get, delete, and search", func(t *testing.T) {
 		_ = setupMocks(t)
+
+		seedPolicy := &model.AccessControlPolicy{
+			Name:  "Seeded Scoped Policy",
+			Type:  model.AccessControlPolicyTypeSystemSetting,
+			Roles: []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
+				Expression: "true",
+				Value:      "true",
+			}},
+		}
+		seeded, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), seedPolicy)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, seeded.ID)
+		})
+
+		parentPolicy, saveErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Seeded Parent Policy",
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		})
+		require.NoError(t, saveErr)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, parentPolicy.ID)
+		})
+
+		assertOmittedFromUnfilteredSearch := func(t *testing.T) {
+			t.Helper()
+			unfiltered, searchResp, searchErr := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
+				Term:  "Seeded",
+				Limit: 10,
+			})
+			require.NoError(t, searchErr)
+			CheckOKStatus(t, searchResp)
+			require.EqualValues(t, 1, unfiltered.Total)
+			require.Len(t, unfiltered.Policies, 1)
+			assert.Equal(t, parentPolicy.ID, unfiltered.Policies[0].ID)
+		}
+
 		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.SystemSettingPolicies = false
 		})
@@ -98,7 +148,15 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 			}},
 		}
 
-		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.GetAccessControlPolicy(context.Background(), seeded.ID)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.DeleteAccessControlPolicy(context.Background(), seeded.ID)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
@@ -108,6 +166,104 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		})
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
+		assertOmittedFromUnfilteredSearch(t)
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.SystemSettingPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
+
+		_, resp, err = th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
+			Type:  model.AccessControlPolicyTypeSystemSetting,
+			Limit: 10,
+		})
+		require.Error(t, err)
+		assert.Equal(t, http.StatusNotAcceptable, resp.StatusCode)
+		assertOmittedFromUnfilteredSearch(t)
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)))
+
+		_, resp, err = th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
+			Type:  model.AccessControlPolicyTypeSystemSetting,
+			Limit: 10,
+		})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		assertOmittedFromUnfilteredSearch(t)
+	})
+
+	t.Run("search normalizes attribute IDs and masks non-held values instead of failing closed", func(t *testing.T) {
+		mockACS := setupMocks(t)
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeValueMasking = true
+		})
+		t.Cleanup(func() {
+			updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+				cfg.FeatureFlags.AttributeValueMasking = false
+			})
+		})
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "dept_" + model.NewId()[:8],
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		rawExpr := "user.id_" + group.ID + ".id_" + field.ID + ` == "Secret"`
+		normalizedExpr := "user.attributes." + field.Name + ` == "Secret"`
+		maskedExpr := "user.attributes." + field.Name + ` == "********"`
+
+		stored, saveErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Masked Biometrics Policy",
+			Type:     model.AccessControlPolicyTypeSystemSetting,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Roles:    []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
+				Expression: rawExpr,
+				Value:      "true",
+			}},
+		})
+		require.NoError(t, saveErr)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, stored.ID)
+		})
+
+		*mockACS = mocks.AccessControlServiceInterface{}
+		mockACS.On("NormalizePolicy", mock.Anything, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.ID == stored.ID && len(p.Rules) == 1 && p.Rules[0].Expression == rawExpr
+		})).Return(func(_ request.CTX, p *model.AccessControlPolicy) *model.AccessControlPolicy {
+			clone := *p
+			clone.Rules = []model.AccessControlPolicyRule{{
+				Actions:    p.Rules[0].Actions,
+				Expression: normalizedExpr,
+				Value:      p.Rules[0].Value,
+			}}
+			return &clone
+		}, nil).Once()
+		mockACS.On("MaskExpressionForCaller", mock.Anything, normalizedExpr, mock.Anything).
+			Return(maskedExpr, true, nil).Once()
+
+		found, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
+			Type:  model.AccessControlPolicyTypeSystemSetting,
+			Term:  "Masked Biometrics",
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, found.Policies, 1)
+		assert.Equal(t, maskedExpr, found.Policies[0].Rules[0].Expression)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("only system admins can create system_setting policies", func(t *testing.T) {

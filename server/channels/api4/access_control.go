@@ -349,6 +349,11 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if policy != nil && policy.Type == model.AccessControlPolicyTypeSystemSetting && !c.App.Config().FeatureFlags.SystemSettingPolicies {
+		c.Err = model.NewAppError("getAccessControlPolicy", "api.access_control_policy.system_setting_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	// Stamp assigned-resource counts (channel_count, team_count, child_ids) so the
 	// policy editor can disable deletion while any channel or team is still linked,
 	// mirroring the policy list. GetAccessControlPolicy does not compute these.
@@ -411,6 +416,13 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 
 		if channelPermErr == nil && !requirePolicyChannelManagementAccess(c, policyID, hasSystemPermission) {
+			return
+		}
+	}
+
+	if !c.App.Config().FeatureFlags.SystemSettingPolicies {
+		if policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID); appErr == nil && policy != nil && policy.Type == model.AccessControlPolicyTypeSystemSetting {
+			c.Err = model.NewAppError("deleteAccessControlPolicy", "api.access_control_policy.system_setting_policies.feature_disabled", nil, "", http.StatusNotImplemented)
 			return
 		}
 	}
@@ -923,13 +935,10 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if (!permissionPoliciesEnabled || !systemSettingPoliciesEnabled) && props.Type == "" {
+	if !permissionPoliciesEnabled && props.Type == "" {
 		filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 		for _, p := range policies {
-			if !permissionPoliciesEnabled && p.Type == model.AccessControlPolicyTypePermission {
-				continue
-			}
-			if !systemSettingPoliciesEnabled && p.Type == model.AccessControlPolicyTypeSystemSetting {
+			if p.Type == model.AccessControlPolicyTypePermission {
 				continue
 			}
 			filtered = append(filtered, p)

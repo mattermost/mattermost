@@ -6593,10 +6593,11 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 		return th.App.Srv().Channels(), mockACP, mockAttributes
 	}
 
-	t.Run("clears both caches when ABAC is switched on", func(t *testing.T) {
+	t.Run("clears caches when ABAC is switched on", func(t *testing.T) {
 		ch, mockACP, mockAttributes := setup(t)
 		mockACP.On("ClearEtagCache").Once()
 		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+		mockAttributes.On("ClearUserAttributesCache").Once()
 
 		ch.clearABACRenderCachesOnFlip(newConfig(false), newConfig(true))
 
@@ -6604,14 +6605,33 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 		mockAttributes.AssertExpectations(t)
 	})
 
-	t.Run("clears both caches when ABAC is switched off", func(t *testing.T) {
+	t.Run("clears caches when ABAC is switched off", func(t *testing.T) {
 		ch, mockACP, mockAttributes := setup(t)
 		mockACP.On("ClearEtagCache").Once()
 		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+		mockAttributes.On("ClearUserAttributesCache").Once()
 
 		ch.clearABACRenderCachesOnFlip(newConfig(true), newConfig(false))
 
 		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("clears user attributes cache when SystemSettingPolicies flips with PermissionPolicies off", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+		mockAttributes.On("ClearUserAttributesCache").Once()
+
+		prev := newConfig(true)
+		prev.FeatureFlags.PermissionPolicies = false
+		prev.FeatureFlags.SystemSettingPolicies = false
+		next := newConfig(true)
+		next.FeatureFlags.PermissionPolicies = false
+		next.FeatureFlags.SystemSettingPolicies = true
+
+		ch.clearABACRenderCachesOnFlip(prev, next)
+
+		mockACP.AssertNotCalled(t, "ClearEtagCache")
+		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
 		mockAttributes.AssertExpectations(t)
 	})
 
@@ -6626,5 +6646,6 @@ func TestClearABACRenderCachesOnFlip(t *testing.T) {
 
 		mockACP.AssertNotCalled(t, "ClearEtagCache")
 		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
+		mockAttributes.AssertNotCalled(t, "ClearUserAttributesCache")
 	})
 }

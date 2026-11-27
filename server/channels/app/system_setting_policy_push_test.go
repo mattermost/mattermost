@@ -1166,6 +1166,7 @@ func TestClientConfigOverridesPushCachesTheWrittenAttributes(t *testing.T) {
 	th.ConfigStore.SetReadOnlyFF(false)
 	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = false
 		cfg.FeatureFlags.SystemSettingPolicies = true
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 	})
@@ -1242,4 +1243,95 @@ func TestClientConfigOverridesPushCachesTheWrittenAttributes(t *testing.T) {
 	expectPushedValue(t, "b")
 	expectSystemSettingOverrides(t, th, messages, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"})
 	expectAccessCheckValue(t, "b")
+}
+
+type replicaLagAttributesStoreWrapper struct {
+	store.Store
+	attributes store.AttributesStore
+}
+
+func (s *replicaLagAttributesStoreWrapper) Attributes() store.AttributesStore {
+	return s.attributes
+}
+
+type replicaLagAttributesStore struct {
+	store.AttributesStore
+	staleAttrName string
+}
+
+func (s *replicaLagAttributesStore) GetSubject(rctx request.CTX, id, groupID, objectType string) (*model.Subject, error) {
+	if !store.HasMaster(rctx.Context()) {
+		return &model.Subject{
+			ID:         id,
+			Type:       objectType,
+			Attributes: map[string]any{s.staleAttrName: "stale"},
+		}, nil
+	}
+	return s.AttributesStore.GetSubject(rctx, id, groupID, objectType)
+}
+
+func TestClientConfigOverridesPushReadsAttributesFromMaster(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = false
+		cfg.FeatureFlags.SystemSettingPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	rawVal, err := json.Marshal("fresh")
+	require.NoError(t, err)
+	_, appErr = th.App.CreatePropertyValue(th.Context, &model.PropertyValue{
+		GroupID:    group.ID,
+		FieldID:    field.ID,
+		TargetType: model.PropertyFieldObjectTypeUser,
+		TargetID:   th.BasicUser.Id,
+		Value:      rawVal,
+	})
+	require.Nil(t, appErr)
+
+	originalStore := th.App.Srv().Store()
+	th.App.Srv().SetStore(&replicaLagAttributesStoreWrapper{
+		Store: originalStore,
+		attributes: &replicaLagAttributesStore{
+			AttributesStore: originalStore.Attributes(),
+			staleAttrName:   field.Name,
+		},
+	})
+	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+	originalStore.Attributes().InvalidateUserAttributes(th.BasicUser.Id)
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
+		return model.AccessDecision{Decision: req.Subject.Attributes[field.Name] == "fresh"}
+	}, nil)
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+
+	policy := biometricsPolicy("user.attributes." + field.Name + ` == "fresh"`)
+	policy.ID = model.NewId()
+	policy.Version = model.AccessControlPolicyVersionV0_3
+	saved, saveErr := originalStore.AccessControlPolicy().Save(th.Context, policy)
+	require.NoError(t, saveErr)
+	th.App.invalidateSystemSettingPolicyCache()
+	t.Cleanup(func() {
+		_ = originalStore.AccessControlPolicy().Delete(th.Context, saved.ID)
+		th.App.invalidateSystemSettingPolicyCache()
+	})
+
+	messages, _ := connectSystemSettingWebSocket(t, th, th.BasicUser.Id)
+	th.App.pushClientConfigOverridesForUser(th.Context, th.BasicUser.Id, "", false)
+	expectSystemSettingOverrides(t, th, messages, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"})
 }

@@ -282,9 +282,10 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 
 	// Returns the attributes store mock so assertions can name the method rather than the
 	// Store.Attributes() accessor, which the config listener also calls.
-	setup := func(t *testing.T, flag bool, abac bool) (*TestHelper, *storemocks.AttributesStore) {
+	setup := func(t *testing.T, permFlag, settingFlag, abac bool) (*TestHelper, *storemocks.AttributesStore) {
 		thMock := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = flag
+			cfg.FeatureFlags.PermissionPolicies = permFlag
+			cfg.FeatureFlags.SystemSettingPolicies = settingFlag
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abac)
 		})
 
@@ -300,18 +301,35 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		{TargetType: model.PropertyFieldObjectTypePost, TargetID: model.NewId()},
 	}
 
-	t.Run("no invalidation when the feature flag is off", func(t *testing.T) {
-		thMock, mockAttributes := setup(t, false, true)
+	t.Run("no invalidation when both feature flags are off", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, false, false, true)
 
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID, nil)
+		thMock.App.invalidateAllUserAttributeCaches(nil)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
 		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
+		mockAttributes.AssertNotCalled(t, "ClearUserAttributesCache")
+	})
+
+	t.Run("invalidates user attributes without epoch when only SystemSettingPolicies is on", func(t *testing.T) {
+		thMock, mockAttributes := setup(t, false, true, true)
+		mockAttributes.On("InvalidateUserAttributes", userID).Twice()
+		mockAttributes.On("ClearUserAttributesCache").Once()
+
+		thMock.App.invalidateUserPropertyValuesEpochs(values)
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID, nil)
+		thMock.App.invalidateAllUserAttributeCaches(nil)
+
+		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
+		mockAttributes.AssertExpectations(t)
 	})
 
 	t.Run("no invalidation when ABAC is off", func(t *testing.T) {
-		thMock, mockAttributes := setup(t, true, false)
+		thMock, mockAttributes := setup(t, true, true, false)
 
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 
@@ -320,7 +338,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 	})
 
 	t.Run("one invalidation per distinct user target when active", func(t *testing.T) {
-		thMock, mockAttributes := setup(t, true, true)
+		thMock, mockAttributes := setup(t, true, true, true)
 		mockAttributes.On("InvalidateUserPropertyValuesEpoch", userID).Once()
 		mockAttributes.On("InvalidateUserAttributes", userID).Once()
 
@@ -330,7 +348,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 	})
 
 	t.Run("single-target form skips non-user targets", func(t *testing.T) {
-		thMock, mockAttributes := setup(t, true, true)
+		thMock, mockAttributes := setup(t, true, true, true)
 
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypePost, model.NewId(), nil)
 
@@ -341,7 +359,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 	// A write made while ABAC was off must not leave the view stale for a switch back on to read,
 	// and the marker is free, so only the epoch half is gated.
 	t.Run("the view is marked stale even when ABAC is off", func(t *testing.T) {
-		thMock, _ := setup(t, true, false)
+		thMock, _ := setup(t, true, true, false)
 		ch := thMock.App.Srv().Channels()
 
 		ch.attributeViewRefreshLast = time.Now()
@@ -354,7 +372,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 	})
 
 	t.Run("no user target means no invalidation of either kind", func(t *testing.T) {
-		thMock, mockAttributes := setup(t, true, true)
+		thMock, mockAttributes := setup(t, true, true, true)
 		ch := thMock.App.Srv().Channels()
 		now := time.Now()
 		ch.attributeViewRefreshLast = now
