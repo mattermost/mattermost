@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -4288,12 +4289,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 		resp, err := client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
 		require.Error(t, err)
 		CheckRequestEntityTooLargeStatus(t, resp)
-		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
+		CheckErrorID(t, err, "app.email.invite_batch_exceeds_limit.app_error")
 
 		_, resp, err = client.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, emailList)
 		require.Error(t, err)
 		CheckRequestEntityTooLargeStatus(t, resp)
-		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
+		CheckErrorID(t, err, "app.email.invite_batch_exceeds_limit.app_error")
 	}, "rate limits")
 }
 
@@ -4344,25 +4345,17 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 			}},
 		}
 	}
-	findResendJob := func(t *testing.T, email string) *model.Job {
+	findInviteTokenData := func(t *testing.T, email string) map[string]string {
 		t.Helper()
-		resendJobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeResendInvitationEmail)
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeTeamInvitation)
 		require.NoError(t, err)
-		for _, job := range resendJobs {
-			if job.Data["teamID"] != th.BasicTeam.Id {
-				continue
-			}
-			var emails []string
-			if json.Unmarshal([]byte(job.Data["emailList"]), &emails) != nil {
-				continue
-			}
-			for _, jobEmail := range emails {
-				if model.NormalizeEmail(jobEmail) == model.NormalizeEmail(email) {
-					return job
-				}
+		for _, token := range tokens {
+			data := model.MapFromJSON(strings.NewReader(token.Extra))
+			if data["teamId"] == th.BasicTeam.Id && model.NormalizeEmail(data["email"]) == model.NormalizeEmail(email) {
+				return data
 			}
 		}
-		require.FailNow(t, "resend job not found", "team=%s email=%s", th.BasicTeam.Id, email)
+		require.FailNow(t, "invite token not found", "team=%s email=%s", th.BasicTeam.Id, email)
 		return nil
 	}
 
@@ -4405,10 +4398,12 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 		require.Len(t, invitesWithErrors, 1)
 		require.Nil(t, invitesWithErrors[0].Error)
 
-		resendJob := findResendJob(t, invite.Emails[0])
-		var profiles []*model.MemberInviteProfile
-		require.NoError(t, json.Unmarshal([]byte(resendJob.Data["profilesList"]), &profiles))
-		require.Equal(t, invite.Profiles, profiles)
+		tokenData := findInviteTokenData(t, invite.Emails[0])
+		assert.Equal(t, invite.Profiles[0].Username, tokenData["username"])
+		assert.Equal(t, invite.Profiles[0].FirstName, tokenData["first_name"])
+		assert.Equal(t, invite.Profiles[0].LastName, tokenData["last_name"])
+		assert.Equal(t, th.BasicUser.Id, tokenData["senderId"])
+		assert.NotEmpty(t, tokenData[email.InviteTokenRemindAtKey], "the invite should schedule a reminder")
 	})
 
 	t.Run("accepted from a system admin", func(t *testing.T) {
@@ -4667,13 +4662,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		}
 		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, err)
-		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+		assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
 		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
-		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
+		assert.Equal(t, "app.email.invite_batch_exceeds_limit.app_error", appErr.Id)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, appErr.StatusCode)
 	})
 }
 

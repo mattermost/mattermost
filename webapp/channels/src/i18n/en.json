@@ -17523,6 +17523,18 @@
     "defaultMessage": "Max Channels Per Team:",
     "description": "Admin console number setting name under Site Configuration > Users and Teams; label ends with a colon before the input field."
   },
+  "admin.team.maxEmailInvitationsPerUserPerHourDescription": {
+    "defaultMessage": "The number of invitation emails each user can send per hour, from 1 to 1,000. A single invitation request cannot include more addresses than this. Reminders for invitations already sent do not count toward this limit.",
+    "description": "Admin console help text for the 'Maximum Email Invitations Per User Per Hour' number setting under Authentication > Signup."
+  },
+  "admin.team.maxEmailInvitationsPerUserPerHourExample": {
+    "defaultMessage": "E.g.: \"20\"",
+    "description": "Placeholder in the 'Maximum Email Invitations Per User Per Hour' number input showing an example value."
+  },
+  "admin.team.maxEmailInvitationsPerUserPerHourTitle": {
+    "defaultMessage": "Maximum Email Invitations Per User Per Hour:",
+    "description": "Admin console number setting name under Authentication > Signup, limiting how many invitation emails each user can send per hour; ends with a colon before the input field."
+  },
   "admin.team.maxNotificationsPerChannelDescription": {
     "defaultMessage": "The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them.",
     "description": "Admin console help text for the Large Channel Notification Threshold setting; @here, @all, @channel are literal mention keywords."

@@ -573,6 +573,24 @@ func (_m *ServiceInterface) Stop() {
 	_m.Called()
 }
 
+// UpdateInviteRateLimit provides a mock function with no fields
+func (_m *ServiceInterface) UpdateInviteRateLimit() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateInviteRateLimit")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewServiceInterface creates a new instance of ServiceInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewServiceInterface(t interface {

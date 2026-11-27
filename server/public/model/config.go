@@ -145,6 +145,9 @@ const (
 	ServiceSettingsDefaultMaxURLLength           = 2048
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
+	ServiceSettingsDefaultMaxEmailInvitationsPerUserPerHour    = 20
+	ServiceSettingsMaxEmailInvitationsPerUserPerHourUpperLimit = 1000
+
 	TeamSettingsDefaultSiteName              = "Mattermost"
 	TeamSettingsDefaultMaxUsersPerTeam       = 0
 	TeamSettingsDefaultMaxChannelsPerTeam    = 0
@@ -494,6 +497,7 @@ type ServiceSettings struct {
 	ExperimentalEnableHardenedMode                    *bool   `json:",omitempty"` // Deprecated: use `EnableHardenedMode`.
 	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
+	MaxEmailInvitationsPerUserPerHour                 *int    `access:"authentication_signup,cloud_restrictable"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool   `access:"integrations_bot_accounts"`
 	EnableSVGs                                        *bool   `access:"site_posts"`
@@ -554,6 +558,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			s.EnableEmailInvitations = new(true)
 		}
+	}
+
+	if s.MaxEmailInvitationsPerUserPerHour == nil {
+		s.MaxEmailInvitationsPerUserPerHour = new(ServiceSettingsDefaultMaxEmailInvitationsPerUserPerHour)
 	}
 
 	if s.SiteURL == nil {
@@ -5197,6 +5205,10 @@ func (s *SamlSettings) isValid() *AppError {
 }
 
 func (s *ServiceSettings) isValid() *AppError {
+	if *s.MaxEmailInvitationsPerUserPerHour <= 0 || *s.MaxEmailInvitationsPerUserPerHour > ServiceSettingsMaxEmailInvitationsPerUserPerHourUpperLimit {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_email_invitations_per_user_per_hour.app_error", map[string]any{"Max": ServiceSettingsMaxEmailInvitationsPerUserPerHourUpperLimit}, "", http.StatusBadRequest)
+	}
+
 	if *s.SiteURL == "" && *s.AllowCookiesForSubdomains {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}

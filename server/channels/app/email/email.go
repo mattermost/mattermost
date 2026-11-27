@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -422,13 +423,19 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func buildInviteTokenData(team *model.Team, invite string, profile *model.MemberInviteProfile) (map[string]string, map[string]string) {
-	tokenExtra := map[string]string{"teamId": team.Id, "email": invite}
+func buildInviteTokenData(inviteData InviteEmailData, invite string) (map[string]string, map[string]string) {
+	team := inviteData.Team
+	tokenExtra := map[string]string{"teamId": team.Id, "email": invite, "senderId": inviteData.SenderUserID}
+	if inviteData.ScheduleReminder {
+		tokenExtra[InviteTokenRemindAtKey] = strconv.FormatInt(model.GetMillis()+inviteReminderDelay(), 10)
+	}
 	tokenProps := map[string]string{
 		"email":        invite,
 		"display_name": team.DisplayName,
 		"name":         team.Name,
 	}
+
+	profile := inviteData.Profiles[invite]
 
 	// The token extra is authoritative at signup; the link props are prefill only.
 	if profile != nil {
@@ -445,19 +452,42 @@ func buildInviteTokenData(team *model.Team, invite string, profile *model.Member
 	return tokenExtra, tokenProps
 }
 
-func (es *Service) SendInviteEmails(rctx request.CTX, inviteData InviteEmailData) error {
-	if es.perHourEmailRateLimiter == nil {
+func (es *Service) checkInviteRateLimit(rctx request.CTX, inviteData InviteEmailData) error {
+	// A reminder re-sends an invite that was already counted against the sender when first sent.
+	if inviteData.ReminderData != nil && es.inviteEmailRateLimiter.Load() != nil {
+		return nil
+	}
+
+	return es.checkSenderInviteRateLimit(rctx, inviteData.SenderUserID, inviteData.Team.Id, len(inviteData.Invites))
+}
+
+func (es *Service) checkSenderInviteRateLimit(rctx request.CTX, senderUserID, teamID string, count int) error {
+	rateLimiter := es.inviteEmailRateLimiter.Load()
+	if rateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), inviteData.SenderUserID, len(inviteData.Invites))
+
+	if count > rateLimiter.perHour {
+		return &InviteBatchExceedsLimitError{Count: count, Limit: rateLimiter.perHour}
+	}
+
+	rateLimited, result, err := rateLimiter.limiter.RateLimitCtx(rctx.Context(), senderUserID, count)
 	if err != nil {
 		return SetupRateLimiterError
 	}
 
 	if rateLimited {
-		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
-			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", senderUserID),
+			mlog.String("team_id", teamID), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
+	}
+
+	return nil
+}
+
+func (es *Service) SendInviteEmails(rctx request.CTX, inviteData InviteEmailData) error {
+	if err := es.checkInviteRateLimit(rctx, inviteData); err != nil {
+		return err
 	}
 
 	for _, invite := range inviteData.Invites {
@@ -476,7 +506,7 @@ func (es *Service) SendInviteEmails(rctx request.CTX, inviteData InviteEmailData
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
-			tokenExtra, tokenProps := buildInviteTokenData(inviteData.Team, invite, inviteData.Profiles[invite])
+			tokenExtra, tokenProps := buildInviteTokenData(inviteData, invite)
 
 			token := model.NewToken(
 				TokenTypeTeamInvitation,
@@ -539,18 +569,8 @@ func (es *Service) SendGuestInviteEmails(
 	isFirstAdmin bool,
 	isGuestMagicLink bool,
 ) error {
-	if es.perHourEmailRateLimiter == nil {
-		return NoRateLimiterError
-	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
-	if err != nil {
-		return SetupRateLimiterError
-	}
-
-	if rateLimited {
-		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
-		return RateLimitExceededError
+	if err := es.checkSenderInviteRateLimit(rctx, senderUserId, team.Id, len(invites)); err != nil {
+		return err
 	}
 
 	for _, invite := range invites {
@@ -660,12 +680,12 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	invite string,
 	siteURL string,
 ) error {
-	if es.perHourEmailRateLimiter == nil {
+	if es.inviteEmailRateLimiter.Load() == nil {
 		return NoRateLimiterError
 	}
 
 	// Rate limit by email address for self-service requests
-	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
+	rateLimited, result, err := es.magicLinkEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -728,18 +748,8 @@ func (es *Service) SendMagicLinkEmailSelfService(
 }
 
 func (es *Service) SendInviteEmailsToTeamAndChannels(rctx request.CTX, inviteData InviteEmailData) ([]*model.EmailInviteWithError, error) {
-	if es.perHourEmailRateLimiter == nil {
-		return nil, NoRateLimiterError
-	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), inviteData.SenderUserID, len(inviteData.Invites))
-	if err != nil {
-		return nil, SetupRateLimiterError
-	}
-
-	if rateLimited {
-		rctx.Logger().Error("rate limit exceeded", mlog.Duration("retry_after", result.RetryAfter), mlog.Duration("reset_after", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
-			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
-		return nil, RateLimitExceededError
+	if err := es.checkInviteRateLimit(rctx, inviteData); err != nil {
+		return nil, err
 	}
 
 	channelsLen := len(inviteData.Channels)
@@ -796,9 +806,8 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(rctx request.CTX, inviteDat
 		}
 		data.Props["Message"] = inviteData.Message
 
-		tokenExtra, tokenProps := buildInviteTokenData(inviteData.Team, invite, inviteData.Profiles[invite])
+		tokenExtra, tokenProps := buildInviteTokenData(inviteData, invite)
 		tokenExtra["channels"] = strings.Join(channelIDs, " ")
-		tokenExtra["senderId"] = inviteData.SenderUserID
 
 		token := model.NewToken(
 			TokenTypeTeamInvitation,

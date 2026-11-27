@@ -6,8 +6,12 @@ package email
 import (
 	"io"
 	"net/url"
+	"os"
 	"path"
+	"strconv"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled/v2"
@@ -24,9 +28,8 @@ import (
 
 const (
 	emailRateLimitingMemstoreSize = 65536
-	emailRateLimitingPerMinute    = 60
-	emailRateLimitingPerHour      = 20
-	emailRateLimitingMaxBurst     = 20
+	magicLinkEmailsPerMinute      = 60
+	magicLinkEmailsMaxBurst       = 20
 
 	TokenTypePasswordRecovery         = "password_recovery"
 	TokenTypeVerifyEmail              = "verify_email"
@@ -35,7 +38,21 @@ const (
 	TokenTypeCWSAccess                = "cws_access_token"
 	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
 	TokenTypeGuestMagicLink           = "guest_magic_link"
+
+	// InviteTokenRemindAtKey is the team invitation token extra holding when its reminder email is due.
+	InviteTokenRemindAtKey = "remindAt"
+	// InviteReminderInterval is passed through the reminder link for the webapp, as before.
+	InviteReminderInterval = "48"
 )
+
+// inviteReminderDelay is due an hour before the 48h invite expiry, so the hourly token cleanup
+// cannot delete the token before the reminder sweep sees it. Tests can shorten it.
+func inviteReminderDelay() int64 {
+	if delay, err := strconv.ParseInt(os.Getenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION"), 10, 64); err == nil {
+		return delay
+	}
+	return model.InvitationExpiryTime - time.Hour.Milliseconds()
+}
 
 func condenseSiteURL(siteURL string) string {
 	parsedSiteURL, _ := url.Parse(siteURL)
@@ -55,8 +72,8 @@ type Service struct {
 	store       store.Store
 
 	templatesContainer        *templates.Container
-	perMinuteEmailRateLimiter *throttled.GCRARateLimiterCtx
-	perHourEmailRateLimiter   *throttled.GCRARateLimiterCtx
+	magicLinkEmailRateLimiter *throttled.GCRARateLimiterCtx
+	inviteEmailRateLimiter    atomic.Pointer[inviteRateLimiter]
 	EmailBatching             *EmailBatchingJob
 
 	postDeliveryRecorder func(userID string, post *model.Post)
@@ -113,29 +130,45 @@ func (es *Service) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
 	}
 
-	perMinuteQuota := throttled.RateQuota{
-		MaxRate:  throttled.PerMin(emailRateLimitingPerMinute),
-		MaxBurst: emailRateLimitingMaxBurst,
+	magicLinkQuota := throttled.RateQuota{
+		MaxRate:  throttled.PerMin(magicLinkEmailsPerMinute),
+		MaxBurst: magicLinkEmailsMaxBurst,
 	}
 
-	perHourQuota := throttled.RateQuota{
-		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
-		MaxBurst: emailRateLimitingMaxBurst,
-	}
-
-	perMinuteRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perMinuteQuota)
+	magicLinkRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, magicLinkQuota)
 	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	perHourRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perHourQuota)
+	es.magicLinkEmailRateLimiter = magicLinkRateLimiter
+	return es.UpdateInviteRateLimit()
+}
+
+// UpdateInviteRateLimit applies ServiceSettings.MaxEmailInvitationsPerUserPerHour to the per-sender
+// invitation email limit. Changing it starts every sender with a full allowance.
+func (es *Service) UpdateInviteRateLimit() error {
+	store, err := memstore.NewCtx(emailRateLimitingMemstoreSize)
+	if err != nil {
+		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
+	}
+
+	perHour := *es.config().ServiceSettings.MaxEmailInvitationsPerUserPerHour
+	// GCRA admits MaxBurst+1 at once, so this allows exactly perHour invitations in a burst.
+	limiter, err := throttled.NewGCRARateLimiterCtx(store, throttled.RateQuota{
+		MaxRate:  throttled.PerHour(perHour),
+		MaxBurst: perHour - 1,
+	})
 	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	es.perMinuteEmailRateLimiter = perMinuteRateLimiter
-	es.perHourEmailRateLimiter = perHourRateLimiter
+	es.inviteEmailRateLimiter.Store(&inviteRateLimiter{limiter: limiter, perHour: perHour})
 	return nil
+}
+
+type inviteRateLimiter struct {
+	limiter *throttled.GCRARateLimiterCtx
+	perHour int
 }
 
 type InviteEmailData struct {
@@ -148,6 +181,7 @@ type InviteEmailData struct {
 	Profiles           map[string]*model.MemberInviteProfile
 	SiteURL            string
 	ReminderData       *model.TeamInviteReminderData
+	ScheduleReminder   bool
 	Message            string
 	ErrorWhenNotSent   bool
 	IsSystemAdmin      bool
@@ -180,6 +214,7 @@ type ServiceInterface interface {
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)
 	InitEmailBatching()
+	UpdateInviteRateLimit() error
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)
 	SendIPFiltersChangedEmail(email string, userWhoChangedFilter *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) error

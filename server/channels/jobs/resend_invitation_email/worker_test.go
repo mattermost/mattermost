@@ -6,18 +6,26 @@ package resend_invitation_email
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 type fakeResendApp struct {
-	invitedWith *model.MemberInvite
-	joinedEmail string
+	invitedWith  *model.MemberInvite
+	joinedEmail  string
+	inviteErrors []*model.EmailInviteWithError
+	inviteAppErr *model.AppError
 }
 
 func (a *fakeResendApp) Config() *model.Config                                 { return &model.Config{} }
@@ -35,9 +43,9 @@ func (a *fakeResendApp) GetTeamMembersByIds(teamID string, userIDs []string, res
 	}
 	return nil, nil
 }
-func (a *fakeResendApp) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderID, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
+func (a *fakeResendApp) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderID string, isReminder bool) ([]*model.EmailInviteWithError, *model.AppError) {
 	a.invitedWith = memberInvite
-	return nil, nil
+	return a.inviteErrors, a.inviteAppErr
 }
 
 func newTestWorker(t *testing.T, app AppIface) *ResendInvitationEmailWorker {
@@ -67,7 +75,7 @@ func TestResendEmailsCarriesProfilesForPendingUsers(t *testing.T) {
 			"senderID":     model.NewId(),
 			"profilesList": string(profilesJSON),
 		},
-	}, "48")
+	})
 
 	require.Nil(t, appErr)
 	require.Equal(t, []string{"waiting@example.com"}, app.invitedWith.Emails)
@@ -86,10 +94,112 @@ func TestResendEmailsRejectsMalformedJobData(t *testing.T) {
 				key:         "not-json",
 			}
 
-			appErr := worker.ResendEmails(worker.logger, &model.Job{Id: model.NewId(), Data: data}, "48")
+			appErr := worker.ResendEmails(worker.logger, &model.Job{Id: model.NewId(), Data: data})
 
 			require.NotNil(t, appErr)
 			require.Nil(t, app.invitedWith)
 		})
 	}
+}
+
+func newDoJobTestWorker(t *testing.T, app AppIface) (*ResendInvitationEmailWorker, *storetest.Store) {
+	t.Helper()
+	mockStore := &storetest.Store{}
+	t.Cleanup(func() { mockStore.AssertExpectations(t) })
+
+	jobServer := jobs.NewJobServer(&testutils.StaticConfigService{}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
+	return MakeWorker(jobServer, app, mockStore), mockStore
+}
+
+func newDueResendJob() *model.Job {
+	return &model.Job{
+		Id:     model.NewId(),
+		Type:   model.JobTypeResendInvitationEmail,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"emailList":   model.ArrayToJSON([]string{"user@example.com"}),
+			"teamID":      model.NewId(),
+			"senderID":    model.NewId(),
+			"scheduledAt": strconv.FormatInt(model.GetMillis()-FourtyEightHoursInMillis-1000, 10),
+		},
+	}
+}
+
+func expectClaim(mockStore *storetest.Store, job *model.Job) {
+	claimed := *job
+	claimed.Status = model.JobStatusInProgress
+	mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(&claimed, nil).Once()
+}
+
+func expectJobError(mockStore *storetest.Store, job *model.Job) {
+	mockStore.JobStore.On("UpdateOptimistically", mock.MatchedBy(func(j *model.Job) bool {
+		return j.Id == job.Id && j.Status == model.JobStatusError
+	}), model.JobStatusInProgress).Return(job, nil).Once()
+}
+
+func TestDoJob(t *testing.T) {
+	t.Setenv("MM_RESEND_INVITATION_EMAIL_JOB_DURATION", strconv.FormatInt(FourtyEightHoursInMillis, 10))
+
+	t.Run("does nothing before the job is due", func(t *testing.T) {
+		app := &fakeResendApp{}
+		worker, _ := newDoJobTestWorker(t, app)
+		job := newDueResendJob()
+		job.Data["scheduledAt"] = strconv.FormatInt(model.GetMillis(), 10)
+
+		worker.DoJob(job)
+
+		assert.Nil(t, app.invitedWith)
+	})
+
+	t.Run("skips a job claimed by another node", func(t *testing.T) {
+		app := &fakeResendApp{}
+		worker, mockStore := newDoJobTestWorker(t, app)
+		job := newDueResendJob()
+		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(nil, nil).Once()
+
+		worker.DoJob(job)
+
+		assert.Nil(t, app.invitedWith)
+	})
+
+	t.Run("marks the job successful after resending", func(t *testing.T) {
+		app := &fakeResendApp{}
+		worker, mockStore := newDoJobTestWorker(t, app)
+		job := newDueResendJob()
+		expectClaim(mockStore, job)
+		mockStore.SystemStore.On("PermanentDeleteByName", job.Id).Return(nil, nil).Once()
+		mockStore.JobStore.On("UpdateStatus", job.Id, model.JobStatusSuccess).Return(job, nil).Once()
+
+		worker.DoJob(job)
+
+		require.NotNil(t, app.invitedWith)
+		assert.Equal(t, []string{"user@example.com"}, app.invitedWith.Emails)
+	})
+
+	t.Run("marks the job failed when a recipient cannot be sent to", func(t *testing.T) {
+		app := &fakeResendApp{inviteErrors: []*model.EmailInviteWithError{{
+			Email: "mailto:user@example.com",
+			Error: model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError),
+		}}}
+		worker, mockStore := newDoJobTestWorker(t, app)
+		job := newDueResendJob()
+		expectClaim(mockStore, job)
+		expectJobError(mockStore, job)
+
+		worker.DoJob(job)
+
+		assert.NotNil(t, app.invitedWith)
+	})
+
+	t.Run("marks the job failed when the sender is rate limited", func(t *testing.T) {
+		app := &fakeResendApp{inviteAppErr: model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.rate_limit_exceeded.app_error", nil, "", http.StatusRequestEntityTooLarge)}
+		worker, mockStore := newDoJobTestWorker(t, app)
+		job := newDueResendJob()
+		expectClaim(mockStore, job)
+		expectJobError(mockStore, job)
+
+		worker.DoJob(job)
+
+		assert.NotNil(t, app.invitedWith)
+	})
 }

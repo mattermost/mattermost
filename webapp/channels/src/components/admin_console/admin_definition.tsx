@@ -4564,6 +4564,18 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
+                            type: 'number',
+                            key: 'ServiceSettings.MaxEmailInvitationsPerUserPerHour',
+                            label: defineMessage({id: 'admin.team.maxEmailInvitationsPerUserPerHourTitle', defaultMessage: 'Maximum Email Invitations Per User Per Hour:'}),
+                            help_text: defineMessage({id: 'admin.team.maxEmailInvitationsPerUserPerHourDescription', defaultMessage: 'The number of invitation emails each user can send per hour, from 1 to 1,000. A single invitation request cannot include more addresses than this. Reminders for invitations already sent do not count toward this limit.'}),
+                            placeholder: defineMessage({id: 'admin.team.maxEmailInvitationsPerUserPerHourExample', defaultMessage: 'E.g.: "20"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
+                                it.stateIsFalse('ServiceSettings.EnableEmailInvitations'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
                             type: 'button',
                             key: 'InvalidateEmailInvitesButton',
                             action: invalidateAllEmailInvites,

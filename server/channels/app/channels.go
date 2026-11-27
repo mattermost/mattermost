@@ -99,9 +99,10 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTask           clusterTask
-	postReminderTask  clusterTask
-	scheduledPostTask clusterTask
+	dndTask            clusterTask
+	postReminderTask   clusterTask
+	scheduledPostTask  clusterTask
+	inviteReminderTask clusterTask
 
 	healthCheckWorkers *jobs.Workers
 	cancelHealthCheck  context.CancelFunc
@@ -329,6 +330,7 @@ func (ch *Channels) Stop() error {
 	ch.dndTask.stop()
 	ch.postReminderTask.stop()
 	ch.scheduledPostTask.stop()
+	ch.inviteReminderTask.stop()
 	ch.stopHealthCheckWorkers()
 
 	close(ch.interruptQuitChan)

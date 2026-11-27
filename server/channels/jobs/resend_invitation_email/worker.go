@@ -1,5 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
+// Package resend_invitation_email drains resend_invitation_email jobs created by older servers.
+// New invites schedule their reminder on the invite token instead; see App.SendDueInviteReminders.
+//
+// Remove this package, its worker registration in app/server.go and JobTypeResendInvitationEmail
+// in v13 or later, once no supported upgrade can still leave these jobs pending.
 package resend_invitation_email
 
 import (
@@ -22,7 +28,7 @@ type AppIface interface {
 	configservice.ConfigService
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, isReminder bool) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
 type ResendInvitationEmailWorker struct {
@@ -90,13 +96,27 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 	defer rseworker.jobServer.HandleJobPanic(logger, job)
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
-	if elapsedTimeSinceSchedule > DurationInMillis {
-		if appErr := rseworker.ResendEmails(logger, job, "48"); appErr != nil {
-			rseworker.setJobError(logger, job, appErr)
-			return
-		}
-		rseworker.TearDown(logger, job)
+	if elapsedTimeSinceSchedule <= DurationInMillis {
+		return
 	}
+
+	// The job stays pending until it is due, so it is only claimed now. Claiming moves it to
+	// in_progress, which stops the watcher from dispatching it again and lets SetJobError apply.
+	claimedJob, appErr := rseworker.jobServer.ClaimJob(job)
+	if appErr != nil {
+		logger.Warn("Worker: Failed to claim job", mlog.Err(appErr))
+		return
+	}
+	if claimedJob == nil {
+		return
+	}
+	job = claimedJob
+
+	if appErr := rseworker.ResendEmails(logger, job); appErr != nil {
+		rseworker.setJobError(logger, job, appErr)
+		return
+	}
+	rseworker.TearDown(logger, job)
 }
 
 func (rseworker *ResendInvitationEmailWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
@@ -178,7 +198,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, 
 	rseworker.setJobSuccess(logger, job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) *model.AppError {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job) *model.AppError {
 	rctx := request.EmptyContext(logger)
 
 	teamID := job.Data["teamID"]
@@ -237,7 +257,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		}
 	}
 
-	invitesWithErrors, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
+	invitesWithErrors, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], true)
 	if appErr != nil {
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		return appErr

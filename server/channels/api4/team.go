@@ -1669,7 +1669,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		var invitesWithError []*model.EmailInviteWithError
 		var appErr *model.AppError
 		if emailList != nil {
-			invitesWithError, appErr = c.App.InviteNewUsersToTeamGracefully(c.AppContext, memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
+			invitesWithError, appErr = c.App.InviteNewUsersToTeamGracefully(c.AppContext, memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, false)
 		}
 
 		if invitesWithError != nil {
@@ -1684,35 +1684,6 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appErr != nil {
 			c.Err = appErr
 			return
-		}
-
-		if len(emailList) > 0 {
-			scheduledAt := model.GetMillis()
-			jobData := map[string]string{
-				"emailList":   model.ArrayToJSON(emailList),
-				"teamID":      c.Params.TeamId,
-				"senderID":    c.AppContext.Session().UserId,
-				"scheduledAt": strconv.FormatInt(scheduledAt, 10),
-			}
-
-			if len(memberInvite.ChannelIds) > 0 {
-				jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
-			}
-
-			if len(memberInvite.Profiles) > 0 {
-				profilesJSON, jsonErr := json.Marshal(memberInvite.Profiles)
-				if jsonErr != nil {
-					c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-					return
-				}
-				jobData["profilesList"] = string(profilesJSON)
-			}
-
-			_, appErr = c.App.Srv().Jobs.CreateJob(c.AppContext, model.JobTypeResendInvitationEmail, jobData)
-			if appErr != nil {
-				c.Err = model.NewAppError("Api4.inviteUsersToTeam", appErr.Id, nil, "", appErr.StatusCode).Wrap(appErr)
-				return
-			}
 		}
 
 		// in graceful mode we return both the successful ones and the failed ones
