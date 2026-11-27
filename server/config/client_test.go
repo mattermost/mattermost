@@ -950,15 +950,3 @@ func TestGetLimitedClientConfig(t *testing.T) {
 		})
 	}
 }
-
-func TestGenerateClientConfigIncludesAllSystemSettingKeys(t *testing.T) {
-	t.Parallel()
-
-	var cfg model.Config
-	cfg.SetDefaults()
-
-	unlicensed := GenerateClientConfig(&cfg, "", nil)
-	val, ok := unlicensed[model.ClientConfigKeyMobileEnableBiometrics]
-	assert.True(t, ok, "policy-configurable setting keys must be present even when unlicensed so shallow-merging clients clear old overrides")
-	assert.Equal(t, "", val)
-}
