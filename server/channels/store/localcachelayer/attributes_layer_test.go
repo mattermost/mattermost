@@ -7,12 +7,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	cachemocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 func TestAttributesStoreCache(t *testing.T) {
@@ -164,5 +167,128 @@ func TestAttributesStoreCache(t *testing.T) {
 		second, err := cachedStore.Attributes().GetSubject(rctx, userID, groupID, model.PropertyFieldObjectTypeUser)
 		require.NoError(t, err)
 		assert.Equal(t, "Engineering", second.Attributes["department"])
+	})
+}
+
+// setHookCache runs onSet once, just before the first entry is written, to model a drop that
+// lands after a reader decided to cache its result but before the write reaches the cache.
+type setHookCache struct {
+	cache.Cache
+	onSet func()
+}
+
+func (c *setHookCache) SetWithDefaultExpiry(key string, value any) error {
+	if hook := c.onSet; hook != nil {
+		c.onSet = nil
+		hook()
+	}
+	return c.Cache.SetWithDefaultExpiry(key, value)
+}
+
+func TestAttributesStoreGetSubjectOverlappingInvalidation(t *testing.T) {
+	const (
+		changedUserID = "changed-user-id"
+		groupID       = "group-id"
+	)
+	logger := mlog.CreateConsoleTestLogger(t)
+	rctx := request.TestContext(t)
+
+	oldSubject := model.Subject{ID: changedUserID, Type: "user", Attributes: map[string]any{"department": "Old"}}
+	newSubject := model.Subject{ID: changedUserID, Type: "user", Attributes: map[string]any{"department": "New"}}
+
+	// Each case fires its drop while the first backing read is in progress, so that read returns
+	// the value from before the change while the second returns the value after it.
+	dropDuringRead := map[string]func(s *LocalCacheStore){
+		"peer node invalidation for the user": func(s *LocalCacheStore) {
+			s.attributes.handleClusterInvalidateUserAttributes(&model.ClusterMessage{
+				Event: model.ClusterEventInvalidateCacheForUserAttributes,
+				Data:  []byte(changedUserID),
+			})
+		},
+		"peer node purge": func(s *LocalCacheStore) {
+			s.attributes.handleClusterInvalidateUserAttributes(&model.ClusterMessage{
+				Event: model.ClusterEventInvalidateCacheForUserAttributes,
+				Data:  clearCacheMessageData,
+			})
+		},
+		"invalidation on this node": func(s *LocalCacheStore) {
+			s.Attributes().InvalidateUserAttributes(changedUserID)
+		},
+		"purge without broadcast after a view refresh": func(s *LocalCacheStore) {
+			s.PurgeUserAttributesCacheWithoutBroadcast()
+		},
+	}
+
+	assertNextReadSeesChange := func(t *testing.T, cachedStore LocalCacheStore, attrs *mocks.AttributesStore) {
+		t.Helper()
+		first, err := cachedStore.Attributes().GetSubject(rctx, changedUserID, groupID, model.PropertyFieldObjectTypeUser)
+		require.NoError(t, err)
+		assert.Equal(t, "Old", first.Attributes["department"], "the overlapping read itself returns what it read")
+
+		second, err := cachedStore.Attributes().GetSubject(rctx, changedUserID, groupID, model.PropertyFieldObjectTypeUser)
+		require.NoError(t, err)
+		assert.Equal(t, "New", second.Attributes["department"], "a read that overlapped the drop must not leave its result cached")
+		attrs.AssertNumberOfCalls(t, "GetSubject", 2)
+	}
+
+	for name, drop := range dropDuringRead {
+		t.Run(name+" lands during the backing read", func(t *testing.T) {
+			mockStore := getMockStore(t)
+			cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+			require.NoError(t, err)
+
+			attrs := mockStore.Attributes().(*mocks.AttributesStore)
+			attrs.On("GetSubject", mock.Anything, changedUserID, groupID, model.PropertyFieldObjectTypeUser).
+				Run(func(mock.Arguments) { drop(&cachedStore) }).
+				Return(&oldSubject, nil).Once()
+			attrs.On("GetSubject", mock.Anything, changedUserID, groupID, model.PropertyFieldObjectTypeUser).
+				Return(&newSubject, nil).Once()
+
+			assertNextReadSeesChange(t, cachedStore, attrs)
+		})
+
+		t.Run(name+" lands between the check and the cache write", func(t *testing.T) {
+			var hooked *setHookCache
+			var cachedStore LocalCacheStore
+			provider := &cachemocks.Provider{}
+			call := provider.On("NewCache", mock.Anything)
+			call.Run(func(args mock.Arguments) {
+				var c cache.Cache = cache.NewLRU(&cache.CacheOptions{Size: 128})
+				if opts := args.Get(0).(*cache.CacheOptions); opts.Name == "UserAttributes" {
+					hooked = &setHookCache{Cache: c}
+					c = hooked
+				}
+				call.ReturnArguments = mock.Arguments{c, nil}
+			})
+			provider.On("Type").Return("lru")
+
+			mockStore := getMockStore(t)
+			var err error
+			cachedStore, err = NewLocalCacheLayer(mockStore, nil, nil, provider, logger)
+			require.NoError(t, err)
+			require.NotNil(t, hooked)
+			hooked.onSet = func() { drop(&cachedStore) }
+
+			attrs := mockStore.Attributes().(*mocks.AttributesStore)
+			attrs.On("GetSubject", mock.Anything, changedUserID, groupID, model.PropertyFieldObjectTypeUser).
+				Return(&oldSubject, nil).Once()
+			attrs.On("GetSubject", mock.Anything, changedUserID, groupID, model.PropertyFieldObjectTypeUser).
+				Return(&newSubject, nil).Once()
+
+			assertNextReadSeesChange(t, cachedStore, attrs)
+		})
+	}
+
+	t.Run("unrelated reads keep caching after a drop", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+		require.NoError(t, err)
+
+		cachedStore.Attributes().InvalidateUserAttributes(changedUserID)
+		for range 2 {
+			_, err = cachedStore.Attributes().GetSubject(rctx, "user-id", groupID, model.PropertyFieldObjectTypeUser)
+			require.NoError(t, err)
+		}
+		mockStore.Attributes().(*mocks.AttributesStore).AssertNumberOfCalls(t, "GetSubject", 1)
 	})
 }

@@ -3116,8 +3116,11 @@ func ResolveSystemRole(roles string) string {
 // evaluations in between still costs one refresh, while deferring a write loses it — a client asks
 // for a render decision once per change event and never re-asks.
 //
-// The marker is node-local and the matview shared, so in HA only the writing node gets live
-// visibility; elsewhere the bound stays the periodic one until this grows a cluster message.
+// The marker is node-local and the matview shared. Other nodes set their marker when the
+// user-attributes cache invalidation reaches them (see the hook registered in NewServer); that
+// message is best-effort, so a lost one leaves the subject cache TTL as the bound there. The
+// refresh the marker triggers also drops this node's cached subjects, since some may have been
+// read from the view it replaced.
 func (a *App) invalidateAttributeViewCache() {
 	ch := a.Srv().Channels()
 
@@ -3144,13 +3147,27 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	defer ch.attributeViewRefreshMut.Unlock()
 
 	needsRefresh := ch.attributeViewNeedsRefresh.Swap(false)
-	if !needsRefresh && time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
+	invalidated := needsRefresh || ch.attributeViewRefreshLast.IsZero()
+	if !invalidated && time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
 		return
 	}
 
 	if err := a.Srv().Store().Attributes().RefreshAttributes(); err != nil {
+		if needsRefresh {
+			ch.attributeViewNeedsRefresh.Store(true)
+		}
 		rctx.Logger().Warn("Failed to refresh attribute materialized view", mlog.Err(err))
 		return
+	}
+
+	// Builds that ran while the view was outdated, or overlapped this refresh, may have cached
+	// subjects read from it. That includes an invalidation landing mid-refresh: with a shared cache,
+	// other nodes would read what those builds stored without waiting for the follow-up refresh,
+	// whose flag is left set. A periodic refresh with no invalidation keeps the cache.
+	if invalidated || ch.attributeViewNeedsRefresh.Load() {
+		if st, ok := a.Srv().Store().(interface{ PurgeUserAttributesCacheWithoutBroadcast() }); ok {
+			st.PurgeUserAttributesCacheWithoutBroadcast()
+		}
 	}
 
 	ch.attributeViewRefreshLast = time.Now()
