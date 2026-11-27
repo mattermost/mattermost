@@ -896,6 +896,27 @@ func (s *RetryLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
 
 }
 
+func (s *RetryLayerAttributesStore) GetAttributeRefreshToken(rctx request.CTX) (timepkg.Time, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.GetAttributeRefreshToken(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -1007,6 +1028,27 @@ func (s *RetryLayerAttributesStore) RefreshAttributes(objectTypes ...string) err
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAttributesStore) RefreshAttributesIfStale(rctx request.CTX, objectType string, token timepkg.Time, minGap timepkg.Duration) (store.AttributeViewRefreshResult, error) {
+
+	tries := 0
+	for {
+		result, err := s.AttributesStore.RefreshAttributesIfStale(rctx, objectType, token, minGap)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

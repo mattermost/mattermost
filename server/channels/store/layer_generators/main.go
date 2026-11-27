@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"slices"
 	"strings"
 	"text/template"
@@ -22,6 +23,9 @@ import (
 const (
 	ErrorType = "error"
 )
+
+// timeTypeRe matches the time package qualifier in a type such as time.Time or []time.Duration.
+var timeTypeRe = regexp.MustCompile(`(^|[^A-Za-z0-9_.])time\.`)
 
 func isError(typeName string) bool {
 	return strings.Contains(typeName, ErrorType)
@@ -171,6 +175,15 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 	}
 	metadata.Name = name
 
+	// The retry layer imports the time package as timepkg, so a time type in a signature has to
+	// be spelled that way there.
+	qualifyTime := func(typeName string) string {
+		if name != "RetryLayer" {
+			return typeName
+		}
+		return timeTypeRe.ReplaceAllString(typeName, "${1}timepkg.")
+	}
+
 	myFuncs := template.FuncMap{
 		"joinResults": func(results []string) string {
 			return strings.Join(results, ", ")
@@ -188,8 +201,10 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 					returns = append(returns, fmt.Sprintf("[]*store.%s", strings.TrimPrefix(result, "[]*")))
 				case "map[string]ChannelMemberRoles":
 					returns = append(returns, fmt.Sprintf("map[string]store.%s", strings.TrimPrefix(result, "map[string]")))
+				case "AttributeViewRefreshResult":
+					returns = append(returns, fmt.Sprintf("store.%s", result))
 				default:
-					returns = append(returns, result)
+					returns = append(returns, qualifyTime(result))
 				}
 			}
 
@@ -250,7 +265,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts", "*ChannelGuard":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
 				default:
-					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, qualifyTime(param.Type)))
 				}
 			}
 			return strings.Join(paramsWithType, ", ")
@@ -264,7 +279,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts", "*ChannelGuard":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
 				default:
-					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, qualifyTime(param.Type)))
 				}
 			}
 			return strings.Join(paramsWithType, ", ")
