@@ -16486,18 +16486,18 @@
   },
   {
     "id": "health.rule.site_url_http.message",
-    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens travel over the network unencrypted.",
-    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL."
+    "translation": "Site URL is {{.url}}. Session cookies and auth tokens travel over the network unencrypted.",
+    "description": "Health dashboard finding detail when the Site URL uses http://; Site URL is the name of the setting in the System Console, and {{.url}} is the configured Site URL."
   },
   {
     "id": "health.rule.site_url_http.remediation",
-    "translation": "Serve Mattermost over HTTPS and update SiteURL to the https:// address.",
-    "description": "Health dashboard fix-it step for a Site URL that uses http://; 'SiteURL' is a config setting name and should not be translated."
+    "translation": "Serve Mattermost over HTTPS and update Site URL to the https:// address.",
+    "description": "Health dashboard fix-it step for a Site URL that uses http://; Site URL is the name of the setting in the System Console; keep https:// as is."
   },
   {
     "id": "health.rule.site_url_http.title",
-    "translation": "SiteURL uses http:// (not https://)",
-    "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+    "translation": "Site URL uses HTTP, not HTTPS",
+    "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; Site URL is the name of the setting in the System Console, and HTTP and HTTPS are protocol names."
   },
   {
     "id": "health.rule.smtp_not_configured.message",
