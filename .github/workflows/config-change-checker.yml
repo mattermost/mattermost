@@ -1,8 +1,7 @@
 # .github/workflows/config-change-checker.yml
 #
 # Automatically detects notable additions/removals across four source files
-# and appends structured release-note entries to the PR description under
-# the "## Release Notes" section.
+# and adds structured entries to the PR description's release-note block.
 #
 # Tracked files / directories:
 #   • server/public/model/config.go       — config struct field changes
@@ -59,6 +58,10 @@ jobs:
 
       - name: Install dependencies
         run: pip install requests==2.32.3 --quiet
+
+      - name: Unit tests
+        working-directory: .github/scripts
+        run: python3 -m unittest test_check_config_changes_ci -v
 
       - name: Detect changes and update PR description
         env:
