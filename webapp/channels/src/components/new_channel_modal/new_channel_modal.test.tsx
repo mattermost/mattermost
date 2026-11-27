@@ -1999,4 +1999,69 @@ describe('components/new_channel_modal - channel attributes', () => {
             });
         });
     });
+
+    describe('with a plugin channel-type option selected', () => {
+        const onCreate = jest.fn();
+
+        const stateWithPluginOption = {
+            ...state,
+            plugins: {
+                plugins: {},
+                components: {
+                    ChannelTypeOption: [{
+                        id: 'plugin-option',
+                        pluginId: 'test-plugin',
+                        label: 'Plugin Channel',
+                        description: 'A plugin channel type',
+                        icon: <i/>,
+                        isAvailable: () => true,
+                        onCreate,
+                    }],
+                },
+            },
+        } as DeepPartial<GlobalState>;
+
+        async function fillPluginForm() {
+            await userEvent.click(screen.getByText('Plugin Channel'));
+            await userEvent.type(screen.getByRole('textbox', {name: 'Channel name'}), 'My Channel');
+        }
+
+        async function selectProgram() {
+            await userEvent.click(getProgramCombobox());
+            await userEvent.click(screen.getByRole('option', {name: 'AURORA'}));
+        }
+
+        beforeEach(() => {
+            onCreate.mockReset();
+            onCreate.mockResolvedValue({status: 'created', channel: createdChannel});
+        });
+
+        test('shows the attribute form and blocks Create until the required value is set', async () => {
+            renderWithContext(<NewChannelModal/>, stateWithPluginOption);
+
+            await fillPluginForm();
+
+            expect(screen.getByTestId('channelAttributeRow-program')).toHaveTextContent('Program*');
+            expect(createButton()).toBeDisabled();
+
+            await selectProgram();
+
+            expect(createButton()).toBeEnabled();
+        });
+
+        test('passes the entered attribute values to the plugin onCreate callback', async () => {
+            renderWithContext(<NewChannelModal/>, stateWithPluginOption);
+
+            await fillPluginForm();
+            await selectProgram();
+            await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
+
+            await waitFor(() => expect(onCreate).toHaveBeenCalledTimes(1));
+            expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({
+                type: 'plugin-option',
+                attributeValues: {[program.id]: 'opt_a'},
+            }));
+            expect(createChannel).not.toHaveBeenCalled();
+        });
+    });
 });

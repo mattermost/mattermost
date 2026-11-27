@@ -176,6 +176,12 @@ export type NewChannelFormState = {
     managedCategoryName?: string;
     classificationId?: string;
     bannerText?: string;
+
+    /**
+     * Channel attribute values the user entered, keyed by property field id. A plugin that creates
+     * the channel itself should send these along with it so required attributes are enforced.
+     */
+    attributeValues?: Record<string, string | string[]>;
 };
 
 /**
