@@ -14,15 +14,13 @@ func init() {
 }
 
 var ldapProbeFailed = healthcheck.Rule{
-	Code:     "LDAP_PROBE_FAILED",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.ldap_probe_failed.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.ldap_probe_failed.remediation"),
-		DocsURL:       ldapDocsURL,
-		ConsolePath:   ldapConsolePath,
-	},
+	Code:           "LDAP_PROBE_FAILED",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.ldap_probe_failed.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.ldap_probe_failed.remediation"),
+	DocsURL:        ldapDocsURL,
+	ConsolePath:    ldapConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,
@@ -31,15 +29,13 @@ var ldapProbeFailed = healthcheck.Rule{
 }
 
 var samlProbeFailed = healthcheck.Rule{
-	Code:     "SAML_PROBE_FAILED",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.saml_probe_failed.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.saml_probe_failed.remediation"),
-		DocsURL:       samlDocsURL,
-		ConsolePath:   samlConsolePath,
-	},
+	Code:           "SAML_PROBE_FAILED",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.saml_probe_failed.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.saml_probe_failed.remediation"),
+	DocsURL:        samlDocsURL,
+	ConsolePath:    samlConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,
@@ -48,13 +44,11 @@ var samlProbeFailed = healthcheck.Rule{
 }
 
 var oauthProbeFailed = healthcheck.Rule{
-	Code:     "OAUTH_PROBE_FAILED",
-	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.oauth_probe_failed.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.oauth_probe_failed.remediation"),
-	},
+	Code:           "OAUTH_PROBE_FAILED",
+	Area:           model.AreaAuth,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.oauth_probe_failed.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.oauth_probe_failed.remediation"),
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,

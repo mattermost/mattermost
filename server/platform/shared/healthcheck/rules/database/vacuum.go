@@ -18,18 +18,16 @@ const (
 )
 
 var dbPostsDeadTuples = healthcheck.Rule{
-	Code:     "DB_POSTS_DEAD_TUPLES",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_posts_dead_tuples.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_posts_dead_tuples.remediation"),
-		DocsURL:       "https://www.postgresql.org/docs/current/routine-vacuuming.html",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "Database.PostsDeadTuples",
-	Eval:       healthcheck.Single(evalDBPostsDeadTuples),
+	Code:          "DB_POSTS_DEAD_TUPLES",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_posts_dead_tuples.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_posts_dead_tuples.remediation"),
+	DocsURL:       "https://www.postgresql.org/docs/current/routine-vacuuming.html",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "Database.PostsDeadTuples",
+	Eval:          healthcheck.Single(evalDBPostsDeadTuples),
 }
 
 func evalDBPostsDeadTuples(s *healthcheck.Snapshot) healthcheck.Result {
