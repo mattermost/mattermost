@@ -4,12 +4,14 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -18,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -1318,6 +1321,93 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, "token-a-updated", storedCfg.PluginSettings.Plugins["com.example.plugin-a"]["token"])
 		assert.Equal(t, "token-b", storedCfg.PluginSettings.Plugins["com.example.plugin-b"]["token"])
 	})
+}
+
+func TestConfigNilPluginStateEntry(t *testing.T) {
+	const installedPluginID = "testplugin"
+	const arbitraryPluginID = "com.example.someplugin"
+
+	patchWithNilState := func(t *testing.T, th *TestHelper, pluginID string) (*model.Config, *model.Response, error) {
+		patch := &model.Config{PluginSettings: model.PluginSettings{
+			PluginStates: map[string]*model.PluginState{pluginID: nil},
+		}}
+		return th.SystemAdminClient.PatchConfig(context.Background(), patch)
+	}
+
+	updateWithNilState := func(t *testing.T, th *TestHelper, pluginID string) (*model.Config, *model.Response, error) {
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		cfg.PluginSettings.PluginStates[pluginID] = nil
+		return th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+	}
+
+	testCases := []struct {
+		name            string
+		pluginID        string
+		installPlugin   bool
+		saveWithNilFunc func(t *testing.T, th *TestHelper, pluginID string) (*model.Config, *model.Response, error)
+	}{
+		{name: "patch config, arbitrary plugin id", pluginID: arbitraryPluginID, saveWithNilFunc: patchWithNilState},
+		{name: "patch config, installed plugin", pluginID: installedPluginID, installPlugin: true, saveWithNilFunc: patchWithNilState},
+		{name: "update config, arbitrary plugin id", pluginID: arbitraryPluginID, saveWithNilFunc: updateWithNilState},
+		{name: "update config, installed plugin", pluginID: installedPluginID, installPlugin: true, saveWithNilFunc: updateWithNilState},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			th := Setup(t)
+
+			if tc.installPlugin {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.PluginSettings.Enable = true
+					*cfg.PluginSettings.EnableUploads = true
+					*cfg.PluginSettings.RequirePluginSignature = false
+				})
+
+				path, _ := fileutils.FindDir("tests")
+				tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+				require.NoError(t, err)
+
+				manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+				require.NoError(t, err)
+				t.Cleanup(func() { os.RemoveAll("plugins/" + installedPluginID) })
+				require.Equal(t, installedPluginID, manifest.Id)
+
+				_, err = th.SystemAdminClient.EnablePlugin(context.Background(), installedPluginID)
+				require.NoError(t, err)
+			}
+
+			returnedCfg, resp, err := tc.saveWithNilFunc(t, th, tc.pluginID)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			_, present := returnedCfg.PluginSettings.PluginStates[tc.pluginID]
+			assert.False(t, present, "returned config should not contain a nil plugin state entry")
+
+			_, _, err = th.SystemAdminClient.GetConfig(context.Background())
+			require.NoError(t, err, "server should remain available after saving the config")
+
+			storedStates := th.App.Config().PluginSettings.PluginStates
+			_, present = storedStates[tc.pluginID]
+			assert.False(t, present, "stored config should not contain a nil plugin state entry")
+			for id, state := range storedStates {
+				assert.NotNilf(t, state, "stored PluginStates[%q] must not be nil", id)
+			}
+
+			if tc.installPlugin {
+				statuses, _, err := th.SystemAdminClient.GetPluginStatuses(context.Background())
+				require.NoError(t, err)
+				var found bool
+				for _, status := range statuses {
+					if status.PluginId == installedPluginID {
+						found = true
+						assert.Equal(t, model.PluginStateNotRunning, status.State)
+					}
+				}
+				assert.True(t, found, "installed plugin should still be reported")
+			}
+		})
+	}
 }
 
 func TestMigrateConfig(t *testing.T) {
