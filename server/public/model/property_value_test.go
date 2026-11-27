@@ -451,12 +451,35 @@ func TestValidatePropertyValueForFieldType(t *testing.T) {
 		}
 	})
 
+	t.Run("key", func(t *testing.T) {
+		for _, raw := range []string{``, `null`, ` null `, `1`, `42`, ` 7 `, `9223372036854775807`} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeKey, json.RawMessage(raw)), "value %q", raw)
+		}
+		for _, raw := range []string{`0`, `-1`, `1.5`, `1.0`, `1e3`, `1E3`, `01`, `+1`, `"1"`, `""`, `true`, `[]`, `[1]`, `{}`, `1 2`, `1x`, `1,`, `1 ]`, `9223372036854775808`, `NaN`} {
+			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeKey, json.RawMessage(raw)), "value %q", raw)
+		}
+	})
+
 	t.Run("other types are not checked", func(t *testing.T) {
 		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeDate, PropertyFieldType("bogus")} {
 			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`12`)), "type %q", fieldType)
 			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`true`)), "type %q", fieldType)
 		}
 	})
+}
+
+func TestParsePropertyKeyValue(t *testing.T) {
+	for raw, want := range map[string]int64{`1`: 1, `42`: 42, ` 7 `: 7, `9223372036854775807`: 9223372036854775807} {
+		n, ok := ParsePropertyKeyValue(json.RawMessage(raw))
+		assert.True(t, ok, "value %q", raw)
+		assert.Equal(t, want, n, "value %q", raw)
+	}
+
+	for _, raw := range []string{``, `null`, `0`, `-1`, `1.5`, `1e3`, `01`, `"1"`, `true`, `1 2`, `9223372036854775808`} {
+		n, ok := ParsePropertyKeyValue(json.RawMessage(raw))
+		assert.False(t, ok, "value %q", raw)
+		assert.Zero(t, n, "value %q", raw)
+	}
 }
 
 func TestBroadcastValueWithTemplate(t *testing.T) {

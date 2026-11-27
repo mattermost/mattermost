@@ -1286,6 +1286,11 @@ type PropertyFieldStore interface {
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
+	// AllocateKeyNumbers atomically reserves count consecutive numbers from the
+	// field's key counter and returns the last of them, so the range is
+	// last-count+1 through last. A number once handed out is never handed out
+	// again, whether or not the caller goes on to use it.
+	AllocateKeyNumbers(fieldID string, count int) (int64, error)
 	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
 	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
 	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)

@@ -9,7 +9,13 @@ import type {BoardsPropertyField, BoardsPropertyFieldOption} from '@mattermost/t
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {resolveOptionChipColors} from 'utils/property_option_colors';
 
-import {isPendingId, ValidationWarningOptionsUnique} from './board_attributes_utils';
+import {
+    isPendingId,
+    ValidationWarningOptionsUnique,
+    ValidationWarningPrefixInvalid,
+    ValidationWarningPrefixRequired,
+    ValidationWarningPrefixTaken,
+} from './board_attributes_utils';
 import BoardAttributesValues from './board_attributes_values';
 
 function makeField(overrides: Partial<BoardsPropertyField> = {}): BoardsPropertyField {
@@ -494,6 +500,116 @@ describe('BoardAttributesValues', () => {
             const lastCall = updateField.mock.calls[0][0] as BoardsPropertyField;
             const updatedOption = (lastCall.attrs.options ?? []).find((o) => o.id === 'opt-1');
             expect(updatedOption?.color).toBe('blue');
+        });
+    });
+
+    describe('key fields', () => {
+        const keyField = (overrides: Partial<BoardsPropertyField> = {}) => makeField({
+            type: 'key',
+            attrs: {sort_order: 0, prefix: ''},
+            ...overrides,
+        });
+
+        it('renders a prefix input instead of the placeholder dash', () => {
+            renderWithContext(
+                <BoardAttributesValues
+                    field={keyField()}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Prefix'})).toHaveValue('');
+            expect(screen.queryByText('—')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('board-attribute-key-preview')).not.toBeInTheDocument();
+        });
+
+        it('uppercases and strips characters outside A-Z and 0-9 as the user types', async () => {
+            const updateField = jest.fn();
+            const field = keyField();
+
+            renderWithContext(
+                <BoardAttributesValues
+                    field={field}
+                    updateField={updateField}
+                />,
+            );
+
+            await userEvent.type(screen.getByRole('textbox', {name: 'Prefix'}), 'm-m 1');
+
+            expect(updateField).toHaveBeenLastCalledWith({...field, attrs: {...field.attrs, prefix: '1'}});
+            expect(updateField.mock.calls.map(([f]) => f.attrs.prefix)).toEqual(['M', '', 'M', '', '1']);
+        });
+
+        it('uppercases pasted text and enforces the maximum length', async () => {
+            const updateField = jest.fn();
+
+            renderWithContext(
+                <BoardAttributesValues
+                    field={keyField()}
+                    updateField={updateField}
+                />,
+            );
+
+            const input = screen.getByRole('textbox', {name: 'Prefix'});
+            expect(input).toHaveAttribute('maxlength', '10');
+
+            await userEvent.click(input);
+            await userEvent.paste('ab-cd');
+
+            expect(updateField).toHaveBeenLastCalledWith(expect.objectContaining({
+                attrs: expect.objectContaining({prefix: 'ABCD'}),
+            }));
+        });
+
+        it('shows a preview of the first key once a prefix is set', () => {
+            renderWithContext(
+                <BoardAttributesValues
+                    field={keyField({attrs: {sort_order: 0, prefix: 'MM'}})}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Prefix'})).toHaveValue('MM');
+            expect(screen.getByTestId('board-attribute-key-preview')).toHaveTextContent('MM-1');
+        });
+
+        it('is read-only for a field flagged for delete', () => {
+            renderWithContext(
+                <BoardAttributesValues
+                    field={keyField({attrs: {sort_order: 0, prefix: 'MM'}, delete_at: 1700000099999})}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Prefix'})).toBeDisabled();
+        });
+
+        it('is read-only for a protected field', () => {
+            renderWithContext(
+                <BoardAttributesValues
+                    field={keyField({attrs: {sort_order: 0, prefix: 'MM'}, protected: true})}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Prefix'})).toBeDisabled();
+        });
+
+        it.each([
+            [ValidationWarningPrefixRequired, /please enter a prefix/i],
+            [ValidationWarningPrefixInvalid, /must start with a letter/i],
+            [ValidationWarningPrefixTaken, /already used by another key attribute/i],
+        ])('shows the %s warning', (warning, text) => {
+            renderWithContext(
+                <BoardAttributesValues
+                    field={keyField()}
+                    updateField={jest.fn()}
+                    warning={warning}
+                />,
+            );
+
+            expect(screen.getByText(text)).toBeInTheDocument();
+            expect(screen.getByRole('textbox', {name: 'Prefix'})).toBeInvalid();
         });
     });
 });

@@ -49,11 +49,17 @@
                     The type of property field. `rank` is a select whose
                     options are ordered by the `rank` each option carries.
                     `graph` is a hierarchical multiselect: its options can sit
-                    below other options.
-                  enum: [text, select, multiselect, date, user, multiuser, rank, graph, number, checkbox]
+                    below other options. `key` holds a number the server
+                    assigns to each value, shown as the field's `prefix` and
+                    the number, such as `MM-42`.
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph, number, checkbox, key]
                 attrs:
                   type: object
-                  description: Additional attributes for the property field
+                  description: >
+                    Additional attributes for the property field. A `key`
+                    field requires a `prefix` attr: 1 to 10 letters and digits
+                    starting with a letter, stored uppercased, and unique among
+                    the group's `key` fields.
                 target_type:
                   type: string
                   description: The scope level of the property

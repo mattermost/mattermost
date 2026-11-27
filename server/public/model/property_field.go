@@ -49,6 +49,11 @@ const (
 	// PropertyFieldTypeCheckbox holds a JSON boolean. False, null, or an absent
 	// value is unchecked. See ValidatePropertyValueForFieldType.
 	PropertyFieldTypeCheckbox PropertyFieldType = "checkbox"
+	// PropertyFieldTypeKey holds a positive JSON integer that the server assigns
+	// from a per-field counter, as Jira does for issue keys. A null or absent
+	// value is empty. The field's prefix lives in its attrs; clients display the
+	// value as prefix-number. See ValidatePropertyValueForFieldType.
+	PropertyFieldTypeKey PropertyFieldType = "key"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -133,6 +138,7 @@ var validPropertyFieldTypes = []PropertyFieldType{
 	PropertyFieldTypeGraph,
 	PropertyFieldTypeNumber,
 	PropertyFieldTypeCheckbox,
+	PropertyFieldTypeKey,
 }
 
 // IsValid reports whether t is a known field type.
@@ -143,11 +149,12 @@ func (t PropertyFieldType) IsValid() bool {
 // accessControlUnsupportedFieldTypes are the field types the access control
 // group does not accept. Access policies (CEL) and the attribute views they read
 // compare option names, user IDs, and strings; nothing in that pipeline knows
-// how to compare a number or a boolean, so these types are refused there rather
-// than half supported.
+// how to compare a number, a boolean, or a key, so these types are refused
+// there rather than half supported.
 var accessControlUnsupportedFieldTypes = []PropertyFieldType{
 	PropertyFieldTypeNumber,
 	PropertyFieldTypeCheckbox,
+	PropertyFieldTypeKey,
 }
 
 // SupportsAccessControl reports whether a field of this type may live in the

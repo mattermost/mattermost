@@ -10,6 +10,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -47,9 +48,184 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchGlobalAttributeListing", func(t *testing.T) { testSearchGlobalAttributeListing(t, rctx, ss) })
 	t.Run("GetLiveLinkedFieldsByObjectTypes", func(t *testing.T) { testGetLiveLinkedFieldsByObjectTypes(t, ss) })
 	t.Run("GetLiveUserFieldsByNames", func(t *testing.T) { testGetLiveUserFieldsByNames(t, ss) })
+	t.Run("AllocateKeyNumbers", func(t *testing.T) { testAllocateKeyNumbers(t, ss) })
+	t.Run("KeyPrefixIndex", func(t *testing.T) { testKeyPrefixIndex(t, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
+}
+
+func newKeyField(groupID, prefix string) *model.PropertyField {
+	return &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "key_" + model.NewId(),
+		Type:       model.PropertyFieldTypeKey,
+		ObjectType: model.PropertyFieldObjectTypePost,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttrPrefix: prefix},
+	}
+}
+
+func testAllocateKeyNumbers(t *testing.T, ss store.Store) {
+	t.Run("should reject an invalid field ID or count", func(t *testing.T) {
+		var eii *store.ErrInvalidInput
+
+		_, err := ss.PropertyField().AllocateKeyNumbers("not-an-id", 1)
+		require.ErrorAs(t, err, &eii)
+
+		for _, count := range []int{0, -1} {
+			_, err = ss.PropertyField().AllocateKeyNumbers(model.NewId(), count)
+			require.ErrorAs(t, err, &eii, "count %d", count)
+		}
+	})
+
+	t.Run("should allocate sequentially starting at 1", func(t *testing.T) {
+		fieldID := model.NewId()
+		for want := int64(1); want <= 5; want++ {
+			last, err := ss.PropertyField().AllocateKeyNumbers(fieldID, 1)
+			require.NoError(t, err)
+			require.Equal(t, want, last)
+		}
+	})
+
+	t.Run("should reserve a consecutive range and return its last number", func(t *testing.T) {
+		fieldID := model.NewId()
+
+		last, err := ss.PropertyField().AllocateKeyNumbers(fieldID, 3)
+		require.NoError(t, err)
+		require.Equal(t, int64(3), last)
+
+		last, err = ss.PropertyField().AllocateKeyNumbers(fieldID, 10)
+		require.NoError(t, err)
+		require.Equal(t, int64(13), last)
+
+		last, err = ss.PropertyField().AllocateKeyNumbers(fieldID, 1)
+		require.NoError(t, err)
+		require.Equal(t, int64(14), last)
+	})
+
+	t.Run("should keep an independent counter per field", func(t *testing.T) {
+		a, b := model.NewId(), model.NewId()
+
+		last, err := ss.PropertyField().AllocateKeyNumbers(a, 4)
+		require.NoError(t, err)
+		require.Equal(t, int64(4), last)
+
+		last, err = ss.PropertyField().AllocateKeyNumbers(b, 1)
+		require.NoError(t, err)
+		require.Equal(t, int64(1), last)
+
+		last, err = ss.PropertyField().AllocateKeyNumbers(a, 1)
+		require.NoError(t, err)
+		require.Equal(t, int64(5), last)
+	})
+
+	t.Run("should never hand out a number twice under concurrent allocation", func(t *testing.T) {
+		const workers = 20
+		const perWorker = 5
+		fieldID := model.NewId()
+
+		var wg sync.WaitGroup
+		var mu sync.Mutex
+		seen := make(map[int64]bool)
+		errs := make(chan error, workers)
+
+		for range workers {
+			wg.Go(func() {
+				last, err := ss.PropertyField().AllocateKeyNumbers(fieldID, perWorker)
+				if err != nil {
+					errs <- err
+					return
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				for n := last - perWorker + 1; n <= last; n++ {
+					if seen[n] {
+						errs <- fmt.Errorf("number %d allocated twice", n)
+					}
+					seen[n] = true
+				}
+			})
+		}
+		wg.Wait()
+		close(errs)
+
+		for err := range errs {
+			require.NoError(t, err)
+		}
+		require.Len(t, seen, workers*perWorker)
+		for n := int64(1); n <= workers*perWorker; n++ {
+			require.True(t, seen[n], "number %d was skipped", n)
+		}
+	})
+}
+
+func testKeyPrefixIndex(t *testing.T, ss store.Store) {
+	t.Run("should create a key field", func(t *testing.T) {
+		field, err := ss.PropertyField().Create(newKeyField(model.NewId(), "MM"))
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyFieldTypeKey, field.Type)
+
+		got, err := ss.PropertyField().Get(request.TestContext(t), field.GroupID, field.ID)
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyFieldTypeKey, got.Type)
+		require.Equal(t, "MM", got.Attrs[model.PropertyFieldAttrPrefix])
+	})
+
+	t.Run("should reject a duplicate prefix in the same group", func(t *testing.T) {
+		groupID := model.NewId()
+		_, err := ss.PropertyField().Create(newKeyField(groupID, "DUP"))
+		require.NoError(t, err)
+
+		field, err := ss.PropertyField().Create(newKeyField(groupID, "DUP"))
+		require.Nil(t, field)
+		var eii *store.ErrInvalidInput
+		require.ErrorAs(t, err, &eii)
+		require.Equal(t, model.PropertyFieldAttrPrefix, eii.Field)
+		require.Equal(t, "DUP", eii.Value)
+		require.ErrorContains(t, err, `"DUP"`)
+	})
+
+	t.Run("should reject updating a field to a prefix already in use", func(t *testing.T) {
+		groupID := model.NewId()
+		_, err := ss.PropertyField().Create(newKeyField(groupID, "TAKEN"))
+		require.NoError(t, err)
+		other, err := ss.PropertyField().Create(newKeyField(groupID, "FREE"))
+		require.NoError(t, err)
+
+		other.Attrs[model.PropertyFieldAttrPrefix] = "TAKEN"
+		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{other}, nil)
+		var eii *store.ErrInvalidInput
+		require.ErrorAs(t, err, &eii)
+		require.Equal(t, "TAKEN", eii.Value)
+	})
+
+	t.Run("should allow the same prefix in another group", func(t *testing.T) {
+		_, err := ss.PropertyField().Create(newKeyField(model.NewId(), "SAME"))
+		require.NoError(t, err)
+		_, err = ss.PropertyField().Create(newKeyField(model.NewId(), "SAME"))
+		require.NoError(t, err)
+	})
+
+	t.Run("should allow reusing a prefix after the first field is deleted", func(t *testing.T) {
+		groupID := model.NewId()
+		first, err := ss.PropertyField().Create(newKeyField(groupID, "GONE"))
+		require.NoError(t, err)
+		require.NoError(t, ss.PropertyField().Delete(groupID, first.ID))
+
+		_, err = ss.PropertyField().Create(newKeyField(groupID, "GONE"))
+		require.NoError(t, err)
+	})
+
+	t.Run("should not apply to fields that are not key fields", func(t *testing.T) {
+		groupID := model.NewId()
+		for range 2 {
+			field := newKeyField(groupID, "TXT")
+			field.Type = model.PropertyFieldTypeText
+			_, err := ss.PropertyField().Create(field)
+			require.NoError(t, err)
+		}
+	})
 }
 
 func testGetForGroupVersion(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -648,6 +648,40 @@ func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID,
 	return ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
 }
 
+// getExistingPropertyFields returns those of the fields the group holds, read
+// from the master so a replica that hasn't caught up with a field just created
+// or changed can't hide it. When some are not in the group, the rest are read
+// one at a time.
+func (ps *PropertyService) getExistingPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	rctx = store.RequestContextWithMaster(rctx)
+	fields, err := ps.getPropertyFields(rctx, groupID, ids)
+	if err == nil {
+		return fields, nil
+	}
+	if !errors.Is(err, ErrFieldNotFound) {
+		return nil, err
+	}
+
+	fields = fields[:0]
+	for _, id := range ids {
+		found, err := ps.getPropertyFields(rctx, groupID, []string{id})
+		if errors.Is(err, ErrFieldNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, found...)
+	}
+	return fields, nil
+}
+
+// allocateKeyNumbers reserves count numbers from a key field's counter and
+// returns the last of them, so the range is last-count+1 through last.
+func (ps *PropertyService) allocateKeyNumbers(fieldID string, count int) (int64, error) {
+	return ps.fieldStore.AllocateKeyNumbers(fieldID, count)
+}
+
 func (ps *PropertyService) getPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	fields, err := ps.fieldStore.GetMany(rctx, groupID, ids)
 	if err != nil {

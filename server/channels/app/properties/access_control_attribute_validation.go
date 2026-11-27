@@ -43,7 +43,7 @@ type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 //     actually changes, so pre-existing fields with non-conforming names
 //     remain editable on all other attrs (lenient grandfather)
 //   - refuses the field types access policies cannot read (number,
-//     checkbox; see PropertyFieldType.SupportsAccessControl)
+//     checkbox, key; see PropertyFieldType.SupportsAccessControl)
 //   - trims whitespace on string attrs
 //   - applies the visibility default when unset
 //   - clears attrs that don't apply to the field type (options on non-select,
@@ -179,7 +179,7 @@ func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool
 // brand new, with nothing to grandfather.
 func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field, existing *model.PropertyField) error {
 	// Access policies and the attribute views they read have no notion of a
-	// number or a boolean, so those types are refused here, whether a field is
+	// number, a boolean or an issue key, so those types are refused here, whether a field is
 	// created with one or changed to one, rather than stored and then ignored or
 	// misread by every rule.
 	if !field.Type.SupportsAccessControl() {

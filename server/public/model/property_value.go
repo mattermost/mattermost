@@ -293,12 +293,14 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 //     too large to be finite are refused. JSON cannot spell NaN or Infinity, so
 //     a value that would decode to either is refused as not being JSON at all.
 //   - checkbox: a JSON boolean. false means unchecked.
+//   - key: a positive JSON integer that fits an int64, written without a
+//     fraction or exponent.
 //
-// For both, an empty raw value or null is the empty value and is accepted.
+// For all of them, an empty raw value or null is the empty value and is accepted.
 // Other types are not checked here and always pass: their shape is left to the
 // hooks of the groups that constrain it, as it always has been.
 func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.RawMessage) error {
-	if fieldType != PropertyFieldTypeNumber && fieldType != PropertyFieldTypeCheckbox {
+	if fieldType != PropertyFieldTypeNumber && fieldType != PropertyFieldTypeCheckbox && fieldType != PropertyFieldTypeKey {
 		return nil
 	}
 
@@ -332,9 +334,38 @@ func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.Raw
 		default:
 			return errors.New("a checkbox field's value must be true or false")
 		}
+	case PropertyFieldTypeKey:
+		if _, ok := ParsePropertyKeyValue(trimmed); !ok {
+			return errors.New("a key field's value must be a positive integer")
+		}
 	}
 
 	return nil
+}
+
+// ParsePropertyKeyValue returns the number held by a key field's value. ok is
+// false for an empty value and for anything that is not a single positive
+// JSON integer fitting an int64.
+func ParsePropertyKeyValue(raw json.RawMessage) (n int64, ok bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 || trimmed[0] < '0' || trimmed[0] > '9' {
+		return 0, false
+	}
+	for _, c := range trimmed {
+		if c < '0' || c > '9' {
+			return 0, false
+		}
+	}
+	// JSON has no leading zeros, but ParseInt would accept them.
+	if len(trimmed) > 1 && trimmed[0] == '0' {
+		return 0, false
+	}
+
+	n, err := strconv.ParseInt(string(trimmed), 10, 64)
+	if err != nil || n <= 0 {
+		return 0, false
+	}
+	return n, true
 }
 
 // BroadcastValue returns what a websocket broadcast may carry in place of

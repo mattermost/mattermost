@@ -1,16 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ClientError} from '@mattermost/client';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {BoardsPropertyField} from '@mattermost/types/properties_board';
+
+import {Client4} from 'mattermost-redux/client';
+
+import {act, renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 
 import {
+    ValidationWarningPrefixInvalid,
+    ValidationWarningPrefixRequired,
+    ValidationWarningPrefixTaken,
+    getSaveErrorDetails,
     isCreatePending,
     isDeletePending,
     isOptionNameTaken,
     isPendingId,
     newPendingBoardField,
     newPendingId,
+    normalizeKeyPrefix,
+    sanitizeKeyPrefixInput,
     stripPendingOptionIds,
+    useBoardPropertyFields,
+    validateKeyPrefix,
 } from './board_attributes_utils';
 
 describe('board_attributes_utils', () => {
@@ -193,6 +207,173 @@ describe('board_attributes_utils', () => {
         test('still flags conflicts against other options when excluding', () => {
             // Renaming option 1 to "Done" should still conflict with option 3
             expect(isOptionNameTaken('Done', options, options[0])).toBe(true);
+        });
+    });
+
+    describe('key prefix helpers', () => {
+        const keyField = (id: string, prefix: string | undefined, overrides: Partial<BoardsPropertyField> = {}): BoardsPropertyField => ({
+            ...newPendingBoardField({name: id, type: 'key', attrs: {sort_order: 0, prefix}}),
+            ...overrides,
+        });
+
+        test('normalizeKeyPrefix trims and uppercases', () => {
+            expect(normalizeKeyPrefix('  mm1 ')).toBe('MM1');
+            expect(normalizeKeyPrefix(undefined)).toBe('');
+        });
+
+        test('sanitizeKeyPrefixInput uppercases, strips other characters and caps the length', () => {
+            expect(sanitizeKeyPrefixInput('mm-1 x!')).toBe('MM1X');
+            expect(sanitizeKeyPrefixInput('abcdefghijklmnop')).toBe('ABCDEFGHIJ');
+        });
+
+        test('requires a prefix', () => {
+            const field = keyField('a', '');
+            expect(validateKeyPrefix(field, {[field.id]: field})).toEqual({attrs: ValidationWarningPrefixRequired});
+
+            const blank = keyField('b', '   ');
+            expect(validateKeyPrefix(blank, {[blank.id]: blank})).toEqual({attrs: ValidationWarningPrefixRequired});
+
+            const missing = keyField('c', undefined);
+            expect(validateKeyPrefix(missing, {[missing.id]: missing})).toEqual({attrs: ValidationWarningPrefixRequired});
+        });
+
+        test.each(['1MM', 'M-M', 'M M', 'ABCDEFGHIJK', 'MÜ'])('rejects the invalid prefix %s', (prefix) => {
+            const field = keyField('a', prefix);
+            expect(validateKeyPrefix(field, {[field.id]: field})).toEqual({attrs: ValidationWarningPrefixInvalid});
+        });
+
+        test.each(['M', 'mm', 'MM1', 'ABCDEFGHIJ'])('accepts the valid prefix %s', (prefix) => {
+            const field = keyField('a', prefix);
+            expect(validateKeyPrefix(field, {[field.id]: field})).toBeUndefined();
+        });
+
+        test('flags a prefix another live key field uses, ignoring case and padding', () => {
+            const a = keyField('a', 'MM');
+            const b = keyField('b', ' mm ');
+            const fields = {[a.id]: a, [b.id]: b};
+
+            expect(validateKeyPrefix(a, fields)).toEqual({attrs: ValidationWarningPrefixTaken});
+            expect(validateKeyPrefix(b, fields)).toEqual({attrs: ValidationWarningPrefixTaken});
+        });
+
+        test('ignores fields pending deletion and non-key fields', () => {
+            const a = keyField('a', 'MM');
+            const deleted = keyField('b', 'MM', {create_at: 1, delete_at: 2});
+            const text = newPendingBoardField({name: 'c', type: 'text', attrs: {sort_order: 0, prefix: 'MM'}});
+
+            expect(validateKeyPrefix(a, {[a.id]: a, [deleted.id]: deleted, [text.id]: text})).toBeUndefined();
+        });
+    });
+
+    describe('getSaveErrorDetails', () => {
+        test('collects distinct server messages from per-field errors', () => {
+            const error = new Error('error processing operations', {
+                cause: {
+                    a: new ClientError('http://localhost', {message: 'prefix "MM" is already in use', url: '/x', status_code: 400}),
+                    b: new ClientError('http://localhost', {message: 'prefix "MM" is already in use', url: '/y', status_code: 400}),
+                },
+            });
+
+            expect(getSaveErrorDetails(error)).toEqual(['prefix "MM" is already in use']);
+        });
+
+        test('returns nothing without a cause', () => {
+            expect(getSaveErrorDetails(undefined)).toEqual([]);
+            expect(getSaveErrorDetails(new Error('boom'))).toEqual([]);
+        });
+    });
+
+    describe('useBoardPropertyFields key validation', () => {
+        const savedKeyField = (id: string, prefix: string): BoardsPropertyField => ({
+            ...newPendingBoardField({name: id, type: 'key', attrs: {sort_order: 0, prefix}}),
+            id,
+            create_at: 1700000000000,
+        });
+
+        beforeEach(() => {
+            jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([savedKeyField('existing', 'MM')]);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        const setup = async () => {
+            const hook = renderHookWithContext(() => useBoardPropertyFields());
+            await waitFor(() => expect(Object.keys(hook.result.current[0].data)).toContain('existing'));
+            return hook;
+        };
+
+        test('blocks a new key field with no prefix, then a duplicate prefix, until it is valid', async () => {
+            const hook = await setup();
+
+            act(() => {
+                hook.result.current[3].create({type: 'key'});
+            });
+
+            const newId = () => Object.keys(hook.result.current[0].data).find((id) => id !== 'existing') as string;
+            expect(hook.result.current[0].warnings?.[newId()]?.attrs).toBe(ValidationWarningPrefixRequired);
+
+            act(() => {
+                const field = hook.result.current[0].data[newId()];
+                hook.result.current[3].update({...field, attrs: {...field.attrs, prefix: 'MM'}});
+            });
+            expect(hook.result.current[0].warnings?.[newId()]?.attrs).toBe(ValidationWarningPrefixTaken);
+
+            act(() => {
+                const field = hook.result.current[0].data[newId()];
+                hook.result.current[3].update({...field, attrs: {...field.attrs, prefix: 'ENG'}});
+            });
+            expect(hook.result.current[0].warnings).toBeUndefined();
+        });
+
+        test('a duplicate prefix is fine once the other field is deleted', async () => {
+            const hook = await setup();
+
+            act(() => {
+                hook.result.current[3].create({type: 'key', attrs: {sort_order: 0, prefix: 'MM'}});
+            });
+            expect(Object.values(hook.result.current[0].warnings ?? {})).not.toHaveLength(0);
+
+            act(() => {
+                hook.result.current[3].delete('existing');
+            });
+            expect(hook.result.current[0].warnings).toBeUndefined();
+        });
+
+        test('creates the key field with its prefix and surfaces the server error on failure', async () => {
+            const hook = await setup();
+            const create = jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(
+                new ClientError('http://localhost', {message: 'prefix "ENG" is already in use', url: '/x', status_code: 400}),
+            );
+
+            act(() => {
+                hook.result.current[3].create({type: 'key', attrs: {sort_order: 0, prefix: 'ENG'}});
+            });
+
+            await act(async () => {
+                await hook.result.current[2].commit();
+            });
+
+            expect(create).toHaveBeenCalledWith('boards', 'post', expect.objectContaining({type: 'key', attrs: expect.objectContaining({prefix: 'ENG'})}));
+            expect(getSaveErrorDetails(hook.result.current[2].error)).toEqual(['prefix "ENG" is already in use']);
+        });
+
+        test('does not send a stale prefix for a field that is no longer a key', async () => {
+            const hook = await setup();
+            const create = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as never);
+
+            act(() => {
+                hook.result.current[3].create({type: 'text', attrs: {sort_order: 0, prefix: 'ENG'}});
+            });
+
+            await act(async () => {
+                await hook.result.current[2].commit();
+            });
+
+            expect(create).toHaveBeenCalledTimes(1);
+            expect(create.mock.calls[0][2]).toEqual(expect.objectContaining({type: 'text'}));
+            expect(create.mock.calls[0][2].attrs).not.toHaveProperty('prefix');
         });
     });
 });

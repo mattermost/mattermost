@@ -56,6 +56,7 @@ export function canRenderPropertyValue(field: PropertyField): boolean {
     case 'select':
     case 'rank':
     case 'multiselect':
+    case 'key':
         return true;
 
     default:

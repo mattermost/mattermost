@@ -106,7 +106,7 @@ export function isSameUserAttributeValue(a?: UserAttributeValue, b?: UserAttribu
 }
 
 export function getEmptyUserAttributeValue(field: UserPropertyField): UserAttributeValue {
-    // Number and checkbox fields cannot be user attributes (the access control group refuses
+    // Number, checkbox and key fields cannot be user attributes (the access control group refuses
     // them), so those cases are never reached; they are listed to keep the switch exhaustive.
     switch (field.type) {
     case 'text':
@@ -116,6 +116,7 @@ export function getEmptyUserAttributeValue(field: UserPropertyField): UserAttrib
     case 'user':
     case 'number':
     case 'checkbox':
+    case 'key':
         return '';
     case 'multiselect':
     case 'graph':

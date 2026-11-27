@@ -70,8 +70,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
-	t.Run("number and checkbox are valid types", func(t *testing.T) {
-		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+	t.Run("number, checkbox and key are valid types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox, PropertyFieldTypeKey} {
 			pf := &PropertyField{
 				ID:         NewId(),
 				GroupID:    NewId(),
@@ -1312,8 +1312,8 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		require.NoError(t, patch.IsValid())
 	})
 
-	t.Run("number and checkbox are accepted types", func(t *testing.T) {
-		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox} {
+	t.Run("number, checkbox and key are accepted types", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeNumber, PropertyFieldTypeCheckbox, PropertyFieldTypeKey} {
 			patch := &PropertyFieldPatch{Type: new(fieldType)}
 			require.NoError(t, patch.IsValid(), "type %q", fieldType)
 		}
@@ -2265,6 +2265,7 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 		PropertyFieldTypeMultiuser:   false,
 		PropertyFieldTypeNumber:      false,
 		PropertyFieldTypeCheckbox:    false,
+		PropertyFieldTypeKey:         false,
 		PropertyFieldType("bogus"):   false,
 	}
 
@@ -2296,7 +2297,7 @@ func TestPropertyFieldType_IsValid(t *testing.T) {
 		PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeMultiselect,
 		PropertyFieldTypeDate, PropertyFieldTypeUser, PropertyFieldTypeMultiuser,
 		PropertyFieldTypeRank, PropertyFieldTypeGraph, PropertyFieldTypeNumber,
-		PropertyFieldTypeCheckbox,
+		PropertyFieldTypeCheckbox, PropertyFieldTypeKey,
 	} {
 		assert.True(t, fieldType.IsValid(), "IsValid for %q", fieldType)
 	}
@@ -2316,6 +2317,7 @@ func TestPropertyFieldType_SupportsAccessControl(t *testing.T) {
 		PropertyFieldTypeMultiuser:   true,
 		PropertyFieldTypeNumber:      false,
 		PropertyFieldTypeCheckbox:    false,
+		PropertyFieldTypeKey:         false,
 	}
 
 	for fieldType, expected := range cases {

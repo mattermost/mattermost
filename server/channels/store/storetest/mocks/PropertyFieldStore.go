@@ -15,6 +15,34 @@ type PropertyFieldStore struct {
 	mock.Mock
 }
 
+// AllocateKeyNumbers provides a mock function with given fields: fieldID, count
+func (_m *PropertyFieldStore) AllocateKeyNumbers(fieldID string, count int) (int64, error) {
+	ret := _m.Called(fieldID, count)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AllocateKeyNumbers")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int) (int64, error)); ok {
+		return rf(fieldID, count)
+	}
+	if rf, ok := ret.Get(0).(func(string, int) int64); ok {
+		r0 = rf(fieldID, count)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(fieldID, count)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CheckPropertyNameConflict provides a mock function with given fields: field, excludeID
 func (_m *PropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
 	ret := _m.Called(field, excludeID)
