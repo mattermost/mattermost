@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"cmp"
+	"context"
 	"database/sql"
 	"fmt"
 	"reflect"
@@ -3553,14 +3554,14 @@ func (s *SqlPostStore) RefreshPostStats() error {
 	// is not a very frequent activity, we accept the tradeoff to let the
 	// refresh happen as fast as possible.
 
-	postsCtx, postsCancel := s.analyticsContext()
+	postsCtx, postsCancel := s.analyticsContext(context.Background())
 	defer postsCancel()
 
 	if _, err := s.GetMaster().ExecContext(postsCtx, "REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view posts_by_team_day")
 	}
 
-	botPostsCtx, botPostsCancel := s.analyticsContext()
+	botPostsCtx, botPostsCancel := s.analyticsContext(context.Background())
 	defer botPostsCancel()
 
 	if _, err := s.GetMaster().ExecContext(botPostsCtx, "REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {

@@ -3,7 +3,11 @@
 
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
+)
 
 const (
 	CurrentSupportPacketVersion = 2
@@ -228,6 +232,88 @@ type SupportPacketJobList struct {
 	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
+
+	// JobSummary maps each job type with runs in the Jobs table to a summary of them.
+	// Types removed by job cleanup (CleanupJobsThresholdDays) are not listed.
+	// Absent when not collected; empty when collected from an empty Jobs table.
+	JobSummary SupportPacketJobSummary `yaml:"job_summary,omitempty"`
+}
+
+// SupportPacketJobSummary maps a job type to a summary of its runs.
+type SupportPacketJobSummary map[string]*SupportPacketJobTypeSummary
+
+// IsZero makes omitempty drop only a nil summary, so an empty one is still written as collected.
+func (s SupportPacketJobSummary) IsZero() bool {
+	return s == nil
+}
+
+// SupportPacketJobTypeSummary summarizes the runs of one job type. All timestamps are the runs' CreateAt in
+// epoch milliseconds; in YAML they are formatted like the jobs' own timestamps.
+type SupportPacketJobTypeSummary struct {
+	LastRunID       string // job_id in the server logs
+	LastRunStatus   string
+	LastRunCreateAt int64
+	// LastRunError is truncated to 2000 runes; the full error may be in the server logs under LastRunID.
+	LastRunError  string
+	LastSuccessAt int64 // CreateAt of the newest success or warning; 0 = never
+	// RunsCreated counts runs of this type created in the 30 days before the packet was
+	// generated, whatever their status (pending, in_progress and canceled included).
+	RunsCreated int64
+	// RunsFailed counts those of RunsCreated that ended with status error.
+	RunsFailed int64
+}
+
+// supportPacketJobTypeSummaryYAML is how SupportPacketJobTypeSummary is written to jobs.yaml.
+type supportPacketJobTypeSummaryYAML struct {
+	LastRunID       string `yaml:"last_run_id"`
+	LastRunStatus   string `yaml:"last_run_status"`
+	LastRunCreateAt string `yaml:"last_run_create_at"`
+	LastRunError    string `yaml:"last_run_error,omitempty"`
+	LastSuccessAt   string `yaml:"last_success_at,omitempty"`
+	RunsCreated     int64  `yaml:"runs_created"`
+	RunsFailed      int64  `yaml:"runs_failed"`
+}
+
+func (s *SupportPacketJobTypeSummary) MarshalYAML() (any, error) {
+	out := supportPacketJobTypeSummaryYAML{
+		LastRunID:       s.LastRunID,
+		LastRunStatus:   s.LastRunStatus,
+		LastRunCreateAt: timeutils.FormatMillis(s.LastRunCreateAt),
+		LastRunError:    s.LastRunError,
+		RunsCreated:     s.RunsCreated,
+		RunsFailed:      s.RunsFailed,
+	}
+	if s.LastSuccessAt != 0 {
+		out.LastSuccessAt = timeutils.FormatMillis(s.LastSuccessAt)
+	}
+	return out, nil
+}
+
+func (s *SupportPacketJobTypeSummary) UnmarshalYAML(unmarshal func(any) error) error {
+	var in supportPacketJobTypeSummaryYAML
+	if err := unmarshal(&in); err != nil {
+		return err
+	}
+
+	lastRunCreateAt, err := timeutils.ParseFormatedMillis(in.LastRunCreateAt)
+	if err != nil {
+		return err
+	}
+	lastSuccessAt, err := timeutils.ParseFormatedMillis(in.LastSuccessAt)
+	if err != nil {
+		return err
+	}
+
+	*s = SupportPacketJobTypeSummary{
+		LastRunID:       in.LastRunID,
+		LastRunStatus:   in.LastRunStatus,
+		LastRunCreateAt: lastRunCreateAt,
+		LastRunError:    in.LastRunError,
+		LastSuccessAt:   lastSuccessAt,
+		RunsCreated:     in.RunsCreated,
+		RunsFailed:      in.RunsFailed,
+	}
+	return nil
 }
 
 // SupportPacketPermissionInfo contains the list of schemes and the list of roles.

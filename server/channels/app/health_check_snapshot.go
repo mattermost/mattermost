@@ -43,6 +43,9 @@ func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, erro
 	snapshot.Jobs, err = a.getSupportPacketJobList(rctx)
 	sections[model.SectionJobs] = err
 
+	snapshot.Jobs.JobSummary, err = a.getSupportPacketJobSummary(rctx)
+	sections[model.SectionJobSummary] = err
+
 	snapshot.Plugins, err = a.getPluginsList(rctx)
 	sections[model.SectionPlugins] = err
 

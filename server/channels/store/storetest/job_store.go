@@ -34,6 +34,7 @@ func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("JobUpdateOptimistically", func(t *testing.T) { testJobUpdateOptimistically(t, rctx, ss) })
 	t.Run("JobUpdateStatusUpdateStatusOptimistically", func(t *testing.T) { testJobUpdateStatusUpdateStatusOptimistically(t, rctx, ss) })
 	t.Run("JobGetByTypeAndData", func(t *testing.T) { testJobGetByTypeAndData(t, rctx, ss) })
+	t.Run("JobGetTypeSummaries", func(t *testing.T) { testJobGetTypeSummaries(t, rctx, ss) })
 	t.Run("JobDelete", func(t *testing.T) { testJobDelete(t, rctx, ss) })
 	t.Run("JobCleanup", func(t *testing.T) { testJobCleanup(t, rctx, ss) })
 }
@@ -828,6 +829,119 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, rctx request.CT
 	require.Equal(t, model.JobStatusSuccess, updatedJob.Status)
 	require.Equal(t, startAtSet, updatedJob.StartAt)
 	require.Greater(t, updatedJob.LastActivityAt, lastUpdateAt)
+}
+
+func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
+	since := model.GetMillis() - 30*24*time.Hour.Milliseconds()
+	stale, busy, neverSucceeded, warned, boundary, tied := model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId()
+
+	for _, job := range []*model.Job{
+		{Type: stale, CreateAt: since - 2000, Status: model.JobStatusSuccess},
+		{Type: stale, CreateAt: since - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "stale failure"}},
+
+		{Type: busy, CreateAt: since - 1000, Status: model.JobStatusSuccess},
+		{Type: busy, CreateAt: since + 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "busy failure"}},
+		{Type: busy, CreateAt: since + 2000, Status: model.JobStatusCanceled},
+		{Type: busy, CreateAt: since + 3000, Status: model.JobStatusPending},
+		{Type: busy, CreateAt: since + 4000, Status: model.JobStatusInProgress},
+
+		{Type: neverSucceeded, CreateAt: since + 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "first"}},
+		{Type: neverSucceeded, CreateAt: since + 2000, Status: model.JobStatusError, Data: model.StringMap{"error": "second"}},
+
+		{Type: warned, CreateAt: since + 1000, Status: model.JobStatusSuccess},
+		{Type: warned, CreateAt: since + 2000, Status: model.JobStatusWarning, Data: model.StringMap{"error": "partly exported"}},
+
+		{Type: boundary, CreateAt: since - 1, Status: model.JobStatusError},
+		{Type: boundary, CreateAt: since, Status: model.JobStatusError},
+
+		{Id: "a" + model.NewId()[1:], Type: tied, CreateAt: since + 1000, Status: model.JobStatusSuccess},
+		{Id: "z" + model.NewId()[1:], Type: tied, CreateAt: since + 1000, Status: model.JobStatusError},
+	} {
+		if job.Id == "" {
+			job.Id = model.NewId()
+		}
+		_, err := ss.Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, err := ss.Job().Delete(job.Id)
+			require.NoError(t, err)
+		})
+	}
+
+	summaries, err := ss.Job().GetTypeSummaries(rctx, since)
+	require.NoError(t, err)
+
+	byType := map[string]store.JobTypeSummary{}
+	for _, summary := range summaries {
+		byType[summary.Type] = *summary
+	}
+	lastRun := func(jobType string) model.SupportPacketJobTypeSummary {
+		t.Helper()
+		summary, ok := byType[jobType]
+		require.True(t, ok, "job type %q is not listed", jobType)
+		require.True(t, model.IsValidId(summary.LastRunID))
+		summary.LastRunID = ""
+		return summary.SupportPacketJobTypeSummary
+	}
+
+	t.Run("a type with only runs before the window is listed with no recent runs", func(t *testing.T) {
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
+			LastRunStatus:   model.JobStatusError,
+			LastRunCreateAt: since - 1000,
+			LastRunError:    "stale failure",
+			LastSuccessAt:   since - 2000,
+		}, lastRun(stale))
+	})
+
+	t.Run("runs in the window are counted whatever their status", func(t *testing.T) {
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
+			LastRunStatus:   model.JobStatusInProgress,
+			LastRunCreateAt: since + 4000,
+			LastSuccessAt:   since - 1000,
+			RunsCreated:     4,
+			RunsFailed:      1,
+		}, lastRun(busy))
+	})
+
+	t.Run("a type that never succeeded has no last success", func(t *testing.T) {
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
+			LastRunStatus:   model.JobStatusError,
+			LastRunCreateAt: since + 2000,
+			LastRunError:    "second",
+			RunsCreated:     2,
+			RunsFailed:      2,
+		}, lastRun(neverSucceeded))
+	})
+
+	t.Run("a warning counts as a success and not as a failure", func(t *testing.T) {
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
+			LastRunStatus:   model.JobStatusWarning,
+			LastRunCreateAt: since + 2000,
+			LastRunError:    "partly exported",
+			LastSuccessAt:   since + 2000,
+			RunsCreated:     2,
+		}, lastRun(warned))
+	})
+
+	t.Run("a run created exactly at the window start is counted", func(t *testing.T) {
+		assert.Equal(t, model.SupportPacketJobTypeSummary{
+			LastRunStatus:   model.JobStatusError,
+			LastRunCreateAt: since,
+			RunsCreated:     1,
+			RunsFailed:      1,
+		}, lastRun(boundary))
+	})
+
+	t.Run("runs created in the same millisecond resolve to the highest id", func(t *testing.T) {
+		assert.Equal(t, model.JobStatusError, byType[tied].LastRunStatus)
+		assert.Equal(t, "z", byType[tied].LastRunID[:1])
+	})
+
+	t.Run("the last run id is the newest run's", func(t *testing.T) {
+		newest, err := ss.Job().GetNewestJobByStatusAndType(model.JobStatusInProgress, busy)
+		require.NoError(t, err)
+		assert.Equal(t, newest.Id, byType[busy].LastRunID)
+	})
 }
 
 func testJobDelete(t *testing.T, rctx request.CTX, ss store.Store) {

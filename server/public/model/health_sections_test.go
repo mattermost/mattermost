@@ -71,7 +71,7 @@ func TestAllWorkspaceSectionsComplete(t *testing.T) {
 	}
 
 	declared := []WorkspaceSection{
-		SectionStats, SectionJobs, SectionPlugins, SectionConfig, SectionVersion,
+		SectionStats, SectionJobs, SectionJobSummary, SectionPlugins, SectionConfig, SectionVersion,
 	}
 	for _, section := range declared {
 		require.Contains(t, inAll, section, "constant %q missing from AllWorkspaceSections", section)

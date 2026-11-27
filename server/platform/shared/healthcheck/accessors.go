@@ -128,6 +128,16 @@ func (s *Snapshot) JobsFor(jobType string) ([]*model.Job, bool) {
 	}
 }
 
+// JobSummaryFor returns the summary of jobType's runs, or ok=false when the job summary was not collected.
+// A nil summary with ok=true means the type has no runs in the Jobs table.
+func (s *Snapshot) JobSummaryFor(jobType string) (*model.SupportPacketJobTypeSummary, bool) {
+	if !s.Has(model.SectionJobSummary) || s.Jobs == nil || s.Jobs.JobSummary == nil {
+		return nil, false
+	}
+
+	return s.Jobs.JobSummary[jobType], true
+}
+
 // LeaderDiag returns the leader's diagnostics, or ok=false when they were not collected or section recorded an error.
 func (s *Snapshot) LeaderDiag(section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
 	leader, ok := s.Leader()

@@ -10,8 +10,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -698,6 +700,133 @@ func TestGetSupportPacketJobList(t *testing.T) {
 	})
 }
 
+// stubJobSummaryStore replaces only the result of the job summary query.
+type stubJobSummaryStore struct {
+	store.Store
+	rows []*store.JobTypeSummary
+	err  error
+}
+
+func (s stubJobSummaryStore) Job() store.JobStore {
+	return stubJobSummaryJobStore{s.Store.Job(), s.rows, s.err}
+}
+
+type stubJobSummaryJobStore struct {
+	store.JobStore
+	rows []*store.JobTypeSummary
+	err  error
+}
+
+func (s stubJobSummaryJobStore) GetTypeSummaries(request.CTX, int64) ([]*store.JobTypeSummary, error) {
+	return s.rows, s.err
+}
+
+// stubJobSummary makes the job summary query return rows and err until the test ends.
+func stubJobSummary(t *testing.T, th *TestHelper, rows []*store.JobTypeSummary, err error) {
+	original := th.App.Srv().Store()
+	th.App.Srv().SetStore(stubJobSummaryStore{Store: original, rows: rows, err: err})
+	t.Cleanup(func() { th.App.Srv().SetStore(original) })
+}
+
+func TestTruncateJobError(t *testing.T) {
+	t.Run("an error at the limit is kept whole", func(t *testing.T) {
+		exact := strings.Repeat("x", maxJobErrorRunes)
+		assert.Equal(t, exact, truncateJobError(exact))
+	})
+
+	t.Run("a long error is truncated on a rune boundary", func(t *testing.T) {
+		got := truncateJobError(strings.Repeat("ü", maxJobErrorRunes+10))
+
+		assert.True(t, utf8.ValidString(got))
+		assert.Equal(t, strings.Repeat("ü", maxJobErrorRunes)+"…", got)
+	})
+}
+
+func TestSupportPacketJobSummary(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	readJobsFile := func(t *testing.T) (*model.SupportPacketJobList, string, []model.FileData) {
+		t.Helper()
+
+		// The CPU profiler is process-wide, so a parallel test must not start it.
+		files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: model.NewPointer(time.Duration(0))})
+		for _, file := range files {
+			if file.Filename == model.SupportPacketJobsFileName {
+				var jobs model.SupportPacketJobList
+				require.NoError(t, yaml.Unmarshal(file.Body, &jobs))
+				return &jobs, string(file.Body), files
+			}
+		}
+		require.FailNow(t, "the Support Packet has no jobs.yaml")
+		return nil, "", nil
+	}
+
+	// A type outside the per-type job lists, so only the summary reports it.
+	jobType := model.JobTypeRefreshMaterializedViews
+	now := model.GetMillis()
+	jobError := `LDAP Result Code 200 "Network Error": dial tcp ldap.example.com:389: ` + strings.Repeat("ü", maxJobErrorRunes)
+	succeeded := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 2000, Status: model.JobStatusSuccess}
+	failed := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": jobError}}
+	outsideWindow := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - (jobSummaryWindow + time.Hour).Milliseconds(), Status: model.JobStatusError}
+	for _, job := range []*model.Job{succeeded, failed, outsideWindow} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, err := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, err)
+		})
+	}
+
+	t.Run("jobs.yaml summarizes a type outside the job lists, with a truncated error", func(t *testing.T) {
+		jobs, body, _ := readJobsFile(t)
+
+		assert.Contains(t, body, "\njob_summary:\n")
+		require.Contains(t, jobs.JobSummary, jobType)
+		summary := jobs.JobSummary[jobType]
+
+		assert.Equal(t, truncateJobError(jobError), summary.LastRunError)
+
+		summary.LastRunError = ""
+		assert.Equal(t, &model.SupportPacketJobTypeSummary{
+			LastRunID:       failed.Id,
+			LastRunStatus:   model.JobStatusError,
+			LastRunCreateAt: failed.CreateAt,
+			LastSuccessAt:   succeeded.CreateAt,
+			RunsCreated:     2,
+			RunsFailed:      1,
+		}, summary)
+	})
+
+	t.Run("a failed summary query leaves the job lists and omits the summary", func(t *testing.T) {
+		stubJobSummary(t, th, nil, errors.New("job summary query failed"))
+
+		jobs, body, files := readJobsFile(t)
+
+		assert.NotContains(t, body, "job_summary")
+		assert.Nil(t, jobs.JobSummary)
+		assert.Contains(t, body, "data_retention_jobs:")
+
+		var warnings string
+		for _, file := range files {
+			if file.Filename == model.SupportPacketErrorFile {
+				warnings = string(file.Body)
+			}
+		}
+		assert.Contains(t, warnings, "job summary query failed")
+	})
+
+	t.Run("an empty Jobs table is written as a collected, empty summary", func(t *testing.T) {
+		stubJobSummary(t, th, []*store.JobTypeSummary{}, nil)
+
+		jobs, body, _ := readJobsFile(t)
+
+		assert.Contains(t, body, "\njob_summary: {}\n")
+		assert.NotNil(t, jobs.JobSummary)
+		assert.Empty(t, jobs.JobSummary)
+	})
+}
+
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -967,6 +1096,29 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 					ElasticPostIndexingJobs:    []*model.Job{jobFactory("job-index", model.JobTypeElasticsearchPostIndexing)},
 					ElasticPostAggregationJobs: []*model.Job{jobFactory("job-agg", model.JobTypeElasticsearchPostAggregation)},
 					MigrationJobs:              []*model.Job{jobFactory("job-migrate", model.JobTypeMigrations)},
+					JobSummary: map[string]*model.SupportPacketJobTypeSummary{
+						model.JobTypeRefreshMaterializedViews: {
+							LastRunID:       "job-refresh",
+							LastRunStatus:   model.JobStatusError,
+							LastRunCreateAt: 4444,
+							LastRunError:    "error refreshing materialized view poststats",
+							LastSuccessAt:   1111,
+							RunsCreated:     30,
+							RunsFailed:      2,
+						},
+						model.JobTypeDeleteEmptyDraftsMigration: {
+							LastRunID:       "job-drafts",
+							LastRunStatus:   model.JobStatusSuccess,
+							LastRunCreateAt: 1111,
+							LastSuccessAt:   1111,
+						},
+						model.JobTypeExportProcess: {
+							LastRunID:       "job-export-process",
+							LastRunStatus:   model.JobStatusPending,
+							LastRunCreateAt: 5555,
+							RunsCreated:     1,
+						},
+					},
 				}, nil)
 			},
 		},

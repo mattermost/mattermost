@@ -54,3 +54,19 @@ elastic_post_indexing_jobs:
   data: {}
 elastic_post_aggregation_jobs: []
 migration_jobs: []
+job_summary:
+  ldap_sync:
+    last_run_id: k3d8wq1zn5gxbpo7r9yfjt4hue
+    last_run_status: success
+    last_run_create_at: "2026-09-25T09:00:00Z"
+    last_success_at: "2026-09-25T09:00:00Z"
+    runs_created: 720
+    runs_failed: 0
+  refresh_materialized_views:
+    last_run_id: w5ne8hq2tgk7cx3rbo9yzf1mjd
+    last_run_status: error
+    last_run_create_at: "2026-09-25T00:00:00Z"
+    last_run_error: 'error refreshing materialized view poststats: pq: canceling statement due to statement timeout'
+    last_success_at: "2026-09-20T00:00:00Z"
+    runs_created: 30
+    runs_failed: 5

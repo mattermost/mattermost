@@ -492,8 +492,8 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 	return ss.GetMaster()
 }
 
-func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
+func (ss *SqlStore) analyticsContext(parent context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(parent, time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
 // noTimeoutContext returns a context that suppresses automatic timeout injection
