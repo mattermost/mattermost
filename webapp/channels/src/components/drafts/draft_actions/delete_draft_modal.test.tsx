@@ -37,34 +37,23 @@ describe('components/drafts/draft_actions/delete_draft_modal', () => {
         onExited: jest.fn(),
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <DeleteDraftModal
-                {...baseProps}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     it('should have called onConfirm', async () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <DeleteDraftModal {...baseProps}/>,
         );
 
         const user = userEvent.setup();
         await user.click(screen.getByRole('button', {name: /yes, delete/i}));
         expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
-        expect(container).toMatchSnapshot();
     });
 
     it('should have called onExited', async () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <DeleteDraftModal {...baseProps}/>,
         );
 
         const user = userEvent.setup();
         await user.click(screen.getByRole('button', {name: 'onExited'}));
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
-        expect(container).toMatchSnapshot();
     });
 });

@@ -11,8 +11,7 @@ import {General} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {LicenseSkus, SelfHostedProducts} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import {LicenseSkus} from 'utils/constants';
 
 import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
 import type {EnterpriseEditionProps} from './enterprise_edition_left_panel';
@@ -70,19 +69,6 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
                     maxUsersLimit: 0,
                     singleChannelGuestCount: 0,
                     singleChannelGuestLimit: 0,
-                },
-            },
-            hostedCustomer: {
-                products: {
-                    products: {
-                        prod_professional: TestHelper.getProductMock({
-                            id: 'prod_professional',
-                            name: 'Professional',
-                            sku: SelfHostedProducts.PROFESSIONAL,
-                            price_per_seat: 7.5,
-                        }),
-                    },
-                    productsLoaded: true,
                 },
             },
         },

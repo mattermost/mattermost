@@ -123,7 +123,7 @@ const state: GlobalState = {
             accounts: {},
         },
         admin: {
-            logs: [],
+            logs: {},
             plainLogs: [],
             audits: {},
             config: {},
@@ -216,12 +216,6 @@ const state: GlobalState = {
             },
             errors: {},
         },
-        hostedCustomer: {
-            products: {
-                products: {},
-                productsLoaded: false,
-            },
-        },
         usage: {
             files: {
                 totalStorage: 0,
@@ -247,6 +241,7 @@ const state: GlobalState = {
         properties: {
             fields: {byObjectType: {}, byId: {}},
             values: {byTargetId: {}, byFieldId: {}},
+            loadedValueTargets: {},
             groups: {byId: {}, byName: {}},
         },
         renderPermissions: {

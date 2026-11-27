@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"net/http"
@@ -36,27 +37,19 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, fmt.Errorf("cannot check if channel %s is shared: %w", sc.ChannelId, err)
 	}
 
-	if sc.TeamId == "" {
-		sc.TeamId = channel.TeamId
-	}
+	sc.TeamId = cmp.Or(sc.TeamId, channel.TeamId)
 	if sc.Type == "" {
 		sc.Type = channel.Type
 	}
-	if sc.ShareName == "" {
-		sc.ShareName = channel.Name
-	}
+	sc.ShareName = cmp.Or(sc.ShareName, channel.Name)
 	if sc.ShareDisplayName == "" {
 		sc.ShareDisplayName = channel.DisplayName
 	}
-	if sc.SharePurpose == "" {
-		sc.SharePurpose = channel.Purpose
-	}
+	sc.SharePurpose = cmp.Or(sc.SharePurpose, channel.Purpose)
 	if sc.ShareHeader == "" {
 		sc.ShareHeader = channel.Header
 	}
-	if sc.CreatorId == "" {
-		sc.CreatorId = channel.CreatorId
-	}
+	sc.CreatorId = cmp.Or(sc.CreatorId, channel.CreatorId)
 
 	// stores the SharedChannel and sets the share flag on the channel.
 	scNew, err := scs.server.GetStore().SharedChannel().Save(sc)
@@ -310,8 +303,7 @@ func (scs *Service) CheckChannelNotShared(channelID string) error {
 // or database error.
 func (scs *Service) CheckChannelIsShared(channelID string) error {
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
-		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
+		if errNotFound, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return fmt.Errorf("%w: %v", model.ErrChannelNotShared, errNotFound)
 		}
 		return fmt.Errorf("cannot check if channel %s is shared: %w", channelID, err)

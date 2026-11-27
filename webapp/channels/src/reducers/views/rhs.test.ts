@@ -3,11 +3,14 @@
 
 import type {AnyAction} from 'redux';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
+import {SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import rhsReducer from 'reducers/views/rhs';
 
 import {ActionTypes, RHSStates} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
+
+import type {MentionFilters} from 'types/store/rhs';
 
 describe('Reducers.RHS', () => {
     const initialState = {
@@ -31,8 +34,11 @@ describe('Reducers.RHS', () => {
         isSidebarOpen: false,
         isSidebarExpanded: false,
         editChannelMembers: false,
+        pendingChannelAttributeEdit: null,
         shouldFocusRHS: false,
         searchTeam: null,
+        selectedEntity: null,
+        mentionFilters: defaultMentionFilters,
     };
 
     test('Initial state', () => {
@@ -85,6 +91,7 @@ describe('Reducers.RHS', () => {
         expect(nextStateFalse).toEqual({
             ...initialState,
             editChannelMembers: false,
+            pendingChannelAttributeEdit: null,
         });
 
         // When turning off RHS, set the value to false
@@ -101,7 +108,27 @@ describe('Reducers.RHS', () => {
         expect(nextStateTrueThenCloseRHS).toEqual({
             ...initialState,
             editChannelMembers: false,
+            pendingChannelAttributeEdit: null,
         });
+    });
+
+    test('pending channel attribute edit', () => {
+        const edit = {channelId: 'channel1', fieldId: 'field1'};
+
+        const set = rhsReducer({}, {type: ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT, ...edit});
+        expect(set.pendingChannelAttributeEdit).toEqual(edit);
+
+        const cleared = rhsReducer({pendingChannelAttributeEdit: edit}, {type: ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT});
+        expect(cleared.pendingChannelAttributeEdit).toBeNull();
+
+        const closed = rhsReducer({pendingChannelAttributeEdit: edit}, {type: ActionTypes.UPDATE_RHS_STATE, state: null});
+        expect(closed.pendingChannelAttributeEdit).toBeNull();
+
+        const switched = rhsReducer({pendingChannelAttributeEdit: edit}, {type: ActionTypes.UPDATE_RHS_STATE, state: RHSStates.CHANNEL_INFO, channelId: 'channel1'});
+        expect(switched.pendingChannelAttributeEdit).toEqual(edit);
+
+        const loggedOut = rhsReducer({pendingChannelAttributeEdit: edit}, {type: UserTypes.LOGOUT_SUCCESS});
+        expect(loggedOut.pendingChannelAttributeEdit).toBeNull();
     });
 
     test('should match RHS state to channel files', () => {
@@ -298,6 +325,70 @@ describe('Reducers.RHS', () => {
             ...initialState,
             searchTeam: 'team_id',
         });
+    });
+
+    test('should keep searchTeam when moving to a search or mention state', () => {
+        for (const state of [RHSStates.SEARCH, RHSStates.MENTION]) {
+            const nextState = rhsReducer(
+                {searchTeam: 'team_id'},
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state,
+                },
+            );
+
+            expect(nextState.searchTeam).toEqual('team_id');
+        }
+    });
+
+    test('should hold the mention filters while the panel is showing mentions', () => {
+        const filters: MentionFilters = {channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'};
+
+        const set = rhsReducer(
+            {},
+            {
+                type: ActionTypes.UPDATE_RHS_MENTION_FILTERS,
+                filters,
+            },
+        );
+
+        expect(set.mentionFilters).toEqual(filters);
+
+        const stillMentions = rhsReducer(
+            {mentionFilters: filters},
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.MENTION,
+            },
+        );
+
+        expect(stillMentions.mentionFilters).toEqual(filters);
+    });
+
+    test('should clear the mention filters when the panel moves to anything else', () => {
+        const filters: MentionFilters = {channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'};
+
+        for (const action of [
+            {type: ActionTypes.UPDATE_RHS_STATE, state: RHSStates.SEARCH},
+            {type: UserTypes.LOGOUT_SUCCESS},
+        ]) {
+            const nextState = rhsReducer({mentionFilters: filters}, action);
+
+            expect(nextState.mentionFilters).toEqual(defaultMentionFilters);
+        }
+    });
+
+    test('should clear searchTeam when moving to a state that is not a search', () => {
+        const nextState = rhsReducer(
+            {searchTeam: 'team_id'},
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.PIN,
+                channelId: '123',
+            },
+        );
+
+        expect(nextState.searchTeam).toBeNull();
     });
 
     test('should match select_post state', () => {
@@ -645,8 +736,11 @@ describe('Reducers.RHS', () => {
             isSidebarOpen: true,
             isSidebarExpanded: true,
             editChannelMembers: false,
+            pendingChannelAttributeEdit: null,
             shouldFocusRHS: false,
             searchTeam: null,
+            selectedEntity: null,
+            mentionFilters: defaultMentionFilters,
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});

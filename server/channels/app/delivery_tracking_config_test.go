@@ -4,13 +4,19 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestGetDeliveryTrackingConfig(t *testing.T) {
@@ -193,5 +199,102 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
 		assert.Equal(t, []string{channel.Id}, stored)
+	})
+}
+
+func TestWarnIfDeliveryAuditTargetMissing(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	configureAudit := func(t *testing.T, level mlog.Level) {
+		require.NoError(t, th.Server.Audit.Configure(mlog.LoggerConfiguration{
+			"audit": mlog.TargetCfg{
+				Type:    "file",
+				Format:  "json",
+				Levels:  []mlog.Level{level},
+				Options: json.RawMessage(fmt.Sprintf(`{"filename": %q}`, filepath.Join(t.TempDir(), "audit.log"))),
+			},
+		}))
+	}
+	warn := func(t *testing.T, flag, enable bool) io.Reader {
+		cfg := th.App.Config().Clone()
+		cfg.FeatureFlags.PostDeliveryTracking = flag
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(enable)
+
+		require.NoError(t, th.TestLogger.Flush())
+		_, err := io.Copy(io.Discard, th.LogBuffer)
+		require.NoError(t, err)
+
+		th.Server.warnIfDeliveryAuditTargetMissing(cfg)
+		require.NoError(t, th.TestLogger.Flush())
+		return th.LogBuffer
+	}
+
+	t.Run("warns when no live audit target consumes audit-delivery", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertLog(t, warn(t, true, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when a live audit target consumes audit-delivery", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditDelivery)
+		testlib.AssertNoLog(t, warn(t, true, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when delivery tracking is disabled", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertNoLog(t, warn(t, true, false), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when the feature flag is off", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertNoLog(t, warn(t, false, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+}
+
+func TestDeliveryAuditTargetMissingWarningOnConfigChange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostDeliveryTracking = true
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(false)
+	})
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.DeliveryTrackingSettings.Enable = model.NewPointer(true) })
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+}
+
+func TestDeliveryAuditWarnInputsChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	newConfig := func(flag, enable bool) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.PostDeliveryTracking = flag
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(enable)
+		return cfg
+	}
+
+	t.Run("unchanged", func(t *testing.T) {
+		require.False(t, deliveryAuditWarnInputsChanged(newConfig(true, true), newConfig(true, true)))
+	})
+
+	t.Run("feature flag changed", func(t *testing.T) {
+		require.True(t, deliveryAuditWarnInputsChanged(newConfig(false, true), newConfig(true, true)))
+	})
+
+	t.Run("enable changed", func(t *testing.T) {
+		require.True(t, deliveryAuditWarnInputsChanged(newConfig(true, false), newConfig(true, true)))
+	})
+
+	// The audit logger only applies audit settings at startup, so editing them cannot change the warning.
+	t.Run("audit settings changed", func(t *testing.T) {
+		newCfg := newConfig(true, true)
+		newCfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		newCfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(`{"delivery":{"type":"file","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
+		require.False(t, deliveryAuditWarnInputsChanged(newConfig(true, true), newCfg))
 	})
 }

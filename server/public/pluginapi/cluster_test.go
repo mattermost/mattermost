@@ -46,3 +46,39 @@ func TestPublishPluginClusterEvent(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestGetNodeID(t *testing.T) {
+	api := &plugintest.API{}
+	defer api.AssertExpectations(t)
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+	api.On("GetClusterNodeID").Return("node1")
+
+	require.Equal(t, "node1", client.Cluster.GetNodeID())
+}
+
+func TestGetNodes(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		nodes := []*model.ClusterInfo{{Id: "node1"}, {Id: "node2"}}
+		api.On("GetClusterNodes").Return(nodes, nil)
+
+		got, err := client.Cluster.GetNodes()
+		require.NoError(t, err)
+		require.Equal(t, nodes, got)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetClusterNodes").Return(nil, errors.New("someError"))
+
+		_, err := client.Cluster.GetNodes()
+		require.Error(t, err)
+	})
+}

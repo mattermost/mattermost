@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -36,7 +37,7 @@ func printStringMap(value reflect.Value, tabVal int) string {
 	for _, keyString := range sortedKeys {
 		key := stringToKeyMap[keyString]
 		val := value.MapIndex(key)
-		if newVal, ok := val.Interface().(map[string]any); !ok {
+		if newVal, ok := reflect.TypeAssert[map[string]any](val); !ok {
 			fmt.Fprintf(out, "%s", strings.Repeat("\t", tabVal))
 			fmt.Fprintf(out, "%v: \"%v\"\n", key.Interface(), val.Interface())
 		} else {
@@ -57,14 +58,10 @@ func getConfigDSN(command *cobra.Command, env map[string]string) string {
 	configDSN, _ := command.Flags().GetString("config")
 
 	// Config not supplied in flag, check env
-	if configDSN == "" {
-		configDSN = env["MM_CONFIG"]
-	}
+	configDSN = cmp.Or(configDSN, env["MM_CONFIG"])
 
 	// Config not supplied in env or flag use default
-	if configDSN == "" {
-		configDSN = "config.json"
-	}
+	configDSN = cmp.Or(configDSN, "config.json")
 
 	return configDSN
 }

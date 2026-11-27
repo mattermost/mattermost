@@ -5,12 +5,13 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CheckIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import useCopyText, {messages as copymsg} from 'components/common/hooks/useCopyText';
 import LoadingScreen from 'components/loading_screen';
-import SectionNotice from 'components/section_notice';
 import Input from 'components/widgets/inputs/input/input';
 
 import {Button, ModalFieldset, ModalNoticeWrapper, ModalParagraph} from '../controls';
@@ -146,8 +147,13 @@ function SecureConnectionCreateInviteModal({
                                 data-testid='invite-code'
                                 readOnly={true}
                                 addon={(
-                                    <Button onClick={copyInvite}>
-                                        {inviteCopied ? copied : copy}
+                                    <Button
+                                        emphasis='tertiary'
+                                        size='x-small'
+                                        onClick={copyInvite}
+                                        leadingIcon={inviteCopied ? copiedIcon : copyIcon}
+                                    >
+                                        {inviteCopied ? copiedLabel : copyLabel}
                                     </Button>
                                 )}
                             />
@@ -165,8 +171,13 @@ function SecureConnectionCreateInviteModal({
                             data-testid='password'
                             readOnly={done}
                             addon={done ? (
-                                <Button onClick={copyPassword}>
-                                    {passwordCopied ? copied : copy}
+                                <Button
+                                    emphasis='tertiary'
+                                    size='x-small'
+                                    onClick={copyPassword}
+                                    leadingIcon={passwordCopied ? copiedIcon : copyIcon}
+                                >
+                                    {passwordCopied ? copiedLabel : copyLabel}
                                 </Button>
                             ) : undefined}
 
@@ -178,18 +189,10 @@ function SecureConnectionCreateInviteModal({
     );
 }
 
-const copy = (
-    <>
-        <ContentCopyIcon size={18}/>
-        <FormattedMessage {...copymsg.copy}/>
-    </>
-);
+const copyIcon = <Icon glyph={<ContentCopyIcon/>}/>;
+const copiedIcon = <Icon glyph={<CheckIcon/>}/>;
 
-const copied = (
-    <>
-        <CheckIcon size={18}/>
-        <FormattedMessage {...copymsg.copied}/>
-    </>
-);
+const copyLabel = <FormattedMessage {...copymsg.copy}/>;
+const copiedLabel = <FormattedMessage {...copymsg.copied}/>;
 
 export default SecureConnectionCreateInviteModal;

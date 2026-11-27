@@ -6,7 +6,7 @@ import React, {useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import ChannelsResourceSettings from './channels_resource_settings';
 import {summarizeChannelResource} from './summary';
@@ -30,6 +30,17 @@ type Props = {
     ordered?: boolean;
 
     disabled?: boolean;
+
+    // The persisted linked channel field's ID (undefined in create mode) and
+    // the attribute's display name, forwarded to the Required toggle's
+    // missing-values banner (MM-70717).
+    channelFieldId?: string;
+    attributeDisplayName?: string;
+
+    // The persisted channel field's update_at. A host that stays on the page
+    // after Save changes it, which refetches the saved Required state and
+    // the missing-values count.
+    channelFieldUpdateAt?: number;
 };
 
 /**
@@ -39,7 +50,7 @@ type Props = {
  * so this drops into a card owned by another team without either side owning
  * half a save.
  */
-const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Props) => {
+const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, channelFieldId, attributeDisplayName, channelFieldUpdateAt}: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [expanded, setExpanded] = useState(true);
@@ -79,8 +90,8 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
                     <Button
                         type='button'
                         emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
+                        destructive={true}
+                        size='small'
                         className='ChannelsResourceRow__remove'
                         onClick={onRemove}
                         disabled={disabled}
@@ -101,6 +112,9 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
                         onChange={onChange}
                         ordered={ordered}
                         disabled={disabled}
+                        channelFieldId={channelFieldId}
+                        attributeDisplayName={attributeDisplayName}
+                        channelFieldUpdateAt={channelFieldUpdateAt}
                     />
                 </div>
             )}

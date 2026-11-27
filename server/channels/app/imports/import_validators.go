@@ -4,6 +4,7 @@
 package imports
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -199,6 +200,14 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 	return nil
 }
 
+// IsRemoteUsername reports whether username has the "name:remote" form that Shared
+// Channels gives to users synced from a remote server. A local account can never
+// have such a username, so the importer cannot recreate these users.
+func IsRemoteUsername(username string) bool {
+	normalized := model.NormalizeUsername(username)
+	return !model.IsValidUsername(normalized) && model.IsValidUsernameAllowRemote(normalized)
+}
+
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		// Check if the resolved path is within the expected base path.
@@ -243,8 +252,8 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validateAuthService(data.AuthService); appErr != nil {
-		return appErr
+	if err := validateAuthService(data.AuthService); err != nil {
+		return model.AsAppError(err)
 	}
 
 	if data.Password != nil && *data.Password == "" {
@@ -276,7 +285,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if err := validateGuestRoles(*data); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if data.NotifyProps != nil {
@@ -381,7 +390,7 @@ var validAuthServices = []string{
 	model.ServiceOpenid,
 }
 
-func validateAuthService(authService *string) *model.AppError {
+func validateAuthService(authService *string) error {
 	if authService == nil {
 		return nil
 	}
@@ -462,8 +471,11 @@ func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 
 	if data.EmojiName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.EmojiName) > model.EmojiNameMaxLength {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
+	}
+	// Same empty/length/charset rules as Reaction.IsValid. Do not use IsValidEmojiName —
+	// it rejects system emoji names, which are valid on reactions.
+	if *data.EmojiName == "" || len(*data.EmojiName) > model.EmojiNameMaxLength || !model.IsValidAlphaNumHyphenUnderscorePlus(*data.EmojiName) {
+		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_invalid.error", nil, "emoji_name="+*data.EmojiName, http.StatusBadRequest)
 	}
 
 	if data.CreateAt == nil {
@@ -472,6 +484,37 @@ func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_before_parent.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func ValidatePostPriorityImportData(priority *model.PostPriority, acknowledgements *[]PostAcknowledgementImportData, postCreateAt int64) *model.AppError {
+	if priority != nil {
+		if priority.Priority == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.priority_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if model.SafeDereference(priority.PersistentNotifications) && *priority.Priority != model.PostPriorityUrgent {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	acks := model.SafeDereference(acknowledgements)
+	if len(acks) == 0 {
+		return nil
+	}
+
+	if priority == nil || !model.SafeDereference(priority.RequestedAck) {
+		return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error", nil, "", http.StatusBadRequest)
+	}
+
+	for _, ack := range acks {
+		if model.SafeDereference(ack.User) == "" {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if ack.AcknowledgedAt == nil || *ack.AcknowledgedAt < postCreateAt {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
@@ -558,6 +601,10 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 				return err
 			}
 		}
+	}
+
+	if err := ValidatePostPriorityImportData(data.Priority, data.Acknowledgements, *data.CreateAt); err != nil {
+		return err
 	}
 
 	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
@@ -685,6 +732,10 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		}
 	}
 
+	if err := ValidatePostPriorityImportData(data.Priority, data.Acknowledgements, *data.CreateAt); err != nil {
+		return err
+	}
+
 	if data.Attachments != nil {
 		for _, attachment := range *data.Attachments {
 			if err := ValidateAttachmentImportData(&attachment); err != nil {
@@ -773,7 +824,7 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 
 // validateGuestRoles checks if the user has guest roles consistently across system, team, and channel levels.
 // At this point, we assume that the user has a valid role scheme.
-func validateGuestRoles(data UserImportData) *model.AppError {
+func validateGuestRoles(data UserImportData) error {
 	if data.Roles == nil {
 		return nil
 	}
@@ -848,9 +899,7 @@ func validateGuestRoles(data UserImportData) *model.AppError {
 // the result does not escape the base directory. Returns the cleaned joined path (and true),
 // or an empty string (and false) if the result escapes the base.
 func ValidateAttachmentPathForImport(path, basePath string) (string, bool) {
-	if basePath == "" {
-		basePath = "."
-	}
+	basePath = cmp.Or(basePath, ".")
 
 	joined := filepath.Join(basePath, path)
 

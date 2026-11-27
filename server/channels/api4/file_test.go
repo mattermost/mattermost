@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"image"
@@ -16,11 +17,14 @@ import (
 	_ "image/png"
 	"io"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -31,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -339,7 +344,7 @@ func TestUploadFiles(t *testing.T) {
 			blobs:                    [][]byte{fileBytes(t, "test-search.md")},
 			skipPayloadValidation:    true,
 			expectedCreatorId:        th.BasicUser.Id,
-			expectedImageMiniPreview: []bool{false},
+			expectedImageMiniPreview: []bool{true},
 		},
 		// Simple POST, chunked encoding
 		{
@@ -848,6 +853,804 @@ func TestUploadFiles(t *testing.T) {
 	}
 }
 
+// overLimitPartSize is comfortably larger than the number of bytes a single
+// multipart form value is read up to.
+const overLimitPartSize = 8 * 1024 * 1024
+
+// uploadMultipartPart describes one part of a multipart/form-data upload body.
+// A part with a file name is written as a file part, a part with only a form
+// name as a form value, and a part with neither is written without a name
+// parameter in its Content-Disposition header.
+type uploadMultipartPart struct {
+	formName string
+	fileName string
+	value    []byte
+
+	// disposition, when set, is used as the part's Content-Disposition header
+	// instead of the one the form and file names would produce.
+	disposition string
+	// transferEncoding, when set, is sent as the part's
+	// Content-Transfer-Encoding header.
+	transferEncoding string
+}
+
+func buildUploadMultipartBody(tb testing.TB, parts ...uploadMultipartPart) (body []byte, contentType string) {
+	tb.Helper()
+
+	buf := &bytes.Buffer{}
+	mw := multipart.NewWriter(buf)
+
+	for _, p := range parts {
+		h := textproto.MIMEHeader{}
+		switch {
+		case p.disposition != "":
+			h.Set("Content-Disposition", p.disposition)
+		case p.fileName != "":
+			h.Set("Content-Disposition",
+				fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(p.formName), escapeQuotes(p.fileName)))
+			h.Set("Content-Type", "application/octet-stream")
+		case p.formName != "":
+			h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"`, escapeQuotes(p.formName)))
+		default:
+			h.Set("Content-Disposition", "form-data")
+		}
+		if p.transferEncoding != "" {
+			h.Set("Content-Transfer-Encoding", p.transferEncoding)
+		}
+
+		part, err := mw.CreatePart(h)
+		require.NoError(tb, err)
+
+		_, err = part.Write(p.value)
+		require.NoError(tb, err)
+	}
+
+	require.NoError(tb, mw.Close())
+
+	return buf.Bytes(), mw.FormDataContentType()
+}
+
+func quotedPrintableEncode(tb testing.TB, value []byte) []byte {
+	tb.Helper()
+
+	buf := &bytes.Buffer{}
+	w := quotedprintable.NewWriter(buf)
+	_, err := w.Write(value)
+	require.NoError(tb, err)
+	require.NoError(tb, w.Close())
+
+	return buf.Bytes()
+}
+
+// repeatedFormValueParts splits total bytes of form data into parts that each
+// stay within the size a single form value is read up to.
+func repeatedFormValueParts(formName string, total int) []uploadMultipartPart {
+	value := bytes.Repeat([]byte("a"), maxMultipartFormDataBytes)
+
+	parts := make([]uploadMultipartPart, 0, total/len(value)+1)
+	for n := 0; n < total; n += len(value) {
+		parts = append(parts, uploadMultipartPart{formName: formName, value: value})
+	}
+
+	return parts
+}
+
+// emptyFormValueParts returns count parts that carry a form name and no value
+// of their own.
+func emptyFormValueParts(formName string, count int) []uploadMultipartPart {
+	parts := make([]uploadMultipartPart, count)
+	for i := range parts {
+		parts[i] = uploadMultipartPart{formName: formName}
+	}
+
+	return parts
+}
+
+// TestUploadFileMultipartFieldLimits covers the size limit that applies to the
+// individual parts of a multipart upload, together with the request shapes that
+// have to keep working within that limit.
+func TestUploadFileMultipartFieldLimits(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	// Get better error messages
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+
+	fileBlob := fileBytes(t, "test.png")
+	channelID := []byte(th.BasicChannel.Id)
+	otherChannelID := []byte(th.BasicChannel2.Id)
+	overLimitValue := bytes.Repeat([]byte("a"), overLimitPartSize)
+	atLimitValue := bytes.Repeat([]byte("a"), maxMultipartFormDataBytes)
+	oneOverLimitValue := bytes.Repeat([]byte("a"), maxMultipartFormDataBytes+1)
+
+	// Over the number of bytes the form data of a request is held to, but
+	// within twice it, so that a request carrying it is answered differently if
+	// that number moves in either direction.
+	overFormDataValue := bytes.Repeat([]byte("a"), 3*maxMultipartPrebufferBytes/2)
+
+	// A quoted-printable part is decoded as it is read, so the limit applies to
+	// fewer bytes than the part carries on the wire.
+	quotedPrintableOverLimit := quotedPrintableEncode(t, oneOverLimitValue)
+
+	testCases := []struct {
+		title string
+		parts []uploadMultipartPart
+		query string
+
+		expectedStatus int
+		expectedFiles  int
+		// unexpectedErrorID, when set, is an error id the response must not
+		// carry. How much form data a request carries is known while it is
+		// being read, so the response reports that rather than the client id
+		// tally, which is only known once the whole body has been read.
+		unexpectedErrorID string
+	}{
+		{
+			title: "client_ids value over the limit",
+			parts: []uploadMultipartPart{
+				{formName: "client_ids", value: overLimitValue},
+			},
+			expectedStatus:    http.StatusBadRequest,
+			unexpectedErrorID: "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+		},
+		{
+			title: "client_ids value over the limit followed by channel_id and a file",
+			parts: []uploadMultipartPart{
+				{formName: "client_ids", value: overLimitValue},
+				{formName: "channel_id", value: channelID},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "part without a form name over the limit",
+			parts: []uploadMultipartPart{
+				{value: overLimitValue},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "channel_id and client_ids as form fields",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "client_ids", value: []byte("1")},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusCreated,
+			expectedFiles:  1,
+		},
+		{
+			title: "channel_id in the query string",
+			parts: []uploadMultipartPart{
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			query:          "?channel_id=" + th.BasicChannel.Id,
+			expectedStatus: http.StatusCreated,
+			expectedFiles:  1,
+		},
+		{
+			title:          "no parts at all",
+			expectedStatus: http.StatusCreated,
+		},
+		{
+			title: "part with a file name but no form name one byte over the limit",
+			parts: []uploadMultipartPart{
+				{fileName: "upload.bin", value: oneOverLimitValue},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "part with an empty form name one byte over the limit",
+			parts: []uploadMultipartPart{
+				{disposition: `form-data; name=""`, value: oneOverLimitValue},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "channel_id value one byte over the limit",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: oneOverLimitValue},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "client_ids value at the limit",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "client_ids", value: atLimitValue},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusCreated,
+			expectedFiles:  1,
+		},
+		{
+			title: "client_ids value one byte over the limit",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "client_ids", value: oneOverLimitValue},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "empty client_ids value",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "client_ids"},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusCreated,
+			expectedFiles:  1,
+		},
+		{
+			title: "channel_id in the query string and the same value as a form field",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			query:          "?channel_id=" + th.BasicChannel.Id,
+			expectedStatus: http.StatusCreated,
+			expectedFiles:  1,
+		},
+		{
+			title: "channel_id in the query string and another value as a form field",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: otherChannelID},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			query:          "?channel_id=" + th.BasicChannel.Id,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "empty channel_id form field value",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id"},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "quoted-printable client_ids value that decodes to one byte over the limit",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "client_ids", value: quotedPrintableOverLimit, transferEncoding: "quoted-printable"},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title: "base64 client_ids value one byte over the limit",
+			parts: []uploadMultipartPart{
+				{formName: "channel_id", value: channelID},
+				{formName: "client_ids", value: oneOverLimitValue, transferEncoding: "base64"},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			title:             "more client_ids values than the form data limit",
+			parts:             repeatedFormValueParts("client_ids", 2*maxMultipartPrebufferBytes),
+			expectedStatus:    http.StatusBadRequest,
+			unexpectedErrorID: "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+		},
+		{
+			title: "more client_ids values than the form data limit after channel_id",
+			parts: append(
+				[]uploadMultipartPart{{formName: "channel_id", value: channelID}},
+				repeatedFormValueParts("client_ids", 2*maxMultipartPrebufferBytes)...,
+			),
+			expectedStatus:    http.StatusBadRequest,
+			unexpectedErrorID: "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+		},
+		{
+			title: "more client_ids values than the form data limit after a file part",
+			parts: append(
+				[]uploadMultipartPart{
+					{formName: "client_ids", value: []byte("1")},
+					{formName: "files", fileName: "test.png", value: fileBlob},
+				},
+				repeatedFormValueParts("client_ids", 2*maxMultipartPrebufferBytes)...,
+			),
+			query:             "?channel_id=" + th.BasicChannel.Id,
+			expectedStatus:    http.StatusBadRequest,
+			unexpectedErrorID: "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+		},
+		{
+			title:          "more repeated channel_id values than the form data limit",
+			parts:          repeatedFormValueParts("channel_id", 2*maxMultipartPrebufferBytes),
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// Enough values carrying nothing of their own that what is charged
+			// for holding each of them reaches the limit, as long as that is
+			// at least 128 bytes.
+			title: "more values carrying nothing than the form data limit",
+			parts: append(
+				[]uploadMultipartPart{{formName: "channel_id", value: channelID}},
+				emptyFormValueParts("client_ids", maxMultipartPrebufferBytes/128+1)...,
+			),
+			expectedStatus:    http.StatusBadRequest,
+			unexpectedErrorID: "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+		},
+		{
+			// The body is read again from its start once channel_id is known,
+			// so what a request carries on either side of it counts together
+			// even though neither side reaches the limit on its own.
+			title: "more client_ids values on both sides of channel_id than the form data limit together",
+			parts: append(
+				append(
+					repeatedFormValueParts("client_ids", 3*maxMultipartPrebufferBytes/5),
+					uploadMultipartPart{formName: "channel_id", value: channelID},
+				),
+				repeatedFormValueParts("client_ids", 3*maxMultipartPrebufferBytes/5)...,
+			),
+			expectedStatus:    http.StatusBadRequest,
+			unexpectedErrorID: "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+		},
+		{
+			title: "client_ids value over the limit before channel_id",
+			parts: []uploadMultipartPart{
+				{formName: "files", fileName: "test.png", value: fileBlob},
+				{formName: "client_ids", value: overFormDataValue},
+				{formName: "channel_id", value: channelID},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			body, contentType := buildUploadMultipartBody(t, tc.parts...)
+
+			fileResp, resp, err := testDoUploadFileRequest(t, th.Client, tc.query, body, contentType, -1)
+			checkHTTPStatus(t, resp, tc.expectedStatus)
+
+			if tc.expectedStatus != http.StatusCreated {
+				require.Error(t, err)
+				if tc.unexpectedErrorID != "" {
+					var appErr *model.AppError
+					require.True(t, errors.As(err, &appErr), "should have been a model.AppError")
+					require.NotEqual(t, tc.unexpectedErrorID, appErr.Id,
+						"the response should report the limit that was reached")
+				}
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, fileResp)
+			require.Len(t, fileResp.FileInfos, tc.expectedFiles)
+			for _, info := range fileResp.FileInfos {
+				require.Equal(t, int64(len(fileBlob)), info.Size)
+
+				dbInfo, storeErr := th.App.Srv().Store().FileInfo().Get(info.Id)
+				require.NoError(t, storeErr)
+				require.NoError(t, th.cleanupTestFile(dbInfo))
+			}
+		})
+	}
+}
+
+// patternedBytes returns n bytes whose value depends on both seed and their
+// own position, so that content read back can be compared against what was
+// sent and a shift or a truncation shows up as a difference.
+func patternedBytes(seed, n int) []byte {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = byte(seed + i*31 + i/97)
+	}
+
+	return b
+}
+
+// legacyUploadedFile is a file a multipart upload is expected to store.
+type legacyUploadedFile struct {
+	name    string
+	content []byte
+}
+
+// TestUploadFileMultipartLegacyForm covers the multipart uploads whose first
+// part is a file, which are read through the buffered path: the whole form is
+// parsed up front, with its file parts written to temporary files, before the
+// files are stored.
+//
+// It does not use mainHelper.Parallel so that the temporary directory it
+// watches is only written to by the requests it makes.
+func TestUploadFileMultipartLegacyForm(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		// Get better error messages
+		*cfg.ServiceSettings.EnableDeveloper = true
+		// Content extraction runs after the response is written, and would
+		// read the stored file for reasons of its own.
+		*cfg.FileSettings.ExtractContent = false
+	})
+
+	// os.TempDir reads TMPDIR on every call, so pointing it at a directory of
+	// this test's own makes the files the form is written to observable.
+	tempDir := t.TempDir()
+	t.Setenv("TMPDIR", tempDir)
+	require.Equal(t, tempDir, os.TempDir())
+
+	fileBlob := fileBytes(t, "test.png")
+	channelID := []byte(th.BasicChannel.Id)
+
+	// Larger than the number of bytes the form holds in memory, so the part is
+	// written to a temporary file and read back from it.
+	firstLargeBlob := patternedBytes(1, 2*maxMultipartPrebufferBytes)
+	secondLargeBlob := patternedBytes(2, 3*maxMultipartPrebufferBytes/2)
+
+	testCases := []struct {
+		title string
+		parts []uploadMultipartPart
+
+		expectedFiles     []legacyUploadedFile
+		expectedClientIDs []string
+	}{
+		{
+			title: "file part before channel_id",
+			parts: []uploadMultipartPart{
+				{formName: "files", fileName: "test.png", value: fileBlob},
+				{formName: "channel_id", value: channelID},
+			},
+			expectedFiles:     []legacyUploadedFile{{name: "test.png", content: fileBlob}},
+			expectedClientIDs: []string{},
+		},
+		{
+			title: "file parts larger than the form holds in memory",
+			parts: []uploadMultipartPart{
+				{formName: "files", fileName: "first.bin", value: firstLargeBlob},
+				{formName: "files", fileName: "second.bin", value: secondLargeBlob},
+				{formName: "channel_id", value: channelID},
+			},
+			expectedFiles: []legacyUploadedFile{
+				{name: "first.bin", content: firstLargeBlob},
+				{name: "second.bin", content: secondLargeBlob},
+			},
+			expectedClientIDs: []string{},
+		},
+		{
+			title: "one client_id for each of two file parts",
+			parts: []uploadMultipartPart{
+				{formName: "client_ids", value: []byte("1")},
+				{formName: "client_ids", value: []byte("2")},
+				{formName: "files", fileName: "first.bin", value: firstLargeBlob},
+				{formName: "files", fileName: "test.png", value: fileBlob},
+				{formName: "channel_id", value: channelID},
+			},
+			expectedFiles: []legacyUploadedFile{
+				{name: "first.bin", content: firstLargeBlob},
+				{name: "test.png", content: fileBlob},
+			},
+			expectedClientIDs: []string{"1", "2"},
+		},
+	}
+
+	tempFiles := func(t *testing.T) []string {
+		t.Helper()
+
+		names, err := filepath.Glob(filepath.Join(tempDir, "multipart-*"))
+		require.NoError(t, err)
+
+		return names
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			body, contentType := buildUploadMultipartBody(t, tc.parts...)
+
+			before := tempFiles(t)
+
+			fileResp, resp, err := testDoUploadFileRequest(t, th.Client, "", body, contentType, -1)
+			require.NoError(t, err)
+			checkHTTPStatus(t, resp, http.StatusCreated)
+			require.NotNil(t, fileResp)
+
+			require.Equal(t, before, tempFiles(t),
+				"the temporary files the form was written to should not have been left behind")
+
+			require.Equal(t, tc.expectedClientIDs, fileResp.ClientIds)
+			require.Len(t, fileResp.FileInfos, len(tc.expectedFiles))
+
+			for i, info := range fileResp.FileInfos {
+				expected := tc.expectedFiles[i]
+
+				require.Equal(t, expected.name, info.Name)
+				require.Equal(t, int64(len(expected.content)), info.Size)
+
+				stored, storedResp, storedErr := th.Client.GetFile(context.Background(), info.Id)
+				require.NoError(t, storedErr)
+				CheckOKStatus(t, storedResp)
+				require.True(t, bytes.Equal(expected.content, stored),
+					"the file should be stored with the bytes it was uploaded with")
+
+				dbInfo, storeErr := th.App.Srv().Store().FileInfo().Get(info.Id)
+				require.NoError(t, storeErr)
+				require.NoError(t, th.cleanupTestFile(dbInfo))
+			}
+		})
+	}
+
+	t.Run("rejected form does not leave temporary files behind", func(t *testing.T) {
+		body, contentType := buildUploadMultipartBody(t,
+			uploadMultipartPart{formName: "files", fileName: "first.bin", value: firstLargeBlob},
+			uploadMultipartPart{formName: "client_ids", value: bytes.Repeat([]byte("a"), maxMultipartFormDataBytes+1)},
+			uploadMultipartPart{formName: "channel_id", value: channelID},
+		)
+
+		before := tempFiles(t)
+
+		_, resp, err := testDoUploadFileRequest(t, th.Client, "", body, contentType, -1)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+
+		require.Equal(t, before, tempFiles(t))
+	})
+
+	t.Run("form names count towards the form data limit", func(t *testing.T) {
+		parts := []uploadMultipartPart{{formName: "files", fileName: "test.png", value: fileBlob}}
+		for i := range 4 {
+			parts = append(parts, uploadMultipartPart{formName: strings.Repeat(string(rune('a'+i)), maxMultipartPrebufferBytes/3)})
+		}
+		parts = append(parts, uploadMultipartPart{formName: "channel_id", value: channelID})
+		body, contentType := buildUploadMultipartBody(t, parts...)
+
+		_, resp, err := testDoUploadFileRequest(t, th.Client, "", body, contentType, -1)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+	})
+}
+
+// TestUploadFileMultipartBodyTooLarge checks that a multipart upload whose body
+// is longer than MaxFileSize is answered with 413 on both the buffered and the
+// streaming path.
+func TestUploadFileMultipartBodyTooLarge(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	const maxFileSize = 4 * 1024
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+
+	channelID := []byte(th.BasicChannel.Id)
+	overMaxFileSize := patternedBytes(1, 2*maxFileSize)
+	require.Less(t, len(overMaxFileSize), maxMultipartFormDataBytes)
+
+	testCases := []struct {
+		title string
+		parts []uploadMultipartPart
+		query string
+	}{
+		{
+			title: "file part before channel_id",
+			parts: []uploadMultipartPart{
+				{formName: "files", fileName: "test.bin", value: overMaxFileSize},
+				{formName: "channel_id", value: channelID},
+			},
+		},
+		{
+			title: "client_ids value with channel_id in the query",
+			parts: []uploadMultipartPart{
+				{formName: "client_ids", value: overMaxFileSize},
+			},
+			query: "?channel_id=" + th.BasicChannel.Id,
+		},
+		{
+			title: "part without a form name with channel_id in the query",
+			parts: []uploadMultipartPart{
+				{value: overMaxFileSize},
+			},
+			query: "?channel_id=" + th.BasicChannel.Id,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			body, contentType := buildUploadMultipartBody(t, tc.parts...)
+
+			_, resp, err := testDoUploadFileRequest(t, th.Client, tc.query, body, contentType, -1)
+			require.Error(t, err)
+			checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge)
+		})
+	}
+}
+
+// TestUploadFileMultipartBufferBounds checks that the memory the file upload
+// endpoint allocates while handling a multipart request stays flat as the parts
+// of that request grow: a run with a large part is compared against a reference
+// run of the same shape with a small one.
+//
+// It does not use mainHelper.Parallel so that the allocation it measures is
+// attributable to the request under test.
+func TestUploadFileMultipartBufferBounds(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		// Get better error messages
+		*cfg.ServiceSettings.EnableDeveloper = true
+		// Content extraction runs after the response is written, so keep it out
+		// of the measurement.
+		*cfg.FileSettings.ExtractContent = false
+	})
+
+	const (
+		referenceSize = 64 * 1024
+		measuredSize  = overLimitPartSize
+		// Allocation may grow by at most the extra bytes sent, which allows for
+		// the fixed per-request cost while still failing if a copy of the part
+		// is kept for the duration of the request.
+		allowedGrowth = measuredSize - referenceSize
+		// The lowest of several samples is used, so that an unrelated
+		// allocation elsewhere in the process cannot inflate the result.
+		samples = 3
+	)
+
+	mib := func(n int64) float64 {
+		return float64(n) / (1024 * 1024)
+	}
+
+	// allocatedFor returns the lowest TotalAlloc delta observed across samples
+	// of the same request, and the status code it answered with.
+	allocatedFor := func(t *testing.T, query, contentType string, body []byte) (int64, int) {
+		t.Helper()
+
+		lowest := int64(0)
+		status := 0
+		for i := range samples {
+			var before, after runtime.MemStats
+
+			runtime.GC()
+			runtime.ReadMemStats(&before)
+
+			_, resp, _ := testDoUploadFileRequest(t, th.Client, query, body, contentType, -1)
+
+			runtime.GC()
+			runtime.ReadMemStats(&after)
+
+			require.NotNil(t, resp)
+			status = resp.StatusCode
+
+			allocated := int64(after.TotalAlloc - before.TotalAlloc)
+			if i == 0 || allocated < lowest {
+				lowest = allocated
+			}
+		}
+
+		return lowest, status
+	}
+
+	testCases := []struct {
+		title string
+		query string
+		parts func(payload []byte) []uploadMultipartPart
+
+		// expectedStatus is asserted only for the shapes that are expected to
+		// upload a file: what the endpoint answers to the rest is the subject
+		// of TestUploadFileMultipartFieldLimits, not of this test.
+		expectedStatus int
+	}{
+		{
+			title: "client_ids value",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return []uploadMultipartPart{{formName: "client_ids", value: payload}}
+			},
+		},
+		{
+			title: "part without a form name",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return []uploadMultipartPart{{value: payload}}
+			},
+		},
+		{
+			title: "file part with channel_id in the query string",
+			query: "?channel_id=" + th.BasicChannel.Id,
+			parts: func(payload []byte) []uploadMultipartPart {
+				return []uploadMultipartPart{{formName: "files", fileName: "upload.bin", value: payload}}
+			},
+			expectedStatus: http.StatusCreated,
+		},
+		{
+			title: "client_ids values after channel_id",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return append(
+					[]uploadMultipartPart{{formName: "channel_id", value: []byte(th.BasicChannel.Id)}},
+					repeatedFormValueParts("client_ids", len(payload))...,
+				)
+			},
+		},
+		{
+			title: "client_ids values after a file part",
+			query: "?channel_id=" + th.BasicChannel.Id,
+			parts: func(payload []byte) []uploadMultipartPart {
+				return append(
+					[]uploadMultipartPart{
+						{formName: "client_ids", value: []byte("1")},
+						{formName: "files", fileName: "upload.bin", value: []byte("x")},
+					},
+					repeatedFormValueParts("client_ids", len(payload))...,
+				)
+			},
+		},
+		{
+			title: "repeated channel_id values",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return repeatedFormValueParts("channel_id", len(payload))
+			},
+		},
+		{
+			title: "repeated parts without a form name",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return append(
+					[]uploadMultipartPart{{formName: "channel_id", value: []byte(th.BasicChannel.Id)}},
+					repeatedFormValueParts("", len(payload))...,
+				)
+			},
+		},
+		{
+			title: "client_ids value before channel_id",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return []uploadMultipartPart{
+					{formName: "files", fileName: "upload.bin", value: []byte("x")},
+					{formName: "client_ids", value: payload},
+					{formName: "channel_id", value: []byte(th.BasicChannel.Id)},
+				}
+			},
+		},
+		{
+			title: "quoted-printable client_ids value that decodes to nothing",
+			parts: func(payload []byte) []uploadMultipartPart {
+				return []uploadMultipartPart{
+					{formName: "channel_id", value: []byte(th.BasicChannel.Id)},
+					{
+						formName:         "client_ids",
+						value:            bytes.Repeat([]byte("=\r\n"), len(payload)/3),
+						transferEncoding: "quoted-printable",
+					},
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			referenceBody, contentType := buildUploadMultipartBody(t, tc.parts(bytes.Repeat([]byte("a"), referenceSize))...)
+			measuredBody, measuredContentType := buildUploadMultipartBody(t, tc.parts(bytes.Repeat([]byte("a"), measuredSize))...)
+
+			referenceAlloc, referenceStatus := allocatedFor(t, tc.query, contentType, referenceBody)
+			measuredAlloc, measuredStatus := allocatedFor(t, tc.query, measuredContentType, measuredBody)
+
+			for _, status := range []int{referenceStatus, measuredStatus} {
+				require.NotContains(t, []int{http.StatusUnauthorized, http.StatusForbidden}, status,
+					"the request did not reach the multipart handling path")
+				require.Less(t, status, http.StatusInternalServerError,
+					"the request was not handled, so what it allocated says nothing about the shape under test")
+				if tc.expectedStatus != 0 {
+					require.Equal(t, tc.expectedStatus, status)
+				}
+			}
+
+			growth := measuredAlloc - referenceAlloc
+			t.Logf("part size %.1f MiB -> %.1f MiB, allocation %.1f MiB -> %.1f MiB",
+				mib(referenceSize), mib(measuredSize), mib(referenceAlloc), mib(measuredAlloc))
+
+			require.LessOrEqual(t, growth, int64(allowedGrowth),
+				"allocation grew by %.1f MiB (limit %.1f MiB) for %.1f MiB of extra request data: reference run allocated %.1f MiB, measured run %.1f MiB",
+				mib(growth), mib(allowedGrowth), mib(measuredSize-referenceSize), mib(referenceAlloc), mib(measuredAlloc))
+		})
+	}
+}
+
 func TestGetFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -968,27 +1771,177 @@ func TestGetFile(t *testing.T) {
 	t.Run("deleted file is indistinguishable from a file that never existed", func(t *testing.T) {
 		th.LoginBasic(t)
 
+		// Remove the file info through the store. DeletePost does this in a background
+		// goroutine, which would make the test racy.
+		removeWithPost := func(t *testing.T, post *model.Post, _ *model.FileInfo) {
+			t.Helper()
+			_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+			require.NoError(t, storeErr)
+		}
+		removeFromPost := func(t *testing.T, post *model.Post, fileInfo *model.FileInfo) {
+			t.Helper()
+			storeErr := th.App.Srv().Store().FileInfo().DeleteForPostByIds(th.Context, post.Id, []string{fileInfo.Id})
+			require.NoError(t, storeErr)
+		}
+
+		memberClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, memberClient)
+
+		testCases := []struct {
+			name           string
+			withCacheLayer bool
+			remove         func(*testing.T, *model.Post, *model.FileInfo)
+			reader         *model.Client4
+		}{
+			{name: "with cache layer, deleted with its post", withCacheLayer: true, remove: removeWithPost, reader: client},
+			{name: "with cache layer, detached from its post", withCacheLayer: true, remove: removeFromPost, reader: client},
+			{name: "without cache layer, deleted with its post", withCacheLayer: false, remove: removeWithPost, reader: client},
+			{name: "without cache layer, detached from its post", withCacheLayer: false, remove: removeFromPost, reader: client},
+			{name: "with cache layer, deleted with its post, another channel member", withCacheLayer: true, remove: removeWithPost, reader: memberClient},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				if tc.withCacheLayer {
+					require.True(t, th.IncludeCacheLayer)
+				} else {
+					// Run this case against the store the harness was given.
+					originalStore := th.App.Srv().Store()
+					th.App.Srv().SetStore(th.Store)
+					t.Cleanup(func() {
+						th.App.Srv().SetStore(originalStore)
+					})
+				}
+
+				post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+				data, _, err := tc.reader.GetFile(context.Background(), fileInfo.Id)
+				require.NoError(t, err)
+				require.NotEmpty(t, data)
+
+				tc.remove(t, post, fileInfo)
+
+				// A removed file is reported with the same status and error as a file id that was never created.
+				_, deletedResp, err := tc.reader.GetFile(context.Background(), fileInfo.Id)
+				require.Error(t, err)
+				CheckNotFoundStatus(t, deletedResp)
+				CheckErrorID(t, err, "api.file.get_file_info.app_error")
+
+				_, missingResp, err := tc.reader.GetFile(context.Background(), model.NewId())
+				require.Error(t, err)
+				CheckNotFoundStatus(t, missingResp)
+				CheckErrorID(t, err, "api.file.get_file_info.app_error")
+			})
+		}
+	})
+
+	t.Run("deleted file is not served from a lagging replica", func(t *testing.T) {
+		th.LoginBasic(t)
+
 		post, fileInfo := uploadFileAndCreatePost(t, th, client)
 
-		// Soft-delete the file info directly: DeletePost does this in a background
-		// goroutine, which would make the test racy.
-		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		originalStore := th.App.Srv().Store()
+		beforeDelete, storeErr := originalStore.FileInfo().GetByIds([]string{fileInfo.Id}, true, false, true)
+		require.NoError(t, storeErr)
+		require.Len(t, beforeDelete, 1)
+
+		_, storeErr = originalStore.FileInfo().DeleteForPost(th.Context, post.Id)
 		require.NoError(t, storeErr)
 
-		// GetByIds caches per file ID, and nothing evicts those keys on delete, so a
-		// stale DeleteAt == 0 entry would otherwise make the request succeed.
-		th.App.Srv().Store().FileInfo().ClearCaches()
+		lagging := &replicaLagFileInfoStore{FileInfoStore: originalStore.FileInfo(), staleInfo: beforeDelete[0]}
+		th.App.Srv().SetStore(&replicaLagFileStore{Store: originalStore, fileInfos: lagging})
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(originalStore)
+		})
 
-		_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+		_, resp, err := client.GetFile(context.Background(), fileInfo.Id)
 		require.Error(t, err)
-		CheckNotFoundStatus(t, deletedResp)
-		CheckErrorID(t, err, "api.file.get_file_info.app_error")
-
-		_, missingResp, err := client.GetFile(context.Background(), model.NewId())
-		require.Error(t, err)
-		CheckNotFoundStatus(t, missingResp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorID(t, err, "api.file.get_file_info.app_error")
 	})
+
+	t.Run("content reviewer can get a deleted file", func(t *testing.T) {
+		th.LoginBasic(t)
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+		t.Cleanup(func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		})
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		removeWithPost := func(t *testing.T, post *model.Post, _ *model.FileInfo) {
+			t.Helper()
+			_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+			require.NoError(t, storeErr)
+		}
+		removeFromPost := func(t *testing.T, post *model.Post, fileInfo *model.FileInfo) {
+			t.Helper()
+			storeErr := th.App.Srv().Store().FileInfo().DeleteForPostByIds(th.Context, post.Id, []string{fileInfo.Id})
+			require.NoError(t, storeErr)
+		}
+
+		testCases := []struct {
+			name      string
+			priorRead bool
+			remove    func(*testing.T, *model.Post, *model.FileInfo)
+		}{
+			{name: "deleted with its post", priorRead: false, remove: removeWithPost},
+			{name: "deleted with its post after it was read", priorRead: true, remove: removeWithPost},
+			{name: "detached from its post after it was read", priorRead: true, remove: removeFromPost},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+				if tc.priorRead {
+					data, _, readErr := client.GetFile(context.Background(), fileInfo.Id)
+					require.NoError(t, readErr)
+					require.Equal(t, sent, data)
+				}
+
+				flagPostViaAPI(t, client, post.Id)
+				tc.remove(t, post, fileInfo)
+
+				data, response, getErr := client.GetFileAsContentReviewer(context.Background(), fileInfo.Id, post.Id)
+				require.NoError(t, getErr)
+				CheckOKStatus(t, response)
+				require.Equal(t, sent, data)
+			})
+		}
+	})
+}
+
+// replicaLagFileInfoStore simulates a read replica that still holds an earlier copy
+// of one file info. Any GetByIds lookup of that file which is not pinned to the master
+// DB returns the earlier copy; every other lookup passes through to the real store.
+type replicaLagFileInfoStore struct {
+	store.FileInfoStore
+
+	staleInfo *model.FileInfo
+}
+
+func (s *replicaLagFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	if !readFromMaster && len(ids) == 1 && ids[0] == s.staleInfo.Id {
+		stale := *s.staleInfo
+		return []*model.FileInfo{&stale}, nil
+	}
+	return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
+}
+
+type replicaLagFileStore struct {
+	store.Store
+	fileInfos *replicaLagFileInfoStore
+}
+
+func (s *replicaLagFileStore) FileInfo() store.FileInfoStore {
+	return s.fileInfos
 }
 
 func TestGetFileAsContentReviewer(t *testing.T) {
@@ -1882,7 +2835,13 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 	})
 }
 
-func TestUploadFileABACEnforcement(t *testing.T) {
+const uploadFileAttachmentDeniedErrorID = "api.file.upload_file.abac_denied.app_error"
+
+// setupUploadFileAttachmentABAC returns a test helper with permission policies
+// enabled, for tests that install mockUploadFileAttachmentPolicy.
+func setupUploadFileAttachmentABAC(t *testing.T) *TestHelper {
+	t.Helper()
+
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
@@ -1892,46 +2851,93 @@ func TestUploadFileABACEnforcement(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
+	return th
+}
+
+// mockUploadFileAttachmentPolicy swaps in an access control service that denies
+// the upload_file_attachment action in deniedChannelIDs and allows every other
+// evaluation, so unrelated policy checks never get in the way.
+func mockUploadFileAttachmentPolicy(t *testing.T, th *TestHelper, deniedChannelIDs ...string) *mocks.AccessControlServiceInterface {
+	t.Helper()
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionUploadFileAttachment && slices.Contains(deniedChannelIDs, req.Resource.ID)
+	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+
+	// Channel teardown and policy reads touch the service without being part of the
+	// behaviour under test.
+	mockACS.On("GetPolicy", mock.Anything, mock.AnythingOfType("string")).
+		Return(nil, (*model.AppError)(nil)).Maybe()
+	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+		Return((*model.AppError)(nil)).Maybe()
+
+	return mockACS
+}
+
+// uploadUnattachedFile uploads a file to channelID as th.BasicUser and returns
+// its ID, still unattached to any post.
+func uploadUnattachedFile(t *testing.T, th *TestHelper, channelID string) string {
+	t.Helper()
+
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := th.Client.UploadFile(context.Background(), data, channelID, "test.png")
+	require.NoError(t, err)
+	require.Len(t, fileResp.FileInfos, 1)
+
+	return fileResp.FileInfos[0].Id
+}
+
+// disableABACForTest turns attribute-based access control off for the rest of
+// the test, so permission policies are never consulted.
+func disableABACForTest(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+	})
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+	})
+}
+
+func TestUploadFileABACEnforcement(t *testing.T) {
+	th := setupUploadFileAttachmentABAC(t)
+
 	sent, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 
-	// The channel permission check runs before ABAC, so the user must already be able to upload
-	// for this to reach the gate under test.
-	mockUploadDecision := func(t *testing.T, allowed bool) {
-		t.Helper()
-
-		mockACS := &mocks.AccessControlServiceInterface{}
-		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
-		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
-
-		original := th.App.Srv().Channels().AccessControl
-		th.App.Srv().Channels().AccessControl = mockACS
-		t.Cleanup(func() {
-			th.App.Srv().Channels().AccessControl = original
-		})
-	}
-
 	// UploadFileAsRequestBody drives uploadFileSimple, UploadFile drives uploadFileMultipart.
-	// Each carries its own copy of the gate.
 	t.Run("simple upload is rejected when the policy denies the upload action", func(t *testing.T) {
-		mockUploadDecision(t, false)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
 
 		_, resp, err := th.Client.UploadFileAsRequestBody(context.Background(), sent, th.BasicChannel.Id, "test.png")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
 	})
 
 	t.Run("multipart upload is rejected when the policy denies the upload action", func(t *testing.T) {
-		mockUploadDecision(t, false)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
 
 		_, resp, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
 	})
 
 	t.Run("upload is accepted when the policy allows the upload action", func(t *testing.T) {
-		mockUploadDecision(t, true)
+		mockUploadFileAttachmentPolicy(t, th)
 
 		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
 		require.NoError(t, err)
@@ -1939,16 +2945,8 @@ func TestUploadFileABACEnforcement(t *testing.T) {
 	})
 
 	t.Run("upload is unaffected when ABAC is disabled", func(t *testing.T) {
-		mockUploadDecision(t, false)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
-		})
-		t.Cleanup(func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
-			})
-		})
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
 
 		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
 		require.NoError(t, err)

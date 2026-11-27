@@ -6,7 +6,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AdminPanel from './admin_panel';
 
@@ -19,6 +19,10 @@ type Props = {
     onButtonClick?: React.EventHandler<React.MouseEvent>;
     disabled?: boolean;
     buttonText?: MessageDescriptor;
+
+    // Renders the panel action in the danger colour, for panels whose button
+    // removes something.
+    destructive?: boolean;
 };
 
 const AdminPanelWithButton = ({
@@ -27,6 +31,7 @@ const AdminPanelWithButton = ({
     title,
     buttonText,
     children,
+    destructive,
     disabled,
     id,
     onButtonClick,
@@ -37,8 +42,9 @@ const AdminPanelWithButton = ({
         button = (
             <Button
                 emphasis='primary'
-                className={classNames({disabled})}
-                onClick={disabled ? undefined : onButtonClick}
+                destructive={destructive}
+                disabled={disabled}
+                onClick={onButtonClick}
                 data-testid={buttonId}
             >
                 <FormattedMessage
@@ -50,7 +56,7 @@ const AdminPanelWithButton = ({
 
     return (
         <AdminPanel
-            className={'AdminPanelWithButton ' + className}
+            className={classNames('AdminPanelWithButton', className)}
             id={id}
             title={title}
             subtitle={subtitle}

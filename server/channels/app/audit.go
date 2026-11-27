@@ -4,15 +4,12 @@
 package app
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"os/user"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -47,13 +44,10 @@ const (
 func (a *App) GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, 0, limit)
 	if err != nil {
-		var outErr *store.ErrOutOfBounds
-		switch {
-		case errors.As(err, &outErr):
+		if _, ok := errors.AsType[*store.ErrOutOfBounds](err); ok {
 			return nil, model.NewAppError("GetAudits", "app.audit.get.limit.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return audits, nil
 }
@@ -61,13 +55,10 @@ func (a *App) GetAudits(rctx request.CTX, userID string, limit int) (model.Audit
 func (a *App) GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
-		var outErr *store.ErrOutOfBounds
-		switch {
-		case errors.As(err, &outErr):
+		if _, ok := errors.AsType[*store.ErrOutOfBounds](err); ok {
 			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.limit.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return audits, nil
 }
@@ -126,6 +117,8 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 	return rec
 }
 
+const accessControlAuditTargetMissingWarning = "AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled, or configure a target bound to an audit level via ExperimentalAuditSettings.AdvancedLoggingJSON or the MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL environment variable."
+
 func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
@@ -146,19 +139,9 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	}
 
 	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
-	cfg, err := config.MloggerConfigFromAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
+	cfg, err := config.EffectiveAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
 	if err != nil {
-		return fmt.Errorf("invalid config for audit, %w", err)
-	}
-
-	// Append additional config from env var; any target name collisions will be overwritten.
-	additionalJSON := strings.TrimSpace(os.Getenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"))
-	if additionalJSON != "" {
-		cfgAdditional := make(mlog.LoggerConfiguration)
-		if err := json.Unmarshal([]byte(additionalJSON), &cfgAdditional); err != nil {
-			return fmt.Errorf("invalid additional config for audit, %w", err)
-		}
-		cfg.Append(cfgAdditional)
+		return err
 	}
 
 	return adt.Configure(cfg)

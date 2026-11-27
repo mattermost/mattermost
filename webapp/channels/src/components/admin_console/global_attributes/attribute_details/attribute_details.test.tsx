@@ -48,6 +48,19 @@ describe('AttributeDetails', () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
 
+        // The Channels row's missing-values banner (MM-70717) fetches on
+        // every expand; stub it to zero so it never blocks the Required
+        // toggle in the tests below, none of which are about that fetch.
+        jest.spyOn(Client4, 'getChannelAttributeComplianceSummary').mockResolvedValue({
+            required: false,
+            missing_channel_count: 0,
+            shared_channel_count: 0,
+            unique_admin_count: 0,
+            channels_without_admin_count: 0,
+            message_preview: '',
+            notify_cooldown_ms: 0,
+        });
+
         // The page lists user fields and templates on mount to resolve name
         // conflicts, whatever else a test is about. Unmocked that reaches the
         // network, and every case here would log the rejection the page catches.
@@ -80,6 +93,17 @@ describe('AttributeDetails', () => {
             },
         }),
     );
+
+    it('renders Definition and Applies to as Compass AdminPanels', () => {
+        const {container} = renderComponent();
+
+        expect(container.querySelector('#attribute_definition.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#attribute_applies_to.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Definition'})).toBeInTheDocument();
+        expect(screen.getByText('Display name, type, and options.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Applies to'})).toBeInTheDocument();
+        expect(screen.getByText('Resources this attribute applies to, and who can set the value on each.')).toBeInTheDocument();
+    });
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
         renderComponent();
@@ -574,9 +598,8 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
         });
 
-        // No licence here: Posts is gated on its flag alone, unlike Channels.
-        it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
-            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}}}});
+        it('is offered with the PostAttributes feature flag and an Enterprise licence, and adds a Posts row', async () => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license: {IsLicensed: 'true', SkuShortName: 'enterprise'}}}});
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
@@ -584,6 +607,19 @@ describe('AttributeDetails', () => {
             await userEvent.click(screen.getByRole('menuitem', {name: 'Posts'}));
 
             expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
+        });
+
+        // The server refuses access_control post requests below Enterprise (501),
+        // so an unlicensed or Professional admin is not offered Posts.
+        it.each([
+            ['no licence', {IsLicensed: 'false'}],
+            ['a Professional licence', {IsLicensed: 'true', SkuShortName: 'professional'}],
+        ])('is not offered with the PostAttributes feature flag and %s', async (_name, license) => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}, license}}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
         });
     });
 
@@ -1127,6 +1163,34 @@ describe('AttributeDetails', () => {
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
         });
 
+        it('sends attrs.openid in the create payload when an OpenID Connect claim is linked', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderWithContext(
+                <div>
+                    <AttributeDetails/>
+                    <ModalController/>
+                </div>,
+                mergeObjects(ALL_RESOURCES_STATE, {
+                    entities: {
+                        admin: {config: {FeatureFlags: {OpenIdAttributeSync: true}, OpenIdSettings: {Enable: true}}},
+                        general: {license: {IsLicensed: 'true', OpenId: 'true'}},
+                    },
+                }),
+            );
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Country');
+
+            await linkViaMenu(/^OpenID Connect/, 'address.country');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
+            expect(attrs).toEqual(expect.objectContaining({openid: 'address.country'}));
+            expect(attrs).not.toHaveProperty('ldap');
+            expect(attrs).not.toHaveProperty('saml');
+        });
+
         it('sends attrs.ldap and attrs.saml in the create payload when linked, omitting both when not', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -1363,6 +1427,36 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField).not.toHaveBeenCalled();
         });
 
+        it('pins creator as who may set the value on the linked post field, and leaves the Users and Channels values as they are', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'post-field-id'} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                permission_values: 'member',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
+                permission_values: 'admin',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(4, 'access_control', 'post', expect.objectContaining({
+                linked_field_id: 'template-id',
+                permission_values: 'creator',
+            }));
+
+            // Only the linked fields pin it; the template keeps the server's default.
+            expect(createPropertyField.mock.calls[0][2]).not.toHaveProperty('permission_values');
+        });
+
         it('picks up the current appliesTo value even though canSave does not depend on it (stale-closure regression)', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
                 mockResolvedValueOnce({id: 'template-id'} as PropertyField).
@@ -1459,6 +1553,22 @@ describe('AttributeDetails', () => {
             // so the inner rollback loop runs zero iterations) -- confirms
             // the template itself is still cleaned up in this zero-survivor case.
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
+        });
+
+        it("shows the server's own message when Required is refused for channels missing a value", async () => {
+            jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('api.property_field.required.channels_missing_values.app_error', 'Some active channels have no value yet.'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Some active channels have no value yet.');
+            expect(banner).not.toHaveTextContent('Please try again');
         });
 
         it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {
@@ -1686,8 +1796,8 @@ describe('AttributeDetails', () => {
         // pages with a cursor, so a cursor-bearing call has to come back empty or
         // the walk never terminates.
         function mockConflictFields(userFields: PropertyField[], templates: PropertyField[] = []) {
-            return jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, _targetType, _targetId, options) => {
-                if (options?.cursorId) {
+            return jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'user') {
@@ -1707,8 +1817,8 @@ describe('AttributeDetails', () => {
             renderComponent();
 
             await waitFor(() => {
-                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.anything());
-                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'template', 'system', undefined, expect.anything());
+                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system'}));
+                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({targetType: 'system'}));
             });
             await runPostRenderAct(3);
         };
@@ -1728,7 +1838,7 @@ describe('AttributeDetails', () => {
 
             // An exact match is the case the server rejects, so the notice reads
             // as a danger rather than a warning.
-            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('danger');
+            expect(warning.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
             expect(createPropertyField).not.toHaveBeenCalled();
 
             // * The warning appears and rewrites itself while the admin is still
@@ -1743,8 +1853,8 @@ describe('AttributeDetails', () => {
             const userFieldsPromise = new Promise<PropertyField[]>((resolve) => {
                 resolveUserFields = resolve;
             });
-            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, _targetType, _targetId, options) => {
-                if (options?.cursorId) {
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'user') {
@@ -1798,7 +1908,7 @@ describe('AttributeDetails', () => {
 
             // A case-only match does not collide on the server, so the notice
             // reads as a warning rather than a danger and Users stays addable.
-            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('warning');
+            expect(warning.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             const users = screen.getByRole('menuitem', {name: /^Users/});
@@ -2803,6 +2913,31 @@ describe('AttributeDetails', () => {
             expect(deletePropertyField).not.toHaveBeenCalled();
         });
 
+        it('pins creator on a post field added to an existing attribute, next to a channel field added in the same save', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'channel-field'} as PropertyField).
+                mockResolvedValueOnce({id: 'post-field'} as PropertyField);
+
+            renderEdit();
+            await waitForForm();
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(2);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({
+                linked_field_id: FIELD_ID,
+                permission_values: 'admin',
+            }));
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'post', expect.objectContaining({
+                linked_field_id: FIELD_ID,
+                permission_values: 'creator',
+            }));
+        });
+
         it('does not PATCH Users on retry after a later resource create failed', async () => {
             mockLoadedField(makeTemplate());
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
@@ -2910,6 +3045,93 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.anything());
             expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
+        });
+
+        it('mirrors the server-updated Users field into the CPA cache after a template options PATCH', async () => {
+            const originalUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+            const refreshedUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {
+                    display_name: 'Department',
+                    options: [{id: 'opt-1', name: 'Engineering'}, {id: 'opt-2', name: 'Sales'}],
+                },
+            });
+            const template = makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+
+            let afterTemplatePatch = false;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([template]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([afterTemplatePatch ? refreshedUser : originalUser]);
+                }
+                return Promise.resolve([]);
+            });
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                afterTemplatePatch = true;
+                return template;
+            });
+
+            const {store} = renderEdit({
+                entities: {
+                    general: {
+                        customProfileAttributes: {
+                            [originalUser.id]: originalUser,
+                        },
+                    },
+                },
+            });
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(store.getState().entities.general.customProfileAttributes['user-field']).toEqual(refreshedUser);
+        });
+
+        it('still saves when the post-PATCH Users refetch fails', async () => {
+            const originalUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+            const template = makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+
+            let afterTemplatePatch = false;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (afterTemplatePatch) {
+                    return Promise.reject(new Error('boom'));
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve([template]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([originalUser]);
+                }
+                return Promise.resolve([]);
+            });
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                afterTemplatePatch = true;
+                return template;
+            });
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         });
 
         it('folds matching display_name into the existing Channels config PATCH', async () => {
@@ -3020,6 +3242,45 @@ describe('AttributeDetails', () => {
             }));
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
                 attrs: {ldap: 'newDept'},
+            });
+        });
+
+        it('PATCHes a newly linked OpenID Connect claim onto the template and the already-persisted Users field', async () => {
+            mockLoadedField(
+                makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups'}}),
+                [makeLinked('user', 'user-field', {type: 'multiselect', attrs: {display_name: 'Groups'}})],
+            );
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ?
+                    makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) :
+                    makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
+            ));
+
+            renderEdit({
+                entities: {
+                    admin: {config: {FeatureFlags: {OpenIdAttributeSync: true}, OpenIdSettings: {Enable: true}}},
+                    general: {license: {IsLicensed: 'true', OpenId: 'true'}},
+                },
+            });
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByRole('menuitem', {name: /^OpenID Connect/}));
+            await userEvent.type(await screen.findByPlaceholderText('department'), 'groups');
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Multiselect');
+            expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the OpenID Connect sync.');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                attrs: expect.objectContaining({ldap: null, saml: null, openid: 'groups'}),
+            }));
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {openid: 'groups'},
             });
         });
 
@@ -3702,7 +3963,7 @@ describe('AttributeDetails', () => {
 
             const warning = await screen.findByTestId('attributeNameConflictWarning');
             expect(warning).toHaveTextContent('Another attribute already uses this name.');
-            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('danger');
+            expect(warning.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // Still saveable: this template applies to nothing, so the rename
             // creates no second user field for the server to reject.

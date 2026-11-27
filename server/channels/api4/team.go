@@ -96,29 +96,6 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// On a cloud license, we must check limits before allowing to create
-	if c.App.Channels().License().IsCloud() {
-		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
-		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
-			teamsUsage, appErr := c.App.GetTeamsUsage()
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			// if the number of active teams is greater than or equal to the limit, return 400
-			if teamsUsage.Active >= int64(*limits.Teams.Active) {
-				c.Err = model.NewAppError("Api4.createTeam", "api.cloud.teams_limit_reached.create", nil, "", http.StatusBadRequest)
-				return
-			}
-		}
-	}
-
 	if team.SchemeId != nil && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
@@ -534,28 +511,6 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
-	// On a cloud license, we must check limits before allowing to restore
-	if c.App.Channels().License().IsCloud() {
-		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
-		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
-			teamsUsage, appErr := c.App.GetTeamsUsage()
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			// if the number of active teams is greater than or equal to the limit, return 400
-			if teamsUsage.Active >= int64(*limits.Teams.Active) {
-				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
-				return
-			}
-		}
-	}
 
 	err := c.App.RestoreTeam(c.Params.TeamId)
 	if err != nil {
@@ -769,7 +724,7 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("exclude_team")
 	includeCollapsedThreads := r.URL.Query().Get("include_collapsed_threads") == "true"
 
-	unreadTeamsList, appErr := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId, includeCollapsedThreads)
+	unreadTeamsList, appErr := c.App.GetTeamsUnreadForUser(c.AppContext, teamId, c.Params.UserId, includeCollapsedThreads)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1327,7 +1282,7 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unreadTeam, err := c.App.GetTeamUnread(c.Params.TeamId, c.Params.UserId)
+	unreadTeam, err := c.App.GetTeamUnread(c.AppContext, c.Params.TeamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1703,6 +1658,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(memberInvite.ChannelIds) > 0 {
 		// Check if the user sending the invitation has access to the channels where the invitation is being sent
+		memberInvite.ChannelIds = c.App.FilterChannelIDsByManagementAccess(c.AppContext, c.AppContext.Session().UserId, memberInvite.ChannelIds)
 		memberInvite.ChannelIds = c.App.ValidateUserPermissionsOnChannels(c.AppContext, c.AppContext.Session().UserId, memberInvite.ChannelIds)
 
 		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
@@ -1843,6 +1799,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	// Check if the user sending the invitation has access to the channels where the invitation is being sent
+	guestsInvite.Channels = c.App.FilterChannelIDsByManagementAccess(c.AppContext, c.AppContext.Session().UserId, guestsInvite.Channels)
 	guestsInvite.Channels = c.App.ValidateUserPermissionsOnChannels(c.AppContext, c.AppContext.Session().UserId, guestsInvite.Channels)
 
 	if graceful {

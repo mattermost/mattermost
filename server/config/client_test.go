@@ -4,7 +4,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -735,52 +734,14 @@ func TestGetClientConfig(t *testing.T) {
 			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
 		},
 		{
-			"audit logging - default config",
-			&model.Config{},
-			"",
-			nil,
-			map[string]string{
-				"EnableAccessControlAuditLogging": "false",
-				"AuditLoggingActive":              "false",
-			},
-			[]string{},
-		},
-		{
-			"audit logging - file audit enabled",
-			&model.Config{
-				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					FileEnabled: new(true),
-					FileName:    new("audit.log"),
-				},
-			},
-			"",
-			nil,
-			map[string]string{
-				"EnableAccessControlAuditLogging": "false",
-				"AuditLoggingActive":              "true",
-			},
-			[]string{},
-		},
-		{
-			"audit logging - setting enabled independent of active state",
+			"audit logging - AuditLoggingActive is not derived from config",
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAccessControlAuditLogging: new(true),
 				},
-			},
-			"",
-			nil,
-			map[string]string{
-				"EnableAccessControlAuditLogging": "true",
-				"AuditLoggingActive":              "false",
-			},
-			[]string{},
-		},
-		{
-			"audit logging - advanced target with license",
-			&model.Config{
 				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
+					FileEnabled: new(true),
+					FileName:    new("audit.log"),
 				},
 			},
 			"",
@@ -791,23 +752,9 @@ func TestGetClientConfig(t *testing.T) {
 				SkuShortName: model.LicenseShortSkuEnterprise,
 			},
 			map[string]string{
-				"AuditLoggingActive": "true",
+				"EnableAccessControlAuditLogging": "true",
 			},
-			[]string{},
-		},
-		{
-			"audit logging - advanced target without license",
-			&model.Config{
-				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
-				},
-			},
-			"",
-			nil,
-			map[string]string{
-				"AuditLoggingActive": "false",
-			},
-			[]string{},
+			[]string{"AuditLoggingActive"},
 		},
 		{
 			"notification metrics enabled follows the metrics setting",
@@ -898,11 +845,12 @@ func TestGenerateClientConfigLockProfileFieldsForEmailUsers(t *testing.T) {
 func TestGetLimitedClientConfig(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
-		description    string
-		config         *model.Config
-		telemetryID    string
-		license        *model.License
-		expectedFields map[string]string
+		description      string
+		config           *model.Config
+		telemetryID      string
+		license          *model.License
+		expectedFields   map[string]string
+		unexpectedFields []string
 	}{
 		{
 			"unlicensed",
@@ -925,9 +873,19 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			map[string]string{
 				"DiagnosticId":                     "",
 				"EnforceMultifactorAuthentication": "false",
-				"WebsocketURL":                     "ws://mattermost.example.com:8065",
-				"WebsocketPort":                    "80",
-				"WebsocketSecurePort":              "443",
+				"EnableGuestAccounts":              "false",
+			},
+			[]string{
+				"WebsocketURL",
+				"WebsocketPort",
+				"WebsocketSecurePort",
+				"BuildDate",
+				"BuildHashEnterprise",
+				"EnableFile",
+				"FileLevel",
+				"IsFipsEnabled",
+				"SupportEmail",
+				"HideGuestTags",
 			},
 		},
 		{
@@ -950,20 +908,25 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"PasswordRequireNumber":    "true",
 				"PasswordRequireSymbol":    "false",
 			},
+			nil,
 		},
 		{
 			"Feature Flags",
 			&model.Config{
 				FeatureFlags: &model.FeatureFlags{
-					TestFeature:    "myvalue",
-					PostAttributes: true,
+					TestFeature:       "myvalue",
+					PostAttributes:    true,
+					SessionAttributes: true,
 				},
 			},
 			"",
 			nil,
 			map[string]string{
-				"FeatureFlagTestFeature":    "myvalue",
-				"FeatureFlagPostAttributes": "true",
+				"FeatureFlagSessionAttributes": "true",
+			},
+			[]string{
+				"FeatureFlagTestFeature",
+				"FeatureFlagPostAttributes",
 			},
 		},
 		{
@@ -981,6 +944,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalEnableWatermark": "true",
 			},
+			nil,
 		},
 	}
 
@@ -999,6 +963,9 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
 					assert.Equal(t, expectedValue, actualValue)
 				}
+			}
+			for _, unexpectedField := range testCase.unexpectedFields {
+				assert.NotContains(t, configMap, unexpectedField)
 			}
 		})
 	}

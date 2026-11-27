@@ -93,25 +93,14 @@ describe('components/integrations/EditIncomingWebhook', () => {
 
     test('should show Loading screen when no hook is provided', () => {
         const props = {...requiredProps, actions};
-        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
         expect(getIncomingHook).toHaveBeenCalledTimes(1);
         expect(getIncomingHook).toHaveBeenCalledWith(props.hookId);
     });
 
-    test('should show AbstractIncomingWebhook', () => {
-        const props = {...requiredProps, actions, hook};
-        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should not call getIncomingHook', () => {
         const props = {...requiredProps, enableIncomingWebhooks: false, actions};
-        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
         expect(getIncomingHook).toHaveBeenCalledTimes(0);
     });
 
@@ -120,13 +109,11 @@ describe('components/integrations/EditIncomingWebhook', () => {
         const newActions = {...actions, updateIncomingHook: newUpdateIncomingHook};
         const asyncHook = {...hook};
         const props = {...requiredProps, actions: newActions, hook};
-        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
+        renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
         // Submit the form via the Update button
         const submitButton = screen.getByRole('button', {name: 'Update'});
         await submitButton.click();
-
-        expect(container).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
         expect(newActions.updateIncomingHook).toHaveBeenCalledWith({
             ...asyncHook,
@@ -139,12 +126,10 @@ describe('components/integrations/EditIncomingWebhook', () => {
         const newActions = {...actions, updateIncomingHook: newUpdateIncomingHook};
         const asyncHook = {...hook};
         const props = {...requiredProps, actions: newActions, hook};
-        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
+        renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
         const submitButton = screen.getByRole('button', {name: 'Update'});
         await submitButton.click();
-
-        expect(container).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
         expect(newActions.updateIncomingHook).toHaveBeenCalledWith({
             ...asyncHook,

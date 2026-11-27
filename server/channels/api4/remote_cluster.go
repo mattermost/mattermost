@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -226,6 +227,14 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Remotes send the whole file from offset 0 in one request, so data already in the session
+	// means this is a transport replay after a partial write. Appending it would corrupt the file.
+	if us.FileOffset != 0 {
+		c.Err = model.NewAppError("uploadRemoteData", "api.remote_cluster.upload_resume_not_allowed.app_error",
+			nil, "", http.StatusBadRequest)
+		return
+	}
+
 	info, err := doUploadData(c, us, r)
 	if err != nil {
 		c.Err = err
@@ -395,9 +404,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rcWithTeamAndPassword.DisplayName == "" {
-		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
-	}
+	rcWithTeamAndPassword.DisplayName = cmp.Or(rcWithTeamAndPassword.DisplayName, rcWithTeamAndPassword.Name)
 
 	rc := &model.RemoteCluster{
 		Name:          rcWithTeamAndPassword.Name,
@@ -477,9 +484,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 	model.AddEventParameterToAuditRec(auditRec, "name", rcAcceptInvite.Name)
 	model.AddEventParameterToAuditRec(auditRec, "display_name", rcAcceptInvite.DisplayName)
 
-	if rcAcceptInvite.DisplayName == "" {
-		rcAcceptInvite.DisplayName = rcAcceptInvite.Name
-	}
+	rcAcceptInvite.DisplayName = cmp.Or(rcAcceptInvite.DisplayName, rcAcceptInvite.Name)
 
 	invite, dErr := c.App.DecryptRemoteClusterInvite(rcAcceptInvite.Invite, rcAcceptInvite.Password)
 	if dErr != nil {

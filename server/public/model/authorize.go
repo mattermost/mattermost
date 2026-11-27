@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/base64"
 	"net/http"
@@ -146,17 +147,13 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 }
 
 func (ad *AuthData) PreSave() {
-	if ad.ExpiresIn == 0 {
-		ad.ExpiresIn = AuthCodeExpireTime
-	}
+	ad.ExpiresIn = cmp.Or(ad.ExpiresIn, AuthCodeExpireTime)
 
 	if ad.CreateAt == 0 {
 		ad.CreateAt = GetMillis()
 	}
 
-	if ad.Scope == "" {
-		ad.Scope = DefaultScope
-	}
+	ad.Scope = cmp.Or(ad.Scope, DefaultScope)
 }
 
 func (ad *AuthData) IsExpired() bool {

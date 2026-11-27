@@ -19,99 +19,88 @@ const (
 )
 
 var dbNoReadReplica = healthcheck.Rule{
-	Code:     "DB_NO_READ_REPLICA",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_no_read_replica.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_no_read_replica.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    dataSourceReplicasSubject,
-	Eval:       healthcheck.Single(evalDBNoReadReplica),
+	Code:          "DB_NO_READ_REPLICA",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.db_no_read_replica.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_no_read_replica.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       dataSourceReplicasSubject,
+	// The store ignores replicas without a license.
+	Eval: healthcheck.Licensed(healthcheck.AnyLicense, healthcheck.Single(evalDBNoReadReplica)),
 }
 
 var dbNoSearchReplica = healthcheck.Rule{
-	Code:     "DB_NO_SEARCH_REPLICA",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_no_search_replica.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_no_search_replica.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    dataSourceSearchReplicasSubject,
-	Eval:       healthcheck.Single(evalDBNoSearchReplica),
+	Code:          "DB_NO_SEARCH_REPLICA",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_no_search_replica.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_no_search_replica.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       dataSourceSearchReplicasSubject,
+	Eval:          healthcheck.Licensed(healthcheck.AnyLicense, healthcheck.Single(evalDBNoSearchReplica)),
 }
 
 var dbTraceOn = healthcheck.Rule{
-	Code:     "DB_TRACE_ON",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_trace_on.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_trace_on.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SqlSettings.Trace",
-	Eval:       healthcheck.Single(evalDBTraceOn),
+	Code:          "DB_TRACE_ON",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_trace_on.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_trace_on.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "SqlSettings.Trace",
+	Eval:          healthcheck.Single(evalDBTraceOn),
 }
 
 var dbMaxOpenConnsLow = healthcheck.Rule{
-	Code:     "DB_MAX_OPEN_CONNS_LOW",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_max_open_conns_low.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_max_open_conns_low.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    maxOpenConnsSubject,
-	Eval:       healthcheck.Single(evalDBMaxOpenConnsLow),
+	Code:          "DB_MAX_OPEN_CONNS_LOW",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.db_max_open_conns_low.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_max_open_conns_low.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       maxOpenConnsSubject,
+	Eval:          healthcheck.Single(evalDBMaxOpenConnsLow),
 }
 
 var dbQueryTimeoutHigh = healthcheck.Rule{
-	Code:     "DB_QUERY_TIMEOUT_HIGH",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_query_timeout_high.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_query_timeout_high.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SqlSettings.QueryTimeout",
-	Eval:       healthcheck.Single(evalDBQueryTimeoutHigh),
+	Code:          "DB_QUERY_TIMEOUT_HIGH",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_query_timeout_high.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_query_timeout_high.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "SqlSettings.QueryTimeout",
+	Eval:          healthcheck.Single(evalDBQueryTimeoutHigh),
 }
 
 var dbIdleExceedsOpen = healthcheck.Rule{
-	Code:     "DB_IDLE_EXCEEDS_OPEN",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_idle_exceeds_open.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_idle_exceeds_open.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SqlSettings.MaxIdleConns",
-	Eval:       healthcheck.Single(evalDBIdleExceedsOpen),
+	Code:          "DB_IDLE_EXCEEDS_OPEN",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.db_idle_exceeds_open.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_idle_exceeds_open.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "SqlSettings.MaxIdleConns",
+	Eval:          healthcheck.Single(evalDBIdleExceedsOpen),
 }
 
 func evalDBNoReadReplica(s *healthcheck.Snapshot) healthcheck.Result {
@@ -149,7 +138,9 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
-	if searching {
+	// The server does not activate Elasticsearch without the license, so search then stays on the database.
+	esLicensed, _ := s.LicenseAllows(healthcheck.FeatureElasticsearch)
+	if searching && esLicensed {
 		return healthcheck.Resolved()
 	}
 
@@ -169,7 +160,12 @@ func evalDBNoSearchReplica(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved().WithValue(float64(posts))
 	}
 
-	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_no_search_replica.message")).
+	messageID := healthcheck.TranslationId("health.rule.db_no_search_replica.message")
+	if esLicensed {
+		messageID = healthcheck.TranslationId("health.rule.db_no_search_replica.message.elasticsearch")
+	}
+
+	return healthcheck.Firing(messageID).
 		WithDetail("posts", strconv.FormatInt(posts, 10)).
 		WithValue(float64(posts))
 }

@@ -41,7 +41,8 @@ function jobsByTypeList(state: JobsByType = {}, action: MMReduxAction): JobsByTy
         const job = action.data as Job;
         const typeList = state[job.type as JobType];
         if (!typeList) {
-            return state;
+            // An empty history response never creates a type entry, so seed it from the event.
+            return {...state, [job.type as JobType]: [job]};
         }
         const idx = typeList.findIndex((j) => j.id === job.id);
         if (idx === -1) {

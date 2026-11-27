@@ -5,12 +5,20 @@ package metrics
 
 import (
 	"fmt"
+	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/config"
 	seMocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
@@ -367,6 +375,91 @@ func TestMergeLabels(t *testing.T) {
 	})
 }
 
+func TestNormalizeDisconnectErrCode(t *testing.T) {
+	supported := []string{"1000", "1005", "1006", "1016", "4000", "4001"}
+	for _, code := range supported {
+		require.Equal(t, code, normalizeDisconnectErrCode(code))
+	}
+
+	unsupported := []string{
+		"", "unknown", "abc", "999", "1017", "3000", "4002", "5000", "-1000",
+		"+1000", "01000", "001000", " 1000", "1000 ", "1e3", "1000.0",
+		strings.Repeat("0", 1500) + "1000",
+		strings.Repeat("9", 100),
+	}
+	for _, code := range unsupported {
+		require.Equal(t, "unknown", normalizeDisconnectErrCode(code), "code %q", code)
+	}
+}
+
+func TestWebsocketReconnectMetricsCardinality(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics).InitBasic(t)
+
+	configureMetrics(th)
+	miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	countSeries := func(c prometheus.Collector) int {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		n := 0
+		for range ch {
+			n++
+		}
+		return n
+	}
+
+	sumCounter := func(c prometheus.Collector) float64 {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		total := 0.0
+		for metric := range ch {
+			m := &prometheusModels.Metric{}
+			require.NoError(t, metric.Write(m))
+			total += m.GetCounter().GetValue()
+		}
+		return total
+	}
+
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
+	header := http.Header{"Authorization": []string{"Bearer " + th.Client.AuthToken}}
+	reconnect := func(rawCode string) {
+		query := "?connection_id=" + model.NewId() + "&sequence_number=1&disconnect_err_code=" + rawCode
+		ws, _, err := websocket.DefaultDialer.Dial(url+query, header)
+		require.NoError(t, err)
+		require.NoError(t, ws.Close())
+	}
+
+	reconnect("1000")
+	require.Eventually(t, func() bool {
+		return countSeries(miImpl.WebSocketReconnectCounter) > 0 && countSeries(miImpl.WebSocketReconnectFailureCounter) > 0
+	}, 5*time.Second, 20*time.Millisecond)
+	baseReconnect := countSeries(miImpl.WebSocketReconnectCounter)
+	baseFailure := countSeries(miImpl.WebSocketReconnectFailureCounter)
+	baseReconnectTotal := sumCounter(miImpl.WebSocketReconnectCounter)
+	baseFailureTotal := sumCounter(miImpl.WebSocketReconnectFailureCounter)
+
+	rawCodes := []string{"%2B1000", "01000", "001000", strings.Repeat("0", 500) + "1000", "%2B0001000", "abc", "5000"}
+	for _, rawCode := range rawCodes {
+		reconnect(rawCode)
+	}
+
+	expected := float64(len(rawCodes))
+	require.Eventually(t, func() bool {
+		return sumCounter(miImpl.WebSocketReconnectCounter) >= baseReconnectTotal+expected &&
+			sumCounter(miImpl.WebSocketReconnectFailureCounter) >= baseFailureTotal+expected
+	}, 5*time.Second, 20*time.Millisecond)
+
+	require.LessOrEqual(t, countSeries(miImpl.WebSocketReconnectCounter), baseReconnect+1)
+	require.LessOrEqual(t, countSeries(miImpl.WebSocketReconnectFailureCounter), baseFailure+1)
+}
+
 func TestServerInfo(t *testing.T) {
 	th := api4.SetupEnterprise(t, app.StartMetrics)
 
@@ -398,4 +491,70 @@ func TestServerInfo(t *testing.T) {
 			require.Equal(t, want, labels[key])
 		}
 	})
+}
+
+// loggingMetricsByTarget returns the value of each logging metric series, keyed by metric name and target.
+func loggingMetricsByTarget(t *testing.T, miImpl *MetricsInterfaceImpl) map[string]map[string]float64 {
+	t.Helper()
+
+	families, err := miImpl.Registry.Gather()
+	require.NoError(t, err)
+
+	byName := map[string]map[string]float64{}
+	for _, family := range families {
+		if !strings.HasPrefix(family.GetName(), "mattermost_logging_logger_") {
+			continue
+		}
+		byTarget := map[string]float64{}
+		for _, metric := range family.GetMetric() {
+			for _, label := range metric.GetLabel() {
+				if label.GetName() == "target" {
+					byTarget[label.GetValue()] = metric.GetCounter().GetValue() + metric.GetGauge().GetValue()
+				}
+			}
+		}
+		byName[family.GetName()] = byTarget
+	}
+	return byName
+}
+
+func TestAuditLoggerMetrics(t *testing.T) {
+	// Metrics and the audit target must be configured before the server starts, because audit
+	// targets are only configured once in NewServer.
+	t.Setenv("MM_METRICSSETTINGS_ENABLE", "true")
+	t.Setenv("MM_METRICSSETTINGS_LISTENADDRESS", ":0")
+	t.Setenv(config.AdditionalAuditTargetsEnv, fmt.Sprintf(
+		`{"audit_file":{"type":"file","format":"json","levels":[{"id":%d,"name":%q}],"options":{"filename":%q}}}`,
+		mlog.LvlAuditAPI.ID, mlog.LvlAuditAPI.Name, filepath.Join(t.TempDir(), "audit.log"),
+	))
+
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	miImpl, ok := th.App.Metrics().(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", th.App.Metrics()))
+
+	const loggedTotal = "mattermost_logging_logger_logged_total"
+	auditTarget := audit.MetricsTargetPrefix + "audit_file"
+	auditQueue := audit.MetricsTargetPrefix + "_logr"
+
+	require.NoError(t, th.App.Srv().Audit.Flush())
+	before := loggingMetricsByTarget(t, miImpl)[loggedTotal]
+
+	th.App.Srv().Audit.LogRecord(mlog.LvlAuditAPI, model.AuditRecord{EventName: "test"})
+	require.NoError(t, th.App.Srv().Audit.Flush())
+
+	metrics := loggingMetricsByTarget(t, miImpl)
+	require.Equal(t, before[auditTarget]+1, metrics[loggedTotal][auditTarget])
+	require.Equal(t, before[auditQueue]+1, metrics[loggedTotal][auditQueue], "audit logger's own queue should be counted separately from the main logger's")
+
+	for _, name := range []string{
+		"mattermost_logging_logger_queue_used",
+		loggedTotal,
+		"mattermost_logging_logger_error_total",
+		"mattermost_logging_logger_dropped_total",
+		"mattermost_logging_logger_blocked_total",
+	} {
+		require.Contains(t, metrics[name], auditTarget, name)
+		require.NotContains(t, metrics[name], "audit_file", "%s: audit targets should not be reported under their unprefixed name", name)
+	}
 }

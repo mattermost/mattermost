@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +13,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -51,6 +54,13 @@ type TestHelper struct {
 	ConfigStore       *config.Store
 
 	tempWorkspace string
+
+	// untaggedPropertyCalls records the calls the property access control
+	// hook refused for want of a caller ID (observeUntaggedPropertyCalls);
+	// allowUntaggedPropertyCaller opts a test out of failing on them.
+	untaggedPropertyCallsMut    sync.Mutex
+	untaggedPropertyCalls       []string
+	allowUntaggedPropertyCaller atomic.Bool
 }
 
 type PostOptions func(*model.Post)
@@ -75,10 +85,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 
 	// Check for environment variable override for console log level (useful for debugging tests)
-	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	if consoleLevel == "" {
-		consoleLevel = mlog.LvlDebug.Name
-	}
+	consoleLevel := cmp.Or(os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL"), mlog.LvlDebug.Name)
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
@@ -132,8 +139,15 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	require.NoError(tb, err)
 
 	th := &TestHelper{
-		App:               New(ServerConnector(s.Channels())),
-		Context:           request.EmptyContext(testLogger),
+		App: New(ServerConnector(s.Channels())),
+		// Tagged as a local-mode admin, the caller an `mmctl --local` request
+		// carries. The access control hook gates every PSAv2/v3 property group
+		// and refuses a caller that names nobody, so an untagged context would
+		// fail every property write in this package for want of an identity
+		// rather than for the reason the test is about. Tests that need a
+		// specific caller -- including an anonymous one -- build their own
+		// context with emptyContextWithCallerID or contextAsCaller.
+		Context:           localAdminTestContext(testLogger),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
@@ -169,6 +183,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
+	th.observeUntaggedPropertyCalls()
+
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -177,6 +193,8 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		}
 
 		th.ShutdownApp()
+
+		th.checkNoUntaggedPropertyCaller(tb)
 
 		if th.tempWorkspace != "" {
 			err := os.RemoveAll(th.tempWorkspace)
@@ -240,14 +258,14 @@ func SetupEnterprise(tb testing.TB, options ...Option) *TestHelper {
 	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, options, tb)
 }
 
-func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config), options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
 
 	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
 
-	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, false, true, updateConfig, nil, tb)
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, false, true, updateConfig, options, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -314,14 +332,14 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
-func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *TestHelper {
+func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
 
 	dbStore, sqlStore, dbSettings, searchEngine := setupStores(tb)
 
-	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, []Option{SetCluster(cluster)}, tb)
+	return setupTestHelper(dbStore, sqlStore, dbSettings, searchEngine, true, true, nil, append([]Option{SetCluster(cluster)}, options...), tb)
 }
 
 func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
@@ -643,19 +661,59 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
+// observeUntaggedPropertyCalls has the property access control hook report
+// every call it refuses, or hides options or values from, for want of a
+// caller ID, whatever logger the call's context carries. Each TestHelper has
+// its own server and so its own hook, so one test never sees another's calls.
+func (th *TestHelper) observeUntaggedPropertyCalls() {
+	th.Server.SetPropertyNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+		th.untaggedPropertyCallsMut.Lock()
+		defer th.untaggedPropertyCallsMut.Unlock()
+		th.untaggedPropertyCalls = append(th.untaggedPropertyCalls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
+	})
+}
+
+// observedUntaggedPropertyCalls returns the calls observeUntaggedPropertyCalls
+// has recorded so far.
+func (th *TestHelper) observedUntaggedPropertyCalls() []string {
+	th.untaggedPropertyCallsMut.Lock()
+	defer th.untaggedPropertyCallsMut.Unlock()
+	return slices.Clone(th.untaggedPropertyCalls)
+}
+
+// checkNoUntaggedPropertyCaller fails the test if the property access control
+// hook refused a call, or hid options or values from it, for want of a caller
+// ID, unless the test opted out with AllowUntaggedPropertyCaller. th.Context
+// is tagged as the local admin, so a test passing it never sees the refusal a
+// real untagged caller gets; this catches an internal call that builds or is
+// handed an untagged context instead.
+func (th *TestHelper) checkNoUntaggedPropertyCaller(tb testing.TB) {
+	th.Server.SetPropertyNoCallerObserverForTests(nil)
+	if th.allowUntaggedPropertyCaller.Load() {
+		return
+	}
+	th.untaggedPropertyCallsMut.Lock()
+	defer th.untaggedPropertyCallsMut.Unlock()
+	if len(th.untaggedPropertyCalls) > 0 {
+		tb.Errorf("the property access control hook refused calls with no caller ID; tag the caller (RequestContextWithCallerID), or call th.AllowUntaggedPropertyCaller() if the test means it:\n%s", strings.Join(th.untaggedPropertyCalls, "\n"))
+	}
+}
+
+// AllowUntaggedPropertyCaller stops the test failing when the property access
+// control hook refuses a call for want of a caller ID. Only for a test that
+// calls the property service with no caller ID on purpose: anywhere else it
+// means an internal call forgot to tag its caller.
+func (th *TestHelper) AllowUntaggedPropertyCaller() {
+	th.allowUntaggedPropertyCaller.Store(true)
+}
+
 func (th *TestHelper) GetSqlStore() *sqlstore.SqlStore {
 	return th.SQLStore
 }
 
 func (th *TestHelper) ConfigureInbucketMail() {
-	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "localhost"
-	}
-	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "10025"
-	}
+	inbucket_host := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
+	inbucket_port := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.SMTPServer = inbucket_host
 		*cfg.EmailSettings.SMTPPort = inbucket_port
@@ -728,6 +786,22 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 	}
 
 	return NewPluginAPI(th.App, th.Context, manifest)
+}
+
+// SetupPluginAPIWithPluginContext is SetupPluginAPI as a real plugin gets it:
+// on the untagged request.EmptyContext that Channels.Start hands to
+// initPlugins rather than th.Context's local-admin tag, and with the plugin
+// registered as installed, which the property access control hook checks
+// before it treats the caller as a plugin. Use it to test that a plugin API
+// method tags the plugin as the caller itself before reaching the property
+// service.
+func (th *TestHelper) SetupPluginAPIWithPluginContext(tb testing.TB) *PluginAPI {
+	manifest := &model.Manifest{
+		Id: "pluginid",
+	}
+	registerTestPlugin(tb, th, manifest.Id)
+
+	return NewPluginAPI(th.App, request.EmptyContext(th.App.Log()), manifest)
 }
 
 func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string, roleName string) {
@@ -864,4 +938,12 @@ const anonymousCallerId = ""
 func (th *TestHelper) emptyContextWithCallerID(callerID string) request.CTX {
 	ctx := model.WithCallerID(request.EmptyContext(th.App.Log()).Context(), callerID)
 	return request.EmptyContext(th.App.Log()).WithContext(ctx)
+}
+
+// localAdminTestContext is th.Context: an empty request context tagged as a
+// local-mode (unrestricted) admin, which the property ladder admits without a
+// user lookup.
+func localAdminTestContext(logger mlog.LoggerIFace) *request.Context {
+	rctx := request.EmptyContext(logger)
+	return rctx.WithContext(model.WithCallerID(rctx.Context(), model.CallerIDLocalAdmin)).(*request.Context)
 }

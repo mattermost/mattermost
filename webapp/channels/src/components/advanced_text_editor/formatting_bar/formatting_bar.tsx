@@ -3,18 +3,19 @@
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
-import classNames from 'classnames';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
-import FormattingIcon, {IconContainer} from './formatting_icon';
+import FormattingIcon from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
 import LinkPopover from './link_popover';
 import TextStyleDropdown from './text_style_dropdown';
@@ -342,20 +343,20 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
                         })}
                         disabled={showHiddenControls}
                     >
-                        <IconContainer
+                        <IconButton
                             id={'HiddenControlsButton' + location}
                             ref={setReference}
-                            className={classNames({active: showHiddenControls})}
+                            size='small'
+                            active={showHiddenControls}
                             aria-label={HiddenControlsButtonAriaLabel}
-                            type='button'
+                            icon={
+                                <Icon
+                                    glyph={<DotsHorizontalIcon color='currentColor'/>}
+                                />
+                            }
                             {...getClickReferenceProps()}
                             {...getDismissReferenceProps()}
-                        >
-                            <DotsHorizontalIcon
-                                color={'currentColor'}
-                                size={18}
-                            />
-                        </IconContainer>
+                        />
                     </WithTooltip>
                 </>
             )}

@@ -77,8 +77,10 @@ jobs:
               exit 1
             fi
 
-            echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha')" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -111,7 +113,10 @@ jobs:
             fi
 
             echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
+            # Status publication locks use the full tested SHA, never the dispatch ref.
+            COMMIT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}" --jq '.sha')
+            echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "BASE_SHA=$(echo "$PR_DATA" | jq -r '.base.sha // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -125,6 +130,10 @@ jobs:
         id: e2e-check
         uses: ./.github/actions/check-e2e-test-only
         with:
+          # The tested commit, not the PR's current head: a push after the dispatch would
+          # otherwise name an image that isn't built yet, and every worker fails to start.
+          base_sha: ${{ steps.resolve.outputs.BASE_SHA }}
+          head_sha: ${{ steps.resolve.outputs.COMMIT_SHA }}
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
 
 
@@ -190,7 +199,7 @@ jobs:
               SHOULD_RUN="true"
             fi
 
-            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
+            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/(e2e-.*|server-image-check)\.yml$'; then
               echo "Found E2E CI workflow file changes"
               SHOULD_RUN="true"
             fi
@@ -258,12 +267,46 @@ jobs:
           echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
           echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
 
-  e2e-cypress:
+  # Each edition's lanes start only once its server image is on Docker Hub (server-image-check.yml).
+  # Skip-only PRs still run the enterprise lanes to post their skip status, so the check passes at
+  # once unless a lane will boot a server: the full suites, rolling upgrades or subpath.
+  server-image-enterprise:
     needs:
       - resolve-pr
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server_edition: enterprise
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      report_type: "PR"
+      should_run: "${{ (needs.check-changes.outputs.should_run != 'false' || needs.check-changes.outputs.should_run_rolling_upgrades == 'true' || needs.check-changes.outputs.should_run_subpath == 'true') && 'true' || 'false' }}"
+
+  server-image-fips:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server_edition: fips
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      report_type: "PR"
+
+  e2e-cypress:
+    needs:
+      - resolve-pr
+      - check-changes
+      - server-image-enterprise
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -285,13 +328,16 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   e2e-playwright:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -309,6 +355,7 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
   # Only when subpath-specific server code or test specs changed.
@@ -316,8 +363,10 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_subpath == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -335,14 +384,17 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Enterprise FIPS Edition
   e2e-cypress-fips:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-fips
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -364,13 +416,16 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   e2e-playwright-fips:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-fips
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -388,3 +443,4 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"

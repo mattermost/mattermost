@@ -188,8 +188,8 @@ describe('Forward Message', () => {
             cy.findByTestId('notification_forward_post').should('be.visible').should('contain.text', `This message is from a private channel and can only be shared with ~${privateChannel.display_name}`);
 
             if (cancel) {
-                // * Assert if button is active
-                cy.get('.btn-tertiary').should('not.be.disabled').click();
+                // * Assert if cancel button is active
+                cy.findByRole('button', {name: 'Cancel'}).should('not.be.disabled').click();
             } else {
                 // * Assert if button is active
                 cy.get('.GenericModal__button.confirm').should('not.be.disabled').click();

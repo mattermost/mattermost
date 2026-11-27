@@ -272,8 +272,18 @@ func TestESServerError(t *testing.T) {
 		return searchWant{
 			state:     healthcheck.StateFiring,
 			messageID: messageID,
-			details:   map[string]string{"error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			details:   map[string]string{"nodes": "app-1", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
 		}
+	}
+	// withFollowers adds app-2 and app-3 with the given search diagnostics to s.
+	withFollowers := func(s *healthcheck.Snapshot, app2, app3 *healthcheck.NodeSnapshot) *healthcheck.Snapshot {
+		nodes := append(s.Nodes(), app2, app3)
+		cluster := healthcheck.NewSnapshot(nodes)
+		cluster.Config, cluster.Sections = s.Config, s.Sections
+		return cluster
+	}
+	follower := func(hostname string, diag *model.SupportPacketDiagnostics) *healthcheck.NodeSnapshot {
+		return &healthcheck.NodeSnapshot{Hostname: hostname, Diagnostics: &model.NodeDiagnostics{Diagnostics: diag}}
 	}
 
 	dbSearchDisabled := searchSnapshot(func(cfg *model.Config) {
@@ -306,6 +316,29 @@ func TestESServerError(t *testing.T) {
 		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
 		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unknownLicenseWant},
 		{name: "probe section failed", snapshot: sectionFailed, want: unknownDiagWant},
+		{
+			name:     "every node fails",
+			snapshot: withFollowers(searchSnapshot(nil, failed, nil), follower("app-2", failed), follower("app-3", failed)),
+			want: searchWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.es_server_error.message",
+				details:   map[string]string{"nodes": "app-1, app-2, app-3", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			},
+		},
+		{
+			name:     "one node of three fails",
+			snapshot: withFollowers(searchSnapshot(nil, esDiag(model.StatusOk, "", ""), nil), follower("app-2", failed), follower("app-3", esDiag(model.StatusOk, "", ""))),
+			want: searchWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.es_server_error.message.partial",
+				details:   map[string]string{"nodes": "app-2", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			},
+		},
+		{
+			name:     "nodes without the probe are left out",
+			snapshot: withFollowers(searchSnapshot(nil, failed, nil), &healthcheck.NodeSnapshot{Hostname: "app-2", CollectErr: healthcheck.ErrNodeNoReply}, follower("app-3", esDiag("", "", ""))),
+			want:     firing("health.rule.es_server_error.message"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -320,6 +353,7 @@ func TestSearchUnavailable(t *testing.T) {
 	t.Parallel()
 
 	firing := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message"}
+	unlicensedFiring := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message.unlicensed"}
 
 	esOff := enterpriseLicense()
 	esOff.Features.Elasticsearch = new(false)
@@ -335,8 +369,9 @@ func TestSearchUnavailable(t *testing.T) {
 		{name: "database search on, elasticsearch on", dbDisabled: new(false), searching: new(true), want: resolvedWant},
 		{name: "database search off, elasticsearch on", dbDisabled: new(true), searching: new(true), want: resolvedWant},
 		{name: "database search off, elasticsearch off", dbDisabled: new(true), searching: new(false), want: firing},
-		{name: "database search off, elasticsearch on but unlicensed", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{}, want: firing},
-		{name: "database search off, elasticsearch on but feature off", dbDisabled: new(true), searching: new(true), license: &esOff, want: firing},
+		{name: "database search off, elasticsearch on but unlicensed", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{}, want: unlicensedFiring},
+		{name: "database search off, elasticsearch off, unlicensed", dbDisabled: new(true), searching: new(false), license: &model.SupportPacketLicense{}, want: unlicensedFiring},
+		{name: "database search off, elasticsearch on but feature off", dbDisabled: new(true), searching: new(true), license: &esOff, want: unlicensedFiring},
 		{name: "database search off, elasticsearch on, packet predates features", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}, want: resolvedWant},
 		{name: "database search on, unlicensed", dbDisabled: new(false), searching: new(true), license: &model.SupportPacketLicense{}, want: resolvedWant},
 		{name: "database search setting absent", dbDisabled: nil, searching: new(false), want: unknownConfigWant},
@@ -456,6 +491,18 @@ func TestScaleES(t *testing.T) {
 			}, nil, new(int64(6_000_000))),
 			required:    unknownConfigWant,
 			recommended: unknownConfigWant,
+		},
+		{
+			name:        "unlicensed at 6M",
+			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(6_000_000))), model.SupportPacketLicense{}),
+			required:    resolvedWant,
+			recommended: resolvedAt(6_000_000),
+		},
+		{
+			name:        "unlicensed at 3M",
+			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(3_000_000))), model.SupportPacketLicense{}),
+			required:    resolvedAt(3_000_000),
+			recommended: resolvedWant,
 		},
 	}
 
@@ -603,20 +650,5 @@ func TestESSkipTLSVerify(t *testing.T) {
 			}, nil, nil)
 			assertResult(t, esSkipTLSVerify, s, tc.want)
 		})
-	}
-}
-
-func TestMaskURLCredentials(t *testing.T) {
-	t.Parallel()
-
-	for in, want := range map[string]string{
-		"http://search.example.com:9200":             "http://search.example.com:9200",
-		"http://user:pass@search.example.com:9200":   "http://****@search.example.com:9200",
-		"https://token@search.example.com":           "https://****@search.example.com",
-		"https://user:p@ss@search.example.com/x@y":   "https://****@search.example.com/x@y",
-		"a http://u:p@one.example.com b ftp://x@two": "a http://****@one.example.com b ftp://****@two",
-		"no url here, user@example.com":              "no url here, user@example.com",
-	} {
-		assert.Equal(t, want, maskURLCredentials(in), in)
 	}
 }

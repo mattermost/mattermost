@@ -12,7 +12,7 @@
         color: #3f4350;
         font-family: Metropolis, sans-serif;
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 600;
         line-height: 24px;
     }
 
@@ -37,14 +37,14 @@
     }
 
     .purchase_buttons {
+        display: flex;
+        flex-direction: column;
         margin-top: 20px;
-        .btn-primary {
-            margin-bottom: 8px;
-        }
+        gap: 8px;
 
         .trial-btn {
             width: 100%;
-            margin-left: 0px;
+            margin-left: 0;
         }
     }
 
@@ -106,7 +106,7 @@
             align-items: center;
             justify-content: space-between;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
             gap: 8px;
             line-height: 24px;
         }
@@ -116,7 +116,7 @@
             color: #3f4350;
             font-family: 'Metropolis', sans-serif;
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 600;
         }
 
         .licenseElements {
@@ -173,21 +173,7 @@
         }
 
         #remove-button {
-            padding: 0;
-            border: none !important;
             margin: 10px 0;
-            background: none !important;
-            color: var(--error-text);
-            font-weight: 700;
-
-            &:hover {
-                text-decoration: underline;
-            }
-
-            &:focus,
-            &:focus-visible {
-                outline: none !important;
-            }
         }
     }
 

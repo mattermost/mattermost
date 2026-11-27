@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -2028,6 +2030,46 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 
 		assert.ElementsMatch(t, []string{"smile", "wave"}, emojis)
 	})
+
+	t.Run("returns a bounded number of names for a single post", func(t *testing.T) {
+		// The number of names extracted from one post is bounded so that the emoji
+		// lookup it feeds stays a fixed size regardless of the post's contents. The
+		// bound counts distinct names, so repeating a name does not consume the budget
+		// a different name would have used.
+		const maxNames = 200
+
+		message := func(distinct, repeats int) string {
+			var b strings.Builder
+			for range repeats {
+				for i := range distinct {
+					fmt.Fprintf(&b, " :emoji%d:", i)
+				}
+			}
+			return b.String()
+		}
+
+		testCases := []struct {
+			Description string
+			Distinct    int
+			Repeats     int
+			Expected    int
+		}{
+			{"names at the limit", maxNames, 1, maxNames},
+			{"names above the limit", maxNames * 2, 1, maxNames},
+			{"repeated names at the limit", maxNames, 3, maxNames},
+			{"repeated names above the limit", maxNames * 2, 3, maxNames},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				post := &model.Post{Message: message(testCase.Distinct, testCase.Repeats)}
+
+				emojis := getEmojiNamesForPost(post, nil, true)
+
+				assert.Len(t, emojis, testCase.Expected)
+			})
+		}
+	})
 }
 
 func TestGetCustomEmojisForPost(t *testing.T) {
@@ -3016,6 +3058,258 @@ func TestGetLinkMetadata(t *testing.T) {
 	})
 }
 
+func newLinkMetadataCountingServer(t *testing.T) (*httptest.Server, func(path string) int32) {
+	t.Helper()
+
+	var mu sync.Mutex
+	counts := map[string]int32{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		counts[r.URL.Path]++
+		mu.Unlock()
+
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/image"):
+			w.Header().Set("Content-Type", "image/png")
+			img := image.NewGray(image.Rect(0, 0, 40, 30))
+			assert.NoError(t, png.Encode(w, img))
+		case strings.HasPrefix(r.URL.Path, "/opengraph"):
+			w.Header().Set("Content-Type", "text/html")
+			_, err := w.Write([]byte(`<html prefix="og:http://ogp.me/ns#"><head>` +
+				`<meta property="og:title" content="Cached Title" />` +
+				`<meta property="og:description" content="Cached Description" />` +
+				`</head><body></body></html>`))
+			assert.NoError(t, err)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	return server, func(path string) int32 {
+		mu.Lock()
+		defer mu.Unlock()
+		return counts[path]
+	}
+}
+
+func TestGetLinkMetadataWithPreviewedPostUsesCache(t *testing.T) {
+	setup := func(t *testing.T) *TestHelper {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+
+		require.NoError(t, platform.PurgeLinkCache())
+
+		return th
+	}
+
+	t.Run("getLinkMetadata does not refetch non-permalink URLs", func(t *testing.T) {
+		for _, tc := range []struct {
+			name             string
+			path             string
+			expectImage      bool
+			secondIsNewPost  bool
+			purgeMemoryCache bool
+		}{
+			{name: "image from memory cache", path: "/image.png", expectImage: true},
+			{name: "image from memory cache for new post", path: "/image.png", expectImage: true, secondIsNewPost: true},
+			{name: "image from database cache", path: "/image.png", expectImage: true, purgeMemoryCache: true},
+			{name: "opengraph from memory cache", path: "/opengraph"},
+			{name: "opengraph from memory cache for new post", path: "/opengraph", secondIsNewPost: true},
+			{name: "opengraph from database cache", path: "/opengraph", purgeMemoryCache: true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				th := setup(t)
+				server, requestCount := newLinkMetadataCountingServer(t)
+
+				requestURL := server.URL + tc.path
+				timestamp := int64(1547510400000)
+				previewedPostID := model.NewId()
+
+				og, img, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, previewedPostID)
+				require.NoError(t, err)
+				require.Nil(t, permalink)
+				if tc.expectImage {
+					require.NotNil(t, img)
+					require.Nil(t, og)
+				} else {
+					require.NotNil(t, og)
+					require.Nil(t, img)
+				}
+				require.Equal(t, int32(1), requestCount(tc.path), "first read should fetch the URL")
+
+				if tc.purgeMemoryCache {
+					require.NoError(t, platform.PurgeLinkCache())
+					_, _, _, ok := getLinkMetadataFromCache(requestURL, model.FloorToNearestHour(timestamp))
+					require.False(t, ok, "data should not exist in in-memory cache")
+					_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, model.FloorToNearestHour(timestamp))
+					require.True(t, ok, "data should exist in database")
+				}
+
+				og2, img2, permalink2, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, tc.secondIsNewPost, previewedPostID)
+				require.NoError(t, err)
+				assert.Nil(t, permalink2)
+				assert.Equal(t, og, og2)
+				assert.Equal(t, img, img2)
+				assert.Equal(t, int32(1), requestCount(tc.path), "repeated read of a non-permalink URL should be served from cache, not refetched")
+			})
+		}
+	})
+
+	t.Run("post read path does not refetch images of a post with previewed_post set", func(t *testing.T) {
+		th := setup(t)
+		server, requestCount := newLinkMetadataCountingServer(t)
+
+		imageURL1 := server.URL + "/image1.png"
+		imageURL2 := server.URL + "/image2.png"
+		openGraphURL := server.URL + "/opengraph"
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			CreateAt:  int64(1547510400000),
+			Message:   openGraphURL + " ![one](" + imageURL1 + ") ![two](" + imageURL2 + ")",
+		}
+		post.AddProp(model.PostPropsPreviewedPost, model.NewId())
+
+		for i, purgeBefore := range []bool{false, false, true, false} {
+			if purgeBefore {
+				require.NoError(t, platform.PurgeLinkCache())
+			}
+
+			prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+			require.NotNil(t, prepared.Metadata)
+			require.Len(t, prepared.Metadata.Images, 2, "read %d", i)
+			require.Contains(t, prepared.Metadata.Images, imageURL1)
+			require.Contains(t, prepared.Metadata.Images, imageURL2)
+			require.Len(t, prepared.Metadata.Embeds, 1, "read %d", i)
+			require.Equal(t, model.PostEmbedOpengraph, prepared.Metadata.Embeds[0].Type)
+		}
+
+		assert.Equal(t, int32(1), requestCount("/image1.png"), "image 1 should be fetched only once across repeated reads")
+		assert.Equal(t, int32(1), requestCount("/image2.png"), "image 2 should be fetched only once across repeated reads")
+		assert.Equal(t, int32(1), requestCount("/opengraph"), "opengraph page should be fetched only once across repeated reads")
+	})
+
+	t.Run("permalink URL is re-resolved instead of served from cache", func(t *testing.T) {
+		th := setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+		})
+
+		referencedPost := th.CreatePost(t, th.BasicChannel)
+		requestURL := th.App.GetSiteURL() + "/" + th.BasicTeam.Name + "/pl/" + referencedPost.Id
+		require.True(t, looksLikeAPermalink(requestURL, th.App.GetSiteURL()))
+
+		timestamp := model.FloorToNearestHour(int64(1547510400000))
+		stale := &model.Permalink{PreviewPost: &model.PreviewPost{PostID: "stale"}}
+		cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale)
+
+		for _, isNewPost := range []bool{false, true} {
+			_, _, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, isNewPost, referencedPost.Id)
+			require.NoError(t, err)
+			require.NotNil(t, permalink)
+			require.NotNil(t, permalink.PreviewPost)
+			assert.Equal(t, referencedPost.Id, permalink.PreviewPost.PostID, "isNewPost=%v", isNewPost)
+
+			cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale)
+		}
+	})
+}
+
+func TestGetLinkMetadataWithPreviewedPostAndPermalinkPreviewsDisabledUsesCache(t *testing.T) {
+	setup := func(t *testing.T, siteURL func(serverURL string) string) (*TestHelper, *httptest.Server, func(path string) int32) {
+		th := Setup(t)
+		server, requestCount := newLinkMetadataCountingServer(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.EnablePermalinkPreviews = false
+			*cfg.ServiceSettings.SiteURL = siteURL(server.URL)
+		})
+
+		require.NoError(t, platform.PurgeLinkCache())
+
+		return th, server, requestCount
+	}
+
+	for _, tc := range []struct {
+		name    string
+		siteURL func(serverURL string) string
+		path    func(postID string) string
+	}{
+		{
+			name:    "site permalink URL",
+			siteURL: func(serverURL string) string { return serverURL },
+			path:    func(postID string) string { return "/team/pl/" + postID },
+		},
+		{
+			name: "URL on another origin that has the site URL as a string prefix",
+			siteURL: func(serverURL string) string {
+				return serverURL[:len(serverURL)-1]
+			},
+			path: func(postID string) string { return "/pl/" + postID },
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("getLinkMetadata", func(t *testing.T) {
+				th, server, requestCount := setup(t, tc.siteURL)
+
+				path := tc.path(model.NewId())
+				requestURL := server.URL + path
+				require.True(t, looksLikeAPermalink(requestURL, th.App.GetSiteURL()))
+
+				timestamp := int64(1547510400000)
+				previewedPostID := model.NewId()
+
+				for i, purgeBefore := range []bool{false, false, true, false} {
+					if purgeBefore {
+						require.NoError(t, platform.PurgeLinkCache())
+					}
+
+					_, _, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, previewedPostID)
+					require.NoError(t, err, "read %d", i)
+					assert.Nil(t, permalink, "read %d", i)
+				}
+
+				assert.Equal(t, int32(1), requestCount(path), "with permalink previews disabled, repeated reads should be served from cache, not refetched")
+			})
+
+			t.Run("post read path", func(t *testing.T) {
+				th, server, requestCount := setup(t, tc.siteURL)
+
+				path := tc.path(model.NewId())
+				requestURL := server.URL + path
+				require.True(t, looksLikeAPermalink(requestURL, th.App.GetSiteURL()))
+
+				post := &model.Post{
+					Id:        model.NewId(),
+					ChannelId: model.NewId(),
+					UserId:    model.NewId(),
+					CreateAt:  int64(1547510400000),
+					Message:   requestURL,
+				}
+				post.AddProp(model.PostPropsPreviewedPost, model.NewId())
+
+				for range 3 {
+					prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+					require.NotNil(t, prepared.Metadata)
+				}
+
+				assert.Equal(t, int32(1), requestCount(path), "with permalink previews disabled, repeated reads should be served from cache, not refetched")
+			})
+		})
+	}
+}
+
 func TestResolveMetadataURL(t *testing.T) {
 	mainHelper.Parallel(t)
 	for _, test := range []struct {
@@ -3787,8 +4081,8 @@ func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	th.LinkUserToTeam(t, user2, th.BasicTeam)
 	th.AddUserToChannel(t, user2, th.BasicChannel)
 
-	_, appErr = th.App.RevealPost(th.Context, post, user2.Id, "")
-	require.Nil(t, appErr)
+	_, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+	require.NoError(t, err)
 
 	// Get the read receipt to get the expireAt
 	receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
@@ -4012,6 +4306,187 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
 			})
 		}
+	})
+
+	t.Run("resolves a bounded number of channel mentions for a single post", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Each distinct mention on a post costs one channel lookup, so the number of
+		// mentions considered for a single post is bounded.
+		const maxMentions = 200
+
+		mentions := make(map[string]any, maxMentions+50)
+		for range maxMentions + 50 {
+			ch, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+				TeamId:      th.BasicTeam.Id,
+				Name:        "mentioned-" + model.NewId(),
+				DisplayName: "Mentioned Channel",
+				Type:        model.ChannelTypeOpen,
+			}, 1000000)
+			require.NoError(t, nErr)
+
+			mentions[ch.Name] = map[string]any{
+				"display_name": ch.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			}
+		}
+
+		resolveMentions := func(t *testing.T) map[string]any {
+			post := &model.Post{
+				Message: "post with many channel mentions",
+			}
+			post.AddProp(model.PostPropsChannelMentions, mentions)
+
+			result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+			require.Nil(t, err)
+			require.NotNil(t, result)
+
+			resolved, _ := result.GetProp(model.PostPropsChannelMentions).(map[string]any)
+			return resolved
+		}
+
+		resolved := resolveMentions(t)
+		assert.Len(t, resolved, maxMentions)
+
+		// The same post resolves the same mentions every time it is read.
+		assert.Equal(t, resolved, resolveMentions(t))
+	})
+
+	t.Run("resolves mentions shared across the posts of a list for each post", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		archived := th.CreateChannel(t, th.BasicTeam)
+		appErr := th.App.DeleteChannel(th.Context, archived, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		private, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "private-" + model.NewId(),
+			DisplayName: "Private Channel",
+			Type:        model.ChannelTypePrivate,
+		}, 1000000)
+		require.NoError(t, nErr)
+
+		otherTeam := th.CreateTeam(t)
+		otherTeamChannel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      otherTeam.Id,
+			Name:        "other-" + model.NewId(),
+			DisplayName: "Other Team Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		mention := func(teamName string) map[string]any {
+			return map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    teamName,
+			}
+		}
+		newPost := func(mentions map[string]any) *model.Post {
+			post := &model.Post{Id: model.NewId(), Message: "post with channel mentions"}
+			post.AddProp(model.PostPropsChannelMentions, mentions)
+			return post
+		}
+
+		postList := model.NewPostList()
+		for range 3 {
+			postList.AddPost(newPost(map[string]any{
+				th.BasicChannel.Name:  mention(th.BasicTeam.Name),
+				archived.Name:         mention(th.BasicTeam.Name),
+				private.Name:          mention(th.BasicTeam.Name),
+				otherTeamChannel.Name: mention(otherTeam.Name),
+				"missing-channel":     mention(th.BasicTeam.Name),
+				"off-topic":           mention("missing-team"),
+				"no-team":             map[string]any{"display_name": "No Team"},
+			}))
+		}
+
+		result, _, err := th.App.SanitizePostListMetadataForUser(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, result.Posts, 3)
+
+		expected := map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": th.BasicChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+			archived.Name: map[string]any{
+				"display_name": archived.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		}
+		for _, post := range result.Posts {
+			assert.Equal(t, expected, post.GetProp(model.PostPropsChannelMentions))
+		}
+	})
+}
+
+func TestChannelMentionResolver(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	team := &model.Team{Id: model.NewId(), Name: "team-name"}
+	channelA := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "channel-a"}
+	channelB := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "channel-b"}
+	channelC := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "channel-c"}
+
+	t.Run("looks up each team and channel name once", func(t *testing.T) {
+		teamStore := &mocks.TeamStore{}
+		teamStore.On("GetByName", team.Name).Return(team, nil).Once()
+		teamStore.On("GetByName", "missing-team").Return(nil, store.NewErrNotFound("Team", "missing-team")).Once()
+
+		channelStore := &mocks.ChannelStore{}
+		channelStore.On("GetByNamesIncludeDeleted", team.Id, []string{"channel-a", "channel-b", "missing"}, false).
+			Return([]*model.Channel{channelA, channelB}, nil).Once()
+		channelStore.On("GetByNamesIncludeDeleted", team.Id, []string{"channel-c"}, false).
+			Return([]*model.Channel{channelC}, nil).Once()
+
+		mockStore := &mocks.Store{}
+		mockStore.On("Team").Return(teamStore)
+		mockStore.On("Channel").Return(channelStore)
+
+		rctx := request.TestContext(t)
+		resolver := newChannelMentionResolver(mockStore)
+
+		channels := resolver.channelsForTeam(rctx, team.Name, []string{"channel-a", "channel-b", "missing"})
+		assert.Equal(t, channelA, channels["channel-a"])
+		assert.Equal(t, channelB, channels["channel-b"])
+		assert.Nil(t, channels["missing"])
+
+		channels = resolver.channelsForTeam(rctx, team.Name, []string{"channel-a", "channel-c", "missing"})
+		assert.Equal(t, channelA, channels["channel-a"])
+		assert.Equal(t, channelC, channels["channel-c"])
+		assert.Nil(t, channels["missing"])
+
+		channels = resolver.channelsForTeam(rctx, team.Name, []string{"channel-b", "channel-c"})
+		assert.Equal(t, channelB, channels["channel-b"])
+		assert.Equal(t, channelC, channels["channel-c"])
+
+		assert.Nil(t, resolver.channelsForTeam(rctx, "missing-team", []string{"channel-a"}))
+		assert.Nil(t, resolver.channelsForTeam(rctx, "missing-team", []string{"channel-a"}))
+
+		teamStore.AssertExpectations(t)
+		channelStore.AssertExpectations(t)
+	})
+
+	t.Run("does not retry names whose lookup failed", func(t *testing.T) {
+		teamStore := &mocks.TeamStore{}
+		teamStore.On("GetByName", team.Name).Return(team, nil).Once()
+
+		channelStore := &mocks.ChannelStore{}
+		channelStore.On("GetByNamesIncludeDeleted", team.Id, []string{"channel-a"}, false).
+			Return(nil, errors.New("lookup failed")).Once()
+
+		mockStore := &mocks.Store{}
+		mockStore.On("Team").Return(teamStore)
+		mockStore.On("Channel").Return(channelStore)
+
+		rctx := request.TestContext(t)
+		resolver := newChannelMentionResolver(mockStore)
+
+		assert.Nil(t, resolver.channelsForTeam(rctx, team.Name, []string{"channel-a"})["channel-a"])
+		assert.Nil(t, resolver.channelsForTeam(rctx, team.Name, []string{"channel-a"})["channel-a"])
+
+		channelStore.AssertExpectations(t)
 	})
 }
 

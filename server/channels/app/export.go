@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -160,12 +161,12 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 
 	rctx.Logger().Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer, teamNames, channelNames); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if opts.IncludeRolesAndSchemes {
 		if err := a.exportRolesAndSchemes(rctx, job, writer); err != nil {
-			return err
+			return model.AsAppError(err)
 		}
 	}
 
@@ -219,8 +220,8 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 	var directAttachments []imports.AttachmentImportData
 	if len(teamNames) == 0 {
 		rctx.Logger().Info("Bulk export: exporting direct channels")
-		if appErr = a.exportAllDirectChannels(rctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
-			return appErr
+		if err := a.exportAllDirectChannels(rctx, job, writer, opts.IncludeArchivedChannels); err != nil {
+			return model.AsAppError(err)
 		}
 
 		rctx.Logger().Info("Bulk export: exporting direct posts")
@@ -305,7 +306,7 @@ func (a *App) exportAttachments(rctx request.CTX, attachments []imports.Attachme
 	return warnings, nil
 }
 
-func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.AppError {
+func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) error {
 	b, err := json.Marshal(line)
 	if err != nil {
 		return model.NewAppError("BulkExport", "app.export.export_write_line.json_marshall.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -318,7 +319,7 @@ func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.
 	return nil
 }
 
-func (a *App) exportVersion(writer io.Writer, teamNames []string, channelNames []string) *model.AppError {
+func (a *App) exportVersion(writer io.Writer, teamNames []string, channelNames []string) error {
 	version := 1
 
 	info := &imports.VersionInfoImportData{
@@ -354,7 +355,7 @@ func (a *App) exportVersion(writer io.Writer, teamNames []string, channelNames [
 	return a.exportWriteLine(writer, versionLine)
 }
 
-func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.Writer) error {
 	// We export schemes first since they'll already include their attached roles
 	// which we map to avoid exporting them twice later in exportRoles.
 	schemeRolesMap := make(map[string]bool)
@@ -382,7 +383,7 @@ func (a *App) exportRolesAndSchemes(rctx request.CTX, job *model.Job, writer io.
 	return nil
 }
 
-func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) *model.AppError {
+func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, schemeRoles map[string]bool, allRoles []*model.Role) error {
 	var cnt int
 	for _, role := range allRoles {
 		// We skip any roles that will be included as part of custom schemes.
@@ -399,7 +400,7 @@ func (a *App) exportRoles(rctx request.CTX, job *model.Job, writer io.Writer, sc
 	return nil
 }
 
-func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) *model.AppError {
+func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, scope string, schemeRolesMap map[string]bool, allRoles []*model.Role) error {
 	rolesMap := make(map[string]*model.Role, len(allRoles))
 	for _, role := range allRoles {
 		rolesMap[role.Name] = role
@@ -481,8 +482,8 @@ func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer,
 				}
 				teamForExport.SchemeName = &scheme.Name
 			}
-			if appErr := a.exportWriteLine(writer, importLineFromTeam(teamForExport)); appErr != nil {
-				return nil, appErr
+			if err := a.exportWriteLine(writer, importLineFromTeam(teamForExport)); err != nil {
+				return nil, model.AsAppError(err)
 			}
 		}
 		return teamNames, nil
@@ -512,7 +513,7 @@ func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer,
 
 			teamLine := importLineFromTeam(team)
 			if err := a.exportWriteLine(writer, teamLine); err != nil {
-				return nil, err
+				return nil, model.AsAppError(err)
 			}
 		}
 	}
@@ -563,7 +564,7 @@ func (a *App) exportAllChannels(rctx request.CTX, job *model.Job, writer io.Writ
 			foundChannelNames[channel.Name] = true
 			channelLine := importLineFromChannel(channel)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		}
 	}
@@ -843,7 +844,7 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 			userLine.User.Teams = members
 
 			if err := a.exportWriteLine(writer, userLine); err != nil {
-				return profilePictures, err
+				return profilePictures, model.AsAppError(err)
 			}
 		}
 	}
@@ -929,7 +930,7 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 			}
 
 			if err := a.exportWriteLine(writer, botLine); err != nil {
-				return profilePictures, err
+				return profilePictures, model.AsAppError(err)
 			}
 		}
 
@@ -1061,6 +1062,15 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 			cnt += len(posts)
 			updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "posts_exported", cnt)
 
+			postIDs := make([]string, len(posts))
+			for i, post := range posts {
+				postIDs[i] = post.Id
+			}
+			priorities, acknowledgements, appErr := a.buildPostPriorities(rctx, postIDs)
+			if appErr != nil {
+				return appErr
+			}
+
 			for _, post := range posts {
 				afterId = post.Id
 				postProcessCount++
@@ -1071,15 +1081,17 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 				}
 
 				postLine := importLineForPost(post)
+				postLine.Post.Priority = priorities[post.Id]
+				postLine.Post.Acknowledgements = acknowledgements[post.Id]
 
 				replies, replyAttachments, err := a.buildPostReplies(rctx, post.Id, withAttachments)
 				if err != nil {
 					return err
 				}
 
-				followers, err := a.buildThreadFollowers(rctx, post.Id)
-				if err != nil {
-					return err
+				followers, followersErr := a.buildThreadFollowers(rctx, post.Id)
+				if followersErr != nil {
+					return model.AsAppError(followersErr)
 				}
 
 				if len(followers) > 0 {
@@ -1102,7 +1114,7 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 				if len(post.FileIds) > 0 {
 					postAttachments, err := a.buildPostAttachments(post.Id)
 					if err != nil {
-						return err
+						return model.AsAppError(err)
 					}
 					postLine.Post.Attachments = &postAttachments
 
@@ -1112,7 +1124,7 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 				}
 
 				if err := a.exportWriteLine(writer, postLine); err != nil {
-					return err
+					return model.AsAppError(err)
 				}
 			}
 		}
@@ -1163,9 +1175,9 @@ func (a *App) buildPostReplies(rctx request.CTX, postID string, withAttachments 
 			}
 		}
 		if len(reply.FileIds) > 0 {
-			postAttachments, appErr := a.buildPostAttachments(reply.Id)
-			if appErr != nil {
-				return nil, nil, appErr
+			postAttachments, err := a.buildPostAttachments(reply.Id)
+			if err != nil {
+				return nil, nil, model.AsAppError(err)
 			}
 			replyImportObject.Attachments = &postAttachments
 			if withAttachments && len(postAttachments) > 0 {
@@ -1179,7 +1191,7 @@ func (a *App) buildPostReplies(rctx request.CTX, postID string, withAttachments 
 	return replies, attachments, nil
 }
 
-func (a *App) buildThreadFollowers(_ request.CTX, postID string) ([]imports.ThreadFollowerImportData, *model.AppError) {
+func (a *App) buildThreadFollowers(_ request.CTX, postID string) ([]imports.ThreadFollowerImportData, error) {
 	var followers []imports.ThreadFollowerImportData
 
 	threadFollowers, nErr := a.Srv().Store().Thread().GetThreadMembershipsForExport(postID)
@@ -1218,7 +1230,61 @@ func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionIm
 	return &reactionsOfPost, nil
 }
 
-func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, *model.AppError) {
+// buildPostPriorities returns the priority and acknowledgements of the given posts, keyed by post ID.
+func (a *App) buildPostPriorities(rctx request.CTX, postIDs []string) (map[string]*model.PostPriority, map[string]*[]imports.PostAcknowledgementImportData, *model.AppError) {
+	priorities, appErr := a.GetPriorityForPostList(&model.PostList{Order: postIDs})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	var ackPostIDs []string
+	for postID, priority := range priorities {
+		priority.PostId, priority.ChannelId = "", ""
+		if model.SafeDereference(priority.RequestedAck) {
+			ackPostIDs = append(ackPostIDs, postID)
+		}
+	}
+	if len(ackPostIDs) == 0 {
+		return priorities, nil, nil
+	}
+
+	acks, appErr := a.GetAcknowledgementsForPostList(&model.PostList{Order: ackPostIDs})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	var userIDs []string
+	for _, postAcks := range acks {
+		for _, ack := range postAcks {
+			userIDs = append(userIDs, ack.UserId)
+		}
+	}
+	users, appErr := a.GetUsersByIds(rctx, utils.RemoveDuplicatesFromStringArray(userIDs), &store.UserGetByIdsOpts{IsAdmin: true})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	usernames := make(map[string]string, len(users))
+	for _, user := range users {
+		usernames[user.Id] = user.Username
+	}
+
+	acknowledgements := make(map[string]*[]imports.PostAcknowledgementImportData, len(acks))
+	for postID, postAcks := range acks {
+		exported := make([]imports.PostAcknowledgementImportData, 0, len(postAcks))
+		for _, ack := range postAcks {
+			username, ok := usernames[ack.UserId]
+			if !ok {
+				continue
+			}
+			exported = append(exported, imports.PostAcknowledgementImportData{User: &username, AcknowledgedAt: &ack.AcknowledgedAt})
+		}
+		acknowledgements[postID] = &exported
+	}
+
+	return priorities, acknowledgements, nil
+}
+
+func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, error) {
 	infos, nErr := a.Srv().Store().FileInfo().GetForPost(postID, false, false, false)
 	if nErr != nil {
 		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1276,7 +1342,7 @@ func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writ
 
 			emojiImportObject := importLineFromEmoji(emoji, filePath)
 			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
-				return nil, err
+				return nil, model.AsAppError(err)
 			}
 		}
 	}
@@ -1324,7 +1390,7 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 	return nil
 }
 
-func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
+func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) error {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -1396,7 +1462,7 @@ func (a *App) exportAllDirectChannels(rctx request.CTX, job *model.Job, writer i
 	return nil
 }
 
-func (a *App) buildFavoritedByList(rctx request.CTX, channelID string) ([]string, *model.AppError) {
+func (a *App) buildFavoritedByList(rctx request.CTX, channelID string) ([]string, error) {
 	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
 	if err != nil {
 		return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1419,7 +1485,7 @@ func (a *App) buildFavoritedByList(rctx request.CTX, channelID string) ([]string
 	return userIDs, nil
 }
 
-func (a *App) buildShownByList(rctx request.CTX, channel *model.DirectChannelForExport) ([]string, *model.AppError) {
+func (a *App) buildShownByList(rctx request.CTX, channel *model.DirectChannelForExport) ([]string, error) {
 	shownBy := make([]string, 0)
 	switch channel.Type {
 	case model.ChannelTypeGroup:
@@ -1492,6 +1558,15 @@ func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.W
 		cnt += len(posts)
 		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
 
+		postIDs := make([]string, len(posts))
+		for i, post := range posts {
+			postIDs[i] = post.Id
+		}
+		priorities, acknowledgements, appErr := a.buildPostPriorities(rctx, postIDs)
+		if appErr != nil {
+			return nil, appErr
+		}
+
 		channelsToSkip := model.SliceToMapKey(strings.Split(job.Data["skipped_direct_channels"], ",")...)
 		for _, post := range posts {
 			afterId = post.Id
@@ -1510,9 +1585,10 @@ func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.W
 			var postAttachments []imports.AttachmentImportData
 			var err *model.AppError
 			if len(post.FileIds) > 0 {
-				postAttachments, err = a.buildPostAttachments(post.Id)
-				if err != nil {
-					return nil, err
+				var attachmentsErr error
+				postAttachments, attachmentsErr = a.buildPostAttachments(post.Id)
+				if attachmentsErr != nil {
+					return nil, model.AsAppError(attachmentsErr)
 				}
 
 				if withAttachments && len(postAttachments) > 0 {
@@ -1532,13 +1608,15 @@ func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.W
 
 			postLine := importLineForDirectPost(post)
 			postLine.DirectPost.Replies = &replies
+			postLine.DirectPost.Priority = priorities[post.Id]
+			postLine.DirectPost.Acknowledgements = acknowledgements[post.Id]
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments
 			}
 
-			followers, err := a.buildThreadFollowers(rctx, post.Id)
-			if err != nil {
-				return nil, err
+			followers, followersErr := a.buildThreadFollowers(rctx, post.Id)
+			if followersErr != nil {
+				return nil, model.AsAppError(followersErr)
 			}
 
 			if len(followers) > 0 {
@@ -1546,7 +1624,7 @@ func (a *App) exportAllDirectPosts(rctx request.CTX, job *model.Job, writer io.W
 			}
 
 			if err := a.exportWriteLine(writer, postLine); err != nil {
-				return nil, err
+				return nil, model.AsAppError(err)
 			}
 		}
 	}

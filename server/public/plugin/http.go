@@ -51,6 +51,9 @@ func (w *httpResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) err
 
 func (w *httpResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct{}) error {
 	dest := w.w.Header()
+	if dest == nil {
+		return nil
+	}
 	for k := range dest {
 		if _, ok := args[k]; !ok {
 			delete(dest, k)
@@ -80,7 +83,11 @@ var _ http.Flusher = (*httpResponseWriterRPCClient)(nil)
 
 func (w *httpResponseWriterRPCClient) Header() http.Header {
 	if w.header == nil {
-		w.client.Call("Plugin.Header", struct{}{}, &w.header)
+		// The host closes the stream when the request is canceled. Handlers must still get a
+		// writable map, as net/http guarantees, so they don't panic on Set.
+		if err := w.client.Call("Plugin.Header", struct{}{}, &w.header); err != nil {
+			w.header = make(http.Header)
+		}
 	}
 	return w.header
 }
@@ -99,13 +106,13 @@ func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 	if err := w.client.Call("Plugin.SyncHeader", w.header, nil); err != nil {
 		return
 	}
-	w.client.Call("Plugin.WriteHeader", statusCode, nil)
+	_ = w.client.Call("Plugin.WriteHeader", statusCode, nil)
 }
 
 // Flush implements http.Flusher interface
 func (w *httpResponseWriterRPCClient) Flush() {
 	// Best-effort flush - ignore errors per HTTP spec
-	w.client.Call("Plugin.Flush", struct{}{}, nil)
+	_ = w.client.Call("Plugin.Flush", struct{}{}, nil)
 }
 
 func (w *httpResponseWriterRPCClient) Close() error {

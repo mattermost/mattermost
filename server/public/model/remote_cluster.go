@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/pbkdf2"
@@ -99,9 +100,7 @@ func (rc *RemoteCluster) PreSave() {
 		rc.RemoteId = NewId()
 	}
 
-	if rc.DisplayName == "" {
-		rc.DisplayName = rc.Name
-	}
+	rc.DisplayName = cmp.Or(rc.DisplayName, rc.Name)
 
 	rc.Name = SanitizeUnicode(rc.Name)
 	rc.DisplayName = SanitizeUnicode(rc.DisplayName)
@@ -232,9 +231,7 @@ func CleanRemoteName(s string) string {
 }
 
 func (rc *RemoteCluster) PreUpdate() {
-	if rc.DisplayName == "" {
-		rc.DisplayName = rc.Name
-	}
+	rc.DisplayName = cmp.Or(rc.DisplayName, rc.Name)
 
 	rc.Name = SanitizeUnicode(rc.Name)
 	rc.DisplayName = SanitizeUnicode(rc.DisplayName)

@@ -48,6 +48,7 @@ function mapStateToProps(state: GlobalState, ownProps: {triggerId?: string}) {
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
         sourceUrl: data.dialog.source_url,
+        size: data.dialog.size,
         submitButtons: data.dialog.submit_buttons,
         refreshOnReturn: data.dialog.refresh_on_return,
 

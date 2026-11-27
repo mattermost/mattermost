@@ -8,6 +8,7 @@ const axios = require('axios');
 const ClientOAuth2 = require('client-oauth2');
 
 const webhookUtils = require('./utils/webhook_utils');
+const gridUtils = require('./utils/webhook_grid_utils');
 const postMessageAs = require('./tests/plugins/post_message_as');
 
 const port = 3000;
@@ -36,6 +37,8 @@ server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
 server.post('/dialog/action_button_request', onActionButtonDialogRequest);
 server.post('/dialog/open_child', onOpenChildDialog);
+server.post('/dialog/grid', onGridDialogRequest);
+server.post('/dialog/grid_source', onGridDialogSource);
 server.post('/dialog/mission', onMissionDialogRequest);
 server.post('/dialog/mission/cargo', onMissionCargoDialog);
 server.post('/dialog/mission/cargo_source', onMissionCargoSource);
@@ -90,6 +93,8 @@ function ping(req, res) {
             'POST /dialog/multistep',
             'POST /dialog/action_button_request',
             'POST /dialog/open_child',
+            'POST /dialog/grid',
+            'POST /dialog/grid_source',
             'POST /dialog/mission',
             'POST /dialog/mission/cargo',
             'POST /dialog/mission/cargo_source',
@@ -866,6 +871,48 @@ async function onOpenChildDialog(req, res) {
     return res.json({});
 }
 
+function onGridDialogRequest(req, res) {
+    return handleDialogOpen(req, res, gridUtils.getGridDialog, 'Grid dialog triggered via slash command!');
+}
+
+// onGridDialogSource is both the refresh target and the submit target for the
+// grid dialog. Because every cell is an ordinary element, there is no bespoke
+// grid payload to decode: cell values arrive in body.submission like any other
+// field, and errors go back in the ordinary errors map keyed by cell name.
+function onGridDialogSource(req, res) {
+    const {body} = req;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    if (body.cancelled) {
+        return res.json({});
+    }
+
+    // The cell values round trip as ordinary fields, so folding them back onto
+    // the rows is all it takes to keep half-finished input on screen. The width
+    // selector folds back the same way, which is why a refresh for any other
+    // reason keeps the width the user picked.
+    let state = gridUtils.gridApplySubmission(gridUtils.gridDecodeState(body.state), body.submission);
+
+    if (body.type === 'refresh') {
+        if (body.submission && body.submission.selected_field === gridUtils.GRID_ADD_ROW_FIELD) {
+            state = gridUtils.gridAddRow(state);
+        }
+
+        return res.json({type: 'form', form: gridUtils.getGridForm(webhookBaseUrl, state)});
+    }
+
+    const errors = gridUtils.gridValidate(state);
+    if (Object.keys(errors).length > 0) {
+        // Returning only errors keeps the modal open with the user's values.
+        return res.json({errors});
+    }
+
+    const message = `Grid submitted: ${JSON.stringify(state.rows)}`;
+    sendSysadminResponse(message, body.channel_id);
+    return res.json({text: message});
+}
+
 // ---------------------------------------------------------------------------
 // Mission demo: dialogs within dialogs.
 // Mission (slash command) → Cargo (action button) → Sortie schedule (action button per sortie)
@@ -971,8 +1018,10 @@ function getMissionCargoDialog(triggerId) {
 }
 
 // refresh_on_return calls source_url when a stacked schedule dialog closes, so the
-// rows pick up task progress saved in the schedule.
+// rows pick up task progress saved in the schedule. A sortie whose tasks are all
+// done drops out of the readiness matrix, removing a row the user may have ticked.
 function buildMissionCargoForm() {
+    const pendingSorties = mission.sorties.filter((s) => s.schedule.some((t) => !t.done));
     return {
         callback_id: 'mission_cargo',
         title: `Cargo by Sortie — ${mission.id}`,
@@ -989,6 +1038,24 @@ function buildMissionCargoForm() {
                 placeholder: 'Typed values are kept when the schedule closes',
                 optional: true,
             },
+
+            // A matrix needs at least one row, so it is left out once every sortie is done.
+            ...(pendingSorties.length ? [{
+                display_name: 'Readiness checks',
+                name: 'readiness_checks',
+                type: 'checkbox_matrix',
+                help_text: 'Pending sorties only. Completing every task in a schedule removes that sortie.',
+                optional: true,
+                matrix_config: {
+                    row_selection: 'multiple',
+                    rows: pendingSorties.map((s) => ({text: s.id, value: s.id})),
+                    columns: [
+                        {text: 'Fuel', value: 'fuel'},
+                        {text: 'Customs', value: 'customs'},
+                        {text: 'Hazmat', value: 'hazmat'},
+                    ],
+                },
+            }] : []),
 
             // Each sortie is an action button whose help_text renders as the row
             // summary to the left of a short "Schedule" button.

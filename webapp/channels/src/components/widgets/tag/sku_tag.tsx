@@ -15,27 +15,29 @@ type Props = {
     sku: LicenseSkus;
 };
 
+export function licenseSkuToLabel(sku: LicenseSkus): string {
+    switch (sku) {
+    case LicenseSkus.Starter:
+        return 'STARTER';
+    case LicenseSkus.Professional:
+        return 'PROFESSIONAL';
+    case LicenseSkus.Enterprise:
+        return 'ENTERPRISE';
+    case LicenseSkus.E10:
+        return 'ENTERPRISE E10';
+    case LicenseSkus.E20:
+        return 'ENTERPRISE E20';
+    case LicenseSkus.EnterpriseAdvanced:
+        return 'ENTERPRISE ADVANCED';
+    case LicenseSkus.Entry:
+        return 'ENTRY';
+    default:
+        return 'UNKNOWN';
+    }
+}
+
 const SkuTag = ({className = '', size = 'xs', sku}: Props) => {
-    const namedSku = useMemo(() => {
-        switch (sku) {
-        case LicenseSkus.Starter:
-            return 'STARTER';
-        case LicenseSkus.Professional:
-            return 'PROFESSIONAL';
-        case LicenseSkus.Enterprise:
-            return 'ENTERPRISE';
-        case LicenseSkus.E10:
-            return 'ENTERPRISE E10';
-        case LicenseSkus.E20:
-            return 'ENTERPRISE E20';
-        case LicenseSkus.EnterpriseAdvanced:
-            return 'ENTERPRISE ADVANCED';
-        case LicenseSkus.Entry:
-            return 'ENTRY';
-        default:
-            return 'UNKNOWN';
-        }
-    }, [sku]);
+    const namedSku = useMemo(() => licenseSkuToLabel(sku), [sku]);
 
     return (
         <Tag

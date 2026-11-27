@@ -258,6 +258,9 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
 
         // Internal help pages should always open in a new tab
         'help',
+
+        // Bundled documentation is served by the server, not the web app's router
+        '_documentation',
     ];
 
     // Paths managed by another service shouldn't be handled by the web app either

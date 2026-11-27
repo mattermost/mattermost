@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
@@ -453,6 +454,19 @@ type ExecuteDialogActionResponse struct {
 	TriggerId string `json:"trigger_id"`
 }
 
+// Dialog width tiers for Dialog.Size. Small is the historical width and the
+// default when Size is empty, so an existing dialog is unaffected.
+const (
+	DialogSizeSmall  = "small"
+	DialogSizeMedium = "medium"
+	DialogSizeLarge  = "large"
+)
+
+// DialogCollapsibleSubTypeGrid lays a collapsible's children out as a table
+// rather than stacking them. It is the only subtype a collapsible accepts;
+// empty means stacked.
+const DialogCollapsibleSubTypeGrid = "grid"
+
 type Dialog struct {
 	CallbackId       string          `json:"callback_id"`
 	Title            string          `json:"title"`
@@ -463,6 +477,15 @@ type Dialog struct {
 	NotifyOnCancel   bool            `json:"notify_on_cancel"`
 	State            string          `json:"state"`
 	SourceURL        string          `json:"source_url,omitempty"`
+
+	// Size selects the dialog's width tier. Empty means DialogSizeSmall, which
+	// is the width every dialog had before this field existed, so leaving it
+	// unset never changes an existing dialog. The integration picks it because
+	// it is the party that knows how much content the form holds.
+	//
+	// Tiers rather than a pixel width, so the client stays free to theme them
+	// and to fall back sensibly on a narrow viewport.
+	Size string `json:"size,omitempty"`
 
 	// SubmitButtons names a select element whose options are rendered as submit
 	// buttons in place of the single submit button. The clicked option's value is
@@ -541,9 +564,7 @@ func (e *DialogElement) EffectiveMatrixConfig() DialogMatrixConfig {
 		return DialogMatrixConfig{RowSelection: DialogMatrixRowSelectionMultiple}
 	}
 	cfg := *e.MatrixConfig
-	if cfg.RowSelection == "" {
-		cfg.RowSelection = DialogMatrixRowSelectionMultiple
-	}
+	cfg.RowSelection = cmp.Or(cfg.RowSelection, DialogMatrixRowSelectionMultiple)
 	return cfg
 }
 
@@ -765,6 +786,12 @@ func (d *Dialog) IsValid() error {
 
 	if d.Title == "" || len(d.Title) > DialogTitleMaxLength {
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog title %q", d.Title))
+	}
+
+	switch d.Size {
+	case "", DialogSizeSmall, DialogSizeMedium, DialogSizeLarge:
+	default:
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog size %q", d.Size))
 	}
 
 	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
@@ -1045,6 +1072,20 @@ func (e *DialogElement) validateCommon() error {
 // top-level collapsible is depth 1.
 func (e *DialogElement) validateCollapsible(depth int, seen map[string]bool) error {
 	var multiErr *multierror.Error
+
+	// Checked here rather than in isValid's type switch so that a nested
+	// collapsible is covered too: nesting recurses straight into this method to
+	// preserve depth tracking and never passes back through that switch.
+	//
+	// Reporting an unknown subtype matches how Dialog.Size is handled. What
+	// that is worth is bounded by the caller: App.OpenInteractiveDialog logs
+	// whatever IsValid returns and opens the dialog anyway, so a typo like
+	// "Grid" shows up in the server log rather than being refused. The client
+	// does not rely on this and falls back to stacked for a subtype it does not
+	// recognise.
+	if e.SubType != "" && e.SubType != DialogCollapsibleSubTypeGrid {
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid collapsible subtype %q", e.SubType))
+	}
 
 	cfg := e.CollapsibleConfig
 	if cfg == nil || len(cfg.Elements) == 0 {

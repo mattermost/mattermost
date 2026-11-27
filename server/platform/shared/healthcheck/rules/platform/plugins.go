@@ -19,43 +19,37 @@ func init() {
 const pluginsConsolePath = "/admin_console/plugins/plugin_management"
 
 var pluginsOff = healthcheck.Rule{
-	Code:     "PLUGINS_OFF",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.plugins_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.plugins_off.remediation"),
-		ConsolePath:   pluginsConsolePath,
-	},
-	Surface:    healthcheck.SurfaceInternal,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "PluginSettings.Enable",
-	Eval:       healthcheck.Single(evalPluginsOff),
+	Code:          "PLUGINS_OFF",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.plugins_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.plugins_off.remediation"),
+	ConsolePath:   pluginsConsolePath,
+	Surface:       healthcheck.SurfaceInternal,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "PluginSettings.Enable",
+	Eval:          healthcheck.Single(evalPluginsOff),
 }
 
 var pluginHealthOff = healthcheck.Rule{
-	Code:     "PLUGIN_HEALTH_OFF",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.plugin_health_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.plugin_health_off.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "PluginSettings.EnableHealthCheck",
-	Eval:       healthcheck.Gate(pluginsEnabled, healthcheck.ReasonConfigUnavailable, evalPluginHealthOff),
+	Code:          "PLUGIN_HEALTH_OFF",
+	Area:          model.AreaPlatform,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.plugin_health_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.plugin_health_off.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "PluginSettings.EnableHealthCheck",
+	Eval:          healthcheck.Gate(pluginsEnabled, healthcheck.ReasonConfigUnavailable, evalPluginHealthOff),
 }
 
 var pluginNotRunning = healthcheck.Rule{
-	Code:     "PLUGIN_NOT_RUNNING",
-	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.plugin_not_running.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.plugin_not_running.remediation"),
-		ConsolePath:   pluginsConsolePath,
-	},
+	Code:           "PLUGIN_NOT_RUNNING",
+	Area:           model.AreaPlatform,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.plugin_not_running.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.plugin_not_running.remediation"),
+	ConsolePath:    pluginsConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,

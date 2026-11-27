@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -281,14 +282,8 @@ func TestGeneratePresignedURL(t *testing.T) {
 	// Cloud server with a dedicated export store returns a working presigned URL over
 	// the API. Skipped when minio isn't reachable.
 	t.Run("succeeds against a presign-capable export store", func(t *testing.T) {
-		s3Host := os.Getenv("CI_MINIO_HOST")
-		if s3Host == "" {
-			s3Host = "localhost"
-		}
-		s3Port := os.Getenv("CI_MINIO_PORT")
-		if s3Port == "" {
-			s3Port = "9000"
-		}
+		s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
+		s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 		s3Endpoint := net.JoinHostPort(s3Host, s3Port)
 
 		conn, err := net.DialTimeout("tcp", s3Endpoint, 2*time.Second)

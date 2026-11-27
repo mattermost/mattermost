@@ -17,6 +17,8 @@ func init() {
 
 const (
 	stuckAfter = 24 * time.Hour
+	// Past two days an idle time reads better in days than in hours.
+	stuckDaysAfter = 48 * time.Hour
 	// wedgedAfter matches the server's own timeout for an idle migration job.
 	wedgedAfter = time.Hour
 	// retentionStaleAfter leaves the daily data retention schedule room to miss a few runs.
@@ -42,55 +44,49 @@ var progressJobTypes = []string{
 }
 
 var jobStuck = healthcheck.Rule{
-	Code:     "JOB_STUCK",
-	Area:     model.AreaJobs,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.job_stuck.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.job_stuck.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalJobStuck,
+	Code:          "JOB_STUCK",
+	Area:          model.AreaJobs,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.job_stuck.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.job_stuck.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalJobStuck,
 }
 
 var jobWedgedAtZero = healthcheck.Rule{
-	Code:     "JOB_WEDGED_AT_ZERO",
-	Area:     model.AreaJobs,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.job_wedged_at_zero.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.job_wedged_at_zero.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalJobWedgedAtZero,
+	Code:          "JOB_WEDGED_AT_ZERO",
+	Area:          model.AreaJobs,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.job_wedged_at_zero.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.job_wedged_at_zero.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalJobWedgedAtZero,
 }
 
 var jobFailed = healthcheck.Rule{
-	Code:     "JOB_FAILED",
-	Area:     model.AreaJobs,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.job_failed.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.job_failed.remediation"),
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalJobFailed,
+	Code:          "JOB_FAILED",
+	Area:          model.AreaJobs,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.job_failed.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.job_failed.remediation"),
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalJobFailed,
 }
 
 // licensed reports whether the license carries the feature jobType's scheduler and worker require.
 func licensed(s *healthcheck.Snapshot, jobType string) (granted, ok bool) {
 	switch jobType {
 	case model.JobTypeLdapSync:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.LDAP })
+		return s.LicenseAllows(healthcheck.FeatureLDAP)
 	case model.JobTypeMessageExport:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.MessageExport })
+		return s.LicenseAllows(healthcheck.FeatureMessageExport)
 	case model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.Elasticsearch })
+		return s.LicenseAllows(healthcheck.FeatureElasticsearch)
 	case model.JobTypeDataRetention:
-		return s.LicenseAllows(func(f *model.Features) *bool { return f.DataRetention })
+		return s.LicenseAllows(healthcheck.FeatureDataRetention)
 	default:
 		return true, true
 	}
@@ -205,10 +201,19 @@ func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
 			return healthcheck.ResolvedSubject(jobType)
 		}
 
-		return healthcheck.FiringSubject(jobType, healthcheck.TranslationId("health.rule.job_stuck.message")).
+		messageID := healthcheck.TranslationId("health.rule.job_stuck.message")
+		if idle >= stuckDaysAfter {
+			messageID = healthcheck.TranslationId("health.rule.job_stuck.message.days")
+		}
+
+		result := healthcheck.FiringSubject(jobType, messageID).
 			WithDetail("job_type", jobType).
 			WithDetail("job_id", job.Id).
 			WithDetail("hours", hours(idle))
+		if idle >= stuckDaysAfter {
+			result = result.WithDetail("days", strconv.Itoa(int(idle/(24*time.Hour))))
+		}
+		return result
 	})
 }
 

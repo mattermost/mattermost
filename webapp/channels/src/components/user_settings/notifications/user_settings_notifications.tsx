@@ -12,6 +12,9 @@ import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -593,14 +596,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             if (user.first_name) {
                 inputs.push(
                     <div key='userNotificationFirstNameOption'>
-                        <div className='checkbox'>
-                            <label>
-                                <input
-                                    id='notificationTriggerFirst'
-                                    type='checkbox'
-                                    checked={this.state.firstNameKey}
-                                    onChange={this.handleChangeForFirstNameKeyCheckbox}
-                                />
+                        <div className='checkbox no-padding'>
+                            <Checkbox
+                                id='notificationTriggerFirst'
+                                checked={this.state.firstNameKey}
+                                onChange={this.handleChangeForFirstNameKeyCheckbox}
+                            >
                                 <FormattedMessage
                                     id='user.settings.notifications.sensitiveName'
                                     defaultMessage='Your case-sensitive first name "{first_name}"'
@@ -608,7 +609,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         first_name: user.first_name,
                                     }}
                                 />
-                            </label>
+                            </Checkbox>
                         </div>
                     </div>,
                 );
@@ -616,14 +617,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
             inputs.push(
                 <div key='userNotificationUsernameOption'>
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                id='notificationTriggerUsername'
-                                type='checkbox'
-                                checked={this.state.usernameKey}
-                                onChange={this.handleChangeForUsernameKeyCheckbox}
-                            />
+                    <div className='checkbox no-padding'>
+                        <Checkbox
+                            id='notificationTriggerUsername'
+                            checked={this.state.usernameKey}
+                            onChange={this.handleChangeForUsernameKeyCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveUsername'
                                 defaultMessage='Your non case-sensitive username "{username}"'
@@ -631,26 +630,24 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     username: user.username,
                                 }}
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </div>,
             );
 
             inputs.push(
                 <div key='userNotificationChannelOption'>
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                id='notificationTriggerShouts'
-                                type='checkbox'
-                                checked={this.state.channelKey}
-                                onChange={this.handleChangeForChannelKeyCheckbox}
-                            />
+                    <div className='checkbox no-padding'>
+                        <Checkbox
+                            id='notificationTriggerShouts'
+                            checked={this.state.channelKey}
+                            onChange={this.handleChangeForChannelKeyCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
                                 defaultMessage='Channel-wide mentions "@channel", "@all", "@here"'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </div>,
             );
@@ -660,19 +657,17 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     key='userNotificationCustomOption'
                     className='customKeywordsWithNotificationSubsection'
                 >
-                    <div className='checkbox'>
-                        <label>
-                            <input
-                                id='notificationTriggerCustom'
-                                type='checkbox'
-                                checked={this.state.isCustomKeysWithNotificationInputChecked}
-                                onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
-                            />
+                    <div className='checkbox no-padding'>
+                        <Checkbox
+                            id='notificationTriggerCustom'
+                            checked={this.state.isCustomKeysWithNotificationInputChecked}
+                            onChange={this.handleChangeForCustomKeysWithNotificationCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.sensitiveCustomWords'
                                 defaultMessage='Other non case-sensitive words, press Tab or use commas to separate keywords:'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                     <CreatableReactSelect
                         inputId='notificationTriggerCustomText'
@@ -819,14 +814,14 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
 
         let collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
-        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady && this.state.customKeysWithHighlight.length > 0) {
+        if (!this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady && this.state.customKeysWithHighlight.length > 0) {
             const customKeysWithHighlightStringArray = this.state.customKeysWithHighlight.map((key) => key.value);
             collapsedDescription = customKeysWithHighlightStringArray.map((key) => `"${key}"`).join(', ');
         }
 
         const collapsedEditButtonWhenDisabled = (
             <RestrictedIndicator
-                blocked={this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady}
+                blocked={this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady}
                 feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
                 minimumPlanRequiredForFeature={LicenseSkus.Professional}
                 tooltipTitle={this.props.intl.formatMessage({
@@ -887,7 +882,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady}
+                isDisabled={this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady}
                 collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
@@ -1099,14 +1094,19 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 defaultMessage='<a>Learn more about notifications</a>'
                                 values={{
                                     a: (chunks) => ((
-                                        <ExternalLink
-                                            location='user_settings_notifications'
-                                            href='https://mattermost.com/pl/about-notifications'
-                                            className='btn btn-link'
+                                        <Button
+                                            asChild={true}
+                                            emphasis='quaternary'
+                                            size='small'
+                                            leadingIcon={<Icon glyph={<LightbulbOutlineIcon/>}/>}
                                         >
-                                            <LightbulbOutlineIcon className='circular-border'/>
-                                            <span>{chunks}</span>
-                                        </ExternalLink>
+                                            <ExternalLink
+                                                location='user_settings_notifications'
+                                                href='https://mattermost.com/pl/about-notifications'
+                                            >
+                                                <span>{chunks}</span>
+                                            </ExternalLink>
+                                        </Button>
                                     )),
                                 }}
                             />
@@ -1166,7 +1166,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     {channelMentionAutoFollowSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
+                    {(!this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady) && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}
@@ -1187,7 +1187,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     )}
 
                     {/*  We placed the disabled items in the last */}
-                    {(this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
+                    {(this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady) && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}

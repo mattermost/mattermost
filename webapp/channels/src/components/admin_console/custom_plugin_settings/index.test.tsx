@@ -1,19 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
 import React from 'react';
 import type {match} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
-import type {PluginSettings} from '@mattermost/types/config';
+import type {ExperimentalSettings, LogSettings, PluginSettings} from '@mattermost/types/config';
 
+import {Client4} from 'mattermost-redux/client';
 import PluginState from 'mattermost-redux/constants/plugins';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 
-import {screen, renderWithContext} from 'tests/react_testing_utils';
+import {screen, renderWithContext, waitFor} from 'tests/react_testing_utils';
+
+Client4.setUrl('http://localhost:8065');
 
 describe('custom plugin sections and settings', () => {
+    let pluginStatusesResponse: unknown[];
+
+    beforeAll(() => {
+        nock(Client4.getBaseRoute()).persist().get('/plugins/statuses').reply(200, () => pluginStatusesResponse);
+    });
+
+    beforeEach(() => {
+        pluginStatusesResponse = [];
+    });
+
+    afterAll(() => {
+        nock.cleanAll();
+    });
+
     const plugin = {
         id: 'testplugin',
         name: 'testplugin',
@@ -98,7 +116,7 @@ describe('custom plugin sections and settings', () => {
 
     const expectPluginActionsInMetadataPanel = () => {
         const wrapper = document.querySelector('.PluginMetadataPanel__actionsPanel');
-        const toggleButton = screen.queryByRole('button', {name: 'Enable plugin'}) || screen.getByRole('button', {name: 'Disable plugin'});
+        const toggleButton = screen.queryByRole('switch', {name: 'Enable plugin'}) || screen.getByRole('switch', {name: 'Disable plugin'});
         expect(wrapper).toContainElement(toggleButton);
         expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Plugin actions'}));
     };
@@ -112,7 +130,7 @@ describe('custom plugin sections and settings', () => {
             {...baseState});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
         const runningBadge = screen.getByTestId('plugin-metadata-status');
@@ -125,6 +143,15 @@ describe('custom plugin sections and settings', () => {
 
     it('keeps failed-to-start details out of the status badge', () => {
         const error = 'unable to generate plugin checksum: no such file or directory';
+        pluginStatusesResponse = [{
+            plugin_id: 'testplugin',
+            cluster_id: 'cluster1',
+            state: PluginState.PLUGIN_STATE_FAILED_TO_START,
+            error,
+            name: 'testplugin',
+            description: '',
+            version: '',
+        }];
 
         renderWithContext(
             <CustomPluginSettings
@@ -159,7 +186,92 @@ describe('custom plugin sections and settings', () => {
         expect(badge).not.toHaveTextContent(error);
         expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
         expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
-        expect(document.querySelector('.sectionNoticeContainer.warning')).toBeInTheDocument();
+        expect(document.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
+    });
+
+    it('fetches plugin statuses on mount so a failed plugin shows as failed on a direct visit', async () => {
+        const error = 'unable to generate plugin checksum: no such file or directory';
+        pluginStatusesResponse = [{
+            plugin_id: 'testplugin',
+            cluster_id: 'cluster1',
+            state: PluginState.PLUGIN_STATE_FAILED_TO_START,
+            error,
+            name: 'testplugin',
+            description: '',
+            version: '',
+        }];
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            {
+                entities: {
+                    admin: {
+                        plugins: {
+                            testplugin: {...plugin, active: false},
+                        },
+                        pluginStatuses: {},
+                    },
+                },
+            },
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('plugin-metadata-status')).toHaveTextContent('Failed to start');
+        });
+        expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
+    });
+
+    describe('server logs', () => {
+        const failedState = {
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: plugin,
+                    },
+                    pluginStatuses: {
+                        testplugin: {
+                            id: 'testplugin',
+                            name: 'testplugin',
+                            description: '',
+                            version: '',
+                            active: false,
+                            state: PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING,
+                            instances: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        const renderFailed = (canReadLogs: boolean, restrictSystemAdmin = false, fileJson = true) => renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                config={{...baseProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin} as ExperimentalSettings, LogSettings: {FileJson: fileJson} as LogSettings}}
+                consoleAccess={{...baseProps.consoleAccess, read: {...baseProps.consoleAccess.read, 'reporting.server_logs': canReadLogs}}}
+                patchConfig={jest.fn()}
+            />,
+            failedState,
+        );
+
+        it('links to the logs of a failed plugin next to its enable switch', () => {
+            renderFailed(true);
+
+            expect(screen.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', '/admin_console/reporting/server_logs?levels=all&node=&field.plugin_id=testplugin');
+            expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent('Check your system logs for errors.');
+        });
+
+        it.each([
+            ['without access to the server logs', false, false, true],
+            ['when system admins are restricted', true, true, true],
+            ['when the server only writes plain text logs', true, false, false],
+        ])('leaves the logs out %s', (_, canReadLogs, restrictSystemAdmin, fileJson) => {
+            renderFailed(canReadLogs, restrictSystemAdmin, fileJson);
+
+            expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
+        });
     });
 
     it('renders top-level settings together with sections', () => {
@@ -564,7 +676,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
@@ -653,7 +765,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
@@ -708,7 +820,7 @@ describe('custom plugin sections and settings', () => {
             state,
         );
 
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
 
         updateStoreState({
             entities: {
@@ -742,8 +854,8 @@ describe('custom plugin sections and settings', () => {
             />,
         );
 
-        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
@@ -1001,11 +1113,11 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 2')).toBeInTheDocument();

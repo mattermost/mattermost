@@ -25,7 +25,7 @@ import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/
 
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
-import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
+import {getRegularSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import a11yController from 'utils/a11y_controller_instance';
 import {focusElement} from 'utils/a11y_utils';
@@ -45,7 +45,7 @@ const SearchTypeBadge = styled.div`
     background: rgba(var(--sidebar-text-rgb), 0.08);
     color: var(--sidebar-text);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 600;
 
     .icon-close {
         padding: 2px;
@@ -116,7 +116,7 @@ const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const searchType = useSelector(getSearchType) || '';
-    const searchTeam = useSelector(getSearchTeam);
+    const searchTeam = useSelector(getRegularSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
     const currentTeamId = useSelector(getCurrentTeamId);
     const crossTeamSearchEnabled = useSelector(getIsCrossTeamSearchEnabled);

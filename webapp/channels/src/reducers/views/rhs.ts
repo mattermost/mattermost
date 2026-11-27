@@ -13,9 +13,10 @@ import {
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Threads} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
 
 import type {MMAction} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {EntitySelection, MentionFilters, PendingChannelAttributeEdit, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -166,6 +167,20 @@ function previousRhsStates(state: any = [], action: MMAction) {
     }
 }
 
+function selectedEntity(state: EntitySelection | null = null, action: MMAction): EntitySelection | null {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        return action.state === RHSStates.ENTITY ? action.entity ?? null : null;
+    case ActionTypes.SELECT_POST:
+    case ActionTypes.SELECT_POST_CARD:
+    case ActionTypes.RHS_GO_BACK:
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
 function rhsState(state: RhsState = null, action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_STATE:
@@ -209,17 +224,39 @@ function searchTerms(state = '', action: MMAction) {
     }
 }
 
-function searchTeam(state = null, action: MMAction) {
+function searchTeam(state: string | null = null, action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TEAM:
         return action.teamId;
     case ActionTypes.UPDATE_RHS_STATE:
-        if (action.state !== RHSStates.SEARCH) {
+
+        // Mention searches keep their team so that a mention search scoped to a single channel stays
+        // scoped. showMentions clears the team explicitly when opening an all-teams mention search.
+        if (action.state !== RHSStates.SEARCH && action.state !== RHSStates.MENTION) {
             return null;
         }
         return state;
     case UserTypes.LOGOUT_SUCCESS:
         return null;
+    default:
+        return state;
+    }
+}
+
+// mentionFilters holds the filters applied in the recent mentions panel. They outlive a single
+// search so that paging and re-running the search keep them, and are cleared when the panel moves to
+// anything other than a mention search.
+function mentionFilters(state: MentionFilters = defaultMentionFilters, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_MENTION_FILTERS:
+        return action.filters;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state !== RHSStates.MENTION) {
+            return defaultMentionFilters;
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return defaultMentionFilters;
     default:
         return state;
     }
@@ -408,6 +445,25 @@ function editChannelMembers(state = false, action: MMAction) {
     }
 }
 
+function pendingChannelAttributeEdit(state: PendingChannelAttributeEdit | null = null, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT:
+        return {channelId: action.channelId, fieldId: action.fieldId};
+    case ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT:
+        return null;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (!action.state) {
+            return null;
+        }
+        return state;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
 function shouldFocusRHS(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
@@ -431,9 +487,11 @@ export default combineReducers({
     highlightedPostId,
     previousRhsStates,
     filesSearchExtFilter,
+    selectedEntity,
     rhsState,
     searchTerms,
     searchTeam,
+    mentionFilters,
     searchType,
     searchResultsTerms,
     searchResultsType,
@@ -445,5 +503,6 @@ export default combineReducers({
     isSidebarExpanded,
     isMenuOpen,
     editChannelMembers,
+    pendingChannelAttributeEdit,
     shouldFocusRHS,
 });

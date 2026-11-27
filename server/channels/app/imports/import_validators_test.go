@@ -28,6 +28,16 @@ func TestIsRootJsonlFile(t *testing.T) {
 	assert.False(t, IsRootJsonlFile(""))
 }
 
+func TestIsRemoteUsername(t *testing.T) {
+	assert.True(t, IsRemoteUsername("admin:connection-to-v11-7-rc1"))
+	assert.True(t, IsRemoteUsername("Admin:Remote"))
+	assert.True(t, IsRemoteUsername("long-user...:remote...2"))
+	assert.False(t, IsRemoteUsername("admin"))
+	assert.False(t, IsRemoteUsername("all"))
+	assert.False(t, IsRemoteUsername("bad user:remote"))
+	assert.False(t, IsRemoteUsername(strings.Repeat("a", model.UserNameMaxLength)+":remote"))
+}
+
 func TestImportValidateSchemeImportData(t *testing.T) {
 	// Test with minimum required valid properties and team scope.
 	data := SchemeImportData{
@@ -907,7 +917,17 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
-	// Test with invalid emoji name.
+	// Empty emoji name is present but invalid (distinct from missing).
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new(""),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to empty emoji name.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// Test with too long emoji name.
 	data = ReactionImportData{
 		User:      new("username"),
 		EmojiName: new(strings.Repeat("1234567890", 500)),
@@ -915,6 +935,36 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to too long emoji name.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// Test with non-ASCII emoji name (same charset rules as Reaction.IsValid).
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("リハテスト"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to invalid emoji name characters.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// Test with invalid characters in emoji name.
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("emoji:"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to invalid emoji name characters.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// System emoji names are allowed on reactions.
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("+1"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test with invalid CreateAt
 	data = ReactionImportData{
@@ -932,6 +982,77 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due parent with newer create-at value.")
+}
+
+func TestImportValidatePostPriorityImportData(t *testing.T) {
+	postCreateAt := model.GetMillis()
+	ackRequested := &model.PostPriority{Priority: new(""), RequestedAck: new(true)}
+
+	testCases := []struct {
+		name             string
+		priority         *model.PostPriority
+		acknowledgements *[]PostAcknowledgementImportData
+		expectedErrorID  string
+	}{
+		{name: "no priority"},
+		{name: "urgent with persistent notifications", priority: &model.PostPriority{Priority: new(model.PostPriorityUrgent), PersistentNotifications: new(true)}},
+		{
+			name:             "standard priority with acknowledgements",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt)}},
+		},
+		{
+			name:            "missing priority value",
+			priority:        &model.PostPriority{RequestedAck: new(true)},
+			expectedErrorID: "app.import.validate_post_priority_import_data.priority_missing.error",
+		},
+		{
+			name:            "persistent notifications without urgent",
+			priority:        &model.PostPriority{Priority: new("important"), PersistentNotifications: new(true)},
+			expectedErrorID: "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+		},
+		{
+			name:             "acknowledgements without priority",
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+		},
+		{
+			name:             "acknowledgements without requested ack",
+			priority:         &model.PostPriority{Priority: new("important"), RequestedAck: new(false)},
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+		},
+		{
+			name:             "acknowledgement without user",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{AcknowledgedAt: new(postCreateAt)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+		},
+		{
+			name:             "acknowledgement without acknowledged_at",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username")}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+		},
+		{
+			name:             "acknowledgement before the post",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt - 1)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidatePostPriorityImportData(tc.priority, tc.acknowledgements, postCreateAt)
+			if tc.expectedErrorID == "" {
+				require.Nil(t, err)
+			} else {
+				require.NotNil(t, err)
+				require.Equal(t, tc.expectedErrorID, err.Id)
+			}
+		})
+	}
 }
 
 func TestImportValidateReplyImportData(t *testing.T) {
@@ -1159,6 +1280,20 @@ func TestImportValidatePostImportData(t *testing.T) {
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err)
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.attachment.error")
+	})
+
+	t.Run("Test with missing priority value", func(t *testing.T) {
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+			Priority: &model.PostPriority{},
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err)
+		assert.Equal(t, "app.import.validate_post_priority_import_data.priority_missing.error", err.Id)
 	})
 }
 
@@ -1536,6 +1671,18 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
 	require.Equal(t, err.Id, "app.import.validate_direct_post_import_data.attachment.error")
+
+	// Test with missing priority value.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{member1, member2},
+		User:           new("username"),
+		Message:        new("message"),
+		CreateAt:       new(model.GetMillis()),
+		Priority:       &model.PostPriority{},
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing priority value.")
+	require.Equal(t, "app.import.validate_post_priority_import_data.priority_missing.error", err.Id)
 }
 
 func TestImportValidateEmojiImportData(t *testing.T) {
@@ -1777,9 +1924,9 @@ func TestValidateGuestRoles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := validateGuestRoles(tc.input)
 			if tc.expectError {
-				assert.NotNil(t, err, tc.name)
+				assert.Error(t, err, tc.name)
 			} else {
-				assert.Nil(t, err, tc.name)
+				assert.NoError(t, err, tc.name)
 			}
 		})
 	}

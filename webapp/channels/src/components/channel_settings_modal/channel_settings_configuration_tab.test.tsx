@@ -11,7 +11,8 @@ import {PropertyTypes} from 'mattermost-redux/action_types';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 
-import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, runPostRenderAct, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -141,7 +142,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the toggle is not enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
-        expect(toggle).not.toHaveClass('active');
+        expect(toggle).not.toBeChecked();
 
         // Banner text and color inputs should not be visible when banner is disabled
         expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
@@ -155,7 +156,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the toggle is enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
-        expect(toggle).not.toHaveClass('active');
+        expect(toggle).not.toBeChecked();
 
         // Click the toggle to enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -175,7 +176,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the toggle is enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
-        expect(toggle).toHaveClass('active');
+        expect(toggle).toBeChecked();
 
         // Banner text and color inputs should be visible when banner is enabled
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
@@ -184,6 +185,26 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the color picker has the correct value
         expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
         expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#ff0000');
+    });
+
+    it('says board rather than channel for a board', () => {
+        renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                canManageJoinLeaveMessages={true}
+                canManageSharedChannels={true}
+            />,
+            boardChannelsState(mockChannel.id),
+        );
+
+        expect(screen.getByText('Board Banner')).toBeInTheDocument();
+        expect(screen.getByText('When enabled, a customized banner will display at the top of the board.')).toBeInTheDocument();
+        expect(screen.getByText(/join and leave system messages are shown in this board for all users/)).toBeInTheDocument();
+        expect(screen.getByText('Collaborate with trusted organizations in this board.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Banner')).not.toBeInTheDocument();
+        expect(screen.queryByText('When enabled, a customized banner will display at the top of the channel.')).not.toBeInTheDocument();
+        expect(screen.queryByText(/shown in this channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText('Collaborate with trusted organizations in this channel.')).not.toBeInTheDocument();
     });
 
     it('should show banner settings when toggle is clicked', async () => {
@@ -576,7 +597,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
             await userEvent.click(toggle);
-            expect(toggle).toHaveClass('active');
+            expect(toggle).toBeChecked();
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -589,7 +610,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -623,7 +644,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
@@ -632,9 +653,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
+            // The menu item's onClick only runs once the menu's exit transition finishes,
+            // which can take longer than the default timeout on a loaded CI runner.
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
-            });
+            }, {timeout: 5000});
 
             expect(await screen.findByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
@@ -704,11 +727,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
             });
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
 
             remotes = [{...remote}];
             getRemotesForChannel.mockImplementation(() => remotes);
@@ -720,7 +743,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
 
@@ -916,7 +939,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
             });
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
@@ -937,7 +960,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -970,7 +993,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
             });
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
@@ -1235,6 +1258,112 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(saveButton).toBeEnabled();
         });
 
+        describe('informational notice', () => {
+            const NOTICE_TITLE = 'Classification markings are informational only';
+            const {Client4} = require('mattermost-redux/client');
+
+            // Scoped here: other suites rely on property field fetches not resolving.
+            beforeEach(() => {
+                Client4.getPropertyFields = jest.fn();
+            });
+
+            afterEach(() => {
+                delete Client4.getPropertyFields;
+            });
+
+            function userField(overrides: Partial<PropertyField>): PropertyField {
+                return {
+                    id: 'user_field_1',
+                    group_id: 'access_control_group_id',
+                    name: 'clearance',
+                    type: 'rank',
+                    attrs: {},
+                    target_id: '',
+                    target_type: 'system',
+                    object_type: 'user',
+                    create_at: 1,
+                    update_at: 1,
+                    delete_at: 0,
+                    created_by: 'u1',
+                    updated_by: 'u1',
+                    ...overrides,
+                } as PropertyField;
+            }
+
+            async function renderAndEnableClassification({abacEnabled, userFields}: {abacEnabled: boolean; userFields: PropertyField[]}) {
+                Client4.getPropertyFields.mockResolvedValueOnce(userFields).mockResolvedValue([]);
+                enableClassification();
+
+                renderWithContext(
+                    <ChannelSettingsConfigurationTab {...baseProps}/>,
+                    {entities: {general: {config: {EnableAttributeBasedAccessControl: String(abacEnabled)}}}} as PartialState,
+                );
+
+                await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+                expect(screen.getByTestId('channelClassificationLevel')).toBeInTheDocument();
+            }
+
+            // The notice renders before the fetch settles, so a "shown" assertion
+            // only means something once the user fields have reached the store.
+            async function settleUserFieldsFetch() {
+                await waitFor(() => expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2));
+                await runPostRenderAct();
+            }
+
+            it('is shown while no user field is linked to the classification template', async () => {
+                await renderAndEnableClassification({
+                    abacEnabled: true,
+                    userFields: [
+                        userField({id: 'unlinked_clearance'}),
+                        userField({id: 'other_template_clearance', name: 'other', linked_field_id: 'another_template'}),
+                        userField({id: 'deleted_clearance', linked_field_id: TEMPLATE_FIELD_ID, delete_at: 5}),
+                    ],
+                });
+                await settleUserFieldsFetch();
+
+                expect(screen.getByText(NOTICE_TITLE)).toBeInTheDocument();
+            });
+
+            it('is not shown while the user field lookup is still pending', async () => {
+                Client4.getPropertyFields.mockReturnValue(new Promise(() => {}));
+                enableClassification();
+
+                renderWithContext(
+                    <ChannelSettingsConfigurationTab {...baseProps}/>,
+                    {entities: {general: {config: {EnableAttributeBasedAccessControl: 'true'}}}} as PartialState,
+                );
+
+                await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+                expect(screen.getByTestId('channelClassificationLevel')).toBeInTheDocument();
+                await runPostRenderAct();
+
+                expect(Client4.getPropertyFields).toHaveBeenCalled();
+                expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+            });
+
+            it('is hidden once the clearance attribute is enabled', async () => {
+                await renderAndEnableClassification({
+                    abacEnabled: true,
+                    userFields: [userField({linked_field_id: TEMPLATE_FIELD_ID})],
+                });
+
+                await waitFor(() => {
+                    expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+                });
+            });
+
+            it('is shown when attribute-based access control is off, even with a clearance attribute', async () => {
+                // Without ABAC no policy can read the clearance, so markings stay informational.
+                await renderAndEnableClassification({
+                    abacEnabled: false,
+                    userFields: [userField({linked_field_id: TEMPLATE_FIELD_ID})],
+                });
+                await runPostRenderAct();
+
+                expect(screen.getByText(NOTICE_TITLE)).toBeInTheDocument();
+            });
+        });
+
         it('saves banner_info via patchChannel when banner text is edited while classification is active', async () => {
             const {patchChannel} = require('mattermost-redux/actions/channels');
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
@@ -1476,7 +1605,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             await waitFor(() => {
                 expect(screen.queryByRole('button', {name: 'Reset'})).not.toBeInTheDocument();
             });
-            expect(toggle).toHaveClass('active');
+            expect(toggle).toBeChecked();
         });
 
         it('shows an error in the SaveChangesPanel when patchPropertyValues rejects', async () => {

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"slices"
@@ -182,6 +183,10 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts mode
 		builder = builder.Where(sq.Eq{"GroupID": opts.GroupID})
 	}
 
+	if len(opts.IDs) > 0 {
+		builder = builder.Where(sq.Eq{"Id": opts.IDs})
+	}
+
 	if opts.TargetType != "" {
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
@@ -295,9 +300,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	for i, value := range values {
 		// Pin CreateAt to updateTime so PreSave does not capture a later
 		// GetMillis() — keeping CreateAt == UpdateAt on insert.
-		if value.CreateAt == 0 {
-			value.CreateAt = updateTime
-		}
+		value.CreateAt = cmp.Or(value.CreateAt, updateTime)
 		value.PreSave()
 		value.UpdateAt = updateTime
 

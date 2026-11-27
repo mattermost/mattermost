@@ -15,6 +15,11 @@ export default class PluginManagement {
 
     readonly pluginFileInput: Locator;
     readonly uploadButton: Locator;
+    readonly saveButton: Locator;
+
+    readonly restrictUnauthenticatedWebappPluginsTrue: Locator;
+    readonly restrictUnauthenticatedWebappPluginsFalse: Locator;
+    readonly restrictUnauthenticatedWebappPluginsHelpText: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -22,10 +27,27 @@ export default class PluginManagement {
         // A plain <input type="file">, no testid/id — exactly one on this page.
         this.pluginFileInput = container.locator('input[type="file"]');
         this.uploadButton = container.locator('#uploadPlugin');
+        this.saveButton = container.getByRole('button', {name: 'Save'});
+
+        this.restrictUnauthenticatedWebappPluginsTrue = container.getByTestId(
+            'restrictUnauthenticatedWebappPluginstrue',
+        );
+        this.restrictUnauthenticatedWebappPluginsFalse = container.getByTestId(
+            'restrictUnauthenticatedWebappPluginsfalse',
+        );
+        this.restrictUnauthenticatedWebappPluginsHelpText = container.getByTestId(
+            'restrictUnauthenticatedWebappPluginshelp-text',
+        );
     }
 
     async toBeVisible() {
         await expect(this.container.getByText('Plugin Management', {exact: true})).toBeVisible();
+    }
+
+    async save() {
+        await expect(this.saveButton).toBeEnabled();
+        await this.saveButton.click();
+        await expect(this.saveButton).toBeDisabled();
     }
 
     /**

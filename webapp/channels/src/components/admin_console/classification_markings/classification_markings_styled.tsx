@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
-import {Button} from '@mattermost/shared/components/button';
-
-import {SectionContent} from '../system_properties/controls';
-
-export const GlobalBannerSectionContent = styled(SectionContent).attrs({
-    $compact: true,
-})`
-    &&& {
-        padding: 24px;
-    }
-`;
+import {Button} from '@mattermost/compass-ui/components/button';
 
 export const GlobalBannerSectionSetting = styled.div`
     min-height: 36px;
-    margin-top: 24px;
+
+    & + & {
+        margin-top: 24px;
+    }
 `;
 
 export const LevelOptionLabel = styled.div`
@@ -28,10 +23,6 @@ export const LevelOptionLabel = styled.div`
 
 export const InformationNoticeWrapper = styled.div`
     margin-bottom: 16px;
-
-    h4 {
-        margin: 0;
-    }
 `;
 
 export const PresetDropdownWrapper = styled.div`
@@ -78,28 +69,20 @@ export const PresetDropdownWrapper = styled.div`
     }
 `;
 
-export const ClassificationLevelsSectionContent = styled(SectionContent).attrs({
-    $compact: true,
-})`
-    &&& {
-        padding: 0;
-        padding-bottom: 16px;
-    }
+export const ClassificationLevelsBody = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 `;
 
-export const AddLevelButtonRow = styled.div`
-    margin-top: 16px;
-    margin-left: 16px;
-`;
-
-export const AddLevelButton = styled(Button).attrs({
-    type: 'button',
-    emphasis: 'tertiary',
-})`
-    && {
-        padding-inline: 16px;
-    }
-`;
+export const AddLevelButton = ({style, ...props}: ComponentProps<typeof Button>) => (
+    <Button
+        type='button'
+        emphasis='tertiary'
+        style={{alignSelf: 'flex-start', width: 'auto', paddingInline: 16, ...style}}
+        {...props}
+    />
+);
 
 export const TableWrapper = styled.div`
     table.adminConsoleListTable {
@@ -213,6 +196,7 @@ export const ActionsCell = styled.div`
     text-align: right;
 `;
 
+// Native button (not Compass) — hover styles without styled(CompassButton).
 export const DeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
     &:hover {
         background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);

@@ -4,16 +4,17 @@
 package cluster
 
 import (
-	"net"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
 )
 
 func init() {
-	healthcheck.Register(clusterGossipUnencrypted, clusterLRUCache, clusterSingleNode, clusterBadAdvertise, clusterConfigWritable)
+	healthcheck.Register(clusterGossipUnencrypted, clusterLRUCache, clusterSingleNode, clusterBadAdvertise, clusterConfigWritable,
+		clusterNotEnabled, clusterNotEnabledAtScale)
 }
 
 const (
@@ -21,89 +22,109 @@ const (
 	haDocsURL     = "https://mattermost.com/pl/high-availability-cluster"
 
 	redisRecommendedUsers = 100_000
+
+	// The reference architectures first require HA at 200 users; 2,000 is the ceiling of the smallest HA tier.
+	haRecommendedUsers = 200
+	haRequiredUsers    = 2_000
 )
 
 var clusterGossipUnencrypted = healthcheck.Rule{
-	Code:     "CLUSTER_GOSSIP_UNENCRYPTED",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.remediation"),
-		DocsURL:       haDocsURL,
-		ConsolePath:   haConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ClusterSettings.EnableGossipEncryption",
-	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterGossipUnencrypted)),
+	Code:          "CLUSTER_GOSSIP_UNENCRYPTED",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_gossip_unencrypted.remediation"),
+	DocsURL:       haDocsURL,
+	ConsolePath:   haConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ClusterSettings.EnableGossipEncryption",
+	Eval:          clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterGossipUnencrypted)),
 }
 
 var clusterLRUCache = healthcheck.Rule{
-	Code:     "CLUSTER_LRU_CACHE",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.cluster_lru_cache.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.cluster_lru_cache.remediation"),
-		ConsolePath:   "/admin_console/environment/cache_settings",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "CacheSettings.CacheType",
-	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterLRUCache)),
+	Code:          "CLUSTER_LRU_CACHE",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_lru_cache.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_lru_cache.remediation"),
+	ConsolePath:   "/admin_console/environment/cache_settings",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "CacheSettings.CacheType",
+	Eval:          clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterLRUCache)),
 }
 
 var clusterSingleNode = healthcheck.Rule{
-	Code:     "CLUSTER_SINGLE_NODE",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.cluster_single_node.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.cluster_single_node.remediation"),
-		DocsURL:       haDocsURL,
-		ConsolePath:   haConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityTopology,
-	Subject:    "ClusterSettings.Enable",
-	Eval:       clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalClusterSingleNode)),
+	Code:          "CLUSTER_SINGLE_NODE",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_single_node.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_single_node.remediation"),
+	DocsURL:       haDocsURL,
+	ConsolePath:   haConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityTopology,
+	Subject:       "ClusterSettings.Enable",
+	Eval:          clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalClusterSingleNode)),
 }
 
 var clusterBadAdvertise = healthcheck.Rule{
-	Code:     "CLUSTER_BAD_ADVERTISE",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.cluster_bad_advertise.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.cluster_bad_advertise.remediation"),
-		DocsURL:       haDocsURL,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ClusterSettings.AdvertiseAddress",
-	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterBadAdvertise)),
+	Code:          "CLUSTER_BAD_ADVERTISE",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_bad_advertise.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_bad_advertise.remediation"),
+	DocsURL:       haDocsURL,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ClusterSettings.AdvertiseAddress",
+	Eval:          clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterBadAdvertise)),
 }
 
 var clusterConfigWritable = healthcheck.Rule{
-	Code:     "CLUSTER_CONFIG_WRITABLE",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.cluster_config_writable.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.cluster_config_writable.remediation"),
-		DocsURL:       haDocsURL,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ClusterSettings.ReadOnlyConfig",
-	Eval:       clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterConfigWritable)),
+	Code:          "CLUSTER_CONFIG_WRITABLE",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_config_writable.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_config_writable.remediation"),
+	DocsURL:       haDocsURL,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ClusterSettings.ReadOnlyConfig",
+	Eval:          clusterLicensed(healthcheck.Gate(haRunning, healthcheck.ReasonConfigUnavailable, evalClusterConfigWritable)),
 }
 
-func clusterFeature(f *model.Features) *bool { return f.Cluster }
+var clusterNotEnabled = healthcheck.Rule{
+	Code:          "CLUSTER_NOT_ENABLED",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_not_enabled.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_not_enabled.remediation"),
+	DocsURL:       haDocsURL,
+	ConsolePath:   haConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "ClusterSettings.Enable",
+	Eval:          clusterLicensed(healthcheck.Gate(haDisabled, healthcheck.ReasonConfigUnavailable, evalClusterNotEnabled)),
+}
+
+var clusterNotEnabledAtScale = healthcheck.Rule{
+	Code:          "CLUSTER_NOT_ENABLED_AT_SCALE",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_not_enabled_at_scale.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_not_enabled_at_scale.remediation"),
+	DocsURL:       haDocsURL,
+	ConsolePath:   haConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "ClusterSettings.Enable",
+	Eval:          clusterLicensed(healthcheck.Gate(haDisabled, healthcheck.ReasonConfigUnavailable, evalClusterNotEnabledAtScale)),
+}
 
 func clusterLicensed(eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return healthcheck.Licensed(clusterFeature, eval)
+	return healthcheck.Licensed(healthcheck.FeatureCluster, eval)
 }
 
 // haRunning is the HA gate shared by four codes. ok is false when Config is absent.
@@ -117,14 +138,36 @@ func haRunning(s *healthcheck.Snapshot) (running, ok bool) {
 	return name != "", ok
 }
 
-// leaderDiag returns the leader's diagnostics when section was collected without error.
-func leaderDiag(s *healthcheck.Snapshot, section model.NodeSection) (*model.SupportPacketDiagnostics, bool) {
-	leader, ok := s.Leader()
-	if !ok || !leader.Has(section) {
-		return nil, false
-	}
+// haDisabled ignores ClusterName: an enabled cluster without one is left to CLUSTER_SINGLE_NODE.
+func haDisabled(s *healthcheck.Snapshot) (disabled, ok bool) {
+	enabled, ok := s.ClusterEnabled()
+	return !enabled, ok
+}
 
-	return leader.Diag()
+func evalClusterNotEnabled(s *healthcheck.Snapshot) healthcheck.Result {
+	return evalUsersWithoutHA(s, healthcheck.TranslationId("health.rule.cluster_not_enabled.message"), func(users int64) bool {
+		return users >= haRecommendedUsers && users < haRequiredUsers
+	})
+}
+
+func evalClusterNotEnabledAtScale(s *healthcheck.Snapshot) healthcheck.Result {
+	return evalUsersWithoutHA(s, healthcheck.TranslationId("health.rule.cluster_not_enabled_at_scale.message"), func(users int64) bool {
+		return users >= haRequiredUsers
+	})
+}
+
+func evalUsersWithoutHA(s *healthcheck.Snapshot, messageID string, fires func(users int64) bool) healthcheck.Result {
+	users, ok := s.RegisteredUsers()
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)
+	case fires(users):
+		return healthcheck.Firing(messageID).
+			WithDetail("users", strconv.FormatInt(users, 10)).
+			WithValue(float64(users))
+	default:
+		return healthcheck.Resolved().WithValue(float64(users))
+	}
 }
 
 func evalClusterGossipUnencrypted(s *healthcheck.Snapshot) healthcheck.Result {
@@ -164,7 +207,7 @@ func evalClusterLRUCache(s *healthcheck.Snapshot) healthcheck.Result {
 // The server writes NumberOfConnectedNodes as 1 when it has no running cluster, so that also fires.
 // NumberOfNodes would hide a node cut off from gossip, because it still counts its database registration.
 func evalClusterSingleNode(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := leaderDiag(s, model.SectionCluster)
+	diag, ok := s.LeaderDiag(model.SectionCluster)
 	if !ok || diag.Cluster.NumberOfConnectedNodes == nil {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
@@ -174,23 +217,13 @@ func evalClusterSingleNode(s *healthcheck.Snapshot) healthcheck.Result {
 	return healthcheck.Resolved()
 }
 
-// isUnreachableAddress reports whether other nodes cannot reach address. Empty is fine: the
-// server then advertises its network interface address.
-func isUnreachableAddress(address string) bool {
-	if strings.EqualFold(address, "localhost") {
-		return true
-	}
-
-	ip := net.ParseIP(address)
-	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
-}
-
 func evalClusterBadAdvertise(s *healthcheck.Snapshot) healthcheck.Result {
 	address, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.ClusterSettings.AdvertiseAddress })
 	switch {
 	case !ok:
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
-	case isUnreachableAddress(address):
+	// Empty is fine: the server then advertises its network interface address.
+	case hosts.IsLocal(address):
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_bad_advertise.message")).WithDetail("address", address)
 	default:
 		return healthcheck.Resolved()
@@ -207,7 +240,7 @@ func evalClusterConfigWritable(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	diag, ok := leaderDiag(s, model.SectionConfigSource)
+	diag, ok := s.LeaderDiag(model.SectionConfigSource)
 	switch {
 	case !ok || diag.Config.Source == "":
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)

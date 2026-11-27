@@ -1,0 +1,477 @@
+.ProductRail {
+    // The rail sits on the header's background, like the team sidebar; badges ring themselves in it.
+    --product-rail-bg: var(--sidebar-header-bg);
+
+    z-index: 17;
+    display: flex;
+    overflow: hidden;
+    width: 72px;
+    flex-direction: column;
+    align-items: center;
+
+    // Half of the top padding sits inside the scrolling part, so the team's badge isn't clipped.
+    padding: 6px 0 12px;
+    gap: 4px;
+    grid-area: product-rail;
+
+    // The team, the items and More scroll when the rail runs out of room; the bottom group (the team
+    // sidebar's plugin icons and its show button) stays in view below them.
+    &__scroll {
+        display: flex;
+        width: 100%;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 6px;
+        gap: 4px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    // Scoped under .app__body to win over the theme's link colors (.app__body a and its :hover).
+    .app__body &__item,
+    .app__body &__item:hover,
+    .app__body &__item:focus {
+        color: rgba(var(--sidebar-text-rgb), 0.75);
+        text-decoration: none;
+    }
+
+    &__item {
+        display: flex;
+        width: 64px;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 0;
+
+        // Items without a destination render as buttons, which shouldn't look any different.
+        border: none;
+        border-radius: var(--radius-m);
+        background: none;
+        font-family: inherit;
+        gap: 4px;
+
+        &:hover .ProductRail__icon {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        &:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+
+        &--unread .ProductRail__label {
+            font-weight: 600;
+        }
+    }
+
+    .app__body &__item:hover,
+    .app__body &__item--active,
+    .app__body &__item--active:hover,
+    .app__body &__item--active:focus {
+        color: var(--sidebar-text);
+    }
+
+    &__item--active .ProductRail__icon,
+    &__item--active:hover .ProductRail__icon {
+        background: rgba(var(--sidebar-text-rgb), 0.16);
+    }
+
+    &__icon {
+        position: relative;
+        display: flex;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-m);
+        transition: background-color 0.15s ease;
+
+        svg {
+            fill: currentColor;
+        }
+
+        img {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    &__label {
+        overflow: hidden;
+        max-width: 100%;
+        padding: 0 2px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__badge {
+        position: absolute;
+        top: -4px;
+        right: -8px;
+        min-width: 18px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
+        background: var(--mention-bg);
+        box-shadow: 0 0 0 2px var(--product-rail-bg);
+        color: var(--mention-color);
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 16px;
+        text-align: center;
+
+        &--urgent {
+            background: var(--dnd-indicator);
+            color: var(--button-color);
+        }
+    }
+
+    &__dot {
+        position: absolute;
+        top: -1px;
+        right: -1px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--sidebar-text);
+        box-shadow: 0 0 0 2px var(--product-rail-bg);
+    }
+
+    &__teamButton {
+        position: relative;
+        display: flex;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-m);
+        margin: 0 0 4px;
+        background: none;
+
+        &:focus-visible {
+            box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+
+        &:hover .ProductRail__teamAvatar--lg {
+            box-shadow: 0 0 0 2px rgba(var(--sidebar-text-rgb), 0.32), 0 2px 4px rgba(0, 0, 0, 0.32);
+        }
+    }
+
+    // The current team on top of one or two cards that peek out below it, hinting at the other teams.
+    &__teamStack {
+        position: relative;
+        display: block;
+        width: 40px;
+        height: 40px;
+
+        // Sets the team apart from the items below.
+        margin-bottom: 8px;
+
+        .ProductRail__dot {
+            z-index: 2;
+            top: -3px;
+            right: -3px;
+        }
+
+        .ProductRail__badge {
+            z-index: 2;
+            top: -6px;
+            right: -8px;
+        }
+    }
+
+    &__teamStackCard {
+        position: absolute;
+        z-index: 0;
+        top: 4px;
+        right: 3px;
+        bottom: -4px;
+        left: 3px;
+        border-radius: var(--radius-m);
+        background: color-mix(in srgb, var(--sidebar-header-bg) 80%, var(--sidebar-text));
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+        &--back {
+            top: 8px;
+            right: 6px;
+            bottom: -8px;
+            left: 6px;
+            background: color-mix(in srgb, var(--sidebar-header-bg) 88%, var(--sidebar-text));
+        }
+    }
+
+    // The draggable items. Drag and drop measures margins, not gaps, so they're spaced with margins;
+    // the list's negative margin keeps the rail's usual gap before the More item.
+    &__items {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: -4px;
+    }
+
+    // Each item sits in a wrapper that is dragged, and anchors its right-click menu beside it.
+    &__itemWrapper {
+        position: relative;
+        display: flex;
+        margin-bottom: 4px;
+
+        &:focus-visible {
+            outline: none;
+        }
+
+        &--dragging .ProductRail__icon {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+            box-shadow: var(--elevation-3);
+        }
+    }
+
+    &__itemMenuAnchor {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    // With the team sidebar hidden, the bottom of the rail takes over the bottom of the team sidebar:
+    // its plugins' icons, above the button that brings it back.
+    &__bottom {
+        display: flex;
+        width: 100%;
+        flex: 0 0 auto;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__plugins {
+        width: 100%;
+        padding: 16px 0 6px;
+        text-align: center;
+
+        &:empty {
+            display: none;
+        }
+
+        .fa {
+            color: var(--sidebar-header-text-color);
+            opacity: 0.73;
+            transition: all 0.15s ease;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    &__showTeamSidebar {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-m);
+        background: none;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+
+        svg {
+            fill: currentColor;
+        }
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+
+        &:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        display: none;
+    }
+}
+
+.SidebarProductRailEmpty {
+    padding: 8px 20px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+// The team menu renders in a popover outside the rail, so its indicators are styled at the top level.
+.ProductRail__menuBadge {
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+
+    // Menus sit on the center channel's colors, where the sidebar's mention colors can vanish (white
+    // on white in dark sidebar themes), so their badges take the theme's primary button colors.
+    background: var(--button-bg);
+    color: var(--button-color);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+
+    &--urgent {
+        background: var(--dnd-indicator);
+        color: var(--button-color);
+    }
+}
+
+.ProductRail__menuIcon {
+    display: flex;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+
+    svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    img {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.ProductRail__moreMenu .MuiMenuItem-root {
+    min-height: 40px;
+
+    > .trailing-elements {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+.ProductRail__menuDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--button-bg);
+}
+
+// A team's activity sits on its avatar's corner in the team menu, ringed in the menu's color.
+.ProductRail__teamAvatar > .ProductRail__menuBadge,
+.ProductRail__teamAvatar > .ProductRail__menuDot {
+    position: absolute;
+    box-shadow: 0 0 0 2px var(--center-channel-bg);
+    text-transform: none;
+}
+
+.ProductRail__teamAvatar > .ProductRail__menuBadge {
+    top: -6px;
+    right: -10px;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
+}
+
+.ProductRail__teamAvatar > .ProductRail__menuDot {
+    top: -2px;
+    right: -2px;
+}
+
+.ProductRail__teamAvatar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    background-color: color-mix(in srgb, var(--sidebar-header-bg) 70%, var(--sidebar-text));
+    background-position: center;
+    background-size: cover;
+    color: var(--sidebar-text);
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--lg {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-m);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.32);
+        font-size: 14px;
+    }
+
+    // Menu rows sit on the center channel colors, so their avatar takes those.
+    &--md {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-m);
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        color: var(--center-channel-color);
+        font-size: 12px;
+    }
+}
+
+// The team menu opens to the right of the team stack, its top level with the stack's top. Menus
+// drop 4px below their button by default; this one sits 4px clear of it to the side instead.
+.MuiPopover-root.menu_menuStyled .MuiPaper-root:has(#productRailTeamMenu) {
+    margin-block-start: 0;
+    margin-inline-start: 4px;
+}
+
+// The More menu and the items' right-click menus open beside the rail rather than over its edge.
+.MuiPopover-root.menu_menuStyled .MuiPaper-root:has(#productRailMoreMenu, [id^='productRailItemMenu-']) {
+    margin-block-start: 0;
+    margin-inline-start: 8px;
+}
+
+// Teams lead the menu, so their rows are taller and their names bolder than the action below
+// them. Prefixed with .MuiPopover-root to outrank the menu item's own rules (its leading slot is
+// fixed at 18px, and its labels at 14px).
+.MuiPopover-root .ProductRail__teamMenuItem.MuiMenuItem-root {
+    min-height: 48px;
+
+    > .leading-element {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        margin-inline-end: 12px;
+    }
+
+    .label-elements > .ProductRail__teamMenuLabel {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+}
+
+// The rail is hidden at mobile widths (though still in the page), so the layout it brings applies
+// only above them.
+@media screen and (min-width: 769px) {
+    // With the team sidebar beside it, the rail joins the main panel as its first column: the sidebar's
+    // background, the panel's border and rounded corners on the outside, and a divider before the
+    // channel list. Without the team sidebar, it stays on the header background.
+    body.app__body #root:has(.team-sidebar):has(.ProductRail) {
+        .ProductRail {
+            --product-rail-bg: var(--sidebar-bg);
+
+            border: var(--border-light);
+            border-radius: var(--radius-l) 0 0 var(--radius-l);
+            border-right: 1px solid rgba(var(--sidebar-text-rgb), 0.12);
+            margin-bottom: 4px;
+            background: var(--sidebar-bg);
+        }
+
+        .main-wrapper {
+            border-left: none;
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+        }
+    }
+}

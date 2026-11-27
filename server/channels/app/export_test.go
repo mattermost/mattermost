@@ -671,6 +671,68 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Contains(t, posts[1].Props[model.PostPropsAttachments].([]any)[0], "footer")
 }
 
+func TestExportPostPriorityAndAcknowledgements(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+
+	channelPost := th1.CreatePost(t, th1.BasicChannel)
+	dmPost := th1.CreatePost(t, th1.CreateDmChannel(t, th1.BasicUser2))
+	for _, post := range []*model.Post{channelPost, dmPost} {
+		_, err := th1.App.Srv().Store().PostPriority().Save(&model.PostPriority{
+			PostId:       post.Id,
+			ChannelId:    post.ChannelId,
+			Priority:     new(model.PostPriorityUrgent),
+			RequestedAck: new(true),
+		})
+		require.NoError(t, err)
+		_, err = th1.App.Srv().Store().PostAcknowledgement().BatchSave([]*model.PostAcknowledgement{{
+			PostId:         post.Id,
+			UserId:         th1.BasicUser2.Id,
+			ChannelId:      post.ChannelId,
+			AcknowledgedAt: post.CreateAt + 1,
+		}})
+		require.NoError(t, err)
+	}
+
+	var b bytes.Buffer
+	appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	require.Nil(t, appErr)
+
+	th2 := Setup(t)
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	require.Nil(t, appErr)
+	require.Equal(t, 0, i)
+
+	team, appErr := th2.App.GetTeamByName(th1.BasicTeam.Name)
+	require.Nil(t, appErr)
+	channel, appErr := th2.App.GetChannelByName(th2.Context, th1.BasicChannel.Name, team.Id, false)
+	require.Nil(t, appErr)
+	channelPosts, err := th2.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, channelPost.CreateAt)
+	require.NoError(t, err)
+	require.Len(t, channelPosts, 1)
+	dmPosts, err := th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, strings.Repeat("0", 26), false)
+	require.NoError(t, err)
+	require.Len(t, dmPosts, 1)
+	user2, appErr := th2.App.GetUserByUsername(th1.BasicUser2.Username)
+	require.Nil(t, appErr)
+
+	for _, imported := range []struct {
+		id       string
+		createAt int64
+	}{{channelPosts[0].Id, channelPost.CreateAt}, {dmPosts[0].Id, dmPost.CreateAt}} {
+		priority, err := th2.App.Srv().Store().PostPriority().GetForPost(imported.id)
+		require.NoError(t, err)
+		assert.Equal(t, model.PostPriorityUrgent, *priority.Priority)
+		assert.True(t, *priority.RequestedAck)
+
+		acks, err := th2.App.Srv().Store().PostAcknowledgement().GetForPost(imported.id)
+		require.NoError(t, err)
+		require.Len(t, acks, 1)
+		assert.Equal(t, user2.Id, acks[0].UserId)
+		assert.Equal(t, imported.createAt+1, acks[0].AcknowledgedAt)
+	}
+}
+
 func TestExportUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
@@ -851,15 +913,9 @@ func TestExportFileWarnings(t *testing.T) {
 		{
 			"s3",
 			func(cfg *model.Config) {
-				s3Host := os.Getenv("CI_MINIO_HOST")
-				if s3Host == "" {
-					s3Host = "localhost"
-				}
+				s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-				s3Port := os.Getenv("CI_MINIO_PORT")
-				if s3Port == "" {
-					s3Port = "9000"
-				}
+				s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
@@ -1768,14 +1824,8 @@ func TestGeneratePresignURLForExport(t *testing.T) {
 	// Cloud server with a dedicated export store returns a working presigned URL.
 	// Skipped when minio isn't reachable.
 	t.Run("succeeds against a presign-capable export store", func(t *testing.T) {
-		s3Host := os.Getenv("CI_MINIO_HOST")
-		if s3Host == "" {
-			s3Host = "localhost"
-		}
-		s3Port := os.Getenv("CI_MINIO_PORT")
-		if s3Port == "" {
-			s3Port = "9000"
-		}
+		s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
+		s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 		s3Endpoint := net.JoinHostPort(s3Host, s3Port)
 
 		conn, err := net.DialTimeout("tcp", s3Endpoint, 2*time.Second)
@@ -2949,8 +2999,8 @@ func TestExportVersionScopeMetadata(t *testing.T) {
 	scopeOf := func(t *testing.T, teamNames, channelNames []string) *imports.VersionInfoImportData {
 		t.Helper()
 		var buf bytes.Buffer
-		appErr := th.App.exportVersion(&buf, teamNames, channelNames)
-		require.Nil(t, appErr)
+		err := th.App.exportVersion(&buf, teamNames, channelNames)
+		require.NoError(t, err)
 
 		var line imports.LineImportData
 		require.NoError(t, json.Unmarshal(buf.Bytes(), &line))

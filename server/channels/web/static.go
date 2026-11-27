@@ -40,7 +40,7 @@ func (w *Web) InitStatic() {
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 		docsHandler := NewDocsHandler(staticDir, subpath)
 
-		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+		if w.srv.Config().ServiceSettings.CompressResponses() {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
 			docsHandler = gzhttp.GzipHandler(docsHandler)
@@ -49,6 +49,10 @@ func (w *Web) InitStatic() {
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
 		w.MainRouter.PathPrefix("/" + DocsURLPrefix + "/").Handler(docsHandler)
+		w.MainRouter.Handle("/"+DocsURLPrefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path += "/"
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		}))
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods(http.MethodGet, http.MethodHead)

@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
 // propertyFieldOptionsEqual reports whether two values from
@@ -31,6 +32,68 @@ func propertyFieldOptionsEqual(a, b any) bool {
 		return true
 	}
 	return reflect.DeepEqual(a, b)
+}
+
+// checkRequiredAttributeTransition blocks flipping a channel attribute to
+// required while active, local channels still lack a value. Edge-triggered on
+// false->true only: required can legitimately be true while channels are
+// non-compliant (it is hard-enforced at channel creation only, and an
+// unarchived channel can re-enter the population without a value -- see
+// MM-70717), so a level-triggered check would trap admins on unrelated edits
+// to an already-required field.
+func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) error {
+	if !a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
+		return nil
+	}
+
+	// The store never updates ObjectType, so an existing field keeps its own
+	// whatever the patch claims.
+	objectType := next.ObjectType
+	if prev != nil {
+		objectType = prev.ObjectType
+	}
+	if objectType != model.PropertyFieldObjectTypeChannel || next.TargetType != string(model.PropertyFieldTargetLevelSystem) {
+		return nil
+	}
+
+	if !model.IsPropertyFieldRequired(next) {
+		return nil
+	}
+
+	accessControlGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return appErr
+	}
+	if accessControlGroup.ID != groupID {
+		return nil
+	}
+
+	// Required on a team-scoped field was never enforced, so moving such a
+	// field to system scope is a false->true transition too.
+	enforced := func(f *model.PropertyField) bool {
+		return f != nil && f.TargetType == string(model.PropertyFieldTargetLevelSystem) && model.IsPropertyFieldRequired(f)
+	}
+	if enforced(prev) {
+		// prev may come from a lagging replica: Required turned off and
+		// straight back on would otherwise read as already required.
+		current, err := a.Srv().propertyService.GetPropertyField(RequestContextWithMaster(rctx), groupID, prev.ID)
+		if err != nil {
+			return model.NewAppError(callerName, "app.property_field.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if enforced(current) {
+			return nil
+		}
+	}
+
+	exists, storeErr := a.Srv().Store().Channel().ExistsChannelMissingPropertyValue(groupID, next.ID)
+	if storeErr != nil {
+		return model.NewAppError(callerName, "app.channel.missing_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+	if exists {
+		return model.NewAppError(callerName, "api.property_field.required.channels_missing_values.app_error", nil, "", http.StatusConflict)
+	}
+
+	return nil
 }
 
 func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) (teamID, channelID string, ok bool) {
@@ -59,23 +122,34 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	if !ok {
 		return
 	}
-	// A broadcast has no recipient to filter options against, so any
-	// non-public field must go out with none at all — a caller reads the
-	// field back afterward to get the copy filtered for them.
-	if field.GetAccessMode() != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
-		masked := *field
-		masked.Attrs = make(model.StringInterface, len(field.Attrs))
-		maps.Copy(masked.Attrs, field.Attrs)
-		masked.HideOptions()
+	// A broadcast has no single caller to shape permissions for, and no target
+	// narrow enough to make a partial payload safe (a system-scoped field
+	// broadcasts to every connected client) -- so the event drops permissions
+	// entirely rather than shaping them, the same answer the CPA payload and
+	// the access-control autocomplete give. Copy first: field is the object the
+	// caller who triggered this event is about to get back themselves.
+	broadcastField := *field
+	broadcastField.Permissions = nil
+
+	// It has no recipient to filter options against either, so a field whose
+	// option list not everyone may read must go out with none at all — a
+	// caller reads the field back afterward to get the copy filtered for them.
+	// readableByEveryone follows a linked field to its template: a linked
+	// field's own Masking is always nil, even when the template whose option
+	// list it is broadcasting is masked.
+	if field.Type.SupportsOptions() && !a.readableByEveryone(rctx, field.GroupID, field, model.PropertyActionOptionRead) {
+		broadcastField.Attrs = make(model.StringInterface, len(field.Attrs))
+		maps.Copy(broadcastField.Attrs, field.Attrs)
+		broadcastField.HideOptions()
 		// The broadcast withheld the list whatever the source field carried, so
 		// restore the withheld-options marker HideOptions deletes — a client
 		// must be able to tell "options withheld" from "field has no options".
-		// options_count stays deleted: on a non-public field the count is
-		// controlled information too.
-		masked.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
-		field = &masked
+		// options_count stays deleted: on a field not everyone may read the
+		// count is controlled information too.
+		broadcastField.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
 	}
-	fieldJSON, err := json.Marshal(field)
+
+	fieldJSON, err := json.Marshal(&broadcastField)
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
 		return
@@ -100,7 +174,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 // rank type and ship behind the separate, GA-by-default ClassificationMarkings
 // flag. Gating those here would break the classification admin panel (create
 // and edit alike) whenever PropertyFieldRank is off.
-func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
+func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) error {
 	if field == nil || field.Type != model.PropertyFieldTypeRank {
 		return nil
 	}
@@ -140,7 +214,7 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 // exempt, and a hierarchy is normally defined on a template field that user and
 // channel fields link to — narrowing to user objects would leave the definition
 // itself ungated.
-func (a *App) graphPropertyFieldGate(field *model.PropertyField) *model.AppError {
+func (a *App) graphPropertyFieldGate(field *model.PropertyField) error {
 	if field == nil || field.Type != model.PropertyFieldTypeGraph {
 		return nil
 	}
@@ -166,12 +240,28 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	CanonicalizeSystemObjectField(field)
 	field.Name = strings.TrimSpace(field.Name)
 
-	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
-		return nil, appErr
+	// A linked field takes its levels from its template; a default here would
+	// read to the property service as the caller pinning PermissionValues.
+	if !field.IsPSAv1() && field.Permissions == nil && !field.Protected && field.LinkSourceID() == "" {
+		defaultLevel := DefaultPropertyFieldPermissionLevel(field)
+		if field.PermissionField == nil {
+			field.PermissionField = &defaultLevel
+		}
+		if field.PermissionValues == nil {
+			defaultValuesLevel := DefaultPropertyFieldValuesPermissionLevel(field)
+			field.PermissionValues = &defaultValuesLevel
+		}
+		if field.PermissionOptions == nil {
+			field.PermissionOptions = &defaultLevel
+		}
 	}
 
-	if appErr := a.graphPropertyFieldGate(field); appErr != nil {
-		return nil, appErr
+	if err := a.rankPropertyFieldGate("CreatePropertyField", field); err != nil {
+		return nil, model.AsAppError(err)
+	}
+
+	if err := a.graphPropertyFieldGate(field); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	// A field created with a linked_field_id takes its type from the template it
@@ -190,10 +280,19 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		case appErr != nil:
 			return nil, appErr
 		default:
-			if appErr := a.graphPropertyFieldGate(source); appErr != nil {
-				return nil, appErr
+			if err := a.graphPropertyFieldGate(source); err != nil {
+				return nil, model.AsAppError(err)
 			}
 		}
+	}
+
+	// Apply the same false-to-true gate as updates so API, plugin and internal
+	// callers cannot bypass the required-attribute rollout by creating a field
+	// already marked required. Since a new field has no ID yet, no existing
+	// channel can hold a value for it; installations with active local channels
+	// must therefore create it optional, backfill values, then mark it required.
+	if err := a.checkRequiredAttributeTransition(rctx, "CreatePropertyField", field.GroupID, nil, field); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	if !bypassProtectedCheck && field.Protected {
@@ -368,8 +467,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	}
 
 	// Load existing fields once. Used for: protected-check (gated by
-	// bypassProtectedCheck), PSAv1 reject (always-on), linked-field diff
-	// invariants (always-on).
+	// bypassProtectedCheck), linked-field diff invariants (always-on).
 
 	existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {
@@ -394,13 +492,16 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		// Rank-type gate: block converting a field to rank while the feature
 		// flag is off (shares the create-path check).
-		if appErr := a.rankPropertyFieldGate("UpdatePropertyFields", f); appErr != nil {
-			return nil, nil, appErr
+		if err = a.rankPropertyFieldGate("UpdatePropertyFields", f); err != nil {
+			return nil, nil, model.AsAppError(err)
 		}
 
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
 		// *LinkedFieldID != "". Unlink (nil or "") is always allowed when
-		// existing was linked.
+		// existing was linked. This is an early refusal for a clean 400; the
+		// property service (property_field.go, updatePropertyFields) enforces
+		// the same four rules on every caller, so removing one here must never
+		// turn a refusal into a write.
 		existingLinked := existing.LinkedFieldID != nil && *existing.LinkedFieldID != ""
 		incomingLinked := f.LinkedFieldID != nil && *f.LinkedFieldID != ""
 
@@ -451,7 +552,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 
 		// Protected-check is the only invariant gated on the caller's opt-out.
-		if !bypassProtectedCheck && existing.Protected {
+		if !bypassProtectedCheck && model.ProjectLegacyPermissions(existing).Protected && !a.isAccessControlGroup(groupID) {
 			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.protected.app_error",
@@ -459,6 +560,10 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 				"cannot update protected field",
 				http.StatusForbidden,
 			)
+		}
+
+		if transitionErr := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); transitionErr != nil {
+			return nil, nil, model.AsAppError(transitionErr)
 		}
 	}
 
@@ -520,6 +625,21 @@ func anyUserObjectType(fields []*model.PropertyField) bool {
 	return false
 }
 
+// isAccessControlGroup reports whether groupID is the access_control group.
+// There the AccessControlHook decides a protected field's writes from its
+// Permissions, so the app layer's blanket protected guard must not run first.
+// A failed lookup reports false, which keeps the guard.
+func (a *App) isAccessControlGroup(groupID string) bool {
+	group, err := a.Srv().propertyService.GroupByID(groupID)
+	return err == nil && group.Name == model.AccessControlPropertyGroupName
+}
+
+// OrphanedPropertyFieldForDelete returns the field a session's delete of field
+// should be judged on; see properties.OrphanedFieldForDelete.
+func (a *App) OrphanedPropertyFieldForDelete(field *model.PropertyField) (*model.PropertyField, bool) {
+	return properties.OrphanedFieldForDelete(field, a.IsInstalledPlugin)
+}
+
 // DeletePropertyField deletes a property field.
 func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassProtectedCheck bool, connectionID string) *model.AppError {
 	existing, err := a.Srv().propertyService.GetPropertyField(rctx, groupID, id)
@@ -533,7 +653,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
-	if !bypassProtectedCheck && existing.Protected {
+	if !bypassProtectedCheck && model.ProjectLegacyPermissions(existing).Protected && !a.isAccessControlGroup(groupID) {
 		return model.NewAppError(
 			"DeletePropertyField",
 			"app.property_field.delete.protected.app_error",

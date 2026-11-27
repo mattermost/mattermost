@@ -19,20 +19,18 @@ func init() {
 // versionSkew emits one global result naming the version set and one result per node, so an
 // upgraded node resolves rather than going stale.
 var versionSkew = healthcheck.Rule{
-	Code:     "CLUSTER_VERSION_SKEW",
-	Area:     model.AreaCluster,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.cluster_version_skew.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.cluster_version_skew.remediation"),
-		DocsURL:       haDocsURL,
-		ConsolePath:   haConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityTopology,
-	Subject:    "cluster.version",
-	Eval:       clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewGlobal)),
-	EvalNode:   healthcheck.LicensedNode(clusterFeature, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewNode)),
+	Code:          "CLUSTER_VERSION_SKEW",
+	Area:          model.AreaCluster,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.cluster_version_skew.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.cluster_version_skew.remediation"),
+	DocsURL:       haDocsURL,
+	ConsolePath:   haConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityTopology,
+	Subject:       "cluster.version",
+	Eval:          clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewGlobal)),
+	EvalNode:      healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewNode)),
 }
 
 // versionCounts counts the nodes reporting each version; nodes that report none are left out.

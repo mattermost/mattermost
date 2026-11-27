@@ -14,6 +14,7 @@ func TestPropertySyncSourceHelpers(t *testing.T) {
 	t.Run("IsValidPropertySyncSource", func(t *testing.T) {
 		assert.True(t, IsValidPropertySyncSource(PropertySyncSourceLDAP))
 		assert.True(t, IsValidPropertySyncSource(PropertySyncSourceSAML))
+		assert.True(t, IsValidPropertySyncSource(PropertySyncSourceOpenID))
 		assert.False(t, IsValidPropertySyncSource(""))
 		assert.False(t, IsValidPropertySyncSource("oauth"))
 	})
@@ -21,20 +22,41 @@ func TestPropertySyncSourceHelpers(t *testing.T) {
 	t.Run("PropertySyncCallerID", func(t *testing.T) {
 		assert.Equal(t, CallerIDLDAPSync, PropertySyncCallerID(PropertySyncSourceLDAP))
 		assert.Equal(t, CallerIDSAMLSync, PropertySyncCallerID(PropertySyncSourceSAML))
+		assert.Equal(t, CallerIDOpenIDSync, PropertySyncCallerID(PropertySyncSourceOpenID))
 		assert.Equal(t, "", PropertySyncCallerID("oauth"))
+	})
+
+	t.Run("PropertySyncSourceForCallerID", func(t *testing.T) {
+		for _, source := range PropertySyncSources() {
+			assert.Equal(t, source, PropertySyncSourceForCallerID(PropertySyncCallerID(source)))
+		}
+		assert.Equal(t, "", PropertySyncSourceForCallerID(CallerIDLocalAdmin))
+		assert.Equal(t, "", PropertySyncSourceForCallerID(NewId()))
+		assert.Equal(t, "", PropertySyncSourceForCallerID(""))
 	})
 
 	t.Run("PropertySyncSourceAttr", func(t *testing.T) {
 		assert.Equal(t, PropertyFieldAttrLDAP, PropertySyncSourceAttr(PropertySyncSourceLDAP))
 		assert.Equal(t, PropertyFieldAttrSAML, PropertySyncSourceAttr(PropertySyncSourceSAML))
+		assert.Equal(t, PropertyFieldAttrOpenID, PropertySyncSourceAttr(PropertySyncSourceOpenID))
 		assert.Equal(t, "", PropertySyncSourceAttr("oauth"))
+	})
+
+	t.Run("PropertySyncSources lists every source in precedence order", func(t *testing.T) {
+		assert.Equal(t, []string{PropertySyncSourceLDAP, PropertySyncSourceSAML, PropertySyncSourceOpenID}, PropertySyncSources())
+
+		sources := PropertySyncSources()
+		sources[0] = "mutated"
+		assert.Equal(t, PropertySyncSourceLDAP, PropertySyncSources()[0], "callers get a copy")
 	})
 
 	t.Run("sources match GetPropertyFieldSyncSource", func(t *testing.T) {
 		ldapField := &PropertyField{Attrs: StringInterface{PropertyFieldAttrLDAP: "memberOf"}}
 		samlField := &PropertyField{Attrs: StringInterface{PropertyFieldAttrSAML: "groups"}}
+		openIDField := &PropertyField{Attrs: StringInterface{PropertyFieldAttrOpenID: "groups"}}
 		assert.Equal(t, PropertySyncSourceLDAP, GetPropertyFieldSyncSource(ldapField))
 		assert.Equal(t, PropertySyncSourceSAML, GetPropertyFieldSyncSource(samlField))
+		assert.Equal(t, PropertySyncSourceOpenID, GetPropertyFieldSyncSource(openIDField))
 	})
 }
 

@@ -4,6 +4,7 @@
 package web
 
 import (
+	"cmp"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -79,10 +80,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.LogSettings.ConsoleJson = false
 
 	// Check for environment variable override for console log level (useful for debugging tests)
-	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	if consoleLevel == "" {
-		consoleLevel = mlog.LvlStdLog.Name
-	}
+	consoleLevel := cmp.Or(os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL"), mlog.LvlStdLog.Name)
 	*newConfig.LogSettings.ConsoleLevel = consoleLevel
 
 	_, _, err := memoryStore.Set(newConfig)

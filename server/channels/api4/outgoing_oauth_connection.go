@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -78,9 +79,7 @@ type listOutgoingOAuthConnectionsQuery struct {
 // SetDefaults sets the default values for the query.
 func (q *listOutgoingOAuthConnectionsQuery) SetDefaults() {
 	// Set default values
-	if q.Limit == 0 {
-		q.Limit = 10
-	}
+	q.Limit = cmp.Or(q.Limit, 10)
 }
 
 // IsValid validates the query.

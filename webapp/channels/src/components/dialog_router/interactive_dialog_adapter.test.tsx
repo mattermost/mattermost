@@ -84,6 +84,59 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         mockConsole.error.mockClear();
     });
 
+    describe('Dialog width', () => {
+        // The adapter is the only hop between the dialog the server sent and
+        // the AppForm the modal is sized from, so it is the place a dropped
+        // size would go unnoticed.
+        const formProps = () => MockAppsFormContainer.mock.calls[MockAppsFormContainer.mock.calls.length - 1][0];
+
+        test.each(['small', 'medium', 'large'] as const)('passes size %s through to the form', async (size) => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    size={size}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(formProps().form.size).toBe(size);
+        });
+
+        test('leaves size unset when the dialog does not ask for one, keeping the historical width', async () => {
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...baseProps}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(formProps().form.size).toBeUndefined();
+        });
+
+        test('passes an unrecognised size through rather than failing the dialog', async () => {
+            // The server logs an invalid size and opens the dialog anyway, so
+            // one can get this far. AppsForm is what falls back to the default
+            // width; refusing to render here would lose the whole dialog over a
+            // typo in a cosmetic field.
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter
+                    {...baseProps}
+                    size={'enormous' as 'large'}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            expect(formProps().form.size).toBe('enormous');
+        });
+    });
+
     describe('Basic Rendering and Conversion', () => {
         test('should render AppsFormContainer with correct basic props', async () => {
             const {getByTestId} = renderWithContext(

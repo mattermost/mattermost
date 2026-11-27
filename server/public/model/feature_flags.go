@@ -63,6 +63,13 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
+	// FEATURE_FLAG_REMOVAL: ChannelPermissionActions - Remove this when the feature is GA.
+	// Gates the channel permission actions (channel_read_access,
+	// channel_write_access, channel_management_access) on permission
+	// and channel policies. When off, saving a policy that uses one is rejected,
+	// the webapp doesn't offer them, and rules already stored aren't enforced.
+	ChannelPermissionActions bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -78,6 +85,9 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
+
+	// Enable the entities framework: detect enrichable tokens in posts.
+	Entities bool
 
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
@@ -99,6 +109,10 @@ type FeatureFlags struct {
 	// Enable the Docs (spaces and pages) feature within Mattermost channels
 	EnableDocs bool
 
+	// FEATURE_FLAG_REMOVAL: ProductRail - Remove this when GA is released
+	// Show a navigation rail beside the team sidebar for switching between Channels, Threads and products
+	ProductRail bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
@@ -111,7 +125,7 @@ type FeatureFlags struct {
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
 
-	// Gates the Post Attributes feature (post_attributes property group).
+	// Gates the Post Attributes feature (post fields in the access_control property group).
 	PostAttributes bool
 
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
@@ -134,6 +148,13 @@ type FeatureFlags struct {
 	// refused whatever this flag says — see App.graphPropertyFieldGate for what
 	// the flag does and does not restrict.
 	PropertyFieldGraph bool
+
+	// FEATURE_FLAG_REMOVAL: PropertyFieldPermissionsV3 - Remove this when the feature is GA.
+	// Gates whether the server serves the v3 property field payload: the typed
+	// `permissions` object, stripped per caller, and the write rules that go with
+	// it. A v3 group with this off keeps serving the v2 columns-and-attrs shape.
+	// It does not gate the conversion of stored settings, which runs regardless.
+	PropertyFieldPermissionsV3 bool
 
 	TeamMembershipAccessControl bool
 
@@ -184,8 +205,21 @@ type FeatureFlags struct {
 	EnforceLogPathRoot bool
 
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
-	// Health Dashboard. Off by default.
+	// Health Dashboard.
 	HealthDashboard bool
+
+	// EnableBrotliCompression negotiates Brotli compression for API responses with
+	// clients that advertise support for it, falling back to gzip otherwise. Requires
+	// WebserverMode to be "gzip".
+	EnableBrotliCompression bool
+
+	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
+	// OpenID Connect attribute sync is proven in production. Gates syncing user
+	// attributes from OpenID Connect claims at sign-in: when off, no claims are
+	// read and no values are written, and new openid links are refused. Fields
+	// already linked keep their link, and their values stay sync-locked and
+	// untouched.
+	OpenIdAttributeSync bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -205,6 +239,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
+	f.ChannelPermissionActions = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -213,6 +248,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableShiftEscapeToMarkAllRead = false
 
 	f.AutoTranslation = true
+
+	f.Entities = false
 
 	f.ClassificationMarkings = true
 
@@ -226,6 +263,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.EnableDocs = false
+
+	f.ProductRail = false
 
 	f.CJKSearch = true
 
@@ -245,6 +284,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldGraph = true
 
+	f.PropertyFieldPermissionsV3 = true
+
 	f.ChannelAttributes = true
 
 	f.ChannelAttributesRequired = false
@@ -259,7 +300,11 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.EnforceLogPathRoot = false
 
-	f.HealthDashboard = false
+	f.HealthDashboard = true
+
+	f.EnableBrotliCompression = false
+
+	f.OpenIdAttributeSync = true
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

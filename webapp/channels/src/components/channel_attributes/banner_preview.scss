@@ -5,30 +5,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-
-    // Compact the shared SectionNotice for this narrow preview slot.
-    .sectionNoticeContent {
-        padding: 8px 12px;
-        gap: 8px;
-    }
-
-    .sectionNoticeIcon {
-        font-size: 16px;
-    }
-
-    .sectionNoticeTitle {
-        font-size: 12px;
-        line-height: 16px;
-    }
-
-    .sectionNoticeBody {
-        gap: 2px;
-
-        p {
-            font-size: 12px;
-            line-height: 16px;
-        }
-    }
 }
 
 // Matches the banner text field's width, and truncates like the real banner. The

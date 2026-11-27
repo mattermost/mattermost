@@ -125,6 +125,12 @@ describe('window.Components exposes ABAC policy editors', () => {
     });
 });
 
+describe('window.WebappUtils.components exposes the published components', () => {
+    test('WithTooltip is defined, so plugins show core tooltips', () => {
+        expect((window as any).WebappUtils.components.WithTooltip).toBeDefined();
+    });
+});
+
 describe('window.WebappUtils.channels exposes channel actions', () => {
     test('favoriteChannel is defined', () => {
         expect((window as any).WebappUtils.channels.favoriteChannel).toBeDefined();

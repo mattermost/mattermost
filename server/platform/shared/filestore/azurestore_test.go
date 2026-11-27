@@ -5,6 +5,7 @@ package filestore
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"io"
@@ -242,14 +243,8 @@ func newAzuriteBackend(t *testing.T) *AzureFileBackend {
 
 func azuriteSettings(t *testing.T) FileBackendSettings {
 	t.Helper()
-	host := os.Getenv("CI_AZURITE_HOST")
-	if host == "" {
-		host = "localhost"
-	}
-	port := os.Getenv("CI_AZURITE_PORT")
-	if port == "" {
-		port = "10000"
-	}
+	host := cmp.Or(os.Getenv("CI_AZURITE_HOST"), "localhost")
+	port := cmp.Or(os.Getenv("CI_AZURITE_PORT"), "10000")
 	return FileBackendSettings{
 		DriverName:          driverAzure,
 		AzureStorageAccount: azuriteWellKnownAccount,

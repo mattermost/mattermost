@@ -19,6 +19,7 @@ const (
 	PropertyFieldAttrValueType   = "value_type"
 	PropertyFieldAttrLDAP        = "ldap"
 	PropertyFieldAttrSAML        = "saml"
+	PropertyFieldAttrOpenID      = "openid"
 	PropertyFieldAttrManaged     = "managed"
 	PropertyFieldAttrDisplayName = "display_name"
 	// PropertyFieldAttrActions lists the rendering actions a field triggers.
@@ -384,6 +385,20 @@ func ValidatePropertyValueForValueType(valueType string, value json.RawMessage) 
 	return nil
 }
 
+// ValidatePropertyTextValue checks a text field's value: it must be a JSON
+// string, at most PropertyFieldValueTypeTextMaxLength bytes once trimmed, and
+// fit the field's value_type when it has one.
+func ValidatePropertyTextValue(field *PropertyField, value json.RawMessage) error {
+	var str string
+	if err := json.Unmarshal(value, &str); err != nil {
+		return fmt.Errorf("expected string value: %w", err)
+	}
+	if len(strings.TrimSpace(str)) > PropertyFieldValueTypeTextMaxLength {
+		return fmt.Errorf("text value exceeds maximum length of %d characters", PropertyFieldValueTypeTextMaxLength)
+	}
+	return ValidatePropertyValueForValueType(GetPropertyFieldValueType(field), value)
+}
+
 // GetPropertyFieldValueType extracts the value_type string from a
 // PropertyField's attrs. Returns empty string if not set.
 func GetPropertyFieldValueType(field *PropertyField) string {
@@ -394,28 +409,33 @@ func GetPropertyFieldValueType(field *PropertyField) string {
 	return strings.TrimSpace(v)
 }
 
-// IsPropertyFieldSynced reports whether the field has an ldap or saml attr set,
-// meaning its values are managed by an external sync service.
+// IsPropertyFieldSynced reports whether the field has an ldap, saml or openid
+// attr set, meaning its values are managed by an external sync service.
 func IsPropertyFieldSynced(field *PropertyField) bool {
-	if field.Attrs == nil {
-		return false
-	}
-	ldap, _ := field.Attrs[PropertyFieldAttrLDAP].(string)
-	saml, _ := field.Attrs[PropertyFieldAttrSAML].(string)
-	return ldap != "" || saml != ""
+	return GetPropertyFieldSyncSource(field) != ""
 }
 
 // GetPropertyFieldSyncSource returns the sync source for a field: "ldap",
-// "saml", or empty string if not synced. If both are set, ldap takes priority.
+// "saml", "openid", or empty string if not synced. If several are set, the
+// first in PropertySyncSources order takes priority.
 func GetPropertyFieldSyncSource(field *PropertyField) string {
-	if field.Attrs == nil {
-		return ""
-	}
-	if ldap, _ := field.Attrs[PropertyFieldAttrLDAP].(string); ldap != "" {
-		return PropertySyncSourceLDAP
-	}
-	if saml, _ := field.Attrs[PropertyFieldAttrSAML].(string); saml != "" {
-		return PropertySyncSourceSAML
+	if sources := GetPropertyFieldSyncSources(field); len(sources) > 0 {
+		return sources[0]
 	}
 	return ""
+}
+
+// GetPropertyFieldSyncSources returns every sync source the field names, in
+// PropertySyncSources order.
+func GetPropertyFieldSyncSources(field *PropertyField) []string {
+	if field.Attrs == nil {
+		return nil
+	}
+	var sources []string
+	for _, source := range propertySyncSources {
+		if attr, _ := field.Attrs[PropertySyncSourceAttr(source)].(string); attr != "" {
+			sources = append(sources, source)
+		}
+	}
+	return sources
 }

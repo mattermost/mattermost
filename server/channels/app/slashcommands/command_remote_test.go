@@ -35,6 +35,12 @@ func runCommand(th *TestHelper, provider app.CommandProvider, userID, channelID,
 	return provider.DoCommand(th.App, th.Context, args, "").Text
 }
 
+// quoteArg double-quotes a slash-command value so parseNamedArgs does not
+// treat a token that starts with "--" (for example a base64url invite) as a flag.
+func quoteArg(s string) string {
+	return `"` + s + `"`
+}
+
 // LastPingAt defaults to zero, so the remote is offline and invitations to it are stored
 // as pending instead of being sent over the network.
 func seedRemoteCluster(t *testing.T, th *TestHelper, opts ...func(rc *model.RemoteCluster)) *model.RemoteCluster {
@@ -72,6 +78,20 @@ func remoteClusterCount(t *testing.T, th *TestHelper) int {
 	all, appErr := th.App.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
 	require.Nil(t, appErr)
 	return len(all)
+}
+
+// remoteClusterNamesFor returns the names of every row stored for remoteID, including deleted ones.
+func remoteClusterNamesFor(t *testing.T, th *TestHelper, remoteID string) []string {
+	t.Helper()
+	all, appErr := th.App.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+	require.Nil(t, appErr)
+	var names []string
+	for _, rc := range all {
+		if rc.RemoteId == remoteID {
+			names = append(names, rc.Name)
+		}
+	}
+	return names
 }
 
 func TestRemoteProviderDoCommand(t *testing.T) {
@@ -181,6 +201,13 @@ func TestRemoteProviderDoCreate(t *testing.T) {
 
 func newConfirmInviteServer(t *testing.T, status, errMsg string) (*httptest.Server, <-chan model.RemoteClusterInvite) {
 	t.Helper()
+	return newConfirmInviteSequenceServer(t, errMsg, status)
+}
+
+// newConfirmInviteSequenceServer answers the nth confirmation with statuses[n], repeating the last status.
+func newConfirmInviteSequenceServer(t *testing.T, errMsg string, statuses ...string) (*httptest.Server, <-chan model.RemoteClusterInvite) {
+	t.Helper()
+	var confirmCount atomic.Int32
 	confirms := make(chan model.RemoteClusterInvite, 1)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var frame model.RemoteClusterFrame
@@ -198,6 +225,7 @@ func newConfirmInviteServer(t *testing.T, status, errMsg string) (*httptest.Serv
 				default:
 				}
 			}
+			status := statuses[min(int(confirmCount.Add(1))-1, len(statuses)-1)]
 			_ = json.NewEncoder(w).Encode(map[string]string{"status": status, "err": errMsg})
 		case strings.HasSuffix(r.URL.Path, "/ping"):
 			var ping model.RemoteClusterPing
@@ -248,8 +276,8 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 			missing string
 			command string
 		}{
-			{"password", "/secure-connection accept --name remote1 --invite " + code},
-			{"name", "/secure-connection accept --password " + password + " --invite " + code},
+			{"password", "/secure-connection accept --name remote1 --invite " + quoteArg(code)},
+			{"name", "/secure-connection accept --password " + password + " --invite " + quoteArg(code)},
 			{"invite", "/secure-connection accept --name remote1 --password " + password},
 		} {
 			t.Run(tc.missing, func(t *testing.T) {
@@ -261,20 +289,20 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 	t.Run("wrong password", func(t *testing.T) {
 		code, _ := makeInvite(t, "https://remote.example.com")
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password wrong --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password wrong --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.decode_invitation.error", map[string]any{"Error": T("api.remote_cluster.invite_decrypt_error")}), text)
 	})
 
 	t.Run("malformed invite", func(t *testing.T) {
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite not*base64")
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg("not*base64"))
 
 		require.Equal(t, T("api.command_remote.decode_invitation.error", map[string]any{"Error": T("api.remote_cluster.base64_decode_error")}), text)
 	})
 
 	t.Run("invalid name replies with the translated validation error", func(t *testing.T) {
 		code, remoteID := makeInvite(t, "https://remote.example.com")
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name bad!name --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name bad!name --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("model.cluster.is_valid.name.app_error")}), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, true)
@@ -288,7 +316,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		code, appErr := th.App.CreateRemoteClusterInvite(existing.RemoteId, "https://remote.example.com", model.NewId(), password)
 		require.Nil(t, appErr)
 
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+existing.Name+" --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+existing.Name+" --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.save_not_unique.app_error")}), text)
 		rc, appErr := th.App.GetRemoteCluster(existing.RemoteId, false)
@@ -300,12 +328,11 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		ts := httptest.NewServer(http.NotFoundHandler())
 		ts.Close()
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("remote site answering with a non-JSON page replies with a translated invalid response error", func(t *testing.T) {
@@ -315,25 +342,23 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		}))
 		t.Cleanup(ts.Close)
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("unreachable remote site with markdown in its address replies with the address escaped", func(t *testing.T) {
 		ts := httptest.NewServer(http.NotFoundHandler())
 		ts.Close()
 		code, remoteID := makeInvite(t, ts.URL+"/[click](https://evil.example.com)")
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		escapedURL := ts.URL + "/%5Bclick%5D%28https://evil.example.com%29/" + remotecluster.ConfirmInviteURL
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": escapedURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
 		require.NotContains(t, text, "](")
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	for _, tc := range []struct {
@@ -355,11 +380,10 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 			}))
 			t.Cleanup(ts.Close)
 			code, remoteID := makeInvite(t, ts.URL)
-			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T(tc.errorID)}), text)
-			_, appErr := th.App.GetRemoteCluster(remoteID, false)
-			require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+			require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 		})
 	}
 
@@ -375,12 +399,11 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		}))
 		t.Cleanup(ts.Close)
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("malformed remote site address replies with a translated invalid address error", func(t *testing.T) {
@@ -390,12 +413,11 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		encrypted, err := invite.Encrypt(password)
 		require.NoError(t, err)
 		code := base64.URLEncoding.EncodeToString(encrypted)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		invalidURL := T("api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": "http://remote.example.com/%7F/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": invalidURL}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("site URL not set", func(t *testing.T) {
@@ -404,7 +426,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		ts, _ := newConfirmInviteServer(t, model.StatusOk, "")
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.site_url_not_set"), text)
 		_, appErr := th.App.GetRemoteCluster(remoteID, true)
@@ -414,22 +436,46 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 	t.Run("remote site rejects the invite with a translated reply that omits the remote's reason", func(t *testing.T) {
 		ts, _ := newConfirmInviteServer(t, model.StatusFail, "[click here](https://evil.example.com) to fix your connection")
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
 
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the refused connection must not remain active")
-		rc, appErr := th.App.GetRemoteCluster(remoteID, true)
-		require.Nil(t, appErr, "the refused connection is saved before the confirmation is sent")
-		require.NotZero(t, rc.DeleteAt, "the refused connection must be deleted")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the refused connection must not be kept, even as deleted")
 	})
+
+	for _, tc := range []struct {
+		name      string
+		retryName string
+	}{
+		{"same name", "sitea"},
+		{"different name", "siteb"},
+	} {
+		t.Run("retrying a refused invite with the "+tc.name+" succeeds and leaves one connection", func(t *testing.T) {
+			ts, _ := newConfirmInviteSequenceServer(t, "", model.StatusFail, model.StatusOk)
+			code, remoteID := makeInvite(t, ts.URL)
+			accept := func(name string) string {
+				return runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+name+" --password "+password+" --invite "+quoteArg(code))
+			}
+
+			text := accept("sitea")
+			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
+
+			text = accept(tc.retryName)
+			require.Equal(t, "##### "+T("api.command_remote.accept_invitation", map[string]any{"SiteURL": ts.URL}), text)
+			waitForFirstPing(t, th, remoteID)
+
+			require.Equal(t, []string{tc.retryName}, remoteClusterNamesFor(t, th, remoteID))
+			rc, appErr := th.App.GetRemoteCluster(remoteID, false)
+			require.Nil(t, appErr)
+			require.Equal(t, tc.retryName, rc.Name)
+		})
+	}
 
 	t.Run("success", func(t *testing.T) {
 		ts, confirms := newConfirmInviteServer(t, model.StatusOk, "")
 		code, remoteID := makeInvite(t, ts.URL)
 		name := "remote" + model.NewId()
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+name+" --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+name+" --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, "##### "+T("api.command_remote.accept_invitation", map[string]any{"SiteURL": ts.URL}), text)
 		waitForFirstPing(t, th, remoteID)
@@ -451,7 +497,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 	t.Run("explicit display name is used", func(t *testing.T) {
 		ts, _ := newConfirmInviteServer(t, model.StatusOk, "")
 		code, remoteID := makeInvite(t, ts.URL)
-		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote"+model.NewId()+" --displayname Fancy --password "+password+" --invite "+code)
+		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote"+model.NewId()+" --displayname Fancy --password "+password+" --invite "+quoteArg(code))
 		require.Equal(t, "##### "+T("api.command_remote.accept_invitation", map[string]any{"SiteURL": ts.URL}), text)
 		waitForFirstPing(t, th, remoteID)
 
@@ -469,7 +515,7 @@ func TestRemoteProviderDoAcceptServiceNotEnabled(t *testing.T) {
 
 	code, appErr := th.App.CreateRemoteClusterInvite(model.NewId(), "https://remote.example.com", model.NewId(), "s3cret")
 	require.Nil(t, appErr)
-	text := runCommand(th, &RemoteProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password s3cret --invite "+code)
+	text := runCommand(th, &RemoteProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password s3cret --invite "+quoteArg(code))
 
 	require.Equal(t, T("api.command_remote.service_not_enabled"), text)
 }

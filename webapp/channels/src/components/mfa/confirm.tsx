@@ -4,7 +4,7 @@
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 

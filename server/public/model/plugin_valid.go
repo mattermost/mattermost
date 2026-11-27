@@ -5,8 +5,19 @@ package model
 
 import (
 	"regexp"
+	"strings"
 	"unicode/utf8"
 )
+
+// CoreServerPluginID identifies the core server when it acts as a plugin: in trusted internal
+// requests to plugins, and as the owner of its own plugin key value data, such as cluster mutexes.
+// Plugins must not be installed or loaded with this identity.
+const CoreServerPluginID = "com.mattermost.server"
+
+// IsReservedPluginID reports whether an ID belongs to the core server.
+func IsReservedPluginID(id string) bool {
+	return strings.EqualFold(id, CoreServerPluginID)
+}
 
 const (
 	MinIdLength  = 3

@@ -7,11 +7,11 @@ import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
-import {AppCallResponseTypes, AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {AppCallResponseTypes, AppFieldLayouts, AppFieldTypes} from 'mattermost-redux/constants/apps';
 import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
@@ -21,6 +21,7 @@ import SpinnerButton from 'components/spinner_button';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import {encodeMatrixValue, parseMatrixValue} from 'components/widgets/settings/checkbox_matrix_setting';
 
 import {filterEmptyOptions} from 'utils/apps';
 import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
@@ -29,6 +30,7 @@ import {flattenCollapsible} from 'utils/dialog_conversion';
 import type {DoAppCallResult} from 'types/apps';
 
 import AppsFormField from './apps_form_field';
+import AppsFormGrid from './apps_form_grid';
 import AppsFormHeader from './apps_form_header';
 import CollapsibleSection from './collapsible_section';
 
@@ -284,7 +286,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
 // Returns the value the user entered for a field, adapted to the refreshed version of
 // that field, or undefined when it no longer fits: the field changed type, or the
-// options the user picked were removed.
+// options the user picked were removed. Matrix selections are filtered against the
+// refreshed rows and columns instead of options.
 const keepUserValue = (field: AppField, previousField: AppField | undefined, value: AppFormValue): AppFormValue | undefined => {
     if (previousField && previousField.type !== field.type) {
         return undefined;
@@ -304,6 +307,27 @@ const keepUserValue = (field: AppField, previousField: AppField | undefined, val
             return hasOption(value) ? value : undefined;
         }
         return value;
+    case AppFieldTypes.CHECKBOX_MATRIX: {
+        const rowValues = new Set((field.matrix_config?.rows || []).map((row) => row.value));
+        const columnValues = new Set((field.matrix_config?.columns || []).map((column) => column.value));
+        const singlePerRow = field.matrix_config?.row_selection === 'single';
+        const kept = new Map<string, Set<string>>();
+        const entries = (value as unknown[]).filter((entry): entry is string => typeof entry === 'string');
+        parseMatrixValue(entries).forEach((columns, rowValue) => {
+            if (!rowValues.has(rowValue)) {
+                return;
+            }
+            const keptColumns = Array.from(columns).filter((column) => columnValues.has(column));
+
+            // A single-select row can't hold several columns, and picking one would be a
+            // guess, so drop the row.
+            if (singlePerRow && keptColumns.length > 1) {
+                return;
+            }
+            kept.set(rowValue, new Set(keptColumns));
+        });
+        return encodeMatrixValue(kept);
+    }
     default:
         return value;
     }
@@ -419,13 +443,30 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const refreshedForm = res.data?.type === AppCallResponseTypes.FORM ? res.data.form : undefined;
         if (refreshedForm) {
             const values = initFormValues(refreshedForm, this.props.timezone);
-            flattenFields(refreshedForm.fields).forEach((field) => {
+            const refreshedFields = flattenFields(refreshedForm.fields);
+
+            // Forget values for fields the refresh removed, so they are not restored if a
+            // later refresh brings the field back.
+            const refreshedNames = new Set(refreshedFields.map((field) => field.name));
+            for (const name of Object.keys(this.userValues)) {
+                if (!refreshedNames.has(name)) {
+                    delete this.userValues[name];
+                }
+            }
+
+            refreshedFields.forEach((field) => {
                 if (!(field.name in this.userValues) || field.type === AppFieldTypes.ACTION_BUTTON) {
                     return;
                 }
                 const kept = keepUserValue(field, previousFields.get(field.name), this.userValues[field.name]);
-                if (kept !== undefined) {
+
+                // Store what was kept, so a selection dropped here is not restored if a
+                // later refresh brings its option, row or column back.
+                if (kept === undefined) {
+                    delete this.userValues[field.name];
+                } else {
                     values[field.name] = kept;
+                    this.userValues[field.name] = kept;
                 }
             });
             this.setState({form: refreshedForm, values});
@@ -741,12 +782,33 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     renderModal() {
-        const {fields, header} = this.props.form;
+        const {fields, header, size} = this.props.form;
         const loading = Boolean(this.state.loading);
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        const dialogClassName = 'a11y__modal about-modal';
+        // Width tier. An absent size keeps the historical width, so every
+        // dialog that predates the field renders exactly as before. The form is
+        // replaced wholesale on a refresh, so an integration that changes size
+        // in a refresh response resizes the modal that is already open.
+        //
+        // Both wide tiers get a class of their own rather than borrowing
+        // .modal-lg, whose width is set globally for every consumer in the app
+        // and at a breakpoint that would leave medium silently equal to small
+        // below 992px.
+        let sizeClass = '';
+        if (size === 'medium') {
+            sizeClass = ' apps-form-modal--medium';
+        } else if (size === 'large') {
+            sizeClass = ' apps-form-modal--large';
+        }
+
+        // apps-form-modal-dialog is what the width styles hang off. It is here
+        // rather than reusing a11y__modal because that class is on nearly a
+        // hundred modals across the app, none of which should pick up a width
+        // transition from this form. It is not apps-form-modal, which is
+        // already on the outer .modal and is counted once per open dialog.
+        const dialogClassName = 'a11y__modal about-modal apps-form-modal-dialog' + sizeClass;
         const hasDateTimeFields = this.hasDateTimeFields();
 
         return (
@@ -787,7 +849,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                                         bodyClassNames
                                     }
                                 >
-                                    <LoadingSpinner style={{fontSize: '24px'}}/>
+                                    <LoadingSpinner size='24'/>
                                 </div>
                             </Fade>
                             {this.renderBody()}
@@ -856,18 +918,37 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {isEmbedded} = this.props;
 
         if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
-            const childFields = (originalField.collapsible_config?.fields || []).filter(
-                (f) => f.name !== this.props.form.submit_buttons,
+            const config = originalField.collapsible_config;
+            const label = originalField.label || originalField.name;
+
+            // A grid container is still an ordinary collapsible: it keeps its
+            // heading, its caret and its border, and only the arrangement of
+            // its children changes. Laying the grid out inside the same section
+            // the stacked renderer uses is what keeps `collapsed`, `borderless`
+            // and `display_name` meaning the same thing whichever layout an
+            // integration picks.
+            const children = config?.layout === AppFieldLayouts.GRID ? (
+                <AppsFormGrid
+                    field={originalField}
+                    label={label}
+                    excludeName={this.props.form.submit_buttons}
+                    renderCell={(cell, cellAutoFocus) => this.renderField(cell, autoFocus && cellAutoFocus, depth + 1)}
+                />
+            ) : (
+                (config?.fields || []).
+                    filter((f) => f.name !== this.props.form.submit_buttons).
+                    map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))
             );
+
             return (
                 <CollapsibleSection
                     key={originalField.name}
-                    label={originalField.label || originalField.name}
-                    expanded={originalField.collapsible_config?.expanded ?? true}
-                    bordered={originalField.collapsible_config?.bordered ?? true}
+                    label={label}
+                    expanded={config?.expanded ?? true}
+                    bordered={config?.bordered ?? true}
                     depth={depth}
                 >
-                    {childFields.map((child, i) => this.renderField(child, autoFocus && i === 0, depth + 1))}
+                    {children}
                 </CollapsibleSection>
             );
         }
@@ -976,15 +1057,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return (
-            <>
-                <div>
-                    {this.state.formError && (
-                        <div>
-                            <div className='error-text'>
-                                <Markdown message={this.state.formError}/>
-                            </div>
+            <div className='apps-form-footer'>
+                {this.state.formError && (
+                    <div className='apps-form-footer__error'>
+                        <div className='error-text'>
+                            <Markdown message={this.state.formError}/>
                         </div>
-                    )}
+                    </div>
+                )}
+                <div className='apps-form-footer__buttons'>
                     <Button
                         id={this.elementId('appsModalCancel')}
                         type='button'
@@ -998,7 +1079,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     </Button>
                     {submitButtons}
                 </div>
-            </>
+            </div>
         );
     }
 

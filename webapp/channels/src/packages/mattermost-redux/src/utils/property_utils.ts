@@ -3,6 +3,31 @@
 
 import type {PropertyChangePolicy, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
+// The identity sources a user attribute can be synced from, in the order the
+// server resolves them (model.GetPropertyFieldSyncSource). Each names the
+// external attribute or claim under the attr of the same name, and is also the
+// auth_service of the users it signs in.
+export const PROPERTY_SYNC_SOURCES = ['ldap', 'saml', 'openid'] as const;
+
+export type PropertySyncSource = typeof PROPERTY_SYNC_SOURCES[number];
+
+// The sources a field is linked to, in PROPERTY_SYNC_SOURCES order.
+export function getPropertyFieldSyncSources(field: Pick<PropertyField, 'attrs'>): PropertySyncSource[] {
+    return PROPERTY_SYNC_SOURCES.filter((source) => isSyncMapping(field.attrs?.[source]));
+}
+
+// Whether an identity source writes the field's values, which no session user
+// -- sysadmin included -- may then set.
+export function isPropertyFieldSynced(field: Pick<PropertyField, 'attrs'>): boolean {
+    return getPropertyFieldSyncSources(field).length > 0;
+}
+
+// Whether the field is synced from the source the user signs in with, so the
+// value shown is the one the user's login provider sends.
+export function isPropertyFieldSyncedForAuthService(field: Pick<PropertyField, 'attrs'>, authService: string | undefined): boolean {
+    return getPropertyFieldSyncSources(field).some((source) => source === authService);
+}
+
 // Returns true if the field uses the legacy PSAv1 schema.
 // Legacy properties have an empty object_type and rely on simple target_id
 // uniqueness, rather than the hierarchical uniqueness model used by PSAv2.
@@ -43,8 +68,8 @@ export function isPropertyFieldEditable(field: PropertyField): boolean {
  * Mirrors all three refusals in checkValueWriteAccess on the server: an
  * attrs.owners list hands the values to the listed owners, attrs.protected
  * reserves them for the plugin in attrs.source_plugin_id (only a plugin can set
- * either key), and an attrs.ldap or attrs.saml mapping reserves them for that
- * sync service. None of them consults permission_values -- the write is refused
+ * either key), and a mapping under a sync source's attr (attrs.ldap, attrs.saml
+ * or attrs.openid) reserves them for that sync service. None of them consults permission_values -- the write is refused
  * before that tier is reached.
  */
 export function isPropertyFieldSourceManaged(field: PropertyField): boolean {
@@ -58,7 +83,7 @@ export function isPropertyFieldSourceManaged(field: PropertyField): boolean {
     if (Array.isArray(attrs.owners) && attrs.owners.length > 0) {
         return true;
     }
-    return isSyncMapping(attrs.ldap) || isSyncMapping(attrs.saml);
+    return isPropertyFieldSynced(field);
 }
 
 // GetPropertyFieldSyncSource reads these as strings, so anything else is not a
@@ -76,20 +101,37 @@ export function isPropertyValueSet(raw: unknown): boolean {
     return !(Array.isArray(raw) && raw.length === 0);
 }
 
-function getFieldOptions(field: PropertyField): PropertyFieldOption[] {
+// A field's option list, or an empty one. attrs is loosely typed, so every
+// caller would otherwise repeat the same cast; an absent list and an empty list
+// are not distinguishable on the wire, so both read as empty here.
+export function getPropertyFieldOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
-// The server normalises rank fields to a contiguous 1..N, so the positional
-// fallback only covers option lists cached before that ran.
+// Only a stored rank counts. The server refuses a rank field whose options lack
+// one and fails closed when a change-policy check meets one, so no position is
+// invented here either; such options can only come from a stale cache.
+function getStoredRank(option: PropertyFieldOption): number | undefined {
+    return typeof option.rank === 'number' ? option.rank : undefined;
+}
+
 export function getOptionRank(field: PropertyField, optionId: string): number | undefined {
-    const options = getFieldOptions(field);
-    const index = options.findIndex((option) => option.id === optionId);
-    if (index < 0) {
-        return undefined;
-    }
-    const {rank} = options[index];
-    return typeof rank === 'number' ? rank : index + 1;
+    const option = getPropertyFieldOptions(field).find((candidate) => candidate.id === optionId);
+    return option ? getStoredRank(option) : undefined;
+}
+
+// Highest rank first; unranked options last. Equal ranks keep their stored order.
+export function sortOptionsByRank<T extends PropertyFieldOption>(options: readonly T[]): T[] {
+    const rankOf = (option: T) => getStoredRank(option) ?? -Infinity;
+
+    return [...options].sort((a, b) => {
+        const rankA = rankOf(a);
+        const rankB = rankOf(b);
+        if (rankA === rankB) {
+            return 0;
+        }
+        return rankB > rankA ? 1 : -1;
+    });
 }
 
 /**
@@ -132,15 +174,33 @@ export function canMoveToOption(field: PropertyField, currentValue: unknown, opt
 // heading ("Classification"), not the slug.
 const CLASSIFICATION_FIELD_NAME = 'classification';
 
-function formatPropertyFieldLabel(name: string): string {
+// Title-cases an internal name so it reads as a heading. Also used directly by
+// the Manage Attributes page, which renders a field's slug as a page heading.
+export function formatPropertyFieldLabel(name: string): string {
     const trimmed = name.trim();
     if (!trimmed) {
-        return name;
+        return trimmed;
     }
     return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
 }
 
 // display_name is the admin-facing override; name is the CEL-safe slug fallback.
+/**
+ * Orders fields by attrs.sort_order ascending, then name. Ties break on name, not
+ * create_at: chip order is something people are told to read, so it must follow
+ * the configuration rather than insertion timing. The name compare uses a fixed
+ * locale; the default is the viewer's, which would order equal-ranked chips
+ * differently per user. Names are ASCII slugs, so this is total.
+ */
+export function comparePropertyFieldOrder(a: PropertyField, b: PropertyField): number {
+    const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+    const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+    if (rankA !== rankB) {
+        return rankA - rankB;
+    }
+    return a.name.localeCompare(b.name, 'en');
+}
+
 export function getPropertyFieldLabel(field: PropertyField): string {
     const displayName = field.attrs?.display_name;
     const raw = typeof displayName === 'string' && displayName ? displayName : field.name;

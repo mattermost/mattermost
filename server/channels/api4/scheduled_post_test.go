@@ -438,6 +438,96 @@ func TestCreateScheduledPost(t *testing.T) {
 	})
 }
 
+// The scheduled-post job never re-checks file uploads when it sends the post,
+// so scheduling and updating are where the upload_file_attachment policy applies.
+func TestScheduledPostUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupUploadFileAttachmentABAC(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	newScheduledPost := func(fileIDs ...string) *model.ScheduledPost {
+		return &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+				FileIds:   fileIDs,
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+	}
+
+	t.Run("create with files is rejected when the policy denies the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created, resp, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.Error(t, err)
+		require.Nil(t, created)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("create with files succeeds when the policy allows the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.NoError(t, err)
+		require.Equal(t, model.StringArray{fileID}, created.FileIds)
+	})
+
+	t.Run("create without files is unaffected by the policy", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost())
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("create with files is unaffected when ABAC is disabled", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("update adding a file is rejected when the policy denies the upload action", func(t *testing.T) {
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost())
+		require.NoError(t, err)
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created.FileIds = model.StringArray{fileID}
+		updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.Error(t, err)
+		require.Nil(t, updated)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+
+		stored, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+		require.NoError(t, storeErr)
+		require.Empty(t, stored.FileIds)
+	})
+
+	t.Run("update keeping the same files is allowed when the policy denies the upload action", func(t *testing.T) {
+		fileID := uploadUnattachedFile(t, th, th.BasicChannel.Id)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(fileID))
+		require.NoError(t, err)
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		created.Message = "edited message"
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, "edited message", updated.Message)
+		require.Equal(t, model.StringArray{fileID}, updated.FileIds)
+	})
+}
+
 func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 	// SetupConfig also makes feature flags writable, so the subtests below can toggle the flag.

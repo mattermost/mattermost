@@ -62,7 +62,7 @@ export default function DemoteToGuestModal({user, onExited, onSuccess, onError}:
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmButtonText={demoteGuestButton}
             onConfirm={confirm}
             onExited={onExited}

@@ -19,11 +19,13 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-ci.yml                       # PR orchestrator
 ├── e2e-tests-on-merge.yml                 # Merge orchestrator (master/release branches)
 ├── e2e-tests-on-release.yml               # Release cut orchestrator
+├── server-image-check.yml                 # Gate: one edition's server image is on Docker Hub (not part of E2E)
 ├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
 ├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
 ├── e2e-tests-playwright-rolling-upgrades.yml           # resolves the from-version matrix, calls the template per version
 ├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
 ├── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+├── e2e-tests-lane-result.yml              # status, triage, webhook and gate for one lane (called last by both templates)
 └── e2e-tests-playwright-rolling-upgrades-template.yml  # one from-version: upgrade-from/to, then dispatch on the upgraded server
 ```
 
@@ -39,6 +41,8 @@ e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.
 ```
 
 `e2e-tests-playwright-rolling-upgrades.yml` is also directly runnable from the Actions UI, so it has no caller in that case.
+
+Before any of this, each orchestrator runs `server-image-check.yml` once per edition it tests, as the jobs `server-image-enterprise` and `server-image-fips`, and every lane of an edition `needs` that edition's job (rolling-upgrade lanes through their Playwright lane). See [Server image check](#server-image-check).
 
 ---
 
@@ -120,6 +124,7 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 - **Spec-level vs. job-level parallelism.** The matrix sizes the runner pool; Test System IO does the spec assignment. Slow specs don't block a worker — fast workers keep pulling the next spec from the queue.
 - **Cache-only workers.** `prep-deps` installs once per workflow run and saves to `actions/cache`. Every worker restores with `fail-on-cache-miss: true` and runs zero `npm ci`. Eliminates the 40-way `EEXIST/ENOENT` race in npm's shared cacache writer.
 - **dispatch-begin runs late.** It depends on `prep-deps` so the gap between Test System IO run registration and the first worker calling `dispatch-run` is just per-worker setup (~3–5 min). Registering earlier risks the run timing out before any worker checks in, bulk-failing every spec.
+- **No image wait in the templates.** The templates assume the server image exists; the orchestrators check it first (see [Server image check](#server-image-check)).
 - **Playwright slim slice.** Playwright only consumes `@mattermost/client` and `@mattermost/types` from webapp, so prep-deps caches just those two packages' built `lib/` and `node_modules` (~10–30 MB) instead of the full `webapp/node_modules` tree (~1–2 GB).
 - **Browser/binary caches.** Cypress caches `~/.cache/Cypress` (cypress binary lives outside node_modules); playwright caches `~/.cache/ms-playwright` (chromium only). Both keyed on the framework's lockfile so they invalidate on version bumps.
 - **No retry plumbing in the template.** Test System IO handles per-spec retries; the workflow only sees aggregated results.
@@ -138,11 +143,11 @@ Per worker, within one from-version:
 
 So the upgraded server does not stop at the harness — it goes on to run the normal suite, which is the coverage this pipeline exists for. Nothing sits between the two: no `--project=setup`, no re-patching, no restart, since an upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade. The upgrade specs never enter the queue themselves: `upgrade-specs/` sits outside the Playwright `testDir`, so `dispatch-begin` cannot enqueue them.
 
-**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — posted pending by its `dispatch-begin` and resolved by its `report`. There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
+**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — claimed pending by its `prepare-run` and resolved by its lane result (`e2e-tests-lane-result.yml`). There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
 
 Each worker upgrades its own server (a server cannot be shared across runners), so the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners. `workers` defaults to 20, matching the full suite, and is an input; workers get 60m (vs the full suite's 30m) to cover the harness's two image pulls and swap on top of their share of the suite.
 
-There is deliberately no `testcontainers:down` first — the runner is fresh, so `upgrade-from`'s clean-slate guard has nothing to trip over. `PW_TESTCONTAINERS_REUSE=true` is what lets `upgrade-to` adopt the stack, survive the swap, and keep every per-spec dispatch on the same upgraded server. Step 2 is skipped when the harness fails; that worker then never reports, the run closes short of `total-reports-expected`, and the version's context goes red.
+There is deliberately no `testcontainers:down` first — the runner is fresh, so `upgrade-from`'s clean-slate guard has nothing to trip over. `PW_TESTCONTAINERS_REUSE=true` is what lets `upgrade-to` adopt the stack, survive the swap, and keep every per-spec dispatch on the same upgraded server. `TESTCONTAINERS_RYUK_DISABLED=true` keeps the swapped-in server, which is not started with `withReuse()`, from being reaped when `upgrade-to` exits. Step 2 is skipped when the harness fails; that worker then never reports, the run closes short of `total-reports-expected`, and the version's context goes red.
 
 **Commit status description** — written by the Test System IO summary, same shape as the full suite (`image_tag:` is the target/to image). The from-version needs no description field of its own: it is already in the context name, one context per version.
 
@@ -346,6 +351,26 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 2. **Full test fails**: Full commit status shows failure with pass rate
 3. **Both pass**: Both smoke and full commit statuses show success
 4. **No PR found** (PR pipeline only): Workflow fails immediately
+5. **Server image missing**: `server-image/<edition>` fails and that edition's lanes do not start (see below)
+
+### Server image check
+
+`server-image-check.yml` is its own workflow and has nothing to do with the E2E pipeline beyond gating it. Given an edition, a Docker Hub namespace and a tag, it builds the image name the lanes use (`<namespace>/mattermost-{enterprise,enterprise-fips,team}-edition:<tag>`) and sends a `HEAD` request for the manifest every 30 s, which doesn't count against pull limits.
+
+| Caller | Enterprise image | FIPS image (when FIPS runs) |
+|--------|------------------|-----------------------------|
+| `e2e-tests-ci.yml` | `mattermostdevelopment/mattermost-enterprise-edition:<SERVER_IMAGE_TAG>` | `mattermostdevelopment/mattermost-enterprise-fips-edition:<SERVER_IMAGE_TAG>` |
+| `e2e-tests-on-merge.yml` | `mattermostdevelopment/mattermost-enterprise-edition:<server_image_tag>` | `mattermostdevelopment/mattermost-enterprise-fips-edition:<server_image_tag>` |
+| `e2e-tests-on-release.yml` | `mattermost/mattermost-enterprise-edition:<server_image_tag>` | `mattermost/mattermost-enterprise-fips-edition:<server_image_tag>` |
+
+- **Limits:** it polls for at most 5 minutes, and the job is cut off at 10 (`timeout-minutes: 10`). Neither is an input.
+- **Skip-only PRs:** when `check-changes` finds no E2E-relevant change, the enterprise lanes still run, but only to post `No E2E-relevant changes - skipped`. `e2e-tests-ci.yml` then passes `should_run: 'false'` to `server-image-enterprise`, and the check passes at once without probing or publishing a status. It still probes when a rolling-upgrade or subpath lane will run, because those lanes have their own gates and boot a server even when `should_run` is false. The merge and release callers leave it at the default `'true'`.
+- **Image missing at the deadline:** the job fails with `Server image not available`, naming the image, how long it waited and how many checks it made. None of that edition's lanes start. A late image is a delivery problem: fix the pipeline that pushes the image, then re-run. E2E does not wait longer.
+- **Channel alert on failure:** a failed check skips its lanes, so no lane result posts to the report webhook. On merge to master, merge to a release branch and release cut, the check posts its own `Server image not available` message instead (see [Webhook Message Format](#server-image-not-available)). The merge and release callers pass `MM_E2E_REPORT_WEBHOOK_URL` to it as `REPORT_WEBHOOK_URL`, the same secret their lanes get; `e2e-tests-ci.yml` passes none, and the step also skips `report_type: PR`, so PR runs never alert. It runs only on `failure()`: not on a pass, a skip-only pass or a cancel. It is best effort (`continue-on-error`, 1-minute step limit, 20 s request timeout), so a webhook problem never changes the check's result or lengthens its job.
+- **Its own commit status:** on the tested commit it publishes `server-image/<edition>` (`/master`, `/release` or `/release-cut` appended as the lanes do), `success` or `failure`, linked to the run. It is outside the `e2e-test/` prefix, so the `e2e-test/triage` summary neither reads nor changes it. It never writes `pending`, so a cancelled check leaves nothing waiting.
+- **Registry unreachable** (5xx, 429, 401 or no answer at the deadline): it warns, publishes `success` with "not verified", and the lanes start and pull as before. A Docker Hub outage is not reported as a missing image. Only the last answer counts, by design: a `404` followed by a 5xx or no answer at the deadline is treated as an outage and passes, and the lanes' own pulls then report a truly missing image.
+- **Effect on the lanes' statuses:** a lane that never started never claims its context, so nothing is left `pending`. The triage summary treats a lane with no status as one that did not run. If the enterprise image is missing, the required `e2e-test/cypress-full/enterprise` and `e2e-test/playwright-full/enterprise` stay unreported, and the red `server-image/enterprise` status beside them says why. A re-run after the image is pushed runs the check again and then the lanes.
+- **No automatic re-run:** `e2e-tests-rerun.yml` re-runs only when a lane's triage left a marker. A lane that never started never triages, so a failed check is never re-run automatically.
 
 ---
 
@@ -357,7 +382,8 @@ Each wrapper (Cypress/Playwright) follows this flow:
 generate-build-variables (branch, build_id, server_image)
   ─► smoke tests (1 worker, minimal docker services)
     ─► if smoke passes ─► full tests (20 workers cypress / 1 worker playwright, all docker services)
-      ─► report (aggregate results, update commit status)
+      ─► report (aggregate results)
+        ─► lane result (commit status, triage, webhook, pass/fail gate; e2e-tests-lane-result.yml)
 ```
 
 ### Test filtering
@@ -484,6 +510,18 @@ After full tests complete, a webhook notification is sent to the configured `REP
 
 The commit short SHA links to the commit on GitHub. The PR number links to the pull request.
 
+### Server image not available
+
+Posted by `server-image-check.yml`, not a lane, when the image check fails on a merge or release-cut run (never on a PR). Same layout and red color; release cuts use `:github_round:`.
+
+```
+Server image not available - server-image/fips/master
+:git_merge: abc1234 on master
+:docker: mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678
+Edition fips: no E2E lane for it started. Still missing after 5m 0s (11 checks, limit 5 min).
+Fix the pipeline that builds and pushes this image, then re-run; E2E does not wait for it. | run
+```
+
 ---
 
 ## Related Files
@@ -492,3 +530,93 @@ The commit short SHA links to the commit on GitHub. The PR number links to the p
 - `e2e-tests/playwright/` - Playwright test suite
 - `e2e-tests/.ci/` - CI configuration and environment files
 - `e2e-tests/Makefile` - Makefile with targets for running tests, generating cycles, and reporting
+
+## Status ownership across dispatch paths
+
+Cypress and Playwright serialize each lane by resolved PR, suite, edition and
+report type, independent of the workflow dispatch ref. Status publishers also
+share `e2e-status-publish-<full tested SHA>` with `cancel-in-progress: false` and
+`queue: max`, because statuses and the cross-lane summary belong to a commit.
+The toolkit `e2e-status` action claims pending before preparation and guards all
+raw results, skips and triage verdicts by run ID and publishing attempt. The
+TSIO actions collect diagnostics with their status side effects disabled.
+Cancelled runs retain diagnostic summaries/artifacts and cannot publish.
+A job its own time limit cancels (a hung worker) does not cancel the run: the
+lane result still publishes, red while reports are missing, and triage can ask
+`e2e-tests-rerun.yml` for a re-run, which re-runs only after a time limit, never
+after a person or a newer run cancelled the run.
+Missing current reports remain red, and a later pending/raw result refreshes
+the aggregate instead of leaving an old all-green snapshot.
+
+The orchestration summary can pass before workers finish uploading reports.
+Before publishing success, the owned writer checks the exact run/attempt's
+complete, nonempty report group on the same TSIO environment as dispatch.
+Preparation, dispatch and all workers must also succeed. Triage runs in
+`enforce` mode by default (`E2E_TRIAGE_MODE=report-only` turns it off) and gives
+every red lane a verdict. A lane red outside its tests (failed execution, or
+missing/unreadable reports) turns green only when triage's verdict rests on
+TSIO's orchestration (`basis` `orchestration`): every dispatched spec ran and
+passed there. A verdict from the tests or the lane's jobs never clears it. A
+manual re-run of failed jobs keeps the first attempt's TSIO identity, so that
+attempt runs triage in report-only mode and passes only on the raw result. The
+final job assertion uses these same gates, a successful triage step with a
+confirmed status write, and triage's effective mode after applying the PR's
+report-only label.
+
+### Lane result and the lane list
+
+`e2e-tests-lane-result.yml` is the one place a lane publishes its result. The Cypress,
+Playwright and rolling-upgrades templates call it after `report`, with the lane's identity, `execution_success`
+(preparation, dispatch and every worker succeeded), the summary outcome and the report URL. It
+holds the publication lock, publishes the owned status, triages a red run, refreshes the
+aggregate, posts the webhook, and then asserts the gate. Triage can only clear a failure in
+`enforce` mode, and a missing or incomplete report only on an orchestration-based verdict (see above).
+A publication that fails (typically the repository's `GITHUB_TOKEN` quota) is tried once more with the
+same inputs, after waiting for the quota to reset when that is within 15 minutes; the retry decides the job.
+
+The PR lanes that feed the `e2e-test/triage` aggregate are listed once, in
+`.github/e2e-status-lanes.json`. Every writer checks out `.github` at the workflow's own ref (`github.sha`) into
+`.e2e-trusted` and runs `.e2e-trusted/.github/actions/e2e-status-lanes`, which reads
+the list beside it. The list therefore never comes from the tested commit or the
+PR head, and a malformed list fails the job. The toolkit
+refreshes the aggregate only for a context in that list.
+
+| Context | Published by | Feeds the aggregate and triage |
+|---|---|---|
+| `e2e-test/{cypress,playwright}-full/enterprise` (PR) | template claim and lane result; skip path | yes |
+| `e2e-test/playwright-full/enterprise/subpath` (PR) | playwright template with `server_deploy: subpath` | yes, when `should_run_subpath` |
+| `e2e-test/{cypress,playwright}-full/fips` (PR) | template claim and lane result; skip path | yes, when `should_run_fips` |
+| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template: claimed by prepare-run, resolved by the lane result | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern. Each lane gets its own triage check (PR runs pass `ANTHROPIC_API_KEY`; merge and release callers omit it) |
+| `…/master`, `…/release`, `…/release-cut` and their `/subpath` variants (`…/master/subpath`) | on-merge and on-release callers | no. Each lane gets its own triage check and writes only its own status |
+
+A suffixed context never equals a listed lane, so it never claims or refreshes the aggregate. A
+listed lane that did not run is ignored by the summary. `override-status` and **E2E Tests/verified**
+take the same list from the lane reader (the one source, subpath included) and write failed statuses
+for every PR lane in it, plus the rolling-upgrade contexts found by pattern. A failing subpath lane
+is therefore verifiable, and the verified refresh of the aggregate can clear it. The lane reader
+runs before the writer step in both workflows.
+
+Regression checks:
+
+```sh
+python3 .github/scripts/test_e2e_status_workflows.py  # requires PyYAML
+# In mattermost-test-automation-toolkit:
+node --test scripts/e2e-*.test.js
+```
+
+For workflow lint, actionlint 1.7.11 and 1.7.12 predate GitHub's `queue: max` property.
+Until the installed linter supports it, exclude only its `unexpected key
+"queue" for "concurrency" section` diagnostic and run the structural test above;
+keep all other workflow checks enabled.
+
+Rollout requires these workflow changes on **both** dispatch source refs:
+automated dispatch uses the selected PR ref, while manual dispatch can use
+master. `e2e-tests-check.yml` also dispatches without `--ref`, so its automatic
+E2E-only trigger uses the default branch (master). The existing toolkit PR supplies the pinned owned writer; its immutable
+commit is usable by this branch before toolkit main is updated. Merging the
+Mattermost workflow changes into master is still required for manual/master
+dispatches (and other branches need the updated workflows). The manual override and verified-label workflows must also contain the SHA
+publication lock. Running workflows
+keep their original YAML and pinned actions, so drain older unguarded runs
+before relying on ownership. Branch tests and a push do not repair production
+or update already-running reporters. No TSIO service deployment is required.

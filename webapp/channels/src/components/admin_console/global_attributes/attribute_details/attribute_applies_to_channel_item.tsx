@@ -6,7 +6,7 @@ import React, {useMemo, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {resourceTypeLabels, type AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
@@ -25,7 +25,7 @@ const BODY_ID = 'attribute-applies-to-channel-panel';
 // own it, and its open-row tracking is by array index, which misattributes
 // state when a row is removed from the middle of the list). Remove is only
 // reachable once expanded -- there is no collapsed-row remove affordance.
-function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, removeLockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
+function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, removeLockedTooltip, onRemove, channelFieldId, attributeDisplayName}: AttributeAppliesToChannelItemProps): JSX.Element {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [isOpen, setIsOpen] = useState(false);
@@ -71,8 +71,8 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
         <Button
             type='button'
             emphasis='tertiary'
-            variant='destructive'
-            size='sm'
+            destructive={true}
+            size='small'
             className='AttributeAppliesToItem__remove'
             onClick={onRemove}
             disabled={disabled || Boolean(removeLockedTooltip)}
@@ -124,6 +124,8 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         onChange={onConfigChange}
                         ordered={ordered}
                         disabled={disabled}
+                        channelFieldId={channelFieldId}
+                        attributeDisplayName={attributeDisplayName}
                     />
                 </div>
             )}

@@ -24,6 +24,7 @@ import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
+import PostAttributesChips from 'components/post_attributes/post_attributes_chips';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
@@ -131,6 +132,10 @@ export type Props = {
     shortcutReactToLastPostEmittedFrom?: string;
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
+    isPostAttributesEnabled?: boolean;
+
+    /** A board's card: its plugin shows the card's attributes inside its own preview, so core's chips stay off. */
+    isBoardCard?: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
@@ -908,6 +913,12 @@ function PostComponent(props: Props) {
                             />
                             }
                         </div>
+                        {props.isPostAttributesEnabled && !props.isBoardCard && !isSystemMessage && !props.shouldDisplayBurnOnReadConcealed && post.state !== Posts.POST_DELETED && (
+                            <PostAttributesChips
+                                post={post}
+                                channel={props.channel}
+                            />
+                        )}
                         {comment}
                         <div
                             className={postClass}

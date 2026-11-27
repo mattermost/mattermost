@@ -4,6 +4,7 @@
 package healthcheck
 
 import (
+	"cmp"
 	"fmt"
 	"time"
 
@@ -145,9 +146,7 @@ func stampScope(results []Result, hostname string) []Result {
 
 func stampSubject(results []Result, ruleSubject string) []Result {
 	for i := range results {
-		if results[i].Subject == "" {
-			results[i].Subject = ruleSubject
-		}
+		results[i].Subject = cmp.Or(results[i].Subject, ruleSubject)
 	}
 
 	return results

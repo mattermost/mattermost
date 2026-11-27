@@ -4,17 +4,20 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import Switch from '@/ui/components/switch';
 import {duration} from '@/util';
 
 class CreateRecapModal {
     readonly container: Locator;
     readonly titleInput: Locator;
     readonly channelSearchInput: Locator;
+    readonly runOnceSwitch: Switch;
 
     constructor(private readonly page: Page) {
         this.container = page.locator('#createRecapModal');
         this.titleInput = this.container.locator('#recap-name-input');
         this.channelSearchInput = this.container.getByPlaceholder('Search and select channels');
+        this.runOnceSwitch = new Switch(this.container, 'run-once-toggle-button');
     }
 
     async toBeVisible() {
@@ -53,10 +56,9 @@ class CreateRecapModal {
     }
 
     async enableRunOnce() {
-        const runOnce = this.container.locator('#run-once-toggle');
-        await expect(runOnce).toBeVisible();
-        if ((await runOnce.getAttribute('aria-pressed')) !== 'true') {
-            await runOnce.click();
+        await expect(this.runOnceSwitch.input).toBeVisible();
+        if (!(await this.runOnceSwitch.isChecked())) {
+            await this.runOnceSwitch.check();
         }
     }
 
@@ -228,7 +230,7 @@ class RecapItem {
 class ScheduledRecapItem {
     readonly menuButton: Locator;
     readonly schedulePattern: Locator;
-    readonly toggleButton: Locator;
+    readonly toggle: Switch;
 
     constructor(
         private readonly page: Page,
@@ -236,7 +238,7 @@ class ScheduledRecapItem {
     ) {
         this.menuButton = container.getByRole('button', {name: /Options for /});
         this.schedulePattern = container.locator('.schedule-pattern');
-        this.toggleButton = container.locator('.scheduled-recap-toggle button');
+        this.toggle = new Switch(container.locator('.scheduled-recap-toggle'));
     }
 
     async toBeVisible() {
@@ -253,24 +255,27 @@ class ScheduledRecapItem {
     }
 
     async expectActive() {
-        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'true');
-        await expect(this.toggleButton).toHaveAccessibleName('Active - click to pause');
+        await expect(this.toggle.input).toBeChecked();
+        await expect(this.toggle.input).toHaveAccessibleName('Active - click to pause');
     }
 
     async expectPaused() {
-        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'false');
-        await expect(this.toggleButton).toHaveAccessibleName('Paused - click to resume');
+        await expect(this.toggle.input).not.toBeChecked();
+        await expect(this.toggle.input).toHaveAccessibleName('Paused - click to resume');
     }
 
     async pause() {
         await this.expectActive();
-        await this.toggleButton.click();
+        // Click instead of uncheck: the Switch is controlled by async Redux/API
+        // updates, so Playwright's checked-state verification fails before the
+        // store refreshes. expectPaused() polls until aria-checked flips.
+        await this.toggle.click();
         await this.expectPaused();
     }
 
     async resume() {
         await this.expectPaused();
-        await this.toggleButton.click();
+        await this.toggle.click();
         await this.expectActive();
     }
 
@@ -371,7 +376,7 @@ export default class RecapsPage {
         await expect(this.page.getByRole('heading', {name: 'Set up your first recap'})).toBeVisible();
         await expect(
             this.page.getByText(
-                'Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
             ),
         ).toBeVisible();
         await expect(

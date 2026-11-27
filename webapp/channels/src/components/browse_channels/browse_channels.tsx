@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
-import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/shared/components/button';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount, GetChannelJoinRequestsOptions} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -19,11 +22,13 @@ import RequestJoinChannelModal from 'components/request_join_channel_modal/reque
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
 import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
+import type {ChannelKind, SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 import './browse_channels.scss';
@@ -31,6 +36,19 @@ import './browse_channels.scss';
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
 const SEARCH_TIMEOUT_MILLISECONDS = 100;
+/* eslint-disable formatjs/enforce-placeholders -- no placeholders */
+const kindMessages: Record<'title' | 'create', KindMessages> = {
+    title: {
+        channel: defineMessage({id: 'more_channels.title', defaultMessage: 'Browse Channels'}),
+        board: defineMessage({id: 'more_channels.title.board', defaultMessage: 'Browse Boards'}),
+    },
+    create: {
+        channel: defineMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'}),
+        board: defineMessage({id: 'more_channels.create.board', defaultMessage: 'Create New Board'}),
+    },
+};
+/* eslint-enable formatjs/enforce-placeholders */
+
 export enum Filter {
     All = 'All',
     Public = 'Public',
@@ -93,6 +111,19 @@ export type Props = {
     channelsMemberCount?: Record<string, number>;
     accessControlEnabled: boolean;
     initialFilter?: FilterType;
+
+    /**
+     * 'board' lists only boards (channels a plugin registers as boards), titled for boards, and
+     * creates one through the board plugin's own "Create new board" item; the Boards item of the
+     * product rail opens it so.
+     */
+    kind?: ChannelKind;
+
+    /** The ids of the loaded channels a plugin calls boards, which 'board' narrows the lists to. */
+    boardChannelIds: Set<string>;
+
+    /** The board plugin's "Create new board" item, for 'board'; without one, there's no create button. */
+    boardCreateItem?: SidebarBrowseOrAddChannelMenuAction;
 
     // Discoverable Private Channels
     discoverableFeatureEnabled: boolean;
@@ -224,9 +255,15 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
     };
 
+    isBoardList = () => this.props.kind === 'board';
+
     handleNewChannel = () => {
         this.handleExit();
         this.closeEditRHS();
+        if (this.isBoardList()) {
+            this.props.boardCreateItem?.action(this.props.teamId);
+            return;
+        }
         this.props.actions.openModal({
             modalId: ModalIdentifiers.NEW_CHANNEL_MODAL,
             dialogType: NewChannelModal,
@@ -445,7 +482,19 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
     getChannelsWithoutArchived = (channelList: Channel[]) => channelList.filter((channel) => channel.delete_at === 0);
 
+    // As 'board', the lists narrow to boards. They don't rely on the public channels paged in from the
+    // server: a board plugin keeps the team's boards the user can join in the store, along with the
+    // boards the user is in (the Boards plugin loads them with the team's boards), so every board is
+    // listed however many other channels the team has, and paging only moves through those boards.
     getActiveChannels = () => {
+        const channels = this.getActiveChannelsOfAnyKind();
+        if (!this.isBoardList()) {
+            return channels;
+        }
+        return channels.filter((channel) => this.props.boardChannelIds.has(channel.id));
+    };
+
+    getActiveChannelsOfAnyKind = () => {
         const {channels, archivedChannels, shouldHideJoinedChannels, shouldHideArchivedChannels, privateChannels, myPendingJoinRequests} = this.props;
         const {search, searchedChannels, filter, recommendedChannels, discoverableChannels} = this.state;
 
@@ -536,7 +585,11 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, icon?: JSX.Element) => {
+        const kind = this.isBoardList() ? 'board' : 'channel';
+        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, withLeadingIcon = false) => {
+            if (kind === 'board' && !this.props.boardCreateItem) {
+                return null;
+            }
             return (
                 <TeamPermissionGate
                     teamId={teamId}
@@ -546,14 +599,12 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         type='button'
                         id='createNewChannelButton'
                         emphasis={emphasis}
+                        size={size}
                         onClick={this.handleNewChannel}
-                        aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
+                        aria-label={localizeMessage(kindMessages.create[kind])}
+                        leadingIcon={withLeadingIcon ? <Icon glyph={<PlusIcon/>}/> : undefined}
                     >
-                        {icon}
-                        <FormattedMessage
-                            id='more_channels.create'
-                            defaultMessage='Create New Channel'
-                        />
+                        <FormattedMessage {...kindMessages.create[kind]}/>
                     </Button>
                 </TeamPermissionGate>
             );
@@ -567,7 +618,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primary', 'md', <i className='icon-plus'/>)}
+                {createNewChannelButton('primary', 'medium', true)}
             </>
         );
 
@@ -584,8 +635,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     handleWithdrawRequest={this.handleWithdrawRequest}
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
-                    showRecommendedFilter={this.props.accessControlEnabled}
-                    showDiscoverableFilters={this.props.discoverableFeatureEnabled}
+                    showRecommendedFilter={this.props.accessControlEnabled && kind === 'channel'}
+                    showDiscoverableFilters={this.props.discoverableFeatureEnabled && kind === 'channel'}
+                    discoverableEnabled={this.props.discoverableFeatureEnabled}
+                    kind={kind}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
                     myChannelMemberships={this.props.myChannelMemberships}
@@ -601,12 +654,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             </>
         );
 
-        const title = (
-            <FormattedMessage
-                id='more_channels.title'
-                defaultMessage='Browse Channels'
-            />
-        );
+        const title = <FormattedMessage {...kindMessages.title[kind]}/>;
 
         return (
             <GenericModal
@@ -614,7 +662,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('secondary', 'sm')}
+                headerButton={createNewChannelButton('tertiary', 'small')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

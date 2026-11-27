@@ -16,9 +16,9 @@ permissions:
 
 # Translations used to arrive exclusively through Weblate, so this workflow's
 # only job failed any PR that touched a non-English file unless it came from the
-# weblate account. Translations may now be authored in-repo and land in the same
-# PR as the English string, so the change is reported instead of rejected -- and,
-# below, actually checked.
+# weblate account. Translations are now authored in-repo, by a person or by a
+# translation run (i18n/scripts/), so the change is reported instead of
+# rejected, and below, actually checked.
 #
 # Missing keys are reported as warnings rather than errors: the catalogs are tens
 # of thousands of entries short of parity, and a hard gate is only fair once a
@@ -77,32 +77,10 @@ jobs:
       - name: Check changed files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: |
-          echo "::warning title=Non-English i18n files changed::This PR modifies non-English translation files directly. Ensure the changes are intentional and will not be overwritten by Weblate."
+          echo "::notice title=Non-English i18n files changed::This PR changes non-English translation files. The check-changes job holds every translation it adds or changes to the rules in i18n/AGENTS.md."
 
-  verify-webapp:
-    name: Verify webapp translation files
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: webapp
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: ci/setup
-        uses: ./.github/actions/webapp-setup
-        with:
-          read-only: "true"
-
-      - name: ci/i18n-verify-translations
-        working-directory: webapp/channels
-        run: |
-          npm run i18n-verify-translations -- --warn-missing-keys
-
-  verify-server:
-    name: Verify server translation files
+  verify:
+    name: Verify translations
     needs: buildenv
     runs-on: ubuntu-24.04
     steps:
@@ -111,11 +89,44 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: ci/setup-webapp
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
       - name: ci/restore-go-cache
         uses: ./.github/actions/restore-go-cache
 
-      - name: ci/i18n-verify
+      - name: ci/i18n-verify-all
         uses: ./.github/actions/run-in-buildenv
         with:
           build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
-          run: make i18n-verify
+          run: make i18n-verify-all
+
+  check-changes:
+    name: Check translation changes
+    runs-on: ubuntu-24.04
+    steps:
+      # The PR head, not the merge commit, with history: check_changes.mjs compares
+      # the head with where it left the base branch, the commit a translation
+      # run's baseline entries name. Blobs are fetched as they are read.
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: ci/setup-webapp
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
+      - name: ci/check-changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --filter=blob:none origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          node i18n/scripts/check_changes.mjs --upstream "origin/${BASE_REF}"

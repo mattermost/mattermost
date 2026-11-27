@@ -287,6 +287,7 @@ describe('doesRouteBelongToTeamControllerRoutes', () => {
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/channels')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/threads/efg')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/threads')).toBe(true);
+        expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/boards')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/drafts')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/integrations/klm')).toBe(true);
         expect(doesRouteBelongToTeamControllerRoutes('/team_name_example_1/emoji/nop')).toBe(true);

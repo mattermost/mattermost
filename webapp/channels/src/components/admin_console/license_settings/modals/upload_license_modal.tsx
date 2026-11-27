@@ -5,8 +5,8 @@ import React, {useEffect, useCallback, type JSX} from 'react';
 import {defineMessage, FormattedDate, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {ClientLicense, License} from '@mattermost/types/config';
 
 import {previewLicense, uploadLicense} from 'mattermost-redux/actions/admin';
@@ -248,17 +248,20 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                         emphasis='primary'
                         onClick={handleConfirmUpload}
                         disabled={isLoading}
+                        loading={Boolean(isLoading)}
                         id='confirm-button'
                     >
-                        <LoadingWrapper
-                            loading={Boolean(isLoading)}
-                            text={defineMessage({id: 'admin.license.modal.applying', defaultMessage: 'Applying'})}
-                        >
+                        {isLoading ? (
+                            <FormattedMessage
+                                id='admin.license.modal.applying'
+                                defaultMessage='Applying'
+                            />
+                        ) : (
                             <FormattedMessage
                                 id='admin.license.modal.apply'
                                 defaultMessage='Apply License'
                             />
-                        </LoadingWrapper>
+                        )}
                     </Button>
                 </div>
             </>

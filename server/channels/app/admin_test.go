@@ -4,14 +4,26 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
+	"maps"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
+	"github.com/mattermost/logr/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 func TestGetLatestVersion(t *testing.T) {
@@ -92,5 +104,468 @@ func TestGetLatestVersion(t *testing.T) {
 
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
+	})
+
+	var requests atomic.Int32
+	countingServer := func(t *testing.T, status int) *httptest.Server {
+		requests.Store(0)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(status)
+			_, err := w.Write(validJSON)
+			assert.NoError(t, err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+
+	t.Run("a failure is cached", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+
+		for range 2 {
+			_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+			require.NotNil(t, appErr)
+			assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		}
+		assert.Equal(t, int32(1), requests.Load())
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "the cached failure is returned until it expires")
+		assert.Nil(t, release)
+	})
+
+	t.Run("toggling security alerts clears a cached failure", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+		_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+		require.NotNil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://other.example.com") })
+		_, appErr = th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "an unrelated config change keeps the cached failure")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+	})
+
+	t.Run("a cancelled request is not cached", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		ok := countingServer(t, http.StatusOK)
+
+		ctx, cancel := context.WithCancel(th.Context.Context())
+		cancel()
+		_, appErr := th.App.GetLatestVersion(th.Context.WithContext(ctx), ok.URL)
+		require.NotNil(t, appErr)
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+		assert.Equal(t, int32(1), requests.Load())
+	})
+
+	t.Run("no request while security alerts are off", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		ok := countingServer(t, http.StatusOK)
+		_, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+		require.Nil(t, appErr)
+		require.Equal(t, int32(1), requests.Load())
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+		})
+
+		assertDisabled := func(t *testing.T) {
+			t.Helper()
+			release, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+			require.NotNil(t, appErr)
+			assert.Nil(t, release)
+			assert.Equal(t, "app.admin.get_latest_version.disabled.app_error", appErr.Id)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		}
+		assertDisabled(t)
+		require.NoError(t, th.App.clearLatestVersionCache())
+		assertDisabled(t)
+		assert.Equal(t, int32(1), requests.Load())
+	})
+}
+
+// Not parallel: overrides the package-level testSiteURLTimeout.
+func TestTestSiteURL(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("valid site URL", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/api/v4/system/ping", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("non-200 response fails", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("not found"))
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "status_code=404", appErr.DetailedError)
+	})
+
+	t.Run("non-200 response with a stalled body fails without waiting for the body", func(t *testing.T) {
+		release := make(chan struct{})
+		connClosed := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Length", "100")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("partial"))
+			w.(http.Flusher).Flush()
+			select {
+			case <-r.Context().Done():
+				close(connClosed)
+			case <-release:
+			}
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, "status_code=503", appErr.DetailedError)
+		assert.Less(t, elapsed, testSiteURLTimeout/2)
+
+		select {
+		case <-connClosed:
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "response body was not closed")
+		}
+	})
+
+	t.Run("server that never responds times out", func(t *testing.T) {
+		originalTimeout := testSiteURLTimeout
+		testSiteURLTimeout = 200 * time.Millisecond
+		defer func() { testSiteURLTimeout = originalTimeout }()
+
+		release := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			<-release
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		var netErr net.Error
+		require.ErrorAs(t, appErr.Unwrap(), &netErr)
+		assert.True(t, netErr.Timeout())
+		assert.GreaterOrEqual(t, elapsed, testSiteURLTimeout)
+		assert.Less(t, elapsed, 5*time.Second)
+	})
+}
+
+type queryLogsCluster struct {
+	testlib.FakeClusterInterface
+	info           *model.ClusterInfo
+	remoteLogs     map[string]einterfaces.NodeLogs
+	queryLogsErr   *model.AppError
+	queryLogsCalls int
+	lastFilter     *model.LogFilter
+}
+
+func (c *queryLogsCluster) GetMyClusterInfo() *model.ClusterInfo { return c.info }
+
+func (c *queryLogsCluster) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
+	c.queryLogsCalls++
+	c.lastFilter = logFilter
+	if c.queryLogsErr != nil {
+		return nil, c.queryLogsErr
+	}
+	return c.remoteLogs, nil
+}
+
+func TestQueryLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	nodeNames := func(logs map[string][]string) []string {
+		return slices.Collect(maps.Keys(logs))
+	}
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &queryLogsCluster{
+			info: &model.ClusterInfo{Hostname: "node-1"},
+			remoteLogs: map[string]einterfaces.NodeLogs{
+				"node-2": {Lines: []string{`{"msg":"from node-2"}`}},
+				"node-3": {Lines: []string{`{"msg":"from node-3"}`}},
+			},
+		}
+		th := SetupWithClusterMock(t, cluster)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ClusterSettings.Enable = true
+			*cfg.LogSettings.EnableFile = false
+		})
+
+		query := func(t *testing.T, serverNames ...string) map[string][]string {
+			t.Helper()
+			cluster.queryLogsCalls = 0
+			logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{ServerNames: serverNames})
+			require.Nil(t, appErr)
+			return logs
+		}
+
+		t.Run("empty filter returns local and all remote nodes", func(t *testing.T) {
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"node-1", "node-2", "node-3"}, nodeNames(logs))
+			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+			assert.Equal(t, []string{`{"msg":"from node-3"}`}, logs["node-3"])
+		})
+
+		t.Run("local node by hostname skips the cluster query", func(t *testing.T) {
+			logs := query(t, "node-1")
+			assert.ElementsMatch(t, []string{"node-1"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("default is an alias for the local node", func(t *testing.T) {
+			logs := query(t, "default")
+			assert.ElementsMatch(t, []string{"node-1"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("remote node only excludes local logs", func(t *testing.T) {
+			logs := query(t, "node-2")
+			assert.ElementsMatch(t, []string{"node-2"}, nodeNames(logs))
+			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+		})
+
+		t.Run("forwards the filter to the cluster", func(t *testing.T) {
+			filter := &model.LogFilter{
+				ServerNames: []string{"node-2"},
+				LogLevels:   []string{"error"},
+				DateFrom:    "2026-01-01 00:00:00.000 +00:00",
+				DateTo:      "2026-01-02 00:00:00.000 +00:00",
+				Search:      "websocket",
+			}
+			_, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
+			require.Nil(t, appErr)
+			assert.Equal(t, filter, cluster.lastFilter)
+		})
+
+		t.Run("local and remote node", func(t *testing.T) {
+			logs := query(t, "node-1", "node-3")
+			assert.ElementsMatch(t, []string{"node-1", "node-3"}, nodeNames(logs))
+			assert.Equal(t, 1, cluster.queryLogsCalls)
+		})
+
+		t.Run("duplicate names", func(t *testing.T) {
+			logs := query(t, "node-2", "node-2", "default", "node-1", "unknown")
+			assert.ElementsMatch(t, []string{"node-1", "node-2"}, nodeNames(logs))
+		})
+
+		t.Run("unknown name returns no entries", func(t *testing.T) {
+			logs := query(t, "unknown")
+			assert.Empty(t, logs)
+			assert.Equal(t, 1, cluster.queryLogsCalls)
+		})
+
+		t.Run("missing cluster info falls back to default", func(t *testing.T) {
+			cluster.info = nil
+			t.Cleanup(func() { cluster.info = &model.ClusterInfo{Hostname: "node-1"} })
+
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"default", "node-2", "node-3"}, nodeNames(logs))
+		})
+
+		t.Run("failed node is reported as a single error entry", func(t *testing.T) {
+			cluster.remoteLogs["node-3"] = einterfaces.NodeLogs{Err: model.NewAppError("GetLogs", "ent.cluster.timeout.error", nil, "simulated failure", http.StatusInternalServerError)}
+			t.Cleanup(func() { cluster.remoteLogs["node-3"] = einterfaces.NodeLogs{Lines: []string{`{"msg":"from node-3"}`}} })
+
+			logs := query(t, "node-2", "node-3")
+			assert.Equal(t, []string{`{"msg":"from node-2"}`}, logs["node-2"])
+			require.Len(t, logs["node-3"], 1)
+			assertFailedNodeLogLine(t, logs["node-3"][0], "simulated failure")
+		})
+
+		t.Run("cluster query error fails the request", func(t *testing.T) {
+			cluster.queryLogsErr = model.NewAppError("QueryLogs", "test.cluster_error", nil, "", 500)
+			t.Cleanup(func() { cluster.queryLogsErr = nil })
+
+			logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{})
+			require.NotNil(t, appErr)
+			assert.Equal(t, "test.cluster_error", appErr.Id)
+			assert.Nil(t, logs)
+		})
+
+		t.Run("unlicensed cluster returns only local logs", func(t *testing.T) {
+			th.App.Srv().SetLicense(nil)
+			t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicense()) })
+
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"default"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+
+			logs = query(t, "node-2")
+			assert.Empty(t, logs)
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("clustering disabled returns only local logs", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = true })
+			})
+
+			logs := query(t)
+			assert.ElementsMatch(t, []string{"default"}, nodeNames(logs))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+	})
+
+	t.Run("no cluster", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableFile = false })
+
+		logs, appErr := th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{})
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, []string{"default"}, nodeNames(logs))
+
+		logs, appErr = th.App.QueryLogs(th.Context, 0, 10, &model.LogFilter{ServerNames: []string{"node-2"}})
+		require.Nil(t, appErr)
+		assert.Empty(t, logs)
+	})
+}
+
+// assertFailedNodeLogLine checks line is the entry failedNodeLogLine reports for a node whose logs couldn't be fetched.
+func assertFailedNodeLogLine(t *testing.T, line, wantErr string) {
+	t.Helper()
+
+	var entry model.LogEntry
+	require.NoError(t, json.Unmarshal([]byte(line), &entry))
+	assert.Equal(t, "error", entry.Level)
+	// The webapp's parseTimestamp needs exactly this shape to build an ISO-8601 string.
+	assert.Regexp(t, `^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} (Z|[+-]\d{2}:\d{2})$`, entry.Timestamp)
+	ts, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
+	require.NoError(t, err)
+	assert.WithinDuration(t, time.Now(), ts, time.Minute)
+
+	var fields map[string]any
+	require.NoError(t, json.Unmarshal([]byte(line), &fields))
+	assert.Equal(t, "Failed to fetch logs from node", fields["msg"])
+	assert.Contains(t, fields["error"], wantErr)
+	assert.Equal(t, true, fields["failed_node"])
+}
+
+func TestGetLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	nodeSeparator := func(name string) []string {
+		rule := strings.Repeat("-", 107)
+		return []string{rule, rule, name, rule, rule}
+	}
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &queryLogsCluster{
+			info: &model.ClusterInfo{Hostname: "node-1"},
+			remoteLogs: map[string]einterfaces.NodeLogs{
+				"node-3": {Lines: []string{`{"msg":"from node-3"}`}},
+				"node-2": {Lines: []string{`{"msg":"from node-2"}`}},
+			},
+		}
+		th := SetupWithClusterMock(t, cluster)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ClusterSettings.Enable = true
+			*cfg.LogSettings.EnableFile = false
+		})
+
+		getLogs := func(t *testing.T) []string {
+			t.Helper()
+			cluster.queryLogsCalls = 0
+			lines, appErr := th.App.GetLogs(th.Context, 0, 10)
+			require.Nil(t, appErr)
+			return lines
+		}
+
+		localLines, appErr := th.App.GetLogsSkipSend(th.Context, 0, 10, &model.LogFilter{})
+		require.Nil(t, appErr)
+
+		t.Run("lists each remote node under a separator, sorted by name", func(t *testing.T) {
+			lines := getLogs(t)
+			assert.Equal(t, slices.Concat(
+				nodeSeparator("node-1"), localLines,
+				[]string{"", ""}, nodeSeparator("node-2"), []string{`{"msg":"from node-2"}`},
+				[]string{"", ""}, nodeSeparator("node-3"), []string{`{"msg":"from node-3"}`},
+			), lines)
+			assert.Equal(t, 1, cluster.queryLogsCalls)
+			assert.Equal(t, &model.LogFilter{}, cluster.lastFilter)
+		})
+
+		t.Run("failed node is reported as an error line under its separator", func(t *testing.T) {
+			cluster.remoteLogs["node-2"] = einterfaces.NodeLogs{Err: model.NewAppError("GetLogs", "ent.cluster.timeout.error", nil, "simulated failure", http.StatusInternalServerError)}
+			t.Cleanup(func() { cluster.remoteLogs["node-2"] = einterfaces.NodeLogs{Lines: []string{`{"msg":"from node-2"}`}} })
+
+			lines := getLogs(t)
+			before := slices.Concat(nodeSeparator("node-1"), localLines, []string{"", ""}, nodeSeparator("node-2"))
+			after := slices.Concat([]string{"", ""}, nodeSeparator("node-3"), []string{`{"msg":"from node-3"}`})
+			require.Len(t, lines, len(before)+1+len(after))
+			assert.Equal(t, before, lines[:len(before)])
+			assertFailedNodeLogLine(t, lines[len(before)], "simulated failure")
+			assert.Equal(t, after, lines[len(before)+1:])
+		})
+
+		t.Run("missing cluster info falls back to default", func(t *testing.T) {
+			cluster.info = nil
+			t.Cleanup(func() { cluster.info = &model.ClusterInfo{Hostname: "node-1"} })
+
+			lines := getLogs(t)
+			assert.Equal(t, slices.Concat(nodeSeparator("default"), localLines), lines[:len(nodeSeparator("default"))+len(localLines)])
+		})
+
+		t.Run("cluster query error fails the request", func(t *testing.T) {
+			cluster.queryLogsErr = model.NewAppError("QueryLogs", "test.cluster_error", nil, "", http.StatusInternalServerError)
+			t.Cleanup(func() { cluster.queryLogsErr = nil })
+
+			lines, appErr := th.App.GetLogs(th.Context, 0, 10)
+			require.NotNil(t, appErr)
+			assert.Equal(t, "test.cluster_error", appErr.Id)
+			assert.Nil(t, lines)
+		})
+
+		t.Run("unlicensed cluster returns only local logs", func(t *testing.T) {
+			th.App.Srv().SetLicense(nil)
+			t.Cleanup(func() { th.App.Srv().SetLicense(model.NewTestLicense()) })
+
+			assert.Equal(t, localLines, getLogs(t))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
+
+		t.Run("clustering disabled returns only local logs", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
+			t.Cleanup(func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = true })
+			})
+
+			assert.Equal(t, localLines, getLogs(t))
+			assert.Equal(t, 0, cluster.queryLogsCalls)
+		})
 	})
 }

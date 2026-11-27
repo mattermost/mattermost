@@ -24,7 +24,7 @@ func (api *API) InitJob() {
 	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods(http.MethodPost)
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods(http.MethodGet)
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequesterGzip(downloadJob)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods(http.MethodPost)
 	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updateJobStatus)).Methods(http.MethodPatch)
@@ -154,7 +154,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(c.AppContext, *c.AppContext.Session(), &job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -219,13 +219,8 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		validJobTypes = append(validJobTypes, jobType)
 	} else {
-		for _, jType := range model.AllJobTypes {
-			hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType)
-			if permissionRequired == nil {
-				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("job_type", jType))
-				continue
-			}
-			if hasPermission {
+		for _, jType := range model.CreatableJobTypes {
+			if hasPermission, _ := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType); hasPermission {
 				validJobTypes = append(validJobTypes, jType)
 			}
 		}
@@ -393,7 +388,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("job")
 
 	// if permission to create, permission to cancel, same permission
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(c.AppContext, *c.AppContext.Session(), job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCancelJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -401,6 +396,14 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !hasPermission {
 		c.SetPermissionError(permissionRequired)
+		return
+	}
+
+	// A health check run can't be stopped: its worker doesn't watch for cancellation, so a
+	// cancel_requested run keeps going while no longer counting as active, and another run could
+	// start alongside it.
+	if job.Type == model.JobTypeHealthCheck {
+		c.Err = model.NewAppError("unableToCancelJob", "api.job.cancel.not_supported", nil, "type="+job.Type, http.StatusBadRequest)
 		return
 	}
 

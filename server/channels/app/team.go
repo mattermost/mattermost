@@ -5,11 +5,11 @@ package app
 
 import (
 	"bytes"
-	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -28,79 +28,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
-
-func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
-	maxActiveTeams := *teamLimits.Active
-	teams, appErr := a.GetAllTeams()
-	if appErr != nil {
-		return appErr
-	}
-
-	if teams == nil {
-		return nil
-	}
-	// Sort the list of teams based on their creation date
-	slices.SortFunc(teams, func(a, b *model.Team) int {
-		return cmp.Compare(a.CreateAt, b.CreateAt)
-	})
-
-	var activeTeams []*model.Team
-	var cloudArchivedTeams []*model.Team
-	for _, team := range teams {
-		if team.DeleteAt == 0 {
-			activeTeams = append(activeTeams, team)
-		}
-		if team.DeleteAt > 0 && team.CloudLimitsArchived {
-			cloudArchivedTeams = append(cloudArchivedTeams, team)
-		}
-	}
-
-	if len(activeTeams) > maxActiveTeams {
-		// If there are more active teams than allowed, we must archive them
-		// Remove the first n elements (where n is the allowed number of teams) so they aren't archived
-
-		teamsToArchive := activeTeams[maxActiveTeams:]
-
-		for _, team := range teamsToArchive {
-			cloudLimitsArchived := true
-			// Archive the remainder
-			patch := model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-			_, err := a.PatchTeam(team.Id, &patch)
-			if err != nil {
-				return err
-			}
-			err = a.SoftDeleteTeam(team.Id)
-			if err != nil {
-				return err
-			}
-		}
-	} else if len(activeTeams) < maxActiveTeams && len(cloudArchivedTeams) > 0 {
-		// If the number of activeTeams is less than the allowed limit, and there are some cloudArchivedTeams, we can restore these cloudArchivedTeams
-		activeTeamsBeforeLimit := maxActiveTeams - len(activeTeams)
-		teamsToRestore := cloudArchivedTeams
-		// If the number of active teams remaining before the limit is hit is fewer than the number of cloudArchivedTeams, trim the list (still according to CreateAt)
-		// Otherwise, we can restore all of the cloudArchivedTeams without hitting the limit, so don't filter the list
-		if activeTeamsBeforeLimit < len(cloudArchivedTeams) {
-			teamsToRestore = cloudArchivedTeams[:(activeTeamsBeforeLimit)]
-		}
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		for _, team := range teamsToRestore {
-			err := a.RestoreTeam(team.Id)
-			if err != nil {
-				return err
-			}
-
-			_, err = a.PatchTeam(team.Id, patch)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(rctx, team)
@@ -186,8 +113,8 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return updatedTeam, nil
@@ -203,16 +130,13 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	oldTeam, nErr := a.Srv().Store().Team().Update(oldTeam)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return nil, model.NewAppError("UpdateTeamScheme", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("UpdateTeamScheme", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("UpdateTeamScheme", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	nErr = a.ClearTeamMembersCache(team.Id)
@@ -222,8 +146,8 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	a.Srv().Store().Channel().ClearMembersForUserCache()
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return oldTeam, nil
@@ -245,20 +169,17 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 
 	oldTeam, nErr := a.Srv().Store().Team().Update(oldTeam)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("UpdateTeamPrivacy", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("UpdateTeamPrivacy", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return appErr
+		}
+		return model.NewAppError("UpdateTeamPrivacy", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -298,8 +219,8 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return team, nil
@@ -315,26 +236,23 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 
 	updatedTeam, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return updatedTeam, nil
 }
 
-func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) *model.AppError {
+func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) error {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
@@ -615,7 +533,7 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 
 	if token.IsExpired() {
 		if err := a.DeleteToken(token); err != nil {
-			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_type", token.Type), mlog.Err(err))
 		}
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -972,13 +890,10 @@ func (a *App) TeamAccessControlled(rctx request.CTX, teamID string) (bool, *mode
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store().Team().GetByName(name)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTeamByName", "app.team.get_by_name.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTeamByName", "app.team.get_by_name.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTeamByName", "app.team.get_by_name.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	return team, nil
@@ -987,13 +902,10 @@ func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store().Team().GetByInviteId(inviteId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return team, nil
@@ -1094,13 +1006,10 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTeamMember", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTeamMember", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTeamMember", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return teamMember, nil
@@ -1212,10 +1121,15 @@ func (a *App) AddTeamMemberByInviteId(rctx request.CTX, inviteId, userID string)
 	return teamMember, nil
 }
 
-func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamUnread(rctx request.CTX, teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store().Team().GetChannelUnreadsForTeam(teamID, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	denied, deniedErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if deniedErr != nil {
+		return nil, model.AsAppError(deniedErr)
 	}
 
 	teamUnread := &model.TeamUnread{
@@ -1226,6 +1140,10 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		TeamId:           teamID,
 	}
 	for _, cu := range channelUnreads {
+		if _, ok := denied[cu.ChannelId]; ok {
+			continue
+		}
+
 		teamUnread.MentionCount += cu.MentionCount
 		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
@@ -1355,8 +1273,7 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	}); nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			channelList = model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1401,8 +1318,8 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
-				return appErr
+			if err := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); err != nil {
+				return model.AsAppError(err)
 			}
 			if policyDriven {
 				a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
@@ -1419,8 +1336,8 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	}
 	for _, channel := range spaceChannels {
 		a.invalidateCacheForChannelMembers(channel.Id)
-		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
-			return appErr
+		if err := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); err != nil {
+			return model.AsAppError(err)
 		}
 		if policyDriven {
 			a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
@@ -1731,7 +1648,7 @@ func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite 
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
 					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+						if !a.Config().EmailSettings.IsSMTPConfigured() {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
@@ -1872,7 +1789,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
 					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+						if !a.Config().EmailSettings.IsSMTPConfigured() {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
@@ -2003,16 +1920,25 @@ func (a *App) FindTeamByName(name string) bool {
 	return true
 }
 
-func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamsUnreadForUser(rctx request.CTX, excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
 	data, err := a.Srv().Store().Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	denied, deniedErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if deniedErr != nil {
+		return nil, model.AsAppError(deniedErr)
+	}
+
 	members := []*model.TeamUnread{}
 	membersMap := make(map[string]*model.TeamUnread)
 
+	// A denied channel still lists its team, with nothing counted for it.
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+		if _, ok := denied[cu.ChannelId]; ok {
+			return tu
+		}
 		tu.MentionCount += cu.MentionCount
 		tu.MentionCountRoot += cu.MentionCountRoot
 
@@ -2047,7 +1973,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled(), slices.Collect(maps.Keys(denied)))
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -2078,21 +2004,17 @@ func (a *App) PermanentDeleteTeamId(rctx request.CTX, teamID string) *model.AppE
 func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	if _, err := a.Srv().Store().Team().Update(team); err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("PermanentDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
+			return appErr
+		}
+		return model.NewAppError("PermanentDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if channels, err := a.Srv().Store().Channel().GetTeamChannels(team.Id); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
@@ -2129,8 +2051,8 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 
 	a.cleanupTeamAccessControlPolicy(rctx, team, "delete")
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2149,22 +2071,19 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	team, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("SoftDeleteTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("SoftDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return appErr
+		}
+		return model.NewAppError("SoftDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team, "archive")
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2238,20 +2157,17 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 	team.DeleteAt = 0
 	team, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("RestoreTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("RestoreTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return appErr
+		}
+		return model.NewAppError("RestoreTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2305,7 +2221,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 
 		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
-				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_type", token.Type), mlog.Err(err))
 			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -2443,8 +2359,8 @@ func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.Re
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2462,8 +2378,8 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 	team.LastTeamIconUpdate = 0
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil

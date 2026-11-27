@@ -29,12 +29,10 @@ const (
 	JobTypeResendInvitationEmail         = "resend_invitation_email"
 	JobTypeExtractContent                = "extract_content"
 	JobTypeLastAccessiblePost            = "last_accessible_post"
-	JobTypeLastAccessibleFile            = "last_accessible_file"
 	JobTypeUpgradeNotifyAdmin            = "upgrade_notify_admin"
 	JobTypeTrialNotifyAdmin              = "trial_notify_admin"
 	JobTypePostPersistentNotifications   = "post_persistent_notifications"
 	JobTypeInstallPluginNotifyAdmin      = "install_plugin_notify_admin"
-	JobTypeHostedPurchaseScreening       = "hosted_purchase_screening"
 	JobTypeS3PathMigration               = "s3_path_migration"
 	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
@@ -52,6 +50,7 @@ const (
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
 	JobTypeNotifyExpiringAccessTokens    = "notify_expiring_access_tokens"
+	JobTypeHealthCheck                   = "health_check"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -62,9 +61,17 @@ const (
 	JobStatusWarning         = "warning"
 )
 
+// Deprecated: The hosted purchase screening job has been removed.
+const JobTypeHostedPurchaseScreening = "hosted_purchase_screening"
+
+// Deprecated: the Cloud file storage limit job no longer exists.
+const JobTypeLastAccessibleFile = "last_accessible_file"
+
+// AllJobTypes contains every job type that is valid in the jobs API.
 var AllJobTypes = [...]string{
 	JobTypeDataRetention,
 	JobTypeMessageExport,
+	JobTypeCLIMessageExport,
 	JobTypeElasticsearchPostIndexing,
 	JobTypeElasticsearchPostAggregation,
 	JobTypeLdapSync,
@@ -78,15 +85,55 @@ var AllJobTypes = [...]string{
 	JobTypeExportProcess,
 	JobTypeExportDelete,
 	JobTypeCloud,
+	JobTypeResendInvitationEmail,
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
-	JobTypeLastAccessibleFile,
+	JobTypeUpgradeNotifyAdmin,
+	JobTypeTrialNotifyAdmin,
+	JobTypePostPersistentNotifications,
+	JobTypeInstallPluginNotifyAdmin,
+	JobTypeS3PathMigration,
 	JobTypeCleanupDesktopTokens,
+	JobTypeDeleteEmptyDraftsMigration,
+	JobTypeRefreshMaterializedViews,
+	JobTypeDeleteOrphanDraftsMigration,
+	JobTypeExportUsersToCSV,
+	JobTypeDeleteDmsPreferencesMigration,
+	JobTypeMobileSessionMetadata,
+	JobTypeAccessControlSync,
+	JobTypeAccessControlTeamSync,
+	JobTypePushProxyAuth,
+	JobTypeRecap,
+	JobTypeScheduledRecap,
+	JobTypeDeleteExpiredPosts,
+	JobTypeAutoTranslationRecovery,
 	JobTypeCleanupExpiredAccessTokens,
 	JobTypeNotifyExpiringAccessTokens,
-	JobTypeRefreshMaterializedViews,
-	JobTypeMobileSessionMetadata,
-	JobTypeScheduledRecap,
+	JobTypeHealthCheck,
+}
+
+// CreatableJobTypes contains the job types that can be created through the jobs API. Jobs of
+// other types are run by the server itself and aren't included when listing jobs without a type.
+var CreatableJobTypes = [...]string{
+	JobTypeDataRetention,
+	JobTypeMessageExport,
+	JobTypeElasticsearchPostIndexing,
+	JobTypeElasticsearchPostAggregation,
+	JobTypeLdapSync,
+	JobTypeAccessControlSync,
+	JobTypeAccessControlTeamSync,
+	JobTypeMigrations,
+	JobTypePlugins,
+	JobTypeProductNotices,
+	JobTypeExpiryNotify,
+	JobTypeActiveUsers,
+	JobTypeImportProcess,
+	JobTypeImportDelete,
+	JobTypeExportProcess,
+	JobTypeExportDelete,
+	JobTypeCloud,
+	JobTypeExtractContent,
+	JobTypeHealthCheck,
 }
 
 type Job struct {

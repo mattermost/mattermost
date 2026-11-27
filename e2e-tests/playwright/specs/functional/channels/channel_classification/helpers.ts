@@ -3,6 +3,8 @@
 
 import type {Client4} from '@mattermost/client';
 
+import {backfillAndRequireChannelAttribute} from '../channel_attributes/helpers';
+
 // Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
 // (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'access_control';
@@ -32,7 +34,10 @@ export const TEST_LEVELS = [
 export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
     // Delete channel linked fields first
     try {
-        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, TARGET_TYPE, '');
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {
+            targetType: TARGET_TYPE,
+            targetId: '',
+        });
         for (const f of channelFields.filter((f) => f.name === CHANNEL_LINKED_FIELD_NAME && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, f.id);
         }
@@ -43,7 +48,10 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
     // Delete system linked fields
     for (const objectType of ['system', 'user'] as const) {
         try {
-            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, '');
+            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {
+                targetType: TARGET_TYPE,
+                targetId: '',
+            });
             for (const f of linkedFields.filter(
                 (f) => f.name === 'classification' && f.delete_at === 0 && f.linked_field_id,
             )) {
@@ -56,7 +64,9 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
 
     // Delete template fields
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, {
+            targetType: TARGET_TYPE,
+        });
         for (const f of fields.filter((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, f.id);
         }
@@ -81,10 +91,15 @@ export type SetupResult = {
 /**
  * Creates the full classification setup: template field + channel linked field.
  * Returns the created fields and the resolved levels (with server-assigned IDs).
+ *
+ * When `required` is requested, the helper follows the production rollout:
+ * create optional, backfill active local channels, then mark the channel field
+ * required.
  */
 export async function setupClassificationWithChannelField(
     adminClient: Client4,
     levels: Array<{name: string; color: string; rank: number}> = TEST_LEVELS,
+    required = false,
 ): Promise<SetupResult> {
     await deleteClassificationFieldsIfExist(adminClient);
 
@@ -119,5 +134,9 @@ export async function setupClassificationWithChannelField(
     const options = (templateField.attrs?.options ?? []) as ClassificationLevel[];
     const resolvedLevels = options.sort((a, b) => a.rank - b.rank);
 
-    return {templateFieldId: templateField.id, channelFieldId: channelField.id, levels: resolvedLevels};
+    const finalChannelField = required
+        ? await backfillAndRequireChannelAttribute(adminClient, channelField, resolvedLevels[0].id)
+        : channelField;
+
+    return {templateFieldId: templateField.id, channelFieldId: finalChannelField.id, levels: resolvedLevels};
 }

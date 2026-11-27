@@ -804,6 +804,20 @@ func (api *apiTimerLayer) GetPostThread(postId string) (*model.PostList, *model.
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetThreadFollowers(threadID)
+	api.recordTime(startTime, "GetThreadFollowers", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetThreadFollowing(userID, threadID, following)
+	api.recordTime(startTime, "SetThreadFollowing", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetPost(postId string) (*model.Post, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPost(postId)
@@ -850,6 +864,13 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.UpdatePost(post)
 	api.recordTime(startTime, "UpdatePost", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePostWithOptions(post, options)
+	api.recordTime(startTime, "UpdatePostWithOptions", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
@@ -1077,6 +1098,13 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.KVListWithOptions(page, perPage, options)
+	api.recordTime(startTime, "KVListWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	startTime := timePkg.Now()
 	api.apiImpl.PublishWebSocketEvent(event, payload, broadcast)
@@ -1289,6 +1317,20 @@ func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetClusterNodeID() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetClusterNodeID()
+	api.recordTime(startTime, "GetClusterNodeID", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetClusterNodes()
+	api.recordTime(startTime, "GetClusterNodes", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
@@ -1399,6 +1441,13 @@ func (api *apiTimerLayer) UpdateSharedChannelCursor(channelID, remoteID string, 
 	_returnsA := api.apiImpl.UpdateSharedChannelCursor(channelID, remoteID, cusror)
 	api.recordTime(startTime, "UpdateSharedChannelCursor", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSharedChannelCursor(channelID, remoteID)
+	api.recordTime(startTime, "GetSharedChannelCursor", _returnsB == nil)
+	return _returnsA, _returnsB
 }
 
 func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {
@@ -1812,6 +1861,13 @@ func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControlBatch(userID, resourceType, action, resourceIDs)
+	api.recordTime(startTime, "EvaluateAccessControlBatch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)
@@ -1840,6 +1896,13 @@ func (api *apiTimerLayer) CheckAccessControlExpression(actingUserID, resourceTyp
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "CheckAccessControlExpressionForSearch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID, limit)
@@ -1859,4 +1922,39 @@ func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, 
 	_returnsA, _returnsB := api.apiImpl.GetAccessControlVisualAST(actingUserID, resourceType, expression)
 	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityType(t)
+	api.recordTime(startTime, "RegisterEntityType", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityMatcher(m)
+	api.recordTime(startTime, "RegisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterEntityMatcher(name string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterEntityMatcher(name)
+	api.recordTime(startTime, "UnregisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityProvider(p)
+	api.recordTime(startTime, "RegisterEntityProvider", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityTerms(typeName, terms)
+	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
+	return _returnsA
 }

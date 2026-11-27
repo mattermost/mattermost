@@ -761,6 +761,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetTypesByIDs(rctx, ids)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetTypesByIDs", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
 	start := time.Now()
 
@@ -1534,6 +1550,22 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 	return err
 }
 
+func (s *TimerLayerChannelStore) CountChannelAdminAssignmentsForChannelsMissingPropertyValue(groupID string, fieldID string) (int64, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.ChannelStore.CountChannelAdminAssignmentsForChannelsMissingPropertyValue(groupID, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountChannelAdminAssignmentsForChannelsMissingPropertyValue", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
 	start := time.Now()
 
@@ -1676,6 +1708,22 @@ func (s *TimerLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences 
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteSidebarChannelsByPreferences", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerChannelStore) ExistsChannelMissingPropertyValue(groupID string, fieldID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.ExistsChannelMissingPropertyValue(groupID, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.ExistsChannelMissingPropertyValue", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
@@ -1898,6 +1946,54 @@ func (s *TimerLayerChannelStore) GetByNamesIncludeDeleted(teamID string, names [
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetByNamesIncludeDeleted", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelAdminsForChannelsMissingPropertyValue(groupID string, fieldID string, limit int, offset int) ([]*model.ChannelAttributeAdminAssignment, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelAdminsForChannelsMissingPropertyValue(groupID, fieldID, limit, offset)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelAdminsForChannelsMissingPropertyValue", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelAdminsInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelAdminsInfoByChannelIds(channelIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelAdminsInfoByChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (map[string]store.ChannelMemberRoles, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelMemberRoles(rctx, userID, channelIDs, allowFromCache)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelMemberRoles", success, elapsed)
 	}
 	return result, err
 }
@@ -4452,6 +4548,22 @@ func (s *TimerLayerDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX
 	return err
 }
 
+func (s *TimerLayerDesktopTokensStore) ConsumeToken(token string, minCreateAt int64) (*string, error) {
+	start := time.Now()
+
+	result, err := s.DesktopTokensStore.ConsumeToken(token, minCreateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DesktopTokensStore.ConsumeToken", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerDesktopTokensStore) Delete(token string) error {
 	start := time.Now()
 
@@ -5007,22 +5119,6 @@ func (s *TimerLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDe
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetStorageUsage", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
-	start := time.Now()
-
-	result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetUptoNSizeFileTime", success, elapsed)
 	}
 	return result, err
 }
@@ -7202,6 +7298,22 @@ func (s *TimerLayerPluginStore) List(pluginID string, page int, perPage int) ([]
 	return result, err
 }
 
+func (s *TimerLayerPluginStore) ListWithOptions(pluginID string, options model.PluginKVListOptions, page int, perPage int) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PluginStore.ListWithOptions(pluginID, options, page, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.ListWithOptions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	start := time.Now()
 
@@ -9056,6 +9168,38 @@ func (s *TimerLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyFiel
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetFieldsByGrant(rctx request.CTX, ownerType string, ownerID string, action string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetFieldsByGrant(rctx, ownerType, ownerID, action)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetFieldsByGrant", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetFieldsMissingPermissions(rctx, cursor, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetFieldsMissingPermissions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
@@ -9068,6 +9212,38 @@ func (s *TimerLayerPropertyFieldStore) GetForGroup(rctx request.CTX, groupID str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetForGroup", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetForGroupVersion(rctx request.CTX, groupID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetForGroupVersion(rctx, groupID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetForGroupVersion", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetGrantsForField(rctx, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetGrantsForField", success, elapsed)
 	}
 	return result, err
 }
@@ -9100,6 +9276,38 @@ func (s *TimerLayerPropertyFieldStore) GetLinkedFields(fieldIDs []string, exclud
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetLinkedFields", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes(groupID, fieldIDs, objectTypes)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetLiveLinkedFieldsByObjectTypes", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) GetLiveUserFieldsByNames(groupID string, names []string) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetLiveUserFieldsByNames(groupID, names)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetLiveUserFieldsByNames", success, elapsed)
 	}
 	return result, err
 }
@@ -9216,6 +9424,22 @@ func (s *TimerLayerPropertyFieldStore) GetOptionParentEdges(fieldID string, chil
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetOptionRanks(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionRanks", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
 	start := time.Now()
 
@@ -9244,6 +9468,22 @@ func (s *TimerLayerPropertyFieldStore) GetOptionsByName(field *model.PropertyFie
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetOptionsByName", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) HasGrantForIdentity(rctx request.CTX, ownerType string, ownerID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.HasGrantForIdentity(rctx, ownerType, ownerID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.HasGrantForIdentity", success, elapsed)
 	}
 	return result, err
 }
@@ -9280,6 +9520,22 @@ func (s *TimerLayerPropertyFieldStore) PermanentDeleteOwnedOptions(groupID strin
 	return err
 }
 
+func (s *TimerLayerPropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.SearchGlobalAttributeListing(rctx, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.SearchGlobalAttributeListing", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	start := time.Now()
 
@@ -9310,6 +9566,22 @@ func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.Update", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID string, fieldID string, maskByFieldID string) error {
+	start := time.Now()
+
+	err := s.PropertyFieldStore.ValidateMaskByFieldID(rctx, groupID, fieldID, maskByFieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.ValidateMaskByFieldID", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
@@ -9344,22 +9616,6 @@ func (s *TimerLayerPropertyGroupStore) GetByID(id string) (*model.PropertyGroup,
 	return result, err
 }
 
-func (s *TimerLayerPropertyGroupStore) IncrementVersion(name string) error {
-	start := time.Now()
-
-	err := s.PropertyGroupStore.IncrementVersion(name)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.IncrementVersion", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 	start := time.Now()
 
@@ -9374,6 +9630,22 @@ func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*mo
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.Register", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPropertyGroupStore) SetVersion(name string, version int) error {
+	start := time.Now()
+
+	err := s.PropertyGroupStore.SetVersion(name, version)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.SetVersion", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -10269,6 +10541,22 @@ func (s *TimerLayerRemoteClusterStore) GetBySiteURL(siteURL string) (*model.Remo
 		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetBySiteURL", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerRemoteClusterStore) PermanentDelete(remoteClusterID string, name string) error {
+	start := time.Now()
+
+	err := s.RemoteClusterStore.PermanentDelete(remoteClusterID, name)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.PermanentDelete", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
@@ -11839,6 +12127,38 @@ func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetRemoteByIdsFromMaster(channelID string, remoteID string) (*model.SharedChannelRemote, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelStore.GetRemoteByIdsFromMaster(channelID, remoteID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemoteByIdsFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetRemoteChannelIds(channelIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelStore.GetRemoteChannelIds(channelIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemoteChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error) {
 	start := time.Now()
 
@@ -12111,6 +12431,22 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 	return err
 }
 
+func (s *TimerLayerSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelStore.UpdateRemoteCursorIfUnchanged(id, expectedUpdateAt, next)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteCursorIfUnchanged", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime int64) error {
 	start := time.Now()
 
@@ -12303,6 +12639,22 @@ func (s *TimerLayerStatusStore) UpdateLastActivityAt(userID string, lastActivity
 	return err
 }
 
+func (s *TimerLayerSystemStore) DeleteIfValueEquals(name string, expectedValue string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.SystemStore.DeleteIfValueEquals(name, expectedValue)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.DeleteIfValueEquals", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSystemStore) Get() (model.StringMap, error) {
 	start := time.Now()
 
@@ -12429,6 +12781,22 @@ func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.SaveOrUpdate", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerSystemStore) TryClaimIfOlderThan(name string, value string, minAgeMillis int64) (bool, error) {
+	start := time.Now()
+
+	result, err := s.SystemStore.TryClaimIfOlderThan(name, value, minAgeMillis)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.TryClaimIfOlderThan", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerSystemStore) Update(system *model.System) error {
@@ -13500,10 +13868,10 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userID string, teamID stri
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeChannelIDs []string) (map[string]*model.TeamUnread, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
+	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount, excludeChannelIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

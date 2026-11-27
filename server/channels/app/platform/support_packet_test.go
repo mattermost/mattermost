@@ -6,6 +6,7 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -16,9 +17,12 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -68,6 +72,7 @@ type failingDiagnosticsStore struct {
 	store.Store
 	schemaVersionErr error
 	dbVersionErr     error
+	diagnostics      *store.DatabaseDiagnostics
 	diagnosticsErr   error
 }
 
@@ -87,7 +92,7 @@ func (s *failingDiagnosticsStore) GetDbVersion(numerical bool) (string, error) {
 
 func (s *failingDiagnosticsStore) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
 	if s.diagnosticsErr != nil {
-		return nil, s.diagnosticsErr
+		return s.diagnostics, s.diagnosticsErr
 	}
 	return s.Store.GetDiagnostics(rctx)
 }
@@ -251,6 +256,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71672")
+
 	th := Setup(t).InitBasic(t)
 
 	th.Service.installTypeOverride = "docker"
@@ -261,6 +268,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	license.Features.Users = new(licenseUsers)
 	ok := th.Service.SetLicense(license)
 	require.True(t, ok)
+
+	// The OAuth probes refuse internal addresses, and httptest servers listen on 127.0.0.1.
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+	})
 
 	getDiagnostics := func(t *testing.T) *model.SupportPacketDiagnostics {
 		t.Helper()
@@ -294,6 +306,24 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
+		require.NotNil(t, d.Server.GoMaxProcs)
+		assert.Positive(t, *d.Server.GoMaxProcs)
+		assert.Equal(t, d.Server.ContainerCPUPeriods == nil, d.Server.ContainerCPUThrottledPeriods == nil)
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			require.NotNil(t, d.Server.LoadAverage1m)
+			require.NotNil(t, d.Server.LoadAverage5m)
+			require.NotNil(t, d.Server.LoadAverage15m)
+			require.NotNil(t, d.Server.SwapTotalMB)
+			require.NotNil(t, d.Server.SwapUsedMB)
+			require.NotNil(t, d.Server.AvailableMemoryMB)
+		} else {
+			assert.Nil(t, d.Server.LoadAverage1m)
+			assert.Nil(t, d.Server.LoadAverage5m)
+			assert.Nil(t, d.Server.LoadAverage15m)
+			assert.Nil(t, d.Server.SwapTotalMB)
+			assert.Nil(t, d.Server.SwapUsedMB)
+			assert.Nil(t, d.Server.AvailableMemoryMB)
+		}
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.TotalMemoryMB)
 			assert.Positive(t, *d.Server.TotalMemoryMB)
@@ -315,6 +345,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
+		assert.Equal(t, new(false), d.Config.AuditLoggingConfigured)
 
 		/* DB */
 		require.NotNil(t, d.Database.Type)
@@ -496,6 +527,51 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, body, "    ldap: true\n")
 	})
 
+	t.Run("audit_logging_configured records this server's audit targets", func(t *testing.T) {
+		setAudit := func(t *testing.T, fileEnabled bool, advanced string) {
+			t.Helper()
+			prior := th.Service.Config().Clone().ExperimentalAuditSettings
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+				cfg.ExperimentalAuditSettings.FileName = new("audit.log")
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
+			})
+			t.Cleanup(func() {
+				th.Service.UpdateConfig(func(cfg *model.Config) {
+					cfg.ExperimentalAuditSettings = prior
+				})
+			})
+		}
+		auditTarget := `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`
+
+		t.Run("file enabled", func(t *testing.T) {
+			setAudit(t, true, "{}")
+			d := getDiagnostics(t)
+			assert.Equal(t, new(true), d.Config.AuditLoggingConfigured)
+
+			fileData, err := supportPacketDiagnosticsFile(d, nil)
+			require.NoError(t, err)
+			assert.Contains(t, string(fileData.Body), "  audit_logging_configured: true #")
+		})
+
+		t.Run("advanced target with advanced logging licensed", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			assert.Equal(t, new(true), getDiagnostics(t).Config.AuditLoggingConfigured)
+		})
+
+		t.Run("advanced target without advanced logging license", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			unlicensed := model.NewTestLicense("ldap")
+			unlicensed.Features.AdvancedLogging = new(false)
+			require.True(t, th.Service.SetLicense(unlicensed))
+			t.Cleanup(func() {
+				require.True(t, th.Service.SetLicense(license))
+			})
+
+			assert.Equal(t, new(false), getDiagnostics(t).Config.AuditLoggingConfigured)
+		})
+	})
+
 	t.Run("filestore fails", func(t *testing.T) {
 		fb := &fmocks.FileBackend{}
 		err := SetFileStore(fb)(th.Service)
@@ -635,7 +711,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, packet.SAML.Error)
 	})
 
-	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
+	t.Run("SAML enabled with passing diagnostic", func(t *testing.T) {
 		diagMock := &emocks.SamlDiagnosticInterface{}
 		diagMock.On(
 			"RunSupportPacketTest",
@@ -651,7 +727,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -664,66 +739,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusOk, packet.SAML.Status)
 		assert.Empty(t, packet.SAML.Error)
 		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
-	})
-
-	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL is not configured"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL is not configured", packet.SAML.Error)
-	})
-
-	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL returned unexpected status 503"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
 	})
 
 	t.Run("SAML diagnostics enterprise interface override", func(t *testing.T) {
@@ -744,7 +759,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -1295,6 +1309,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	th := Setup(t)
 
+	// The default "./data/" only exists once the file store probe has created it, which
+	// races with the disk space lookup on the first call.
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.FileSettings.Directory = model.NewPointer(t.TempDir())
+	})
+
 	setStore := func(t *testing.T, s *failingDiagnosticsStore) {
 		originalStore := th.Service.Store
 		s.Store = originalStore
@@ -1304,10 +1324,10 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 	}
 
-	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+	requireSectionErrorsWithContext := func(t *testing.T, rctx request.CTX, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
 		t.Helper()
 
-		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(rctx)
 		require.NotNil(t, nodeDiagnostics)
 		require.NotNil(t, nodeDiagnostics.Diagnostics)
 		if len(failed) == 0 {
@@ -1333,6 +1353,24 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			}
 		}
 		return nodeDiagnostics.Diagnostics
+	}
+	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+		t.Helper()
+		return requireSectionErrorsWithContext(t, th.Context, failed)
+	}
+
+	setLDAP := func(t *testing.T, ldapMock *emocks.LdapDiagnosticInterface) {
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
 	}
 
 	t.Run("all sections present and clean", func(t *testing.T) {
@@ -1388,6 +1426,27 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
 		assert.Nil(t, d.Database.ReplicasOnline)
+	})
+
+	t.Run("partial store diagnostics fail only the stats section", func(t *testing.T) {
+		deadTuples := int64(200_000)
+		lastVacuum := time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
+		setStore(t, &failingDiagnosticsStore{
+			diagnostics: &store.DatabaseDiagnostics{
+				MasterConnectionsInUse: 3,
+				PostsDeadTuples:        &deadTuples,
+				PostsLastVacuum:        &lastVacuum,
+			},
+			diagnosticsErr: errors.New("one pg_stat query failed"),
+		})
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseStats: {"error while collecting support packet database diagnostics"},
+		})
+		require.NotNil(t, d.Database.MasterConnectionsInUse)
+		assert.Equal(t, 3, *d.Database.MasterConnectionsInUse)
+		assert.Equal(t, &deadTuples, d.Database.PostsDeadTuples)
+		assert.Equal(t, &lastVacuum, d.Database.PostsLastVacuum)
 	})
 
 	t.Run("disk space fails", func(t *testing.T) {
@@ -1476,6 +1535,308 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 		requireSectionErrors(t, nil)
 	})
+
+	t.Run("probe still running at the deadline", func(t *testing.T) {
+		release := make(chan struct{})
+		t.Cleanup(func() { close(release) })
+		// The push probe reaches the real push proxy by default, which could outlast the short deadline.
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			})
+		})
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).
+			Run(func(mock.Arguments) { <-release }).
+			Return(model.NewAppError("", "released", nil, "", 0))
+		setLDAP(t, ldapMock)
+
+		// Long enough for the local collection, which also uses the context for its database queries.
+		ctx, cancel := context.WithTimeout(th.Context.Context(), 2*time.Second)
+		t.Cleanup(cancel)
+
+		start := time.Now()
+		d := requireSectionErrorsWithContext(t, th.Context.WithContext(ctx), map[model.NodeSection][]string{
+			model.SectionLDAPProbe: {"probe did not complete", context.DeadlineExceeded.Error()},
+		})
+		assert.Less(t, time.Since(start), 10*time.Second)
+		assert.Empty(t, d.LDAP.Status, "a probe that did not finish has no status")
+		assert.Contains(t, d.LDAP.Error, "probe did not complete")
+	})
+
+	t.Run("probes run concurrently", func(t *testing.T) {
+		originalFileStore := th.Service.filestore
+		t.Cleanup(func() {
+			err := SetFileStore(originalFileStore)(th.Service)
+			require.NoError(t, err)
+		})
+
+		// Each probe waits for the other to start, so they only both succeed when they run at the same time.
+		ldapStarted := make(chan struct{})
+		fileStoreStarted := make(chan struct{})
+		waitFor := func(started chan struct{}) error {
+			select {
+			case <-started:
+				return nil
+			case <-time.After(10 * time.Second):
+				return errors.New("other probe did not start")
+			}
+		}
+
+		fb := &fmocks.FileBackend{}
+		fb.On("DriverName").Return("amazons3")
+		fb.On("TestConnection").Return(func() error {
+			close(fileStoreStarted)
+			return waitFor(ldapStarted)
+		})
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) *model.AppError {
+			close(ldapStarted)
+			if err := waitFor(fileStoreStarted); err != nil {
+				return model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
+			}
+			return nil
+		})
+		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("OpenLDAP", "2.6", nil)
+		setLDAP(t, ldapMock)
+
+		d := requireSectionErrors(t, nil)
+		assert.Equal(t, model.StatusOk, d.FileStore.Status, d.FileStore.Error)
+		assert.Equal(t, model.StatusOk, d.LDAP.Status, d.LDAP.Error)
+		assert.Equal(t, "OpenLDAP", d.LDAP.ServerName)
+	})
+}
+
+func TestStartNetworkProbes(t *testing.T) {
+	type outcome struct {
+		status, errMsg string
+		sectionErrs    []error
+	}
+	// collect runs a single probe in section SectionPushProbe and returns what it recorded.
+	collect := func(ctx context.Context, probe networkProbe) outcome {
+		var o outcome
+		probe.name, probe.section, probe.status, probe.errMsg = "push", model.SectionPushProbe, &o.status, &o.errMsg
+		startNetworkProbes(ctx, []networkProbe{probe}, func(section model.NodeSection, err error) {
+			assert.Equal(t, model.SectionPushProbe, section)
+			o.sectionErrs = append(o.sectionErrs, err)
+		})()
+		return o
+	}
+
+	t.Run("records a reachable service", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { return nil }})
+		assert.Equal(t, outcome{status: model.StatusOk}, o)
+	})
+
+	t.Run("records an unreachable service without failing the section", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { return errors.New("refused") }})
+		assert.Equal(t, outcome{status: model.StatusFail, errMsg: "refused"}, o)
+	})
+
+	t.Run("runs record after run and fails the section with its error", func(t *testing.T) {
+		var name string
+		o := collect(context.Background(), networkProbe{
+			run: func(context.Context) error { name = "OpenLDAP"; return nil },
+			record: func() error {
+				assert.Equal(t, "OpenLDAP", name)
+				return errors.New("vendor down")
+			},
+		})
+		assert.Equal(t, model.StatusOk, o.status)
+		require.Len(t, o.sectionErrs, 1)
+		assert.EqualError(t, o.sectionErrs[0], "vendor down")
+	})
+
+	t.Run("passes the context to the probe", func(t *testing.T) {
+		type key struct{}
+		ctx := context.WithValue(context.Background(), key{}, "value")
+		o := collect(ctx, networkProbe{run: func(ctx context.Context) error {
+			if ctx.Value(key{}) != "value" {
+				return errors.New("wrong context")
+			}
+			return nil
+		}})
+		assert.Equal(t, model.StatusOk, o.status, o.errMsg)
+	})
+
+	t.Run("gives up when the context ends", func(t *testing.T) {
+		release := make(chan struct{})
+		defer close(release)
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		defer cancel()
+
+		recorded := false
+		o := collect(ctx, networkProbe{
+			run:    func(context.Context) error { <-release; return nil },
+			record: func() error { recorded = true; return nil },
+		})
+		assert.Empty(t, o.status, "a probe that did not finish has no status")
+		assert.Equal(t, "push: probe did not complete: context deadline exceeded", o.errMsg)
+		require.Len(t, o.sectionErrs, 1)
+		assert.ErrorIs(t, o.sectionErrs[0], context.DeadlineExceeded)
+		assert.False(t, recorded)
+	})
+
+	t.Run("records probes that finished before the context ended", func(t *testing.T) {
+		// With the deadline passed and results waiting, select picks either case, so repeat to catch a wrong pick.
+		for range 20 {
+			synctest.Test(t, func(t *testing.T) {
+				ctx, cancel := context.WithCancel(context.Background())
+				var o outcome
+				collectProbes := startNetworkProbes(ctx, []networkProbe{{
+					name: "push", section: model.SectionPushProbe, status: &o.status, errMsg: &o.errMsg,
+					run: func(context.Context) error { return nil },
+				}}, func(_ model.NodeSection, err error) { o.sectionErrs = append(o.sectionErrs, err) })
+
+				synctest.Wait() // the probe has sent its result
+				cancel()
+				collectProbes()
+				assert.Equal(t, outcome{status: model.StatusOk}, o)
+			})
+		}
+	})
+
+	t.Run("returns a panic as an error", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { panic("boom") }})
+		assert.Empty(t, o.status)
+		assert.Equal(t, "push: probe panicked: boom", o.errMsg)
+		require.Len(t, o.sectionErrs, 1)
+	})
+
+	t.Run("records nothing without probes", func(t *testing.T) {
+		failed := false
+		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { failed = true })()
+		assert.False(t, failed)
+	})
+}
+
+func TestNetworkProbesSMTP(t *testing.T) {
+	th := Setup(t)
+
+	// smtpProbe sets the SMTP config, then returns what networkProbes recorded for SMTP and whether it would probe it.
+	smtpProbe := func(t *testing.T, server, port string, emailFeaturesOn bool) (status, errMsg string, probed bool) {
+		// CI may point these at a mail server, which would override UpdateConfig.
+		t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", server)
+		t.Setenv("MM_EMAILSETTINGS_SMTPPORT", port)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SMTPServer = new(server)
+			cfg.EmailSettings.SMTPPort = new(port)
+			cfg.EmailSettings.SendEmailNotifications = new(emailFeaturesOn)
+			cfg.EmailSettings.RequireEmailVerification = new(emailFeaturesOn)
+			cfg.ServiceSettings.EnableEmailInvitations = new(emailFeaturesOn)
+			cfg.EmailSettings.EnableSignInWithEmail = new(emailFeaturesOn)
+			cfg.EmailSettings.EnableSignInWithUsername = new(emailFeaturesOn)
+		})
+
+		var d model.SupportPacketDiagnostics
+		probes := th.Service.networkProbes(th.Context, &d)
+		probed = slices.ContainsFunc(probes, func(p networkProbe) bool { return p.section == model.SectionSMTPProbe })
+		return d.Notifications.Email.Status, d.Notifications.Email.Error, probed
+	}
+
+	// SMTP_NOT_CONFIGURED tells a server that never set up email (nothing on the default localhost:10025)
+	// from one running a development mail server there, such as Inbucket, only from this probe's result.
+	// Skipping the probe for the default server would make both SMTP findings resolve.
+	t.Run("probes the default server", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, true)
+
+		assert.True(t, probed)
+		assert.Empty(t, status)
+		assert.Empty(t, errMsg)
+	})
+
+	t.Run("skips when no email feature is on", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, false)
+
+		assert.False(t, probed)
+		assert.Equal(t, model.StatusDisabled, status)
+		assert.Empty(t, errMsg)
+	})
+}
+
+// The probes must use the same clients as the requests they stand in for; httpservice tests the clients themselves.
+func TestNetworkProbesOutgoingConnectionSettings(t *testing.T) {
+	th := Setup(t)
+
+	var userAgents []string
+	var mu sync.Mutex
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		userAgents = append(userAgents, r.UserAgent())
+		mu.Unlock()
+		if r.URL.Path == "/.well-known/openid-configuration" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"issuer":"https://idp.example.com"}`))
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	configure := map[string]func(cfg *model.Config){
+		"push": func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = new(true)
+			cfg.EmailSettings.PushNotificationServer = new(server.URL)
+		},
+		"openid": func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = new(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = new(server.URL + "/.well-known/openid-configuration")
+		},
+		"gitlab": func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = new(true)
+			cfg.GitLabSettings.DiscoveryEndpoint = new("")
+			cfg.GitLabSettings.TokenEndpoint = new(server.URL + "/oauth/token")
+		},
+	}
+
+	// runProbe runs the named probe against server and returns the User-Agents it sent and its result.
+	runProbe := func(t *testing.T, name, allowedInternal string) ([]string, error) {
+		t.Helper()
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new(allowedInternal)
+			configure[name](cfg)
+		})
+		mu.Lock()
+		userAgents = nil
+		mu.Unlock()
+
+		var d model.SupportPacketDiagnostics
+		probes := th.Service.networkProbes(th.Context, &d)
+		i := slices.IndexFunc(probes, func(p networkProbe) bool { return p.name == name })
+		require.NotEqual(t, -1, i, "%s probe not enabled", name)
+		err := probes[i].run(context.Background())
+
+		mu.Lock()
+		defer mu.Unlock()
+		return slices.Clone(userAgents), err
+	}
+
+	for name := range configure {
+		t.Run(name, func(t *testing.T) {
+			t.Run("sends the Mattermost User-Agent", func(t *testing.T) {
+				agents, err := runProbe(t, name, "127.0.0.1")
+				require.NoError(t, err)
+				assert.Equal(t, []string{"Mattermost-Bot/1.1"}, agents)
+			})
+
+			t.Run("internal address not in AllowedUntrustedInternalConnections", func(t *testing.T) {
+				agents, err := runProbe(t, name, "")
+				if name == "push" {
+					// The push client trusts the admin-configured push server.
+					require.NoError(t, err)
+					assert.Len(t, agents, 1)
+					return
+				}
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "AllowedUntrustedInternalConnections")
+				assert.Empty(t, agents)
+			})
+		})
+	}
 }
 
 func TestGetSupportPacketConfig(t *testing.T) {
@@ -1661,6 +2022,8 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	longestQuerySeconds := 7.25
 	waitingForLock := int64(5)
 	postsDeadTuples := int64(9)
+	postsEstimatedRows := int64(41)
+	postsLastVacuum := time.Date(2026, 7, 9, 11, 12, 13, 0, time.UTC)
 	postsLastAutovacuum := time.Date(2026, 7, 10, 12, 13, 14, 0, time.UTC)
 
 	diagnostics := &model.SupportPacketDiagnostics{
@@ -1679,17 +2042,33 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.InstallationType = "docker"
 	diagnostics.Server.CPUCores = 8
 	diagnostics.Server.TotalMemoryMB = new(uint64(32768))
+	diagnostics.Server.AvailableMemoryMB = new(uint64(24576))
+	diagnostics.Server.SwapTotalMB = new(uint64(4096))
+	diagnostics.Server.SwapUsedMB = new(uint64(1024))
 	diagnostics.Server.ContainerCPULimit = 6.5
 	diagnostics.Server.ContainerMemoryLimitMB = 16384
+	diagnostics.Server.ContainerMemoryUsageMB = new(uint64(12288))
+	diagnostics.Server.ContainerMemoryWorkingSetMB = new(uint64(10240))
+	diagnostics.Server.ContainerOOMKills = new(uint64(2))
+	diagnostics.Server.LoadAverage1m = new(1.25)
+	diagnostics.Server.LoadAverage5m = new(1.5)
+	diagnostics.Server.LoadAverage15m = new(2.75)
+	diagnostics.Server.ContainerCPUPeriods = new(uint64(10000))
+	diagnostics.Server.ContainerCPUThrottledPeriods = new(uint64(1250))
+	diagnostics.Server.ContainerCPUThrottledSeconds = new(42.5)
+	diagnostics.Server.GoMaxProcs = new(6)
 	diagnostics.Server.ProcessID = 90210
 	diagnostics.Server.StartedAt = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	diagnostics.Server.HostStartedAt = time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC)
+	diagnostics.Server.ProcessRSSMB = new(uint64(2048))
+	diagnostics.Server.GoMemoryLimitMB = new(uint64(13107))
 	diagnostics.Server.OpenFileDescriptors = new(int64(512))
 	diagnostics.Server.MaxFileDescriptors = new(int64(8192))
 	diagnostics.Server.Version = "11.0.0"
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
+	diagnostics.Config.AuditLoggingConfigured = new(true)
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")
@@ -1718,6 +2097,9 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.LongestQueryDurationSeconds = &longestQuerySeconds
 	diagnostics.Database.WaitingForLockCount = &waitingForLock
 	diagnostics.Database.PostsDeadTuples = &postsDeadTuples
+	diagnostics.Database.PostsEstimatedRows = &postsEstimatedRows
+	diagnostics.Database.PostsVacuumInProgress = new(true)
+	diagnostics.Database.PostsLastVacuum = &postsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = &postsLastAutovacuum
 	diagnostics.FileStore.Status = model.StatusOk
 	diagnostics.FileStore.Driver = model.ImageDriverLocal

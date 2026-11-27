@@ -4,10 +4,16 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {AlertOutlineIcon, CheckIcon, LightbulbOutlineIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+
 import {sendTestNotification} from 'actions/notification_actions';
 
 import {useExternalLink} from 'components/common/hooks/use_external_link';
-import SectionNotice from 'components/section_notice';
+
+import SectionNoticeActions from './section_notice_actions';
 
 const sectionNoticeContainerStyle: React.CSSProperties = {marginTop: 20};
 
@@ -76,41 +82,29 @@ const SendTestNotificationNotice = ({
         };
     }, []);
 
-    const primaryButton = useMemo(() => {
-        let text;
-        let icon;
-        let loading;
+    const sendButton = useMemo(() => {
         switch (buttonState) {
-        case 'idle':
-            text = intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.send', defaultMessage: 'Send a test notification'});
-            break;
         case 'sending':
-            text = intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.sending', defaultMessage: 'Sending a test notification'});
-            loading = true;
-            break;
+            return {
+                text: intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.sending', defaultMessage: 'Sending a test notification'}),
+                loading: true,
+            };
         case 'sent':
-            text = intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.sent', defaultMessage: 'Test notification sent'});
-            icon = 'icon-check';
-            break;
+            return {
+                text: intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.sent', defaultMessage: 'Test notification sent'}),
+                icon: <Icon glyph={<CheckIcon/>}/>,
+            };
         case 'error':
-            text = intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.error', defaultMessage: 'Error sending test notification'});
-            icon = 'icon-alert-outline';
+            return {
+                text: intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.error', defaultMessage: 'Error sending test notification'}),
+                icon: <Icon glyph={<AlertOutlineIcon/>}/>,
+            };
+        default:
+            return {
+                text: intl.formatMessage({id: 'user_settings.notifications.test_notification.send_button.send', defaultMessage: 'Send a test notification'}),
+            };
         }
-        return {
-            onClick: onSendTestNotificationClick,
-            text,
-            leadingIcon: icon,
-            loading,
-        };
-    }, [buttonState, intl, onSendTestNotificationClick]);
-
-    const secondaryButton = useMemo(() => {
-        return {
-            onClick: onGoToNotificationDocumentation,
-            text: intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'}),
-            trailingIcon: 'icon-open-in-new',
-        };
-    }, [intl, onGoToNotificationDocumentation]);
+    }, [buttonState, intl]);
 
     if (adminMode) {
         return null;
@@ -121,14 +115,36 @@ const SendTestNotificationNotice = ({
             <div className='divider-light'/>
             <div style={sectionNoticeContainerStyle}>
                 <SectionNotice
-                    text={intl.formatMessage({
-                        id: 'user_settings.notifications.test_notification.body',
-                        defaultMessage: 'Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.',
-                    })}
-                    title={intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
-                    primaryButton={primaryButton}
-                    tertiaryButton={secondaryButton}
                     type='hint'
+                    icon={<Icon glyph={<LightbulbOutlineIcon/>}/>}
+                    title={intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
+                    description={
+                        <>
+                            {intl.formatMessage({
+                                id: 'user_settings.notifications.test_notification.body',
+                                defaultMessage: 'Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.',
+                            })}
+                            <SectionNoticeActions>
+                                <Button
+                                    emphasis='primary'
+                                    size='small'
+                                    onClick={onSendTestNotificationClick}
+                                    loading={sendButton.loading}
+                                    leadingIcon={sendButton.icon}
+                                >
+                                    {sendButton.text}
+                                </Button>
+                                <Button
+                                    emphasis='tertiary'
+                                    size='small'
+                                    onClick={onGoToNotificationDocumentation}
+                                    trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
+                                >
+                                    {intl.formatMessage({id: 'user_settings.notifications.test_notification.go_to_docs', defaultMessage: 'Troubleshooting docs'})}
+                                </Button>
+                            </SectionNoticeActions>
+                        </>
+                    }
                 />
             </div>
         </>

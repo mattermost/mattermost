@@ -6,9 +6,11 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import * as userActions from 'mattermost-redux/actions/users';
 
 import * as Actions from 'actions/team_actions';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
+import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('mattermost-redux/actions/teams', () => ({
@@ -73,6 +75,7 @@ describe('Actions.Team', () => {
                 currentChannelId,
                 manuallyUnread: {},
             },
+            general: {config: {}},
         },
     };
 
@@ -95,6 +98,56 @@ describe('Actions.Team', () => {
 
             expect(getHistory().push).not.toHaveBeenCalled();
             expect(testStore.getActions()).toContainEqual(TeamActions.selectTeam(team));
+        });
+
+        describe('with the product rail on', () => {
+            const railState = {
+                entities: {
+                    ...initialState.entities,
+                    general: {config: {FeatureFlagProductRail: 'true'}},
+                    teams: {currentTeamId: 'team-one'},
+                    users: {currentUserId: 'user-one'},
+                },
+                views: {browser: {windowSize: WindowSizes.DESKTOP_VIEW}},
+            };
+
+            test('should remember a team selected without changing URL, so a refresh keeps it', () => {
+                const setPreviousTeamId = jest.spyOn(LocalStorageStore, 'setPreviousTeamId').mockImplementation(() => {});
+                const testStore = configureStore(railState);
+
+                testStore.dispatch(Actions.switchTeam('/test', TestHelper.getTeamMock({id: 'team-two'})));
+
+                expect(setPreviousTeamId).toHaveBeenCalledWith('user-one', 'team-two');
+                setPreviousTeamId.mockRestore();
+            });
+
+            test('should still select the team when storage is blocked', () => {
+                const setPreviousTeamId = jest.spyOn(LocalStorageStore, 'setPreviousTeamId').mockImplementation(() => {
+                    throw new Error('blocked');
+                });
+                const testStore = configureStore(railState);
+
+                const team = TestHelper.getTeamMock({id: 'team-two'});
+
+                testStore.dispatch(Actions.switchTeam('/test', team));
+
+                expect(setPreviousTeamId).toHaveBeenCalledWith('user-one', 'team-two');
+                expect(testStore.getActions()).toContainEqual(TeamActions.selectTeam(team));
+                setPreviousTeamId.mockRestore();
+            });
+
+            test('should leave the last team alone while the rail is hidden, as on mobile', () => {
+                const setPreviousTeamId = jest.spyOn(LocalStorageStore, 'setPreviousTeamId').mockImplementation(() => {});
+                const testStore = configureStore({...railState, views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}}});
+
+                const team = TestHelper.getTeamMock({id: 'team-two'});
+
+                testStore.dispatch(Actions.switchTeam('/test', team));
+
+                expect(setPreviousTeamId).not.toHaveBeenCalled();
+                expect(testStore.getActions()).toContainEqual(TeamActions.selectTeam(team));
+                setPreviousTeamId.mockRestore();
+            });
         });
     });
 
