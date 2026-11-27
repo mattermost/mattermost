@@ -23,12 +23,14 @@ const (
 )
 
 var pushIDOnly = healthcheck.Rule{
-	Code:           "PUSH_ID_ONLY",
-	Area:           model.AreaNotifications,
-	Severity:       healthcheck.SeverityInfo,
-	TitleID:        healthcheck.TranslationId("health.rule.push_id_only.title"),
-	RemediationID:  healthcheck.TranslationId("health.rule.push_id_only.remediation"),
-	ConsolePath:    notificationsConsolePath,
+	Code:     "PUSH_ID_ONLY",
+	Area:     model.AreaNotifications,
+	Severity: healthcheck.SeverityInfo,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.push_id_only.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.push_id_only.remediation"),
+		ConsolePath:   notificationsConsolePath,
+	},
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -37,42 +39,48 @@ var pushIDOnly = healthcheck.Rule{
 }
 
 var maxNotificationsPerChannel = healthcheck.Rule{
-	Code:          "MAX_NOTIFICATIONS_PER_CHANNEL",
-	Area:          model.AreaNotifications,
-	Severity:      healthcheck.SeverityInfo,
-	TitleID:       healthcheck.TranslationId("health.rule.max_notifications_per_channel.title"),
-	RemediationID: healthcheck.TranslationId("health.rule.max_notifications_per_channel.remediation"),
-	ConsolePath:   pushConsolePath,
-	Surface:       healthcheck.SurfaceProduct,
-	Volatility:    healthcheck.VolatilityStable,
-	Subject:       "TeamSettings.MaxNotificationsPerChannel",
-	Eval:          healthcheck.Single(evalMaxNotificationsPerChannel),
+	Code:     "MAX_NOTIFICATIONS_PER_CHANNEL",
+	Area:     model.AreaNotifications,
+	Severity: healthcheck.SeverityInfo,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.max_notifications_per_channel.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.max_notifications_per_channel.remediation"),
+		ConsolePath:   pushConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "TeamSettings.MaxNotificationsPerChannel",
+	Eval:       healthcheck.Single(evalMaxNotificationsPerChannel),
 }
 
 var smtpNotConfigured = healthcheck.Rule{
-	Code:          "SMTP_NOT_CONFIGURED",
-	Area:          model.AreaNotifications,
-	Severity:      healthcheck.SeverityWarning,
-	TitleID:       healthcheck.TranslationId("health.rule.smtp_not_configured.title"),
-	RemediationID: healthcheck.TranslationId("health.rule.smtp_not_configured.remediation"),
-	ConsolePath:   smtpConsolePath,
-	Surface:       healthcheck.SurfaceProduct,
-	Volatility:    healthcheck.VolatilityProbe,
-	Subject:       "EmailSettings.SMTPServer",
-	Eval:          healthcheck.Gate(smtpInUse, healthcheck.ReasonConfigUnavailable, evalSMTPNotConfigured),
+	Code:     "SMTP_NOT_CONFIGURED",
+	Area:     model.AreaNotifications,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.smtp_not_configured.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.smtp_not_configured.remediation"),
+		ConsolePath:   smtpConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityProbe,
+	Subject:    "EmailSettings.SMTPServer",
+	Eval:       healthcheck.Gate(smtpInUse, healthcheck.ReasonConfigUnavailable, evalSMTPNotConfigured),
 }
 
 var smtpUnreachable = healthcheck.Rule{
-	Code:          "SMTP_UNREACHABLE",
-	Area:          model.AreaNotifications,
-	Severity:      healthcheck.SeverityWarning,
-	TitleID:       healthcheck.TranslationId("health.rule.smtp_unreachable.title"),
-	RemediationID: healthcheck.TranslationId("health.rule.smtp_unreachable.remediation"),
-	ConsolePath:   smtpConsolePath,
-	Surface:       healthcheck.SurfaceProduct,
-	Volatility:    healthcheck.VolatilityProbe,
-	Subject:       "EmailSettings.SMTPServer",
-	Eval:          healthcheck.Gate(smtpInUseAndConfigured, healthcheck.ReasonConfigUnavailable, evalSMTPUnreachable),
+	Code:     "SMTP_UNREACHABLE",
+	Area:     model.AreaNotifications,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.smtp_unreachable.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.smtp_unreachable.remediation"),
+		ConsolePath:   smtpConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityProbe,
+	Subject:    "EmailSettings.SMTPServer",
+	Eval:       healthcheck.Gate(smtpInUseAndConfigured, healthcheck.ReasonConfigUnavailable, evalSMTPUnreachable),
 }
 
 func evalPushIDOnly(s *healthcheck.Snapshot) healthcheck.Result {
