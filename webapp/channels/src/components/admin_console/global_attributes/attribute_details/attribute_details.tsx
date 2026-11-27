@@ -6,7 +6,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX, type
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import {useParams} from 'react-router-dom';
+import {useLocation, useParams} from 'react-router-dom';
 import type {Dispatch} from 'redux';
 
 import type {ClientError} from '@mattermost/client';
@@ -56,7 +56,7 @@ import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelField
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {POST_VALUE_SETTER} from '../applies_to/posts';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, canSyncAttributeType, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
-import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
+import {ATTRIBUTE_DETAILS_FROM_QUERY, GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
 import {findNameConflict, messages as nameConflictMessages, type NameConflict} from '../name_conflict';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
@@ -133,6 +133,45 @@ function computeAutoSlugDisplay(displayName: string): string | null {
 // Same normalization load and create use: missing/empty display_name → ''.
 function fieldDisplayName(field: PropertyField): string {
     return (typeof field.attrs?.display_name === 'string' ? field.attrs.display_name : '') || '';
+}
+
+// Prefill label for Duplicate → create. Formats via i18n (`Copy of {name}`),
+// then shortens {name} until the whole string fits the display-name max so
+// locales with a longer/shorter wrapper still land under the input cap.
+function buildDuplicateDisplayName(sourceLabel: string, formatCopyOf: (name: string) => string): string {
+    const max = Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH;
+    const label = sourceLabel.trim();
+    const full = formatCopyOf(label);
+    if (full.length <= max) {
+        return full;
+    }
+
+    let lo = 0;
+    let hi = label.length;
+    let best = formatCopyOf('').slice(0, max);
+    while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        const candidate = formatCopyOf(label.slice(0, mid));
+        if (candidate.length <= max) {
+            best = candidate;
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    return best;
+}
+
+// Create-from-duplicate keeps option names/ranks/parents but drops server ids
+// so Save mints new ones (and so a graph write never reuses foreign option ids).
+function optionsForCreateDraft(options: PropertyFieldOption[]): PropertyFieldOption[] {
+    return options.map(({name, rank, parents, color}) => ({
+        id: '',
+        name,
+        ...(rank === undefined ? {} : {rank}),
+        ...(parents === undefined ? {} : {parents}),
+        ...(color === undefined ? {} : {color}),
+    }));
 }
 
 type ErrorKind =
@@ -356,7 +395,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const {field_id: fieldId} = useParams<{field_id?: string}>();
+    const {search} = useLocation();
     const isEditMode = Boolean(fieldId);
+
+    // Create-only: listing Duplicate lands here with ?from=<templateId> so the
+    // form is seeded as an unsaved draft. Edit URLs ignore this query.
+    const fromFieldId = useMemo(() => {
+        if (fieldId) {
+            return undefined;
+        }
+        const value = new URLSearchParams(search).get(ATTRIBUTE_DETAILS_FROM_QUERY);
+        return value || undefined;
+    }, [fieldId, search]);
 
     const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
     const ALL_TYPES = useMemo(
@@ -369,7 +419,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         [isGraphEnabled],
     );
 
-    const [loading, setLoading] = useState(isEditMode);
+    // Edit and create-from-duplicate both fetch before painting the form.
+    const [loading, setLoading] = useState(isEditMode || Boolean(fromFieldId));
     const [isDirty, setIsDirty] = useState(false);
 
     // Set once from the loaded field's attrs and never re-derived afterward -- a
@@ -637,6 +688,106 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         };
     }, [fieldId, allowedResourceTypes]);
 
+    // Duplicate → create (`?from=`): seed an unsaved draft from a template.
+    // Does not write anything; Save still creates. Sync links and plugin
+    // ownership stay on the source. Linked-field snapshot stays empty so Save
+    // uses the create+link path for every Applies-to resource.
+    useEffect(() => {
+        if (fieldId || !fromFieldId) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        const loadFrom = async () => {
+            try {
+                const field = await fetchAttributeField(fromFieldId, allowedResourceTypes);
+                if (cancelled) {
+                    return;
+                }
+                if (
+                    !field ||
+                    field.object_type !== GLOBAL_ATTRIBUTES_OBJECT_TYPE ||
+                    isClassificationMarkingsField(field, field.group_id) ||
+                    !isAttributeFieldType(field.type) ||
+                    getSourceKind(field) === 'plugin' ||
+                    (field.type === 'graph' && !isGraphEnabled)
+                ) {
+                    getHistory().push(LIST_ROUTE);
+                    return;
+                }
+
+                const loadedOptions = field.type === 'graph' ? await pageAllAccessControlFieldOptions({id: field.id, object_type: field.object_type}) : optionsFromField(field);
+                if (cancelled) {
+                    return;
+                }
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(fromFieldId, allowedResourceTypes);
+                if (cancelled) {
+                    return;
+                }
+                const linkedByType = linkedFieldsByResourceType(linkedFields);
+
+                // Create path: never treat source children as already persisted.
+                persistedLinkedFieldsRef.current = {};
+                originalNameRef.current = '';
+                originalDisplayNameRef.current = '';
+                originalExternalLinksRef.current = NO_EXTERNAL_SOURCE_LINKS;
+                setSourcePluginId(undefined);
+                setExternalLinks(NO_EXTERNAL_SOURCE_LINKS);
+                setObjectType(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
+
+                // Ownership stays on the source; a draft must not look plugin- or
+                // owner-managed before anything is saved.
+                setOwners(NO_OWNERS);
+
+                const sourceLabel = fieldDisplayName(field) || field.name;
+                setDisplayName(buildDuplicateDisplayName(
+                    sourceLabel,
+                    (name) => formatMessage(messages.copyOfDisplayName, {name}),
+                ));
+                setManualName('');
+                setIsNameManuallyEdited(false);
+                setFieldType(getAttributeTypeDescriptor(field).id);
+                setOptions(optionsForCreateDraft(loadedOptions));
+
+                // Set Applies-to while still loading so the hydrate skip below
+                // can keep Display name autoFocus (same pattern as edit load).
+                setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
+
+                const userField = linkedByType.user;
+                const rawVisibility = userField?.attrs?.visibility;
+                const loadedVisibility: FieldVisibility = rawVisibility === 'always' || rawVisibility === 'when_set' || rawVisibility === 'hidden' ? rawVisibility : 'when_set';
+                const loadedManaged: UserManagedValue = userField?.attrs?.managed === 'admin' ? 'admin' : '';
+                setUserVisibility(loadedVisibility);
+                setUserManaged(loadedManaged);
+                originalUserVisibilityRef.current = 'when_set';
+                originalUserManagedRef.current = '';
+
+                const channelConfigSource = linkedByType.channel;
+                if (channelConfigSource) {
+                    setChannelResource(parseChannelFieldConfig(channelConfigSource));
+                } else {
+                    setChannelResource({...DEFAULT_CHANNEL_RESOURCE_CONFIG});
+                }
+
+                setIsDirty(true);
+                dispatch(setNavigationBlocked(true));
+                setLoading(false);
+            } catch {
+                if (!cancelled) {
+                    getHistory().push(LIST_ROUTE);
+                }
+            }
+        };
+
+        loadFrom();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [fieldId, fromFieldId, allowedResourceTypes, isGraphEnabled, dispatch, formatMessage]);
+
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
     const nameUnchanged = isEditMode && currentName === originalNameRef.current;
@@ -811,11 +962,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // element instead. Looked up by data-testid (not id) since the row
     // doesn't otherwise need a stable element id.
     //
-    // Create starts hydrated. Edit skips the first populated commit so
-    // loading all three resource types does not look like "just added the
-    // last type" and steal autoFocus from Display name.
+    // Plain create starts hydrated. Edit and create-from-duplicate (`?from=`)
+    // skip the first populated commit so loading Applies-to does not look like
+    // "just added the last type" and steal autoFocus from Display name.
     const prevAppliesToLengthRef = useRef(appliesTo.length);
-    const appliesToHydratedRef = useRef(!isEditMode);
+    const appliesToHydratedRef = useRef(!(isEditMode || Boolean(fromFieldId)));
     useEffect(() => {
         if (loading) {
             prevAppliesToLengthRef.current = appliesTo.length;
@@ -1932,6 +2083,7 @@ const messages = defineMessages({
     definitionTitle: {id: 'admin.global_attributes.attribute_details.definition.title', defaultMessage: 'Definition'},
     definitionSubtitle: {id: 'admin.global_attributes.attribute_details.definition.subtitle', defaultMessage: 'Display name, type, and options.'},
     displayNameLabel: {id: 'admin.global_attributes.attribute_details.display_name.label', defaultMessage: 'Display name'},
+    copyOfDisplayName: {id: 'admin.global_attributes.attribute_details.display_name.copy_of', defaultMessage: 'Copy of {name}'},
     displayNamePlaceholder: {id: 'admin.global_attributes.attribute_details.display_name.placeholder', defaultMessage: 'Add a display name'},
     uniqueNamePrefix: {id: 'admin.global_attributes.attribute_details.unique_name.prefix', defaultMessage: 'Unique name:'},
     editLink: {id: 'admin.global_attributes.attribute_details.unique_name.edit', defaultMessage: 'Edit'},

@@ -4195,4 +4195,178 @@ describe('AttributeDetails', () => {
             }));
         });
     });
+
+    describe('create from duplicate (?from=)', () => {
+        const FIELD_ID = 'abcdefghijklmnopqrstuvwxyz';
+
+        function makeTemplate(overrides: Partial<PropertyField> = {}): PropertyField {
+            return {
+                id: FIELD_ID,
+                name: 'department',
+                type: 'text',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: 'template',
+                target_id: '',
+                target_type: 'system',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: 'Department'},
+                ...overrides,
+            } as PropertyField;
+        }
+
+        function makeLinked(objectType: 'user' | 'channel' | 'post', id: string, overrides: Partial<PropertyField> = {}): PropertyField {
+            return {
+                id,
+                name: 'department',
+                type: 'text',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: objectType,
+                target_id: '',
+                target_type: 'system',
+                linked_field_id: FIELD_ID,
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: 'Department'},
+                ...overrides,
+            } as PropertyField;
+        }
+
+        function mockSourceField(field: PropertyField, linked: PropertyField[] = []) {
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([field]);
+                }
+                return Promise.resolve(linked.filter((linkedField) => linkedField.object_type === objectType));
+            });
+        }
+
+        const renderFrom = (fromId = FIELD_ID, initialState: Record<string, unknown> = {}, graphEnabled = false) => renderWithContext(
+            <div>
+                <Route path='/admin_console/system_attributes/manage_attributes/attribute_details'>
+                    <AttributeDetails/>
+                </Route>
+                <ModalController/>
+            </div>,
+            mergeObjects(ALL_RESOURCES_STATE, mergeObjects({
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagPropertyFieldGraph: graphEnabled ? 'true' : 'false',
+                        },
+                    },
+                },
+            }, initialState)),
+            {
+                history: createMemoryHistory({
+                    initialEntries: [`/admin_console/system_attributes/manage_attributes/attribute_details?from=${fromId}`],
+                }),
+            },
+        );
+
+        const waitForForm = () => waitFor(() => expect(screen.getByTestId('attributeDetails')).toBeInTheDocument());
+
+        it('prefills type, options, and Applies-to without sync links, marks dirty, and focuses Display name', async () => {
+            mockSourceField(makeTemplate({
+                type: 'select',
+                attrs: {
+                    display_name: 'Department',
+                    options: [{id: 'opt-1', name: 'Engineering'}],
+                    ldap: 'dept',
+                    saml: 'Department',
+                },
+            }), [
+                makeLinked('user', 'user-field', {attrs: {display_name: 'Department', visibility: 'always', managed: 'admin'}}),
+                makeLinked('channel', 'channel-field'),
+            ]);
+
+            renderFrom();
+            await waitForForm();
+
+            expect(screen.getByRole('heading', {name: 'New attribute'})).toBeInTheDocument();
+            const displayName = screen.getByTestId('attributeDisplayNameInput');
+            expect(displayName).toHaveValue('Copy of Department');
+            expect(displayName).toHaveFocus();
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('copy_of_department');
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
+            expect(screen.getByText('Engineering')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeExternalSourceChip-ldap')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeExternalSourceChip-saml')).not.toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
+        });
+
+        it('truncates a long Copy of {name} prefill to the display-name max', async () => {
+            const longName = `Long Department Name ${'X'.repeat(40)}`;
+            mockSourceField(makeTemplate({
+                attrs: {display_name: longName},
+            }));
+
+            renderFrom();
+            await waitForForm();
+
+            const displayName = screen.getByTestId('attributeDisplayNameInput');
+            expect(displayName).toHaveValue();
+            expect((displayName as HTMLInputElement).value.startsWith('Copy of ')).toBe(true);
+            expect((displayName as HTMLInputElement).value.length).toBeLessThanOrEqual(40);
+        });
+
+        it('creates a new template on Save instead of patching the source, and does not send sync attrs', async () => {
+            mockSourceField(makeTemplate({
+                type: 'select',
+                attrs: {
+                    display_name: 'Department',
+                    options: [{id: 'opt-1', name: 'Engineering'}],
+                    ldap: 'dept',
+                },
+            }), [makeLinked('user', 'user-field')]);
+
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'new-template'} as PropertyField).
+                mockResolvedValueOnce({id: 'new-user'} as PropertyField);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField');
+
+            renderFrom();
+            await waitForForm();
+
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Team');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).not.toHaveBeenCalled();
+            expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.objectContaining({
+                name: 'team',
+                type: 'select',
+                attrs: expect.objectContaining({
+                    display_name: 'Team',
+                    options: [expect.objectContaining({name: 'Engineering', id: ''})],
+                }),
+            }));
+            expect(createPropertyField.mock.calls[0][2].attrs).not.toHaveProperty('ldap');
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                linked_field_id: 'new-template',
+            }));
+        });
+
+        it('redirects to the listing when ?from= is not a duplicable template', async () => {
+            mockSourceField(makeTemplate({
+                attrs: {display_name: 'Plugin field', source_plugin_id: 'com.example.plugin', protected: true},
+            }));
+
+            renderFrom();
+
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes');
+            });
+        });
+    });
 });

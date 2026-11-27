@@ -8,6 +8,7 @@ import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/manage_attributes';
+export const ATTRIBUTE_DETAILS_PATH = `${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details`;
 
 // Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
 // (cross-package import not feasible between e2e-tests and webapp)
@@ -97,6 +98,21 @@ export async function getGlobalAttributeFieldByName(adminClient: Client4, name: 
         perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
     });
     return fields.find((f) => f.name === name && f.delete_at === 0);
+}
+
+/**
+ * Live template field ids — used to assert Duplicate left the server unchanged
+ * until Save (compare before vs after opening create with ?from=).
+ */
+export async function listLiveGlobalAttributeTemplateIds(adminClient: Client4): Promise<string[]> {
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+        targetType: TARGET_TYPE,
+        perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+    });
+    return fields
+        .filter((field) => field.delete_at === 0)
+        .map((field) => field.id)
+        .sort();
 }
 
 /**

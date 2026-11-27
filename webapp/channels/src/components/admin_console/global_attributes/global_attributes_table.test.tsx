@@ -966,7 +966,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Actions column', () => {
-        it('opens the menu with Edit and Delete enabled for a managed field', async () => {
+        it('opens the menu with Edit, Duplicate, and Delete enabled for a managed field', async () => {
             mockListing([makeField()]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
@@ -981,19 +981,73 @@ describe('GlobalAttributesTable', () => {
 
             const menuitems = screen.getAllByRole('menuitem');
             const edit = menuitems.find((el) => el.textContent?.includes('Edit attribute'));
+            const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
             const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
 
             expect(edit).toBeDefined();
+            expect(duplicate).toBeDefined();
             expect(del).toBeDefined();
-            expect(menuitems.find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
 
             expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
+            expect(duplicate!).not.toHaveAttribute('aria-disabled', 'true');
             expect(del!).not.toHaveAttribute('aria-disabled', 'true');
 
             await userEvent.click(edit!);
             await waitFor(() => {
                 expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
             });
+        });
+
+        it('navigates Duplicate to the create page with ?from=<source id>', async () => {
+            mockListing([makeField()]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            // Managed rows never fetch plugin statuses, so open the menu directly
+            // rather than via openActionsMenu (which waits on that fetch).
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            const duplicate = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'));
+            expect(duplicate).toBeDefined();
+
+            await userEvent.click(duplicate!);
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details?from=field-1');
+            });
+        });
+
+        it('hides Duplicate for a date template (create ?from= cannot represent the type)', async () => {
+            mockListing([makeField({type: 'date'})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).
+                toBeUndefined();
+        });
+
+        it('hides Duplicate for a graph template when PropertyFieldGraph is off', async () => {
+            mockListing([makeField({type: 'graph'})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).
+                toBeUndefined();
+        });
+
+        it('offers Duplicate for a graph template when PropertyFieldGraph is on', async () => {
+            mockListing([makeField({type: 'graph'})]);
+
+            const state = getBaseState();
+            state.entities!.general = {
+                config: {FeatureFlagPropertyFieldGraph: 'true'},
+            } as EntitiesPartial['general'];
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).
+                toBeDefined();
         });
 
         it('enables View (not Edit) and navigates to the edit page for a plugin-owned row (the edit page itself now handles the read-only rendering)', async () => {
@@ -1613,7 +1667,7 @@ describe('GlobalAttributesTable', () => {
             await userEvent.click(screen.getByTestId('global-attribute-actions-field-1'));
 
             const items = (await screen.findAllByRole('menuitem')).map((el) => el.textContent);
-            expect(items).toEqual(['Edit attribute', 'Delete attribute']);
+            expect(items).toEqual(['Edit attribute', 'Duplicate attribute', 'Delete attribute']);
         });
     });
 
