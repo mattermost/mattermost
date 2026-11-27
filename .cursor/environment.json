@@ -6,7 +6,8 @@
     "context": "."
   },
   "repositoryDependencies": [
-    "github.com/mattermost/enterprise"
+    "github.com/mattermost/enterprise",
+    "github.com/mattermost/pdf"
   ],
   "install": "bash .cursor/scripts/cloud-agent-install.sh",
   "start": "bash .cursor/scripts/cloud-agent-start.sh",
