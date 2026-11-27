@@ -1017,11 +1017,11 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.not(it.isSystemAdmin),
                     it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
                 ),
                 isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.not(it.isSystemAdmin),
                     it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
                 ),
                 schema: {
@@ -1034,11 +1034,11 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.not(it.isSystemAdmin),
                     it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
                 ),
                 isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.not(it.isSystemAdmin),
                     it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
                 ),
                 schema: {
@@ -1051,10 +1051,10 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.not(it.isSystemAdmin),
                     it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
                 ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'ScopedConfigurationPolicy',
                     component: ScopedConfigurationDetails,
@@ -1065,11 +1065,11 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.scopedConfiguration', defaultMessage: 'Scoped Configuration'}),
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.not(it.isSystemAdmin),
                     it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                 ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'ScopedConfiguration',
                     name: defineMessage({id: 'admin.scoped_configuration.page_title', defaultMessage: 'Scoped Configuration'}),
