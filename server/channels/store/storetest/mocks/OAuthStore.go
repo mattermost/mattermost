@@ -392,6 +392,24 @@ func (_m *OAuthStore) RemoveAuthDataByClientId(clientID string, userID string) e
 	return r0
 }
 
+// RemoveAuthDataByUserExceptToken provides a mock function with given fields: userID, retainedToken
+func (_m *OAuthStore) RemoveAuthDataByUserExceptToken(userID string, retainedToken string) error {
+	ret := _m.Called(userID, retainedToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveAuthDataByUserExceptToken")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userID, retainedToken)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemoveAuthDataByUserId provides a mock function with given fields: userID
 func (_m *OAuthStore) RemoveAuthDataByUserId(userID string) error {
 	ret := _m.Called(userID)

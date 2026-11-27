@@ -687,6 +687,7 @@ type OAuthStore interface {
 	RemoveAuthDataByClientId(clientID string, userID string) error
 	RemoveAuthDataByUserId(userID string) error
 	PermanentDeleteAuthDataByUser(userID string) error
+	RemoveAuthDataByUserExceptToken(userID, retainedToken string) error
 	SaveAccessData(accessData *model.AccessData) (*model.AccessData, error)
 	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error)
 	GetAccessData(token string) (*model.AccessData, error)

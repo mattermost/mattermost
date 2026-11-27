@@ -1809,6 +1809,409 @@ func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {
 	require.Nil(t, refreshResp)
 }
 
+func TestOAuthRefreshTokenGrant_AfterSessionsEnded(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true
+	})
+
+	oapp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Name:         "RefreshGrantSessionsEnded_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	// Obtains tokens for user and then removes the backing session row the way
+	// the expired-session cleanup job does, leaving only the OAuth access data.
+	setupTokensWithCleanedUpSession := func(t *testing.T, user *model.User) *model.AccessResponse {
+		t.Helper()
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  oapp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+		})
+		require.Nil(t, appErr)
+
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+
+		tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "", "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, tokenResp.AccessToken)
+		require.NotEmpty(t, tokenResp.RefreshToken)
+
+		require.NoError(t, th.App.Srv().Store().Session().Remove(tokenResp.AccessToken))
+		th.App.ClearSessionCacheForUser(user.Id)
+
+		sessions, appErr := th.App.GetSessions(th.Context, user.Id)
+		require.Nil(t, appErr)
+		for _, s := range sessions {
+			require.NotEqual(t, tokenResp.AccessToken, s.Token)
+		}
+
+		accessData, err := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+		require.NoError(t, err)
+		require.Len(t, accessData, 1)
+
+		return tokenResp
+	}
+
+	refresh := func(refreshToken string) (*model.AccessResponse, *model.AppError) {
+		return th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.RefreshTokenGrantType, oapp.CallbackUrls[0], "", oapp.ClientSecret, refreshToken, "", "")
+	}
+
+	assertNoAccessData := func(t *testing.T, userID string) {
+		t.Helper()
+		accessData, err := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(userID, oapp.Id)
+		require.NoError(t, err)
+		assert.Empty(t, accessData, "no OAuth access data may remain for the user")
+	}
+
+	t.Run("refresh still works after session cleanup when nothing was revoked", func(t *testing.T) {
+		user := th.CreateUser(t)
+		tokenResp := setupTokensWithCleanedUpSession(t, user)
+
+		refreshResp, appErr := refresh(tokenResp.RefreshToken)
+		require.Nil(t, appErr)
+		require.NotNil(t, refreshResp)
+		require.NotEmpty(t, refreshResp.AccessToken)
+	})
+
+	t.Run("revoke all sessions after session cleanup", func(t *testing.T) {
+		user := th.CreateUser(t)
+		tokenResp := setupTokensWithCleanedUpSession(t, user)
+
+		require.Nil(t, th.App.RevokeAllSessions(th.Context, user.Id))
+		assertNoAccessData(t, user.Id)
+
+		refreshResp, appErr := refresh(tokenResp.RefreshToken)
+		assert.NotNil(t, appErr, "refresh token grant must fail after all sessions were revoked")
+		assert.Nil(t, refreshResp)
+	})
+
+	t.Run("password change after session cleanup", func(t *testing.T) {
+		user := th.CreateUser(t)
+		tokenResp := setupTokensWithCleanedUpSession(t, user)
+
+		require.Nil(t, th.App.UpdatePassword(th.Context, user, model.NewTestPassword()))
+		assertNoAccessData(t, user.Id)
+
+		refreshResp, appErr := refresh(tokenResp.RefreshToken)
+		assert.NotNil(t, appErr, "refresh token grant must fail after a password change terminated sessions")
+		assert.Nil(t, refreshResp)
+	})
+}
+
+func TestOAuthGrantsAfterSessionsEnded_EdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true
+	})
+
+	createApp := func(t *testing.T) *model.OAuthApp {
+		t.Helper()
+		oapp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+			Name:         "GrantsSessionsEnded_" + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: model.NewId(),
+		})
+		require.Nil(t, appErr)
+		return oapp
+	}
+
+	authorize := func(t *testing.T, oapp *model.OAuthApp, user *model.User) string {
+		t.Helper()
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  oapp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+		})
+		require.Nil(t, appErr)
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+		return code
+	}
+
+	exchangeCode := func(oapp *model.OAuthApp, code string) (*model.AccessResponse, *model.AppError) {
+		return th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "", "")
+	}
+
+	getTokens := func(t *testing.T, oapp *model.OAuthApp, user *model.User) *model.AccessResponse {
+		t.Helper()
+		tokenResp, appErr := exchangeCode(oapp, authorize(t, oapp, user))
+		require.Nil(t, appErr)
+		require.NotEmpty(t, tokenResp.RefreshToken)
+		return tokenResp
+	}
+
+	cleanUpSession := func(t *testing.T, user *model.User, accessToken string) {
+		t.Helper()
+		require.NoError(t, th.App.Srv().Store().Session().Remove(accessToken))
+		th.App.ClearSessionCacheForUser(user.Id)
+	}
+
+	refresh := func(oapp *model.OAuthApp, refreshToken string) (*model.AccessResponse, *model.AppError) {
+		return th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.RefreshTokenGrantType, oapp.CallbackUrls[0], "", oapp.ClientSecret, refreshToken, "", "")
+	}
+
+	assertRefreshFails := func(t *testing.T, oapp *model.OAuthApp, refreshToken string) {
+		t.Helper()
+		refreshResp, appErr := refresh(oapp, refreshToken)
+		assert.NotNil(t, appErr, "refresh token grant must fail")
+		assert.Nil(t, refreshResp)
+	}
+
+	accessDataForUser := func(t *testing.T, userID string, apps ...*model.OAuthApp) []*model.AccessData {
+		t.Helper()
+		var all []*model.AccessData
+		for _, oapp := range apps {
+			accessData, err := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(userID, oapp.Id)
+			require.NoError(t, err)
+			all = append(all, accessData...)
+		}
+		return all
+	}
+
+	t.Run("revoke all sessions with a live and a cleaned up OAuth session", func(t *testing.T) {
+		user := th.CreateUser(t)
+		liveApp, cleanedApp := createApp(t), createApp(t)
+		liveTokens := getTokens(t, liveApp, user)
+		cleanedTokens := getTokens(t, cleanedApp, user)
+		cleanUpSession(t, user, cleanedTokens.AccessToken)
+
+		require.Nil(t, th.App.RevokeAllSessions(th.Context, user.Id))
+
+		assert.Empty(t, accessDataForUser(t, user.Id, liveApp, cleanedApp))
+		_, appErr := th.App.GetSession(liveTokens.AccessToken)
+		assert.NotNil(t, appErr, "live OAuth session must be revoked")
+		assertRefreshFails(t, liveApp, liveTokens.RefreshToken)
+		assertRefreshFails(t, cleanedApp, cleanedTokens.RefreshToken)
+	})
+
+	t.Run("revoke all sessions without OAuth data", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id})
+		require.Nil(t, appErr)
+
+		require.Nil(t, th.App.RevokeAllSessions(th.Context, user.Id))
+
+		sessions, appErr := th.App.GetSessions(th.Context, user.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, sessions)
+	})
+
+	t.Run("password changed by an admin for another user", func(t *testing.T) {
+		user := th.CreateUser(t)
+		oapp := createApp(t)
+		tokens := getTokens(t, oapp, user)
+		cleanUpSession(t, user, tokens.AccessToken)
+
+		adminCtx := th.Context.WithSession(&model.Session{Id: model.NewId(), UserId: th.SystemAdminUser.Id})
+		require.Nil(t, th.App.UpdatePasswordByUserIdSendEmail(adminCtx, user.Id, model.NewTestPassword(), "admin"))
+
+		assert.Empty(t, accessDataForUser(t, user.Id, oapp))
+		assertRefreshFails(t, oapp, tokens.RefreshToken)
+	})
+
+	t.Run("password reset from recovery token", func(t *testing.T) {
+		user := th.CreateUser(t)
+		oapp := createApp(t)
+		tokens := getTokens(t, oapp, user)
+		cleanUpSession(t, user, tokens.AccessToken)
+
+		recoveryToken, appErr := th.App.CreatePasswordRecoveryToken(th.Context, user.Id, user.Email)
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.ResetPasswordFromToken(th.Context, recoveryToken.Token, model.NewTestPassword()))
+
+		assert.Empty(t, accessDataForUser(t, user.Id, oapp))
+		assertRefreshFails(t, oapp, tokens.RefreshToken)
+	})
+
+	t.Run("password changed from the user's own OAuth session", func(t *testing.T) {
+		user := th.CreateUser(t)
+		currentApp, cleanedApp := createApp(t), createApp(t)
+		currentTokens := getTokens(t, currentApp, user)
+		cleanedTokens := getTokens(t, cleanedApp, user)
+		cleanUpSession(t, user, cleanedTokens.AccessToken)
+
+		currentSession, appErr := th.App.GetSession(currentTokens.AccessToken)
+		require.Nil(t, appErr)
+		require.True(t, currentSession.IsOAuth)
+
+		require.Nil(t, th.App.UpdatePassword(th.Context.WithSession(currentSession), user, model.NewTestPassword()))
+
+		_, appErr = th.App.GetSession(currentTokens.AccessToken)
+		assert.Nil(t, appErr, "the current OAuth session must be retained")
+
+		remaining := accessDataForUser(t, user.Id, currentApp, cleanedApp)
+		require.Len(t, remaining, 1)
+		assert.Equal(t, currentTokens.AccessToken, remaining[0].Token)
+		assert.Empty(t, remaining[0].RefreshToken)
+		assertRefreshFails(t, currentApp, currentTokens.RefreshToken)
+		assertRefreshFails(t, cleanedApp, cleanedTokens.RefreshToken)
+
+		require.Nil(t, th.App.RevokeAllSessions(th.Context, user.Id))
+		assert.Empty(t, accessDataForUser(t, user.Id, currentApp, cleanedApp))
+		_, appErr = th.App.GetSession(currentTokens.AccessToken)
+		assert.NotNil(t, appErr, "the retained OAuth session must still be revocable")
+	})
+
+	t.Run("password change keeps OAuth data when sessions are not terminated", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.TerminateSessionsOnPasswordChange = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true })
+
+		user := th.CreateUser(t)
+		oapp := createApp(t)
+		tokens := getTokens(t, oapp, user)
+		cleanUpSession(t, user, tokens.AccessToken)
+
+		require.Nil(t, th.App.UpdatePassword(th.Context, user, model.NewTestPassword()))
+
+		assert.Len(t, accessDataForUser(t, user.Id, oapp), 1)
+		refreshResp, appErr := refresh(oapp, tokens.RefreshToken)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, refreshResp.AccessToken)
+	})
+}
+
+func TestOAuthRefreshTokenGrantRejectsEmptyRefreshTokenAfterPasswordChange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true
+	})
+
+	oapp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Name:         "EmptyRefreshToken_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	})
+	require.Nil(t, appErr)
+	uri, err := url.Parse(redirectURL)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "", "")
+	require.Nil(t, appErr)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	currentSession, appErr := th.App.GetSession(tokenResp.AccessToken)
+	require.Nil(t, appErr)
+	require.True(t, currentSession.IsOAuth)
+
+	require.Nil(t, th.App.UpdatePassword(th.Context.WithSession(currentSession), user, model.NewTestPassword()))
+
+	accessData, err := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, err)
+	require.Len(t, accessData, 1)
+	require.Empty(t, accessData[0].RefreshToken)
+
+	refreshResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.RefreshTokenGrantType, oapp.CallbackUrls[0], "", oapp.ClientSecret, "", "", "")
+	assert.NotNil(t, appErr, "an empty refresh token must never be accepted")
+	assert.Nil(t, refreshResp)
+}
+
+func TestOAuthAuthorizationCodeAfterSessionsEnded(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true
+	})
+
+	oapp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Name:         "CodeSessionsEnded_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	testCases := []struct {
+		name         string
+		endAllAccess func(t *testing.T, user *model.User)
+	}{
+		{
+			name: "revoke all sessions",
+			endAllAccess: func(t *testing.T, user *model.User) {
+				require.Nil(t, th.App.RevokeAllSessions(th.Context, user.Id))
+			},
+		},
+		{
+			name: "password change",
+			endAllAccess: func(t *testing.T, user *model.User) {
+				require.Nil(t, th.App.UpdatePassword(th.Context, user, model.NewTestPassword()))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			user := th.CreateUser(t)
+
+			redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, &model.AuthorizeRequest{
+				ResponseType: model.AuthCodeResponseType,
+				ClientId:     oapp.Id,
+				RedirectURI:  oapp.CallbackUrls[0],
+				Scope:        "user",
+				State:        "test_state",
+			})
+			require.Nil(t, appErr)
+			uri, err := url.Parse(redirectURL)
+			require.NoError(t, err)
+			code := uri.Query().Get("code")
+			require.NotEmpty(t, code)
+
+			tc.endAllAccess(t, user)
+
+			tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "", "")
+			assert.NotNil(t, appErr, "an authorization code issued before all sessions ended must not mint a new session")
+			assert.Nil(t, tokenResp)
+		})
+	}
+}
+
 func TestOAuthImplicitGrantRejectsDeactivatedUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

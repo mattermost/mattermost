@@ -331,6 +331,29 @@ func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	return nil
 }
 
+func (as SqlOAuthStore) RemoveAuthDataByUserExceptToken(userId, retainedToken string) (err error) {
+	transaction, err := as.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	if _, err := transaction.Exec("DELETE FROM OAuthAccessData WHERE UserId = ? AND Token != ?", userId, retainedToken); err != nil {
+		return errors.Wrapf(err, "failed to delete OAuthAccessData with userId=%s", userId)
+	}
+	if _, err := transaction.Exec("UPDATE OAuthAccessData SET RefreshToken = '' WHERE UserId = ? AND Token = ?", userId, retainedToken); err != nil {
+		return errors.Wrapf(err, "failed to clear OAuthAccessData refresh token with userId=%s", userId)
+	}
+	if _, err := transaction.Exec("DELETE FROM OAuthAuthData WHERE UserId = ?", userId); err != nil {
+		return errors.Wrapf(err, "failed to delete AuthData with userId=%s", userId)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+	return nil
+}
+
 func (as SqlOAuthStore) deleteApp(transaction *sqlxTxWrapper, clientId string) error {
 	if _, err := transaction.Exec("DELETE FROM OAuthApps WHERE Id = ?", clientId); err != nil {
 		return errors.Wrapf(err, "failed to delete OAuthApp with id=%s", clientId)

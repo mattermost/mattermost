@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -1201,4 +1202,58 @@ func TestRegisterOAuthClientAudit(t *testing.T) {
 		require.NotNil(t, entry, "should find a registerOAuthClient audit entry")
 		assert.Equal(t, "fail", entry.Status)
 	})
+}
+
+func TestOAuthRefreshTokenAfterRevokeAllSessionsWithCleanedUpSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	rapp, _, err := th.SystemAdminClient.CreateOAuthApp(context.Background(), oapp)
+	require.NoError(t, err)
+	require.NotEmpty(t, rapp.ClientSecret)
+
+	redirect, _, err := th.Client.AuthorizeOAuthApp(context.Background(), &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     rapp.Id,
+		RedirectURI:  rapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	})
+	require.NoError(t, err)
+	rurl, err := url.Parse(redirect)
+	require.NoError(t, err)
+
+	oauthClient := th.CreateClient()
+	tokenResp, _, err := oauthClient.GetOAuthAccessToken(context.Background(), url.Values{
+		"grant_type":    []string{model.AccessTokenGrantType},
+		"client_id":     []string{rapp.Id},
+		"client_secret": []string{rapp.ClientSecret},
+		"code":          []string{rurl.Query().Get("code")},
+		"redirect_uri":  []string{rapp.CallbackUrls[0]},
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	require.NoError(t, th.App.Srv().Store().Session().Remove(tokenResp.AccessToken))
+	th.App.ClearSessionCacheForUser(th.BasicUser.Id)
+
+	_, err = th.Client.RevokeAllSessions(context.Background(), th.BasicUser.Id)
+	require.NoError(t, err)
+
+	accessData, err := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(th.BasicUser.Id, rapp.Id)
+	require.NoError(t, err)
+	assert.Empty(t, accessData, "no OAuth access data may remain for the user")
+
+	refreshResp, _, err := oauthClient.GetOAuthAccessToken(context.Background(), url.Values{
+		"grant_type":    []string{model.RefreshTokenGrantType},
+		"client_id":     []string{rapp.Id},
+		"client_secret": []string{rapp.ClientSecret},
+		"refresh_token": []string{tokenResp.RefreshToken},
+		"redirect_uri":  []string{rapp.CallbackUrls[0]},
+	})
+	assert.Error(t, err, "refresh token grant must fail after all sessions were revoked")
+	assert.Nil(t, refreshResp)
 }

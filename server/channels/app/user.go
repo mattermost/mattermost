@@ -1804,8 +1804,12 @@ func (a *App) revokeSessionsForPasswordUpdate(rctx request.CTX, user *model.User
 	if *a.Config().ServiceSettings.TerminateSessionsOnPasswordChange {
 		// Get currently active sessions if request is user-initiated to retain it
 		currentSession := ""
+		currentSessionToken := ""
 		if rctx.Session() != nil && rctx.Session().UserId == user.Id {
 			currentSession = rctx.Session().Id
+			if rctx.Session().IsOAuth {
+				currentSessionToken = rctx.Session().Token
+			}
 		}
 
 		sessions, err := a.GetSessions(rctx, user.Id)
@@ -1823,6 +1827,10 @@ func (a *App) revokeSessionsForPasswordUpdate(rctx request.CTX, user *model.User
 			if err != nil {
 				return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+		}
+
+		if err := a.Srv().Store().OAuth().RemoveAuthDataByUserExceptToken(user.Id, currentSessionToken); err != nil {
+			return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 

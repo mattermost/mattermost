@@ -399,6 +399,10 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 		return nil, err
 	}
 
+	if refreshToken == "" {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
+	}
+
 	accessData, nErr := a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
