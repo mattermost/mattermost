@@ -131,9 +131,7 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	displayname := margs["displayname"]
-	if displayname == "" {
-		displayname = name
-	}
+	displayname = cmp.Or(displayname, name)
 
 	url := a.GetSiteURL()
 	if url == "" {
@@ -170,9 +168,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	displayname := margs["displayname"]
-	if displayname == "" {
-		displayname = name
-	}
+	displayname = cmp.Or(displayname, name)
 
 	blob := margs["invite"]
 	if blob == "" {

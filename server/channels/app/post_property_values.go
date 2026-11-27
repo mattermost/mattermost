@@ -83,7 +83,7 @@ func (a *App) hydrateChannelPropertyValues(rctx request.CTX, channelID string, p
 		return appErr
 	}
 
-	// Over the bound means the per-target cap was bypassed and the page may be truncated, so the
+	// Over the bound means a field cap was bypassed and the page may be truncated, so the
 	// value set below would be silently incomplete. Report unavailable rather than partial.
 	if len(fields) > model.PostAttributesMaxApplicableFields {
 		return model.NewAppError("hydratePropertyValues", "app.post.property_values.field_bound_exceeded.app_error",
@@ -179,7 +179,7 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		return model.NewAppError("PreparePostPropertyValuesForCreate", "api.post.create_post.invalid_attribute.app_error", nil, detail, http.StatusBadRequest)
 	}
 
-	group, appErr := a.GetPropertyGroup(rctx, model.PostAttributesPropertyGroupName)
+	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, nil, appErr
 	}
@@ -190,14 +190,14 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
 		ChannelID:   channel.Id,
 		TeamID:      channel.TeamId,
-		PerPage:     model.PostAttributesMaxApplicableFields + 1,
+		PerPage:     model.PostAttributesMaxFields + 1,
 	})
 	if appErr != nil {
 		return nil, nil, appErr
 	}
 
-	// The per-target cap keeps a post's applicable fields within the page. Were it ever
-	// bypassed, a field past PostAttributesMaxApplicableFields would be refused as unknown.
+	// The post field cap keeps a post's applicable fields within the page. Were it ever
+	// bypassed, a field past PostAttributesMaxFields would be refused as unknown.
 	fieldByID := make(map[string]*model.PropertyField, len(fields))
 	for _, field := range fields {
 		fieldByID[field.ID] = field
@@ -231,10 +231,16 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		if len(bytes.TrimSpace(item.Value)) == 0 {
 			return nil, nil, invalid("missing value")
 		}
-		// The property hook runs the same check when the values are stored, but by then the
-		// post exists and a failure removes it again, attachments included.
+		// The property hook runs the same checks when the values are stored, but by then the
+		// post exists and a failure removes it again. Its files are attached only after the
+		// values are written, so they survive unattached and a retry can reuse them.
 		if err := model.ValidatePropertyValueForFieldType(field.Type, item.Value); err != nil {
 			return nil, nil, invalid("value does not fit the field type")
+		}
+		if field.Type == model.PropertyFieldTypeText {
+			if err := model.ValidatePropertyTextValue(field, item.Value); err != nil {
+				return nil, nil, invalid("text value is not valid for the field")
+			}
 		}
 
 		seen[item.FieldID] = true
@@ -260,18 +266,41 @@ func hasServerOwnedFields(v *model.PropertyValue) bool {
 // CanSetPostPropertyValueOnCreate reports whether userID may set field's value on a post they
 // are about to create in channel.
 //
-// A nil or unrecognised level denies, matching the property API.
+// The value.write tier is read from the field's Permissions, and a user or role grant for
+// value.write admits the write whatever the tier says, as it does for a value written after the
+// post exists. A field without Permissions falls back to PermissionValues. A nil or
+// unrecognised level denies, matching the property API.
 //
-// The property access-control hook evaluates the write again after the post is saved, so this
-// helper's job is to give the caller an early refusal before the post exists. Where the two
-// disagree, for example a field whose Permissions grant a value write to a human this helper
-// denies, this helper's answer wins for callers going through post creation.
+// The tier is resolved here rather than through the property API's evaluation because that
+// loads the post to resolve creator and admin, and the post does not exist yet. The property
+// access-control hook evaluates the write again after the post is saved, so this helper's job
+// is to give the caller an early refusal before the post exists.
 func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, field *model.PropertyField, channel *model.Channel) bool {
-	if field == nil || field.PermissionValues == nil || channel == nil {
+	if field == nil || channel == nil {
 		return false
 	}
 
-	switch *field.PermissionValues {
+	var tier model.PermissionLevel
+	switch {
+	case field.Permissions != nil:
+		tier = field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
+	case field.PermissionValues != nil:
+		tier = *field.PermissionValues
+	default:
+		return false
+	}
+
+	if a.postCreateTierAllows(rctx, userID, tier, channel) {
+		return true
+	}
+
+	return a.propertyGrantForHuman(rctx, userID, field, model.PropertyActionValueWrite) != nil
+}
+
+// postCreateTierAllows reports whether userID satisfies a value.write tier on a post they are
+// about to create in channel.
+func (a *App) postCreateTierAllows(rctx request.CTX, userID string, tier model.PermissionLevel, channel *model.Channel) bool {
+	switch tier {
 	case model.PermissionLevelMember:
 		ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannel)
 		return ok

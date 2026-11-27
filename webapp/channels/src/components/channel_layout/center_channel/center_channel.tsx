@@ -36,6 +36,7 @@ const Recaps = makeAsyncComponent('Recaps', lazy(() => import('components/recaps
         </div>
     ),
 );
+const BoardsEmptyState = makeAsyncComponent('BoardsEmptyState', lazy(() => import('components/boards_empty_state')));
 const PermalinkView = makeAsyncComponent('PermalinkView', lazy(() => import('components/permalink_view')));
 const PlaybookRunner = makeAsyncComponent('PlaybookRunner', lazy(() => import('components/channel_layout/playbook_runner')));
 
@@ -110,6 +111,10 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                                 component={GlobalThreads}
                             />
                         ) : null}
+                        <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/boards`}
+                            component={BoardsEmptyState}
+                        />
                         <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/recaps`}
                             component={Recaps}

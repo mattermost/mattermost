@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"maps"
@@ -291,10 +292,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 		text = string(translation.ObjectJSON)
 	}
 
-	objectType := translation.ObjectType
-	if objectType == "" {
-		objectType = model.TranslationObjectTypePost
-	}
+	objectType := cmp.Or(translation.ObjectType, model.TranslationObjectTypePost)
 
 	var channelID *string
 	if translation.ChannelID != "" {
@@ -381,10 +379,7 @@ func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationSta
 		}
 
 		// Default objectType to "post" if not set
-		objectType := t.ObjectType
-		if objectType == "" {
-			objectType = model.TranslationObjectTypePost
-		}
+		objectType := cmp.Or(t.ObjectType, model.TranslationObjectTypePost)
 
 		modelT := &model.Translation{
 			ObjectID:   t.ObjectID,
@@ -467,10 +462,7 @@ func (s *SqlAutoTranslationStore) GetTranslationsSinceForChannel(channelID, dstL
 			}
 		}
 
-		objectType := t.ObjectType
-		if objectType == "" {
-			objectType = model.TranslationObjectTypePost
-		}
+		objectType := cmp.Or(t.ObjectType, model.TranslationObjectTypePost)
 
 		modelT := &model.Translation{
 			ObjectID:   t.ObjectID,

@@ -130,16 +130,13 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	oldTeam, nErr := a.Srv().Store().Team().Update(oldTeam)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return nil, model.NewAppError("UpdateTeamScheme", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("UpdateTeamScheme", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("UpdateTeamScheme", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	nErr = a.ClearTeamMembersCache(team.Id)
@@ -172,16 +169,13 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 
 	oldTeam, nErr := a.Srv().Store().Team().Update(oldTeam)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("UpdateTeamPrivacy", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("UpdateTeamPrivacy", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return appErr
+		}
+		return model.NewAppError("UpdateTeamPrivacy", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if err := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); err != nil {
@@ -242,16 +236,13 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 
 	updatedTeam, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("RegenerateTeamInviteId", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if err := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); err != nil {
@@ -899,13 +890,10 @@ func (a *App) TeamAccessControlled(rctx request.CTX, teamID string) (bool, *mode
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store().Team().GetByName(name)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTeamByName", "app.team.get_by_name.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTeamByName", "app.team.get_by_name.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTeamByName", "app.team.get_by_name.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	return team, nil
@@ -914,13 +902,10 @@ func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store().Team().GetByInviteId(inviteId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return team, nil
@@ -1021,13 +1006,10 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTeamMember", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTeamMember", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTeamMember", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return teamMember, nil
@@ -1666,7 +1648,7 @@ func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite 
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
 					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+						if !a.Config().EmailSettings.IsSMTPConfigured() {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
@@ -1807,7 +1789,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 			case errors.Is(eErr, email.SendMailError):
 				for i := range inviteListWithErrors {
 					if inviteListWithErrors[i].Error == nil {
-						if *a.Config().EmailSettings.SMTPServer == model.EmailSMTPDefaultServer && *a.Config().EmailSettings.SMTPPort == model.EmailSMTPDefaultPort {
+						if !a.Config().EmailSettings.IsSMTPConfigured() {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email_with_defaults.app_error", nil, "", http.StatusInternalServerError)
 						} else {
 							inviteListWithErrors[i].Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.unable_to_send_email.app_error", nil, "", http.StatusInternalServerError)
@@ -2022,16 +2004,13 @@ func (a *App) PermanentDeleteTeamId(rctx request.CTX, teamID string) *model.AppE
 func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	if _, err := a.Srv().Store().Team().Update(team); err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return model.NewAppError("PermanentDeleteTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("PermanentDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
+			return appErr
+		}
+		return model.NewAppError("PermanentDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if channels, err := a.Srv().Store().Channel().GetTeamChannels(team.Id); err != nil {
@@ -2092,16 +2071,13 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	team, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("SoftDeleteTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("SoftDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return appErr
+		}
+		return model.NewAppError("SoftDeleteTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team, "archive")
@@ -2181,16 +2157,13 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 	team.DeleteAt = 0
 	team, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("RestoreTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("RestoreTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return appErr
+		}
+		return model.NewAppError("RestoreTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if err := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); err != nil {

@@ -4,14 +4,30 @@
 
     z-index: 17;
     display: flex;
-    overflow: auto;
+    overflow: hidden;
     width: 72px;
     flex-direction: column;
     align-items: center;
-    padding: 12px 0;
+
+    // Half of the top padding sits inside the scrolling part, so the team's badge isn't clipped.
+    padding: 6px 0 12px;
     gap: 4px;
     grid-area: product-rail;
-    scrollbar-width: none;
+
+    // The team, the items and More scroll when the rail runs out of room; the bottom group (the team
+    // sidebar's plugin icons and its show button) stays in view below them.
+    &__scroll {
+        display: flex;
+        width: 100%;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 6px;
+        gap: 4px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
 
     // Scoped under .app__body to win over the theme's link colors (.app__body a and its :hover).
     .app__body &__item,
@@ -104,7 +120,7 @@
         box-shadow: 0 0 0 2px var(--product-rail-bg);
         color: var(--mention-color);
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 600;
         line-height: 16px;
         text-align: center;
 
@@ -159,6 +175,12 @@
             top: -3px;
             right: -3px;
         }
+
+        .ProductRail__badge {
+            z-index: 2;
+            top: -6px;
+            right: -8px;
+        }
     }
 
     &__teamStackCard {
@@ -181,6 +203,97 @@
         }
     }
 
+    // The draggable items. Drag and drop measures margins, not gaps, so they're spaced with margins;
+    // the list's negative margin keeps the rail's usual gap before the More item.
+    &__items {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: -4px;
+    }
+
+    // Each item sits in a wrapper that is dragged, and anchors its right-click menu beside it.
+    &__itemWrapper {
+        position: relative;
+        display: flex;
+        margin-bottom: 4px;
+
+        &:focus-visible {
+            outline: none;
+        }
+
+        &--dragging .ProductRail__icon {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+            box-shadow: var(--elevation-3);
+        }
+    }
+
+    &__itemMenuAnchor {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    // With the team sidebar hidden, the bottom of the rail takes over the bottom of the team sidebar:
+    // its plugins' icons, above the button that brings it back.
+    &__bottom {
+        display: flex;
+        width: 100%;
+        flex: 0 0 auto;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__plugins {
+        width: 100%;
+        padding: 16px 0 6px;
+        text-align: center;
+
+        &:empty {
+            display: none;
+        }
+
+        .fa {
+            color: var(--sidebar-header-text-color);
+            opacity: 0.73;
+            transition: all 0.15s ease;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    &__showTeamSidebar {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-m);
+        background: none;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+
+        svg {
+            fill: currentColor;
+        }
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+
+        &:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+    }
 
     @media screen and (max-width: 768px) {
         display: none;
@@ -200,10 +313,13 @@
     height: 18px;
     padding: 0 5px;
     border-radius: 9px;
-    background: var(--mention-bg);
-    color: var(--mention-color);
+
+    // Menus sit on the center channel's colors, where the sidebar's mention colors can vanish (white
+    // on white in dark sidebar themes), so their badges take the theme's primary button colors.
+    background: var(--button-bg);
+    color: var(--button-color);
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 18px;
     text-align: center;
 
@@ -213,11 +329,60 @@
     }
 }
 
+.ProductRail__menuIcon {
+    display: flex;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+
+    svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    img {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.ProductRail__moreMenu .MuiMenuItem-root {
+    min-height: 40px;
+
+    > .trailing-elements {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
 .ProductRail__menuDot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--center-channel-color);
+    background: var(--button-bg);
+}
+
+// A team's activity sits on its avatar's corner in the team menu, ringed in the menu's color.
+.ProductRail__teamAvatar > .ProductRail__menuBadge,
+.ProductRail__teamAvatar > .ProductRail__menuDot {
+    position: absolute;
+    box-shadow: 0 0 0 2px var(--center-channel-bg);
+    text-transform: none;
+}
+
+.ProductRail__teamAvatar > .ProductRail__menuBadge {
+    top: -6px;
+    right: -10px;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
+}
+
+.ProductRail__teamAvatar > .ProductRail__menuDot {
+    top: -2px;
+    right: -2px;
 }
 
 .ProductRail__teamAvatar {
@@ -260,6 +425,12 @@
     margin-inline-start: 4px;
 }
 
+// The More menu and the items' right-click menus open beside the rail rather than over its edge.
+.MuiPopover-root.menu_menuStyled .MuiPaper-root:has(#productRailMoreMenu, [id^='productRailItemMenu-']) {
+    margin-block-start: 0;
+    margin-inline-start: 8px;
+}
+
 // Teams lead the menu, so their rows are taller and their names bolder than the action below
 // them. Prefixed with .MuiPopover-root to outrank the menu item's own rules (its leading slot is
 // fixed at 18px, and its labels at 14px).
@@ -283,25 +454,6 @@
 // The rail is hidden at mobile widths (though still in the page), so the layout it brings applies
 // only above them.
 @media screen and (min-width: 769px) {
-    // With the rail on, the thread list stands in for the channel sidebar in Threads, so it takes the
-    // sidebar's colors. Remapping the center channel variables (and the borders built from them, which
-    // resolve where they're declared) recolors everything inside to match.
-    #root:has(.ProductRail) .GlobalThreads .ThreadList {
-        --center-channel-bg: var(--sidebar-bg);
-        --center-channel-bg-rgb: var(--sidebar-bg-rgb);
-        --center-channel-color: var(--sidebar-text);
-        --center-channel-color-rgb: var(--sidebar-text-rgb);
-
-        // Derived from the center channel color at the root, and read by the channel tags.
-        --semantic-color-general: var(--sidebar-text-rgb);
-        --border-default: solid 1px rgba(var(--sidebar-text-rgb), 0.12);
-        --border-light: solid 1px rgba(var(--sidebar-text-rgb), 0.08);
-        --border-dark: solid 1px rgba(var(--sidebar-text-rgb), 0.16);
-
-        background: var(--sidebar-bg);
-        color: var(--sidebar-text);
-    }
-
     // With the team sidebar beside it, the rail joins the main panel as its first column: the sidebar's
     // background, the panel's border and rounded corners on the outside, and a divider before the
     // channel list. Without the team sidebar, it stays on the header background.
@@ -320,54 +472,6 @@
             border-left: none;
             border-bottom-left-radius: 0;
             border-top-left-radius: 0;
-        }
-    }
-
-    // In Threads the thread list takes the channel sidebar's place against the panel's left edge, so,
-    // like that sidebar, it has square corners there.
-    body.app__body #root:has(.ProductRail) #channel_view:has(.GlobalThreads) {
-        &,
-        .GlobalThreads {
-            border-bottom-left-radius: 0;
-            border-top-left-radius: 0;
-        }
-    }
-
-    // Beside the thread list, the thread pane is rounded like the center channel beside the channel
-    // sidebar, with the sidebar's colour showing behind its corners.
-    body.app__body #root:has(.ProductRail) .GlobalThreads {
-        // A fixed-width thread list, like a sidebar, at every desktop width.
-        --list: 368px;
-
-        background: var(--sidebar-bg);
-
-        // With no thread list beside it (the empty and loading states fill the whole view), there is no
-        // sidebar to show through, so the view keeps the center channel's colours.
-        &:not(:has(.ThreadList)) {
-            background: var(--center-channel-bg);
-        }
-
-        .ThreadPane,
-        .ThreadList + .no-results__holder {
-            overflow: hidden;
-            border-radius: var(--radius-l) 0 0 var(--radius-l);
-            background: var(--center-channel-bg);
-        }
-
-        // The open thread is marked in the sidebar's colours, so it shows on the list's background.
-        .ThreadItem.is-selected {
-            background: rgba(var(--sidebar-text-rgb), 0.1);
-
-            &:hover,
-            &:focus {
-                background: rgba(var(--sidebar-text-rgb), 0.12);
-            }
-        }
-
-        // The thread list's tabs take the sidebar's colours, so the active one reads on its background.
-        .ThreadList .Header .Button.is-active {
-            background: rgba(var(--sidebar-text-rgb), 0.08);
-            color: var(--sidebar-text);
         }
     }
 }

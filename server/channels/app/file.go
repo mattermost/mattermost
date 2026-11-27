@@ -6,6 +6,7 @@ package app
 import (
 	"archive/zip"
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
@@ -621,15 +622,9 @@ func (a *App) UploadFileForUserAndTeam(rctx request.CTX, data []byte, channelID 
 			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
-	userId := rawUserId
-	if userId == "" {
-		userId = "nouser"
-	}
+	userId := cmp.Or(rawUserId, "nouser")
 
-	teamId := rawTeamId
-	if teamId == "" {
-		teamId = "noteam"
-	}
+	teamId := cmp.Or(rawTeamId, "noteam")
 
 	info, _, appError := a.DoUploadFileExpectModification(rctx, time.Now(), teamId, channelID, userId, filename, data, true)
 	if appError != nil {

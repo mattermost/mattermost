@@ -905,6 +905,36 @@ func (_m *PropertyFieldStore) GetOptionParentEdges(fieldID string, childOptionID
 	return r0, r1
 }
 
+// GetOptionRanks provides a mock function with given fields: field, optionIDs
+func (_m *PropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	ret := _m.Called(field, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOptionRanks")
+	}
+
+	var r0 map[string]int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) (map[string]int64, error)); ok {
+		return rf(field, optionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, []string) map[string]int64); ok {
+		r0 = rf(field, optionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]int64)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
+		r1 = rf(field, optionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetOptionsByID provides a mock function with given fields: field, optionIDs
 func (_m *PropertyFieldStore) GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
 	ret := _m.Called(field, optionIDs)

@@ -5,6 +5,7 @@ package mail
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -26,14 +27,8 @@ import (
 const embeddedFileMinSize = 1500
 
 func getConfig() *SMTPConfig {
-	server := os.Getenv("MM_EMAILSETTINGS_SMTPSERVER")
-	if server == "" {
-		server = "localhost"
-	}
-	port := os.Getenv("MM_EMAILSETTINGS_SMTPPORT")
-	if port == "" {
-		port = "10025"
-	}
+	server := cmp.Or(os.Getenv("MM_EMAILSETTINGS_SMTPSERVER"), "localhost")
+	port := cmp.Or(os.Getenv("MM_EMAILSETTINGS_SMTPPORT"), "10025")
 
 	return &SMTPConfig{
 		ConnectionSecurity:                "",

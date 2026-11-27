@@ -525,7 +525,7 @@ tags:
   - name: Delivery Tracking
     description: Endpoints for configuring post delivery audit logging.
   - name: health
-    description: Endpoints for getting and muting the findings of the server's built-in health checks.
+    description: Endpoints for getting, exporting and muting the findings of the server's built-in health checks.
 servers:
   - url: "{your-mattermost-url}"
     variables:

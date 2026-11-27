@@ -14,18 +14,16 @@ import (
 const auditLogOffMinUsers = 5000
 
 var auditLogOff = healthcheck.Rule{
-	Code:     "AUDIT_LOG_OFF",
-	Area:     model.AreaCompliance,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.audit_log_off.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.audit_log_off.remediation"),
-		ConsolePath:   "/admin_console/compliance/audit_logging",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "ExperimentalAuditSettings.FileEnabled",
-	Eval:       healthcheck.Single(evalAuditLogOff),
+	Code:          "AUDIT_LOG_OFF",
+	Area:          model.AreaCompliance,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.audit_log_off.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.audit_log_off.remediation"),
+	ConsolePath:   "/admin_console/compliance/audit_logging",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       "ExperimentalAuditSettings.FileEnabled",
+	Eval:          healthcheck.Single(evalAuditLogOff),
 }
 
 func evalAuditLogOff(s *healthcheck.Snapshot) healthcheck.Result {

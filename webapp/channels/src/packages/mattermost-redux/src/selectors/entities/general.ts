@@ -23,8 +23,16 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
+// Mirrors the server's model.MinimumEnterpriseLicense and utils/license_utils
+// isMinimumEnterpriseLicense: the SKU must be Enterprise, Enterprise Advanced
+// or Entry. Professional and a licence without a SKU are refused.
+function hasMinimumEnterpriseLicense(state: GlobalState): boolean {
+    const sku = getLicense(state)?.SkuShortName;
+    return sku === General.SKUEnterprise || sku === General.SKUEnterpriseAdvanced || sku === General.SKUEntry;
+}
+
 export function isPostAttributesEnabled(state: GlobalState): boolean {
-    return getConfig(state).FeatureFlagPostAttributes === 'true';
+    return getConfig(state).FeatureFlagPostAttributes === 'true' && hasMinimumEnterpriseLicense(state);
 }
 
 export function isProductRailEnabled(state: GlobalState): boolean {

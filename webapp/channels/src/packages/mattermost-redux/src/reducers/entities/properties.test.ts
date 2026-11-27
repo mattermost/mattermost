@@ -4,7 +4,7 @@
 import type {Post} from '@mattermost/types/posts';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {PostTypes, PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
+import {GeneralTypes, PostTypes, PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import propertiesReducer from './properties';
 
@@ -907,6 +907,48 @@ describe('propertiesReducer', () => {
             });
 
             expect(state.values).toBe(seeded.values);
+        });
+    });
+
+    describe('loadedValueTargetsReducer', () => {
+        const loaded = (state: ReturnType<typeof propertiesReducer>, targetId: string) => propertiesReducer(state, {
+            type: PropertyTypes.PROPERTY_VALUES_LOADED_FOR_TARGET,
+            data: {targetId},
+        });
+
+        test('PROPERTY_VALUES_LOADED_FOR_TARGET marks the target even though no values were received', () => {
+            const state = loaded(initialState, 'c1');
+
+            expect(state.loadedValueTargets).toEqual({c1: true});
+            expect(state.values.byTargetId.c1).toBeUndefined();
+        });
+
+        test('marking an already marked target returns the same state', () => {
+            const marked = loaded(initialState, 'c1');
+
+            expect(loaded(marked, 'c1').loadedValueTargets).toBe(marked.loadedValueTargets);
+        });
+
+        test('PROPERTY_VALUES_DELETED_FOR_TARGET removes only that target', () => {
+            const marked = loaded(loaded(initialState, 'c1'), 'c2');
+
+            const state = propertiesReducer(marked, {
+                type: PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET,
+                data: {targetId: 'c1'},
+            });
+
+            expect(state.loadedValueTargets).toEqual({c2: true});
+        });
+
+        test.each([
+            UserTypes.LOGOUT_SUCCESS,
+            GeneralTypes.WEBSOCKET_SUCCESS,
+        ])('%s clears every marker', (type) => {
+            const marked = loaded(loaded(initialState, 'c1'), 'c2');
+
+            const state = propertiesReducer(marked, {type});
+
+            expect(state.loadedValueTargets).toEqual({});
         });
     });
 });

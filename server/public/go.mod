@@ -16,7 +16,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
-	github.com/mattermost/logr/v2 v2.0.25
+	github.com/mattermost/logr/v2 v2.0.26
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2
 	github.com/nicksnyder/go-i18n/v2 v2.7.0
@@ -105,7 +105,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261026165753-2ffab32bce7e // indirect
 	google.golang.org/grpc v1.85.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 

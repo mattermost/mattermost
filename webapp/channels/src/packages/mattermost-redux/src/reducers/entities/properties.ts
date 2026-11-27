@@ -4,10 +4,10 @@
 import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
-import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValue, PropertyValuesState} from '@mattermost/types/properties';
+import type {LoadedValueTargetsState, PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValue, PropertyValuesState} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {PostTypes, PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
+import {GeneralTypes, PostTypes, PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
 import {isPSAv1PropertyField} from 'mattermost-redux/utils/property_utils';
 
 const initialFieldsState: PropertyFieldsState = {
@@ -377,6 +377,42 @@ function valuesReducer(
     }
 }
 
+// Sibling of valuesReducer rather than a key inside it: every valuesReducer case
+// rebuilds {byTargetId, byFieldId} and would drop an extra key.
+function loadedValueTargetsReducer(
+    state: LoadedValueTargetsState = {},
+    action: MMReduxAction,
+): LoadedValueTargetsState {
+    switch (action.type) {
+    case PropertyTypes.PROPERTY_VALUES_LOADED_FOR_TARGET: {
+        const {targetId} = action.data;
+        if (state[targetId]) {
+            return state;
+        }
+        return {...state, [targetId]: true};
+    }
+
+    case PropertyTypes.PROPERTY_VALUES_DELETED_FOR_TARGET: {
+        const {targetId} = action.data;
+        if (!state[targetId]) {
+            return state;
+        }
+        const next = {...state};
+        Reflect.deleteProperty(next, targetId);
+        return next;
+    }
+
+    // Values can change while the socket is down, so a reconnect forgets what
+    // was loaded and lets the next reader fetch again.
+    case UserTypes.LOGOUT_SUCCESS:
+    case GeneralTypes.WEBSOCKET_SUCCESS:
+        return Object.keys(state).length === 0 ? state : {};
+
+    default:
+        return state;
+    }
+}
+
 function groupsReducer(
     state: PropertyGroupsState = initialGroupsState,
     action: MMReduxAction,
@@ -401,5 +437,6 @@ function groupsReducer(
 export default combineReducers({
     fields: fieldsReducer,
     values: valuesReducer,
+    loadedValueTargets: loadedValueTargetsReducer,
     groups: groupsReducer,
 });

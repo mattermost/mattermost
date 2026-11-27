@@ -684,7 +684,7 @@
                     top: 5px;
                     right: 13px;
                     color: rgba(var(--sys-sidebar-text-rgb), 0.56);
-                    font-weight: bold;
+                    font-weight: 600;
                 }
             }
         }
@@ -1040,7 +1040,7 @@
 
         .manage-teams__name {
             overflow: hidden;
-            font-weight: bold;
+            font-weight: 600;
             text-overflow: ellipsis;
         }
 

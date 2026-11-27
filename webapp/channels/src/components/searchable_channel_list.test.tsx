@@ -334,4 +334,36 @@ describe('components/SearchableChannelList', () => {
         expect(channelRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Channel Information: Membership Indicator: Joined, Member count 0, Purpose: chat');
         expect(screen.getByTestId('discoverable-indicator')).toHaveAttribute('aria-label', 'Discoverable private board');
     });
+
+    test('offers Request to join on a discoverable private board while the discoverable filters are hidden', async () => {
+        const board = {
+            id: 'board1',
+            name: 'roadmap',
+            display_name: 'Roadmap',
+            type: 'P',
+            delete_at: 0,
+            team_id: 'team1',
+            purpose: 'plans',
+            discoverable: true,
+        } as Channel;
+
+        renderWithContext(
+            <ConnectedSearchableChannelList
+                {...baseProps}
+                channels={[board]}
+                loading={false}
+                kind='board'
+                showDiscoverableFilters={false}
+                discoverableEnabled={true}
+                myChannelMemberships={{}}
+            />,
+            {...initialState, ...boardChannelsState('board1')},
+        );
+
+        expect(screen.getByRole('button', {name: 'Request to join'})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Join'})).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('Board Type: All'));
+        expect(screen.queryByText('Discoverable private channels')).not.toBeInTheDocument();
+    });
 });

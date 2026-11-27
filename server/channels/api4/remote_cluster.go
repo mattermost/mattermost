@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -403,9 +404,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rcWithTeamAndPassword.DisplayName == "" {
-		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
-	}
+	rcWithTeamAndPassword.DisplayName = cmp.Or(rcWithTeamAndPassword.DisplayName, rcWithTeamAndPassword.Name)
 
 	rc := &model.RemoteCluster{
 		Name:          rcWithTeamAndPassword.Name,
@@ -485,9 +484,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 	model.AddEventParameterToAuditRec(auditRec, "name", rcAcceptInvite.Name)
 	model.AddEventParameterToAuditRec(auditRec, "display_name", rcAcceptInvite.DisplayName)
 
-	if rcAcceptInvite.DisplayName == "" {
-		rcAcceptInvite.DisplayName = rcAcceptInvite.Name
-	}
+	rcAcceptInvite.DisplayName = cmp.Or(rcAcceptInvite.DisplayName, rcAcceptInvite.Name)
 
 	invite, dErr := c.App.DecryptRemoteClusterInvite(rcAcceptInvite.Invite, rcAcceptInvite.Password)
 	if dErr != nil {

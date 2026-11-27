@@ -29,6 +29,8 @@ const timeLayout = "2006-01-02 15:04 MST"
 type Options struct {
 	// T translates the report's labels. The findings must already be rendered.
 	T i18n.TranslateFunc
+	// Locale is the language T translates into; empty means English.
+	Locale string
 	// Location is the time zone every time is shown in; nil means UTC.
 	Location    *time.Location
 	GeneratedAt time.Time
@@ -49,6 +51,8 @@ type Options struct {
 }
 
 type Report struct {
+	// Lang is the report's language, as a BCP 47 tag.
+	Lang  string
 	Title string
 	// FileName is the name, without an extension, to save the report under, like the Support
 	// Packet's: mm_site_health_<company>_<YYYY-MM-DDTHH-MM>, generated in Location. It also titles
@@ -138,6 +142,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 	formatTime := func(t time.Time) string { return t.In(location).Format(timeLayout) }
 
 	r := &Report{
+		Lang:     cmp.Or(opts.Locale, "en"),
 		Title:    T("health.report.title"),
 		FileName: fileName(opts.Company, opts.GeneratedAt.In(location)),
 		Notes:    opts.Notes,
