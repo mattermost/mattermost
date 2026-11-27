@@ -17,5 +17,9 @@
 -- Any later migration that drops and recreates either view must recreate its
 -- index, or every refresh of that view fails.
 
+-- concurrentIndex:ignore only REFRESH writes to a materialized view, so a plain
+-- build blocks no DML, and a failed CONCURRENTLY build would leave an invalid
+-- index that IF NOT EXISTS then skips on retry.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_userattributeview_target ON UserAttributeView (TargetID, GroupID, TargetType);
+-- concurrentIndex:ignore as above.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_channelattributeview_target ON ChannelAttributeView (TargetID, GroupID, TargetType);
