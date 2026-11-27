@@ -5,14 +5,18 @@ package localcachelayer
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	cachemocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 func TestAttributesStoreCache(t *testing.T) {
@@ -150,6 +154,58 @@ func TestAttributesStoreCache(t *testing.T) {
 		_, err = cachedStore.Attributes().GetSubject(rctx, userID, groupID, model.PropertyFieldObjectTypeUser)
 		require.NoError(t, err)
 		mockStore.Attributes().(*mocks.AttributesStore).AssertNumberOfCalls(t, "GetSubject", 2)
+	})
+
+	t.Run("a read after InvalidateUserAttributes sees the new value", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+		require.NoError(t, err)
+
+		changedUserID := "changed-user-id"
+		attributesStore := mockStore.Attributes().(*mocks.AttributesStore)
+		attributesStore.On("GetSubject", mock.Anything, changedUserID, groupID, model.PropertyFieldObjectTypeUser).
+			Return(&model.Subject{ID: changedUserID, Type: "user", Attributes: map[string]any{"department": "Engineering"}}, nil).Once()
+		attributesStore.On("GetSubject", mock.Anything, changedUserID, groupID, model.PropertyFieldObjectTypeUser).
+			Return(&model.Subject{ID: changedUserID, Type: "user", Attributes: map[string]any{"department": "Sales"}}, nil).Once()
+
+		subject, err := cachedStore.Attributes().GetSubject(rctx, changedUserID, groupID, model.PropertyFieldObjectTypeUser)
+		require.NoError(t, err)
+		assert.Equal(t, "Engineering", subject.Attributes["department"])
+
+		// The write's invalidation drops the cached copy, so the next read goes to the store,
+		// which reads the live view.
+		cachedStore.Attributes().InvalidateUserAttributes(changedUserID)
+
+		subject, err = cachedStore.Attributes().GetSubject(rctx, changedUserID, groupID, model.PropertyFieldObjectTypeUser)
+		require.NoError(t, err)
+		assert.Equal(t, "Sales", subject.Attributes["department"])
+		attributesStore.AssertNumberOfCalls(t, "GetSubject", 2)
+	})
+
+	t.Run("the user attributes cache expires entries after 60 seconds", func(t *testing.T) {
+		require.Equal(t, 60, UserAttributesCacheSec)
+
+		var options []*cache.CacheOptions
+		provider := cachemocks.Provider{}
+		call := provider.On("NewCache", mock.Anything)
+		call.Run(func(args mock.Arguments) {
+			opts := args.Get(0).(*cache.CacheOptions)
+			options = append(options, opts)
+			call.ReturnArguments = mock.Arguments{cache.NewLRU(&cache.CacheOptions{Size: 128}), nil}
+		})
+		provider.On("Type").Return("lru")
+
+		_, err := NewLocalCacheLayer(getMockStore(t), nil, nil, &provider, logger)
+		require.NoError(t, err)
+
+		var userAttributes *cache.CacheOptions
+		for _, opts := range options {
+			if opts.Name == "UserAttributes" {
+				userAttributes = opts
+			}
+		}
+		require.NotNil(t, userAttributes, "the user attributes cache should be created")
+		assert.Equal(t, 60*time.Second, userAttributes.DefaultExpiry)
 	})
 
 	t.Run("GetSubject returns a clone of the cached attributes map", func(t *testing.T) {
