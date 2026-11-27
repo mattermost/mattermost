@@ -567,6 +567,7 @@ func healthTestPacketConfig() string {
 	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
 	cfg.GuestAccountsSettings.Enable = model.NewPointer(true)
 	cfg.EmailSettings.SMTPServer = model.NewPointer("smtp.example.com")
+	cfg.EmailSettings.SMTPPort = model.NewPointer("587")
 	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
 	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
