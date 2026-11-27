@@ -191,6 +191,11 @@ func TestEmailTest(t *testing.T) {
 		CheckErrorID(t, err, "api.admin.test_email.missing_server")
 		CheckBadRequestStatus(t, resp)
 
+		*config.EmailSettings.SMTPServer = "smtp.example.com"
+		resp, err = th.SystemAdminClient.TestEmail(context.Background(), &config)
+		CheckErrorID(t, err, "api.admin.test_email.missing_port")
+		CheckBadRequestStatus(t, resp)
+
 		inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 		if inbucket_host == "" {
 			inbucket_host = "localhost"

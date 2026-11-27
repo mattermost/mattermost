@@ -230,6 +230,9 @@ func (a *App) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *mod
 	if *cfg.EmailSettings.SMTPServer == "" {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
+	if *cfg.EmailSettings.SMTPPort == "" {
+		return model.NewAppError("testEmail", "api.admin.test_email.missing_port", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPPort"}), http.StatusBadRequest)
+	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection

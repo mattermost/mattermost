@@ -33,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 // saveTeamState returns a function that restores the team's AllowedDomains field
@@ -3943,4 +3944,23 @@ func TestConsumeTokenOnce(t *testing.T) {
 		require.Nil(t, consumedToken)
 		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
+}
+
+func TestSendPasswordResetSMTPNotConfigured(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	// In CI, MM_EMAILSETTINGS_SMTPSERVER keeps the server set; the empty port alone leaves SMTP not configured.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SMTPServer = ""
+		*cfg.EmailSettings.SMTPPort = ""
+	})
+
+	// Known and unknown addresses get the same error.
+	for _, email := range []string{th.BasicUser.Email, "idontexist@example.com"} {
+		sent, appErr := th.App.SendPasswordReset(th.Context, email, "http://localhost:8065")
+		require.NotNil(t, appErr, email)
+		assert.False(t, sent)
+		assert.Equal(t, "api.user.send_password_reset.smtp_not_configured.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, mail.ErrSMTPNotConfigured)
+	}
 }

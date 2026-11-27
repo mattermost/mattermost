@@ -113,10 +113,23 @@ func NewStoreFromDSN(dsn string, readOnly bool, customDefaults *model.Config, cr
 	return store, nil
 }
 
+// TestCustomDefaults points SMTP at the Inbucket test mail server.
+func TestCustomDefaults() *model.Config {
+	return &model.Config{
+		EmailSettings: model.EmailSettings{
+			SMTPServer: new("localhost"),
+			SMTPPort:   new("10025"),
+		},
+	}
+}
+
 // NewTestMemoryStore returns a new config store backed by a memory store
 // to be used for testing purposes.
 func NewTestMemoryStore() *Store {
-	memoryStore, err := NewMemoryStore()
+	// Custom defaults only fill unset settings, so apply them before SetDefaults.
+	initialConfig := TestCustomDefaults()
+	initialConfig.SetDefaults()
+	memoryStore, err := NewMemoryStoreWithOptions(&MemoryStoreOptions{InitialConfig: initialConfig})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}

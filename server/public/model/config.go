@@ -122,9 +122,6 @@ const (
 	EmailNotificationContentsFull    = "full"
 	EmailNotificationContentsGeneric = "generic"
 
-	EmailSMTPDefaultServer = "localhost"
-	EmailSMTPDefaultPort   = "10025"
-
 	CacheTypeLRU   = "lru"
 	CacheTypeRedis = "redis"
 
@@ -2363,12 +2360,12 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.SMTPPassword = new("")
 	}
 
-	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = new(EmailSMTPDefaultServer)
+	if s.SMTPServer == nil {
+		s.SMTPServer = new("")
 	}
 
-	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = new(EmailSMTPDefaultPort)
+	if s.SMTPPort == nil {
+		s.SMTPPort = new("")
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
@@ -2428,14 +2425,20 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
-// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+// The SMTP server and port SetDefaults used to fill in, still saved in the config of older servers.
+const (
+	oldDefaultSMTPServer = "localhost"
+	oldDefaultSMTPPort   = "10025"
+)
+
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server or port, or one still at exactly
+// the old default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
 func (s *EmailSettings) IsSMTPConfigured() bool {
-	server := SafeDereference(s.SMTPServer)
-	if server == "" {
+	server, port := SafeDereference(s.SMTPServer), SafeDereference(s.SMTPPort)
+	if server == "" || port == "" {
 		return false
 	}
-	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
+	return server != oldDefaultSMTPServer || port != oldDefaultSMTPPort
 }
 
 type RateLimitSettings struct {
@@ -5002,8 +5005,11 @@ func (s *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.ReplyToAddress"}, "", http.StatusBadRequest)
 	}
 
-	if appErr := validatePortString(*s.SMTPPort, false, "EmailSettings.SMTPPort"); appErr != nil {
-		return appErr
+	// An empty port is valid: email is then not configured, and the send path reports it.
+	if *s.SMTPPort != "" {
+		if appErr := validatePortString(*s.SMTPPort, false, "EmailSettings.SMTPPort"); appErr != nil {
+			return appErr
+		}
 	}
 
 	if *s.EmailBatchingBufferSize <= 0 {

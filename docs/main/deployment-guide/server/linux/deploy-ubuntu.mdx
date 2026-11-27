@@ -12,7 +12,7 @@ Install Mattermost Server on Ubuntu from the signed Mattermost APT repository. T
 - **Operating system**: Ubuntu 22.04 / 24.04 / 26.04 LTS. The Mattermost APT repository and its setup script support Ubuntu only. Debian 12 (Bookworm) or later is a supported platform, but install it with the [tarball installation](./deploy-tar). From v12.0, the server binary requires glibc 2.34 or later, so Ubuntu 20.04 and Debian 11 (glibc 2.31) can run Mattermost v11.11 or earlier only, including the v11.7 ESR.
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
 - **Database**: [PostgreSQL 15+](/administration-guide/manage/admin/postgres-migration).
-- **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
+- **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), your SMTP server's port outbound, commonly 587 (if you send email).
 :::
 
 ## Step 1: Get a PostgreSQL database

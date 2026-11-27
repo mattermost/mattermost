@@ -28,6 +28,9 @@ const (
 	StartTLS = "STARTTLS"
 )
 
+// ErrSMTPNotConfigured is returned, before dialing, when the SMTP server or port is empty.
+var ErrSMTPNotConfigured = errors.New("SMTP server or port is not configured")
+
 type SMTPConfig struct {
 	ConnectionSecurity                string
 	SkipServerCertificateVerification bool
@@ -43,6 +46,11 @@ type SMTPConfig struct {
 	FeedbackName                      string
 	FeedbackEmail                     string
 	ReplyToAddress                    string
+}
+
+// IsConfigured reports whether both the SMTP server and port are set.
+func (c *SMTPConfig) IsConfigured() bool {
+	return c.Server != "" && c.Port != ""
 }
 
 type mailData struct {
@@ -123,6 +131,10 @@ func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
 // connectToSMTPServer dials the SMTP server, completing the TLS handshake for TLS connections.
 // ServerTimeout bounds the dial and ctx can cancel it.
 func connectToSMTPServer(ctx context.Context, config *SMTPConfig) (net.Conn, error) {
+	if !config.IsConfigured() {
+		return nil, ErrSMTPNotConfigured
+	}
+
 	smtpAddress := config.Server + ":" + config.Port
 	dialer := &net.Dialer{
 		Timeout: time.Duration(config.ServerTimeout) * time.Second,
@@ -263,10 +275,6 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enabl
 
 // allows for sending an email with differing MIME/SMTP recipients
 func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
-	if config.Server == "" {
-		return nil
-	}
-
 	conn, err := ConnectToSMTPServer(config)
 	if err != nil {
 		return err

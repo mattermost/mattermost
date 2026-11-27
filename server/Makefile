@@ -710,6 +710,9 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 build-templates: ## Compile all mjml email templates
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
+# Fresh dev configs send mail to Inbucket; settings stay editable.
+run-server run-server-faketime debug-server debug-server-headless: export MM_CUSTOM_DEFAULTS_PATH ?= $(CURDIR)/build/dev-custom-defaults.json
+
 .PHONY: run-server
 run-server: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server.
 	@echo Running mattermost for development

@@ -149,7 +149,7 @@ The following tables list the Mattermost services ports for Mattermost Server, p
 | Database | `SqlSettings.DataSource` | 5432 (PostgreSQL) | TCP | Usually internal (recommended). |
 | LDAP | `LdapSettings.LdapPort` | 389 | TCP/UDP | |
 | S3 Storage | `FileSettings.AmazonS3Endpoint` | 443 (TLS) | TCP | |
-| SMTP | `EmailSettings.SMTPPort` | 10025 | TCP/UDP | |
+| SMTP | `EmailSettings.SMTPPort` | None (commonly 587, 465 or 25) | TCP | |
 | Push Notifications | `EmailSettings.PushNotificationServer` | 443 (TLS) | TCP | |
 
 **Push Proxy**

@@ -16,6 +16,7 @@ import (
 	"net/textproto"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -1014,6 +1015,32 @@ func TestConnectionTimeouts(t *testing.T) {
 
 		require.NoError(t, TestConnection(context.Background(), cfg))
 	})
+}
+
+func TestSMTPNotConfigured(t *testing.T) {
+	for name, blank := range map[string]func(cfg *SMTPConfig){
+		"empty server":          func(cfg *SMTPConfig) { cfg.Server = "" },
+		"empty port":            func(cfg *SMTPConfig) { cfg.Port = "" },
+		"empty server and port": func(cfg *SMTPConfig) { cfg.Server, cfg.Port = "", "" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			var dialed atomic.Bool
+			cfg := fakeSMTPServer(t, func(conn net.Conn) { dialed.Store(true) })
+			blank(cfg)
+
+			_, err := connectToSMTPServer(context.Background(), cfg)
+			assert.ErrorIs(t, err, ErrSMTPNotConfigured)
+
+			err = TestConnection(context.Background(), cfg)
+			assert.ErrorIs(t, err, ErrSMTPNotConfigured)
+
+			err = SendMailUsingConfig("test@example.com", "subject", "body", cfg, false, "", "", "", "", "")
+			assert.ErrorIs(t, err, ErrSMTPNotConfigured)
+
+			// An empty server would otherwise dial the fake server's port on localhost.
+			assert.False(t, dialed.Load(), "should not dial the SMTP server")
+		})
+	}
 }
 
 func TestNewSMTPClientAdvancedCallerCancels(t *testing.T) {

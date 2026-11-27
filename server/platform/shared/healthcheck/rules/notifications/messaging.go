@@ -116,7 +116,8 @@ func evalMaxNotificationsPerChannel(s *healthcheck.Snapshot) healthcheck.Result 
 	}
 }
 
-// smtpInUse mirrors the gate the Support Packet uses before probing SMTP.
+// smtpInUse mirrors the email features the Support Packet checks before probing SMTP. The Support Packet
+// also skips the probe when no SMTP server is set.
 func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
 	for _, get := range []func(*model.Config) *bool{
 		func(cfg *model.Config) *bool { return cfg.EmailSettings.SendEmailNotifications },
@@ -154,7 +155,7 @@ func smtpInUseAndConfigured(s *healthcheck.Snapshot) (enabled, ok bool) {
 	return smtpConfigured(s)
 }
 
-// evalSMTPNotConfigured fires for an empty SMTP server. For the default localhost:10025 it fires only when the
+// evalSMTPNotConfigured fires for an empty SMTP server or port. For the old default localhost:10025 it fires only when the
 // probe failed, since a development mail server such as Inbucket listens there and works. This relies on the
 // Support Packet probing the default server (see networkProbes and TestNetworkProbesSMTP): a skipped probe
 // reports disabled, which reads as passing, so neither SMTP finding would fire.
@@ -168,7 +169,7 @@ func evalSMTPNotConfigured(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 
 	messageID := healthcheck.TranslationId("health.rule.smtp_not_configured.message")
-	if cfg, _ := s.ConfigRoot(); *cfg.EmailSettings.SMTPServer == "" {
+	if cfg, _ := s.ConfigRoot(); *cfg.EmailSettings.SMTPServer == "" || model.SafeDereference(cfg.EmailSettings.SMTPPort) == "" {
 		return healthcheck.Firing(messageID)
 	}
 	return probes.Eval(s, smtpProbe, messageID,

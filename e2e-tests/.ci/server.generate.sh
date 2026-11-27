@@ -61,6 +61,7 @@ services:
       MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
+      MM_EMAILSETTINGS_SMTPPORT: "10025"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"

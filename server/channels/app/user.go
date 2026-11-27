@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
@@ -1946,6 +1947,11 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 }
 
 func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError) {
+	// Checked before the user lookup, so every address gets the same answer and no unusable token is created.
+	if !a.Srv().MailServiceConfig().IsConfigured() {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.smtp_not_configured.app_error", nil, "", http.StatusNotImplemented).Wrap(mail.ErrSMTPNotConfigured)
+	}
+
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return false, nil

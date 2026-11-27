@@ -96,9 +96,9 @@ func setupTestHelperWithBackingStore(tb testing.TB, backingStore config.BackingS
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
 
-	memoryConfig := &model.Config{
-		SqlSettings: model.SafeDereference(sqlSettings),
-	}
+	// Before SetDefaults, which would leave SMTP empty.
+	memoryConfig := config.TestCustomDefaults()
+	memoryConfig.SqlSettings = model.SafeDereference(sqlSettings)
 	memoryConfig.SetDefaults()
 	*memoryConfig.ServiceSettings.LicenseFileLocation = filepath.Join(tempWorkspace, "license.json")
 	*memoryConfig.FileSettings.Directory = filepath.Join(tempWorkspace, "data")

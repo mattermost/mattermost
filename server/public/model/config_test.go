@@ -675,6 +675,20 @@ func TestSqlSettingsIsValid(t *testing.T) {
 	})
 }
 
+func TestEmailSettingsSetDefaultsLeavesSMTPEmpty(t *testing.T) {
+	for _, isUpdate := range []bool{false, true} {
+		t.Run(fmt.Sprintf("isUpdate=%t", isUpdate), func(t *testing.T) {
+			settings := &EmailSettings{}
+			settings.SetDefaults(isUpdate)
+
+			require.NotNil(t, settings.SMTPServer)
+			require.NotNil(t, settings.SMTPPort)
+			assert.Empty(t, *settings.SMTPServer)
+			assert.Empty(t, *settings.SMTPPort)
+		})
+	}
+}
+
 func TestEmailSettingsIsValid(t *testing.T) {
 	t.Run("default is valid", func(t *testing.T) {
 		settings := &EmailSettings{}
@@ -682,6 +696,17 @@ func TestEmailSettingsIsValid(t *testing.T) {
 
 		require.Nil(t, settings.isValid())
 	})
+
+	for name, server := range map[string]string{"without a server": "", "with a server": "smtp.example.com"} {
+		t.Run("empty SMTP port "+name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			cfg.EmailSettings.SMTPServer = NewPointer(server)
+			cfg.EmailSettings.SMTPPort = NewPointer("")
+
+			require.Nil(t, cfg.IsValid())
+		})
+	}
 
 	for _, value := range []int{0, -1} {
 		t.Run(fmt.Sprintf("invalid push notification buffer %d", value), func(t *testing.T) {
@@ -722,6 +747,14 @@ func TestEmailSettingsIsValid(t *testing.T) {
 			},
 			errID: "model.config.is_valid.port.app_error",
 		},
+		{
+			name: "non-numeric SMTP port",
+			mutate: func(settings *EmailSettings) {
+				settings.SMTPServer = NewPointer("smtp.example.com")
+				settings.SMTPPort = NewPointer("smtp")
+			},
+			errID: "model.config.is_valid.port.app_error",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			settings := &EmailSettings{}
@@ -755,7 +788,8 @@ func TestEmailSettingsIsSMTPConfigured(t *testing.T) {
 		{name: "localhost relay on port 25", server: NewPointer("localhost"), port: NewPointer("25"), configured: true},
 		{name: "loopback address on the default port", server: NewPointer("127.0.0.1"), port: NewPointer("10025"), configured: true},
 		{name: "remote server", server: NewPointer("smtp.example.com"), port: NewPointer("587"), configured: true},
-		{name: "remote server without port", server: NewPointer("smtp.example.com"), configured: true},
+		{name: "remote server, port unset", server: NewPointer("smtp.example.com"), configured: false},
+		{name: "remote server, empty port", server: NewPointer("smtp.example.com"), port: NewPointer(""), configured: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			settings := &EmailSettings{SMTPServer: tc.server, SMTPPort: tc.port}
