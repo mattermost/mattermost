@@ -49,7 +49,7 @@ Cursor resolves the environment in this order: a personal saved environment, a t
 - **Multi-repo saved environment (recommended)**: in the [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents), create an environment with `mattermost/mattermost`, `mattermost/enterprise`, and the plugin repos you want. Set its environment.json location to `mattermost/mattermost`'s `.cursor/environment.json`. Cursor clones every repo as a sibling and the install hook hydrates the plugins it finds. Optionally add `CLOUD_AGENT_SUPER_ENV=true` as an environment-scoped secret so any core plugin you did not select is cloned too.
 - **Single repo plus flag**: use an environment that points at this file and add `CLOUD_AGENT_SUPER_ENV=true` (or `CLOUD_AGENT_PLUGINS=playbooks,agents,...`) as an environment-scoped secret. The install hook clones the plugins using the token scope from `repositoryDependencies`.
 
-Keep the standard environment free of those variables; without them it does no plugin work.
+Keep the standard environment free of those variables. Without them, the install hook does not clone plugins, though it still hydrates any `mattermost-plugin-*` checkout already present.
 
 Expect the first super-environment Build to take noticeably longer than a standard one: each plugin installs its own `node_modules` (roughly 0.25–1 GB each). Later Builds reuse that state.
 

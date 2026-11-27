@@ -50,7 +50,10 @@ resolve_plugin() {
 }
 
 plugin_gowork() {
-  printf '%s/%s.go.work\n' "$GOWORK_DIR" "$(basename "$1")"
+  local dir hash
+  dir="$(realpath -m "$1")"
+  hash="$(printf '%s\0%s' "$ROOT" "$dir" | sha256sum | cut -c1-12)"
+  printf '%s/%s-%s.go.work\n' "$GOWORK_DIR" "$(basename "$dir")" "$hash"
 }
 
 plugin_id() {
@@ -65,18 +68,23 @@ in_plugin() {
   local dir="$1" version bindir gowork
   shift
   if version="$(nvmrc_version "$dir")"; then
-    bindir="$(node_bin_dir_for "$version")"
+    bindir="$(node_bin_dir_for "$version")" || return 1
   else
     bindir="$(dirname "$(command -v node)")"
   fi
   gowork="$(plugin_gowork "$dir")"
+  local cmd=("$@")
+  # Some plugins (calls) rebuild ./go.work in setup-go-work, which fails when GOWORK points at an existing file.
+  if [ -f "$gowork" ] && [ "${cmd[0]:-}" = "make" ] && has_make_target setup-go-work "$dir"; then
+    cmd=(make -o setup-go-work "${cmd[@]:1}")
+  fi
   (
-    cd "$dir"
+    cd "$dir" || exit 1
     export PATH="$bindir:$PATH"
     if [ -f "$gowork" ]; then
       export GOWORK="$gowork"
     fi
-    "$@"
+    "${cmd[@]}"
   )
 }
 
@@ -150,15 +158,10 @@ cmd_deploy() {
   # Plugin Makefiles build only the current platform's server binary when this is set.
   export MM_SERVICESETTINGS_ENABLEDEVELOPER="${MM_SERVICESETTINGS_ENABLEDEVELOPER:-true}"
 
-  local dir make_args failed=()
+  local dir failed=()
   for dir in "${targets[@]}"; do
-    make_args=(deploy)
-    # Some plugins (calls) rebuild ./go.work in setup-go-work, which would rewrite a linked GOWORK.
-    if [ -f "$(plugin_gowork "$dir")" ] && has_make_target setup-go-work "$dir"; then
-      make_args=(-o setup-go-work deploy)
-    fi
     log "Deploying $(basename "$dir")."
-    in_plugin "$dir" make "${make_args[@]}" || failed+=("$(basename "$dir")")
+    in_plugin "$dir" make deploy || failed+=("$(basename "$dir")")
   done
 
   if [ "${#failed[@]}" -gt 0 ]; then
@@ -169,25 +172,52 @@ cmd_deploy() {
 }
 
 cmd_link() {
-  local dir gowork uses=() use
+  local dir gowork source_gowork="" source_dir work_json uses=() use
   dir="$(resolve_plugin "${1:-}")"
   gowork="$(plugin_gowork "$dir")"
 
+  mkdir -p "$GOWORK_DIR"
+  _LINK_TMP_DIR="$(mktemp -d "$GOWORK_DIR/.link.XXXXXX")"
+  _LINK_TMP_GOWORK="$(mktemp "$GOWORK_DIR/.tmp.go.work.XXXXXX")"
+  rm -f "$_LINK_TMP_GOWORK"
+  trap 'rm -rf "${_LINK_TMP_DIR:-}" "${_LINK_TMP_GOWORK:-}" "${_LINK_TMP_GOWORK:+${_LINK_TMP_GOWORK}.sum}"' EXIT
+
   if [ -f "$dir/go.work" ]; then
+    source_gowork="$dir/go.work"
+  elif has_make_target setup-go-work "$dir"; then
+    source_gowork="$_LINK_TMP_DIR/seed.go.work"
+    (cd "$dir" && GOWORK="$source_gowork" make setup-go-work) >&2
+  fi
+
+  if [ -n "$source_gowork" ]; then
+    source_dir="$(dirname "$source_gowork")"
+    if ! work_json="$(cd "$dir" && GOWORK="$source_gowork" go work edit -json)"; then
+      log "Failed to read Go workspace at $source_gowork; leaving existing link unchanged."
+      return 1
+    fi
     while read -r use; do
-      [ -n "$use" ] && uses+=("$(realpath -m "$dir/$use")")
-    done < <(cd "$dir" && GOWORK="$dir/go.work" go work edit -json | sed -n 's/.*"DiskPath": "\([^"]*\)".*/\1/p')
+      [ -n "$use" ] || continue
+      case "$use" in
+        /*) uses+=("$(realpath -m "$use")") ;;
+        *) uses+=("$(realpath -m "$source_dir/$use")") ;;
+      esac
+    done < <(jq -r '.Use[]?.DiskPath' <<< "$work_json")
+    if [ "${#uses[@]}" -eq 0 ]; then
+      log "No module paths found in $source_gowork; leaving existing link unchanged."
+      return 1
+    fi
   else
     uses+=("$dir")
   fi
+
   uses+=("$ROOT/server/public")
   if grep -q 'github.com/mattermost/mattermost/server/v8 ' "$dir/go.mod" 2>/dev/null; then
     uses+=("$ROOT/server")
   fi
 
-  mkdir -p "$GOWORK_DIR"
-  rm -f "$gowork"
-  (cd "$dir" && GOWORK="$gowork" go work init "${uses[@]}")
+  (cd "$dir" && GOWORK="$_LINK_TMP_GOWORK" go work init "${uses[@]}")
+  mv -f "$_LINK_TMP_GOWORK" "$gowork"
+  rm -f "$gowork.sum"
   log "Linked $(basename "$dir") to $ROOT/server via $gowork:"
   printf '  %s\n' "${uses[@]}" >&2
   log "super-env.sh exec/deploy use it automatically; for other shells run: export GOWORK=$gowork"

@@ -8,7 +8,7 @@ These instructions apply to Cursor Cloud Agents after `.cursor/scripts/cloud-age
 - The image includes Go, Node/npm, Docker Compose, and AWS CLI v2.
 - Prefer Cursor's multi-repo layout for `mattermost/enterprise` when it is available: sibling repositories such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, matching `server/Makefile`'s default `../../enterprise` path.
 - Git-triggered automations start as a single-repo checkout. If enterprise is missing, `cloud-agent-install.sh` clones it with the token scoped by `repositoryDependencies`, preferring an exact like-named branch and falling back to Enterprise's default branch. If that clone lands somewhere other than `../enterprise`, `BUILD_ENTERPRISE_DIR` is written to `server/config.override.mk`, which `server/Makefile` reads before Enterprise detection.
-- If `cloud-agent-install.sh` logs `WARNING: plugin hydration failed`, the rest of the environment is fine. Rerun the hydration for that plugin (`super-env.sh exec <plugin> -- make webapp/node_modules`) before working in it.
+- If `cloud-agent-install.sh` logs `WARNING: plugin hydration failed`, the rest of the environment is fine. Rerun the hydration for that plugin before working in it: `.cursor/scripts/super-env.sh exec <plugin> -- go mod download` (if the plugin has `go.mod`), then `.cursor/scripts/super-env.sh exec <plugin> -- make webapp/node_modules`.
 
 ## Running Mattermost
 

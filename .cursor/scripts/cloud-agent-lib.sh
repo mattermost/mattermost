@@ -313,7 +313,7 @@ refresh_managed_checkout() {
     return 0
   fi
   if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ] || \
-     [ "$(git -C "$dir" rev-parse HEAD)" != "$(git -C "$dir" rev-parse '@{u}')" ]; then
+     ! git -C "$dir" merge-base --is-ancestor HEAD '@{u}' 2>/dev/null; then
     log "$name has local changes or commits; leaving it as is."
     return 0
   fi
