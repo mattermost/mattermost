@@ -7,6 +7,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {ChevronDownIcon, DownloadOutlineIcon, FilePdfOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Spinner} from '@mattermost/compass-ui/components/spinner';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -26,17 +27,31 @@ const msg = defineMessages({
 
 const menuId = 'healthDashboardExportMenu';
 
-const ExportMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>(({children, ...props}, ref) => (
-    <Button
-        {...props}
-        ref={ref}
-        emphasis='secondary'
-        size='small'
-        trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
-    >
-        {children}
-    </Button>
-));
+// The trigger is disabled only while exporting. The spinner then takes the chevron's slot, so the
+// button keeps its width and Re-run checks stays put.
+const ExportMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>(({children, ...props}, ref) => {
+    const {formatMessage} = useIntl();
+    const exporting = Boolean(props.disabled);
+    return (
+        <Button
+            {...props}
+            ref={ref}
+            emphasis='secondary'
+            size='small'
+            aria-busy={exporting}
+            trailingIcon={exporting ? (
+                <Spinner
+                    size='12'
+                    aria-label={formatMessage(msg.exporting)}
+                />
+            ) : (
+                <Icon glyph={<ChevronDownIcon/>}/>
+            )}
+        >
+            {children}
+        </Button>
+    );
+});
 ExportMenuTrigger.displayName = 'ExportMenuTrigger';
 
 // Revoking the object URL synchronously after click() can cancel the download in some browsers.
@@ -114,19 +129,7 @@ const ExportMenu = ({onError}: Props) => {
                 dataTestId: 'healthDashboardExportButton',
                 as: ExportMenuTrigger,
                 disabled: exporting,
-
-                // Both labels share one grid cell, so the button keeps the width of the
-                // longer one and doesn't push Re-run checks aside while exporting.
-                children: (
-                    <span className='HealthDashboard__exportLabel'>
-                        <span aria-hidden={exporting}>
-                            <FormattedMessage {...msg.button}/>
-                        </span>
-                        <span aria-hidden={!exporting}>
-                            <FormattedMessage {...msg.exporting}/>
-                        </span>
-                    </span>
-                ),
+                children: <FormattedMessage {...msg.button}/>,
             }}
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}

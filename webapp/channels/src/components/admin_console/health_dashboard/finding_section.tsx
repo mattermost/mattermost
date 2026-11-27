@@ -24,7 +24,7 @@ export type RowState = {
 
 const sectionMessages: Record<HealthFindingSection, MessageDescriptor> = {
     ...severityMessages,
-    unknown: defineMessage({id: 'admin.health_dashboard.unknown.title', defaultMessage: 'Could not be evaluated'}),
+    unknown: defineMessage({id: 'admin.health_dashboard.unknown.title', defaultMessage: 'Not checked'}),
     resolved: stateMessages.resolved,
 };
 
@@ -52,7 +52,7 @@ const FindingSection = ({section, findings, now, expanded, onToggle, onMute, onU
                     />
                 </span>
                 <FormattedMessage {...sectionMessages[section]}/>
-                <span className='HealthDashboard__sectionCount'>{findings.length}</span>
+                <span className='HealthDashboard__count'>{findings.length}</span>
                 <span
                     className='HealthDashboard__sectionRule'
                     aria-hidden={true}
@@ -62,7 +62,7 @@ const FindingSection = ({section, findings, now, expanded, onToggle, onMute, onU
                 <p className='HealthDashboard__unknownExplanation'>
                     <FormattedMessage
                         id='admin.health_dashboard.unknown.explanation'
-                        defaultMessage='These checks could not run, so their result is unknown. Unknown does not mean healthy: each one shows why it could not be checked.'
+                        defaultMessage="These checks couldn't run. Not checked doesn't mean healthy: each card shows why."
                     />
                 </p>
             )}

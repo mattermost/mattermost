@@ -86,13 +86,16 @@ const FindingTabs = ({idPrefix, panelId, active, counts, onChange}: Props) => {
                         aria-selected={selected}
                         aria-controls={active ? panelId : undefined}
                         tabIndex={selected || (!active && tab === 'open') ? 0 : -1}
-                        className={classNames('HealthDashboard__tab', `HealthDashboard__tab--${tab}`, {'HealthDashboard__tab--active': selected})}
+                        className={classNames('HealthDashboard__tab', `HealthDashboard__tab--${tab}`, {
+                            'HealthDashboard__tab--active': selected,
+                            'HealthDashboard__tab--empty': counts[tab] === 0,
+                        })}
                         onClick={() => onChange(tab)}
                         onKeyDown={handleKeyDown}
                     >
                         {tab !== 'open' && <ToneIcon tone={tab}/>}
                         <FormattedMessage {...tabMessages[tab]}/>
-                        <span className='HealthDashboard__tabCount'>{counts[tab]}</span>
+                        <span className='HealthDashboard__count'>{counts[tab]}</span>
                     </button>
                 );
             })}

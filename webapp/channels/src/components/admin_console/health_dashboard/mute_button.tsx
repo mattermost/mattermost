@@ -5,6 +5,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {BellOffOutlineIcon, BellOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {HealthFinding} from '@mattermost/types/health';
 
 import {isHealthFindingMuted, isHealthFindingOpen} from 'mattermost-redux/utils/health_utils';
@@ -21,19 +23,15 @@ const MuteButton = ({finding, onMute, onUnmute}: Props) => {
         return null;
     }
 
-    const Icon = muted ? BellOutlineIcon : BellOffOutlineIcon;
+    const BellIcon = muted ? BellOutlineIcon : BellOffOutlineIcon;
 
     return (
-        <button
-            type='button'
-            className='btn btn-tertiary btn-sm HealthFinding__muteButton'
+        <Button
+            emphasis='dim'
+            size='small'
+            leadingIcon={<Icon glyph={<BellIcon/>}/>}
             onClick={() => (muted ? onUnmute : onMute)(finding.fingerprint)}
         >
-            <Icon
-                size={16}
-                color='currentColor'
-                aria-hidden={true}
-            />
             {muted ? (
                 <FormattedMessage
                     id='admin.health_dashboard.mute.unmute'
@@ -45,7 +43,7 @@ const MuteButton = ({finding, onMute, onUnmute}: Props) => {
                     defaultMessage='Mute'
                 />
             )}
-        </button>
+        </Button>
     );
 };
 
