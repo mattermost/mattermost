@@ -38,6 +38,7 @@ func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
 	t.Run("GetTeamMembersToRemove", func(t *testing.T) { testAttributesStoreGetTeamMembersToRemove(t, rctx, ss, s) })
+	t.Run("LiveViewMatchesMaterializedView", func(t *testing.T) { testAttributesStoreLiveViewMatchesMaterializedView(t, rctx, ss, s) })
 }
 
 // To help mental model of the test users created by this function:
