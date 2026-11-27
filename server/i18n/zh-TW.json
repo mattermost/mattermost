@@ -928,10 +928,6 @@
     "translation": "{{.Name}} 參數無效。"
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "無效工作階段 token={{.Token}}，err={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "要求網址中缺少 {{.Name}} 參數或是該值無效。"
   },
@@ -2478,10 +2474,6 @@
     "translation": "互動建立時間不能為 0。"
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "反應屬性表情符號名稱長度超過允許的最大長度。"
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "缺少必要的互動屬性：EmojiName。"
   },
@@ -2868,10 +2860,6 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引訊息失敗"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "無法解析搜尋比對結果"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3491,7 +3479,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "團隊設定中的單一團隊最高頻道數無效。必須為正數。"
+    "translation": "團隊設定中的單一團隊最高頻道數無效。必須為 0（無限制）或正數。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3503,7 +3491,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "團隊設定中的單一團隊最高使用者數無效。必須為正數。"
+    "translation": "團隊設定中的單一團隊最高使用者數無效。必須為 0（無限制）或正數。"
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -4359,15 +4347,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "115 版或更新"
+    "translation": "153 版或更新"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "130 版或更新"
+    "translation": "156 版或更新"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "130 版或更新"
+    "translation": "156 版或更新"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5246,10 +5234,6 @@
     "translation": "儲存稽核紀錄時遇到錯誤。"
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "刪除稽核紀錄時遇到錯誤。"
-  },
-  {
     "id": "app.audit.get.limit.app_error",
     "translation": "分頁已達限制。"
   },
@@ -5260,10 +5244,6 @@
   {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "無法移除存取代符。"
-  },
-  {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "無法移除授權碼。"
   },
   {
     "id": "app.oauth.get_apps.find.app_error",
@@ -5438,10 +5418,6 @@
     "translation": "封裝 JSON 要求時發生錯誤"
   },
   {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "無法刪除使用者。"
-  },
-  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "無法刪除團隊。"
   },
@@ -5594,10 +5570,6 @@
     "translation": "更新偏好設定時遇到錯誤。"
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "刪除偏好設定時遇到錯誤。"
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "尋找偏好設定時遇到錯誤。"
   },
@@ -5642,15 +5614,7 @@
     "translation": "無法儲存 IncomingWebhook。"
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "無法刪除 Webhook。"
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "無法刪除 Webhook。"
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "無法刪除 Webhook。"
   },
   {
@@ -5740,10 +5704,6 @@
   {
     "id": "app.post.save.app_error",
     "translation": "無法儲存訊息。"
-  },
-  {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "無法選擇該使用者的訊息以刪除。"
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -5852,10 +5812,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "無法儲存檔案資訊。"
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "無法刪除使用者的附件檔案。"
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6146,10 +6102,6 @@
     "translation": "無法取得被標記的訊息。"
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "由於團隊不允許更多成員，無法匯入團隊成員身份"
-  },
-  {
     "id": "app.import.import_user_teams.save_members.error",
     "translation": "無法匯入團隊成員身份"
   },
@@ -6191,10 +6143,6 @@
   },
   {
     "id": "app.channel.remove_member.app_error",
-    "translation": "無法移除頻道成員。"
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "無法移除頻道成員。"
   },
   {
@@ -6272,10 +6220,6 @@
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
     "translation": "無法取得頻道。"
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "禁止 CWS 登入。"
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -6486,14 +6430,6 @@
     "translation": "您的授權不支援雲端請求。"
   },
   {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "無法復原團隊，已達到團隊數量上限"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "無法建立團隊，已達到團隊數量上限"
-  },
-  {
     "id": "api.command_custom_status.success",
     "translation": "你的狀態已設為「{{.EmojiName}} {{.StatusMessage}}」。您可以從頻道側邊欄中的狀態彈出視窗更動您的狀態。"
   },
@@ -6544,10 +6480,6 @@
   {
     "id": "api.command_remote.fetch_status.error",
     "translation": "無法取得安全連線：{{.Error}}"
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "無法加密邀請：{{.Error}}"
   },
   {
     "id": "api.command_remote.displayname.hint",
@@ -6990,10 +6922,6 @@
     "translation": "無法依頻道刪除持續性通知。"
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "無法刪除使用者的反應。"
-  },
-  {
     "id": "app.save_config.plugin_hook_error",
     "translation": "儲存組態時執行擴充程式 hook 程式發生錯誤。"
   },
@@ -7216,10 +7144,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "由於現有版本相同或更新，跳過安裝擴充程式 {{.Id}}。"
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "取得儲存空間使用量失敗。"
   },
   {
     "id": "app.user.clear_all_custom_role_assignments.select.app_error",
@@ -7986,10 +7910,6 @@
     "translation": "執行工作時發生錯誤。"
   },
   {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "無法取得最後可存取的檔案"
-  },
-  {
     "id": "app.last_accessible_post.app_error",
     "translation": "無法取得最後可存取的訊息"
   },
@@ -8080,10 +8000,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "清除團隊成員快取時發生錯誤"
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "無法取得團隊數量"
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
@@ -8434,14 +8350,6 @@
     "translation": "{{.WorkspaceName}} 工作區的 {{.UsersNum}} 位成員已申請升級工作區： "
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "因超過雲端方案限制，無法取得檔案。"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "無法移除具有 UserID「{{.UserId}}」的群組成員。"
-  },
-  {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "無法移除 OAuth 資料。"
   },
@@ -8720,10 +8628,6 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "我們無法為受禁令限制的國家處理請求。[請參閱文件以了解詳情](https://mattermost.com/pl/limitations-for-embargoed-countries)，或透過 legal@mattermost.com 詢問關於出口限制的問題。"
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal 在自行架設的個體中不可使用。"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -9828,10 +9732,6 @@
   {
     "id": "api.command_mobile_logs.you",
     "translation": "您"
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "共享頻道服務已啟用但未啟動。"
   },
   {
     "id": "api.context.get_session.app_error",
@@ -11382,10 +11282,6 @@
     "translation": "草稿遭擴充程式拒絕：{{.Reason}}"
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "無法刪除使用者的草稿。"
-  },
-  {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "無法為自訂表情符號圖片建立目錄"
   },
@@ -12400,10 +12296,6 @@
     "translation": {
       "other": "無法寄送 {{.Count}} 則排程訊息。"
     }
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "無法刪除使用者的排程訊息。"
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -14579,7 +14471,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "網站健康狀態需要 Enterprise 授權。"
+    "translation": "網站健康狀態需要 Professional 或更高等級的授權。"
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14627,7 +14519,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "日誌設定中包含位於日誌根目錄之外的日誌或稽核檔案路徑。請查看伺服器日誌以取得詳細資訊。"
+    "translation": "日誌設定中包含位於日誌根目錄之外，或位於伺服器所管理目錄內的日誌或稽核檔案路徑。請查看伺服器日誌以取得詳細資訊。"
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14695,7 +14587,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "請改用 https://push.mattermost.com（Enterprise 隨附的正式環境 Hosted Push Notification Service），或自行架設的推播代理伺服器。"
+    "translation": "請將 PushNotificationServer 指向正式環境的推播代理伺服器：也就是自行架設、為您自行建置的行動應用程式提供服務的 Mattermost Push Proxy。"
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14728,5 +14620,1993 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "閱後即焚訊息無法以重複的排程訊息傳送。"
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "頻道權限操作功能未啟用。"
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "上傳的身分識別提供者憑證不是有效的 PEM 編碼 X.509 憑證。"
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "上傳的服務提供者私鑰不是有效的 PEM 編碼私鑰。"
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "上傳的服務提供者公開憑證不是有效的 PEM 編碼 X.509 憑證。"
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "上傳的檔案與已儲存的服務提供者憑證或私鑰不相符。請停用加密，再逐一替換它們。"
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "您目前沒有管理此頻道的權限。"
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "您目前無法存取此頻道。"
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "您目前沒有在此頻道中寫入的權限。"
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "`{{.Near}}` 附近的單引號在 ` --` 之前沒有結束。請將其結束；若值包含 ` --`，請改用雙引號。"
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "`{{.Near}}` 附近有非預期的文字。請以引號括住包含空格的值；若值中也包含撇號（'），請使用雙引號。"
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "`{{.Near}}` 附近的引號沒有結束。"
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "比較已儲存的組態時失敗。"
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "比較已儲存的組態與目前組態時失敗。"
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "工作階段無效或已過期。"
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "無法取消此類型的工作。"
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "public_key 欄位中必須上傳剛好一個擴充程式公開金鑰檔案。"
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "未設定擴充程式公開金鑰 {{.Name}}。"
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "無法解析上傳的擴充程式公開金鑰。"
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "您沒有設定一個或多個所要求訊息屬性值的權限。"
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "閱後即焚訊息不能有訊息屬性。"
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "此伺服器未啟用訊息屬性。"
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "無法套用一個或多個訊息屬性值。"
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "只有該欄位所屬頻道、團隊或系統的管理員，才能在建立欄位時設定其權限。"
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "只有系統管理員才能在建立屬性欄位時設定權限。"
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "此屬性已被刪除。"
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "無法透過此 API 查詢 v1 屬性欄位的合規資料。"
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "您沒有檢視此屬性欄位合規資料的權限。"
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "只有套用至所有團隊的屬性，才能列出或通知缺少值的頻道。"
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "other": "由於頻道管理員最近已收到相關通知，因此未傳送通知。您可以在 {{.Count}} 分鐘後再傳送通知。"
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "由於頻道管理員最近已收到相關通知，因此未傳送通知。請稍後再試。"
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "您不能以會讓自己無法編輯的方式變更屬性欄位的權限。"
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "提交的限制物件必須設定全部五種權限層級：值讀取、值寫入、選項讀取、選項寫入與欄位寫入。"
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "提交的權限物件無效。"
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "此屬性群組不支援提交權限物件。"
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "權限物件必須允許系統管理員編輯此欄位，因此其欄位寫入層級不能為無。"
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "部分使用中的頻道尚未設定此屬性的值，因此目前還無法將其標示為必填。請通知頻道管理員後再試一次。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "邀請已過期。請向遠端站台索取新的邀請。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "遠端站台傳回無效的回應。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "邀請中包含無效的站台位址：{{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "遠端站台拒絕了此邀請。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "無法連線至位於 {{.URL}} 的遠端站台。"
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "來自安全連線的上傳無法接續已部分接收的檔案。"
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "單次存取控制評估中的資源過多；上限為 {{.Max}}。"
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "已停用檢查最新的 Mattermost 版本。請開啟「檢查安全性與版本更新」以允許此功能。"
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "無法查詢頻道管理員。"
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "無法查詢缺少此屬性值的頻道。"
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "無法計算缺少此屬性值的頻道數量。"
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "無法計算缺少此屬性值的所有頻道數量。"
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "無法計算缺少此屬性值的本機頻道數量。"
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "無法列出缺少此屬性值的頻道。"
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "無法查詢缺少此屬性值的遠端頻道。"
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "無法計算受此屬性影響的頻道管理員與頻道數量。"
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "無法查詢要通知此屬性相關事項的頻道管理員。"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _以及另外 {{.Count}} 個頻道_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "請為您管理的這些頻道設定 **{{.AttributeName}}** 的值。系統管理員需要每個頻道都設定值，才能將此屬性設為必填。"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "other": "您是缺少必填頻道屬性之頻道的頻道管理員。請設定 **{{.AttributeName}}** 的值。"
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "無法為此屬性取得通知冷卻時間。"
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "無法取得已儲存的組態。"
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "沒有已儲存的組態具有此 ID。"
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "只有在組態儲存於資料庫中時，才能使用組態歷史記錄。"
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "原始寫法：{{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "時間戳記"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC：** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "無法開始執行健康檢查。"
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "健康檢查已在啟動中。請稍後再試。"
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "匯入訊息失敗。無法儲存優先順序。"
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "匯入使用者團隊失敗。找不到團隊。"
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "此檔案會將 {{.Adding}} 位使用者加入團隊 {{.Team}}，使其成員數達到 {{.Total}} 位，但 TeamSettings.MaxUsersPerTeam 為 {{.Limit}}。請在匯入前提高上限，或將其設為 0（無上限）。"
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "無法讀取匯入檔案以檢查 TeamSettings.MaxUsersPerTeam。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Acknowledgement 的 AcknowledgedAt 屬性必須設定，且不得早於訊息的 CreateAt。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "缺少必要的 Acknowledgement 屬性：User。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "訊息的確認回覆需要 Priority 的 RequestedAck 設為 true。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "訊息的 PersistentNotifications 需要緊急的 Priority。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "缺少必要的 Priority 屬性：Priority。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction 的 EmojiName 屬性無效。必須為 1 到 64 個 ASCII 英文字母、數字、+、- 或 _。"
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "只有系統管理員可以變更使用進階邏輯的成員資格規則。請在系統控制台中編輯。"
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "此成員資格規則使用了成員資格同步無法評估的運算式。請改寫規則，只使用比較、&&、||、in 以及支援的屬性函式。"
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "此成員資格規則使用了成員資格同步無法評估的 {{.Function}}。請改寫規則，只使用比較、&&、||、in 以及支援的屬性函式。"
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "無法判斷操作是否有權限政策"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "無法判斷資源的存取政策是否管轄此操作。"
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "名為 {{.Name}} 的設定檔已存在。"
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "此檔案不是有效的 OpenPGP 公開金鑰。"
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "擴充程式公開金鑰名稱 {{.Name}} 無效。名稱只能包含英文字母、數字、「.」、「_」與「-」。"
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "無法刪除此欄位，因為有套用遮罩的範本從中讀取每個人的持有值。請先變更或移除該範本的遮罩。"
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "連結欄位的 option.read 層級（{{.FieldTier}}）不能比其範本（{{.TemplateID}}）的層級（{{.TemplateTier}}）更寬鬆。"
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "OpenID Connect 屬性同步關閉時，無法將屬性連結至 OpenID Connect 宣告。"
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "無法搜尋全域屬性。"
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "此欄位是其遮罩範本的持有值來源，因此其值寫入層級不能為「{{.ValueWrite}}」。否則被範本篩選的人可以編輯自己的持有值，擴大自己可檢視的範圍。"
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "從 OpenID Connect 同步的屬性不能同時從 AD/LDAP 或 SAML 同步。"
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "無法以此方式變更此欄位的擁有者、存取模式、受保護或同步設定，因為其權限無法以該形式表示。請改為直接更新其權限。"
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "無法變更此欄位的存取模式，因為其中包含呼叫者可能無權讀取的資料。"
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "無法更新：連結欄位 {{.DependentID}} 的 option.read 層級為 {{.DependentTier}}，將會超過新層級 {{.NewTier}}。"
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "無法在同一次更新中同時變更此欄位的權限物件，以及其權限層級、擁有者、存取模式、受保護或同步設定。請只以其中一種形式傳送變更。"
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "無法更新：在此遮罩下，連結欄位 {{.DependentID}} 會提供自己的持有值，但其值寫入層級為「{{.ValueWrite}}」。請先將該欄位的值寫入層級降至 admin 或更低。"
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "無法取消連結此欄位，因為有套用遮罩的範本從中讀取每個人的持有值。請先變更或移除該範本的遮罩。"
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "此帳號已停用並已部分刪除。再次執行刪除是安全的，並會完成刪除。"
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "此次執行已刪除上限 {{.Max}} 則訊息。此帳號已停用並已部分刪除。請再次執行刪除以繼續。"
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "無法完成刪除 {{.Count}} 位使用者：{{.Usernames}}。請再次執行命令以繼續。"
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "傳送叢集要求失敗"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML 未正確設定。請聯絡您的系統管理員。"
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "最近的執行仍在佇列中、正在執行或已取消，因此無法檢查較早的執行。"
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "驗證"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "高可用性"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "法遵"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "資料庫"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "背景作業"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "授權"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "通知"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "平台"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "搜尋"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "更新"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Node}} 上的{{.Title}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "資料收集時間"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "未知"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "授權對象"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "上次評估"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "產生時間"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "授權"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "尚未評估"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "伺服器版本"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "站台網址"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "評估似乎已停止。"
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "在系統控制台中開啟此設定"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "詳細資料"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "閱讀說明文件"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "修正方式"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "摘要"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "已靜音"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "已解決"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "無法評估"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "嚴重"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "資訊"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "警告"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "other": "{{.Count}} 項嚴重"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "other": "{{.Count}} 項資訊"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "沒有未解決的健康檢查結果。"
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "尚未執行任何健康檢查。"
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "other": "{{.Count}} 項無法評估"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "other": "{{.Count}} 項警告"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "健康狀態報告"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "目前沒有啟用任何稽核日誌目標，而此工作區有 {{.users}} 位註冊使用者。管理操作、登入與設定變更都不會留下獨立的稽核軌跡。這是法規遵循與鑑識上的缺口，而非穩定性風險。"
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "若您的組織有稽核需求（金融服務、醫療照護、國防、受監管的公部門），請在「系統控制台 > 規範 > 稽核日誌」中啟用稽核日誌，或在 ExperimentalAuditSettings.AdvancedLoggingJSON 中為稽核層級新增目標，並設定日誌輪替。否則可以忽略此項目。"
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "稽核日誌已停用"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress 綁定了連接埠 {{.port}}，低於 1024。在 Linux 上，未以 root 身分執行的 Mattermost 伺服器只能透過其執行檔上的 CAP_NET_BIND_SERVICE 檔案能力綁定此連接埠。套件升級會取代執行檔並清除該能力，因此伺服器可能在下次升級後無法啟動，並出現「bind: permission denied」錯誤。由於設定無法顯示該能力是如何授予的，即使您已透過 systemd 單元 授予，此警告仍會持續顯示。"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "請在 Mattermost 的 systemd 單元 中加入 AmbientCapabilities=CAP_NET_BIND_SERVICE，讓該能力在升級後仍然保留；或在每次升級後重新執行 setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost。另一種做法是在 Mattermost 前方設置反向代理伺服器，並讓 Mattermost 綁定 8065 等高編號連接埠。"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "伺服器直接綁定特權連接埠"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "領導節點公告的位址為 {{.address}}。其他節點無法透過該位址連線，因此 gossip 會形成只有一個節點的叢集，並掩蓋腦裂狀況。"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "請將 ClusterSettings.AdvertiseAddress 設為該節點可連線的 IP 位址或 DNS 名稱，或保留空白以使用網路介面的位址。此檢查讀取的是領導節點的設定，因此請檢查每個節點上的此設定。"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "其他節點無法連線至 ClusterSettings.AdvertiseAddress"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "設定儲存在每個節點上的檔案中，且可以在系統控制台中變更。變更會儲存在單一節點上，並盡力推送至其他節點；未收到推送的節點會保留自己的檔案，因此各節點的設定可能逐漸不一致。"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "請將 ClusterSettings.ReadOnlyConfig 設為 true，並在每個節點上透過設定檔或環境變數管理設定，或將設定移至資料庫中。"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "以檔案儲存設定的高可用性叢集中，ClusterSettings.ReadOnlyConfig 為關閉"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption 為 false，因此叢集節點之間的流量未加密。"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "請啟用 gossip 加密，然後在維護時段內同時重新啟動所有節點。已加密與未加密的節點無法互相通訊，因此逐一輪流重新啟動會使叢集分裂，直到最後一個節點重新啟動為止。"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "高可用性叢集的 gossip 通訊未加密"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "在高可用性環境中有 {{.users}} 位註冊使用者時，預設的記憶體內 LRU 快取會讓每個節點各自維護一份副本，並透過 gossip 使快取失效。Mattermost 建議在 100,000 位使用者以上時使用 Redis，以減少此規模下的快取失效流量。"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "請評估將 CacheSettings.CacheType 設為 redis，並設定 CacheSettings.RedisAddress。Redis 需要包含叢集（Cluster）功能的授權。"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "大規模部署時，請考慮使用 Redis 快取後端"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "預期的高可用性拓撲實際上並未運作。單一節點無法提供容錯移轉，並會掩蓋腦裂風險。"
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "請檢查 gossip 連線能力（ClusterSettings.GossipPort）、防火牆規則，以及所有應用程式節點是否使用相同的 ClusterName。ClusterName 為空白時，節點也會獨立運作：伺服器隨後會記錄高可用性已停用。"
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "已啟用高可用性，但叢集中只有一個節點"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "叢集中的節點回報的版本為：{{.versions}}。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "各節點分屬不同版本，且沒有任何版本比其他版本更普遍，因此無法判斷哪些節點已過時。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "此節點執行 {{.version}}，而多數節點執行 {{.majority}}。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "除非正在進行升級，否則請將每個節點升級至相同版本，並確認節點之間可以透過 gossip 通訊。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "在叢集中偵測到多個 Mattermost 版本"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory 為空白，因此法遵報告會寫入伺服器工作目錄下的法遵資料夾。伺服器升級或其容器重建時，這些報告將會遺失。"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "請在「系統控制台 > 規範 > 法遵監控」中，將法遵報告目錄（ComplianceSettings.Directory）設為可寫入的永久路徑。"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "已啟用法遵監控，但報告目錄為空白"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "每個節點會維持最多 MaxOpenConns 個連至主要資料庫的連線集區。在 {{.nodes}} 個節點且 MaxOpenConns={{.max_open}} 的情況下，資料庫容錯移轉可能會對新升級的主要資料庫同時發出最多 {{.burst}} 次連線嘗試，而 DataSource 主機看起來並不是連線集區器。若超過資料庫的 max_connections，資料庫會拒絕連線（'sorry, too many clients already'），並延長復原時間。"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "請依此突增量規劃每一層的容量。最持久的解決方法是降低每個節點的 SqlSettings.MaxOpenConns，及/或在資料庫前方設置 PgBouncer（transaction 模式）以吸收重新連線的突增，而非只提高 max_connections：每個連線都會耗用資料庫記憶體，因此過高的上限有記憶體耗盡的風險。若提高 max_connections，請在突增量之上保留餘裕，供複寫、監控與管理工作階段使用。在容錯移轉期間錯開節點啟動時間，也能讓突增量維持在上限以下。"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "資料庫容錯移轉可能引發連線風暴"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns（{{.max_idle}}）設定得比 MaxOpenConns（{{.max_open}}）還高。Go 的 database/sql 層會在不提示的情況下將閒置集區上限限制為 MaxOpenConns，因此多出的閒置容量不會有任何作用。這不會造成故障，但此值容易誤導，通常表示調整集區時不知道閒置連線數永遠不能超過開啟連線數。"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "請將 MaxIdleConns 設為小於或等於 MaxOpenConns 的值（常見的準則是 MaxOpenConns 的 25-50%）。"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns 超過 MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "在 {{.users}} 位使用者且 MaxOpenConns={{.max_open}} 的情況下，突發負載時應用程式端可能會出現要求排隊。目前的預設值為 100（MaxIdleConns 為 50，比例為 2:1）。"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "若觀察到應用程式端的要求排隊，請依監控到的需求提高 SqlSettings.MaxOpenConns（以 100/50 的預設值為基準）。實際的資料庫連線上限為 MaxOpenConns x 節點數 x 資料來源數，因此在提高前，請確認資料庫的 max_connections 足以涵蓋此總數。"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "以此使用者規模而言，MaxOpenConns 可能偏低"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas 為空白。在 {{.users}} 位使用者的情況下，所有讀取都會送往主要資料庫。建議較大型的部署使用讀取複本。"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "請考慮建立讀取複本，並將其加入 SqlSettings.DataSourceReplicas。"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "未設定讀取複本"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "在有 {{.posts}} 則訊息且使用資料庫搜尋的情況下，主要資料庫與複本必須承擔全文掃描。在此規模下，這會造成 CPU 壓力與搜尋逾時。"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "在有 {{.posts}} 則訊息且使用資料庫搜尋的情況下，主要資料庫與複本必須承擔全文掃描。在此規模下，這會造成 CPU 壓力與搜尋逾時。您的授權包含 Elasticsearch，可將搜尋完全移出資料庫。"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "請設定 SqlSettings.DataSourceSearchReplicas。"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "沒有搜尋複本，且 Elasticsearch 搜尋已停用"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.max_open}} 個主要資料庫連線中有 {{.in_use}} 個正在使用（{{.percent}}%），已達到或超過 MaxOpenConns 的 90%。新的查詢將會排隊，HTTP 延遲也會增加。"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "請提高 SqlSettings.MaxOpenConns 與資料庫的 max_connections，並調查長時間執行的查詢。"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "主要資料庫連線集區接近飽和"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} 低於最低支援版本 {{.minimum}}。Mattermost 仍可在此版本上啟動，但不受支援的版本可能導致非預期的行為。請升級至 PostgreSQL {{.minimum}} 或更新版本。"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "請規劃升級。較新的版本也提供更好的平行查詢與 JSONB 效能。"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL 版本低於最低支援版本"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL 目前正在對 Posts 資料表執行 vacuum。請等待該 vacuum 完成後，再評估是否需要再次執行 vacuum。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Posts 資料表估計有 {{.dead_tuples}} 個 dead tuple（占估計 {{.estimated_rows}} 列中的 {{.dead_percent}}%），儘管它上次已於 {{.last_vacuum}} 執行 vacuum。vacuum 雖然有在執行，但很可能無法移除它們，因為有某些因素阻礙了清理，例如長時間執行或處於 idle-in-transaction 狀態的工作階段、非作用中的 replication slot，或遭棄置的 prepared transaction。資料表與索引膨脹會降低查詢效能並增加磁碟用量。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Posts 資料表估計有 {{.dead_tuples}} 個 dead tuple（占估計 {{.estimated_rows}} 列中的 {{.dead_percent}}%），且自統計資料上次重設以來，PostgreSQL 沒有任何對其執行 vacuum 的紀錄。Autovacuum 似乎跟不上此資料表的需求。資料表與索引膨脹會降低查詢效能並增加磁碟用量。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Posts 資料表估計有 {{.dead_tuples}} 個 dead tuple（占估計 {{.estimated_rows}} 列中的 {{.dead_percent}}%），且最近一次 vacuum 是在 {{.age_days}} 天前的 {{.last_vacuum}}。Autovacuum 似乎跟不上此資料表的需求。資料表與索引膨脹會降低查詢效能並增加磁碟用量。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "若 pg_stat_progress_vacuum 顯示 Posts 上有 vacuum 正在執行，請讓它完成，因為手動啟動 VACUUM 會將其取消。若 Posts 最近已執行過 vacuum，請找出阻礙清理的因素並將其結束或移除：pg_stat_activity 中長時間執行或處於 idle-in-transaction 狀態的工作階段、pg_replication_slots 中非作用中的 replication slot，以及 pg_prepared_xacts 中舊的 prepared transaction。之後下一次 vacuum 即可移除 dead tuple。若 Posts 最近未執行過 vacuum，請確認已在全域及 Posts 上啟用 autovacuum，並檢查 PostgreSQL 日誌中是否有被取消的 autovacuum 作業。若 autovacuum 跟不上，請降低 Posts 的 autovacuum_vacuum_scale_factor，並視容量提高 autovacuum_vacuum_cost_limit 與 autovacuum_work_mem，然後在低流量期間針對 Posts 排程執行 VACUUM (ANALYZE)。除非已規劃好 VACUUM FULL 所需的獨占鎖定與額外磁碟空間，否則請避免使用；若可用，pg_repack 是鎖定程度較低的替代方案。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Posts 資料表有大量 dead tuple"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout 設為 {{.timeout}} 秒。過長的逾時會讓失控的查詢在整段期間持有鎖定，阻擋 autovacuum、結構描述遷移，以及排在同一列之後的寫入作業。在沒有讀取複本的繁忙資料庫上，這會進一步加劇風險。"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "請將 SqlSettings.QueryTimeout 降至 30。請另外調查特定的緩慢查詢，而非提高全域上限。"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout 過高（預設為 30 秒）"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "已設定 DataSourceReplicas，但無法連線至任何複本，因此讀取會改由主要資料庫處理。"
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "請確認複本的 DSN、網路連線能力與驗證。請檢查伺服器日誌中是否有複本連線警告。"
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "已設定讀取複本，但皆無法連線"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "每個 SQL 陳述式都會被記錄。此功能僅供除錯使用：持續開啟會塞滿磁碟，並將查詢內容寫入日誌檔。"
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "除非正在除錯，否則請將 SqlSettings.Trace 設為 false。"
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace 已啟用"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "伺服器執行於 {{.os}} 上。Mattermost 的正式環境僅支援 Linux；其他作業系統僅適合用於開發。"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "請將伺服器移至受支援的 Linux 發行版。"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "伺服器未在 Linux 上執行"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "每則新訊息都會以各自的要求同步建立索引。在繁忙的伺服器上，這會使搜尋叢集過載並延遲索引。"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "請將 LiveIndexingBatchSize 提高至 10 到 20 之間，並依觀察到的訊息發送速率在此範圍內調整。"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch 的 LiveIndexingBatchSize 為 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize 為 {{.size}}。大型 _bulk 要求可能超過搜尋叢集的 http.max_content_length，並因 413 錯誤而失敗，導致重試與索引延遲。"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "請將 LiveIndexingBatchSize 降至 10 到 20 之間；若刻意使用非常大的批次，請提高搜尋叢集上的 http.max_content_length。"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch 的 LiveIndexingBatchSize 超過 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL 指向 {{.host}}，每個應用程式節點都會將其解析為自己。沒有本機搜尋引擎的節點將無法建立索引或搜尋。"
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "請將 ConnectionURL 設為每個應用程式節點都能連線的主機名稱或服務 DNS 名稱。"
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch 的 ConnectionURL 指向 localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "搜尋叢集未回報 analysis-icu 擴充程式。訊息索引範本使用 ICU 斷詞器與正規化器，因此若缺少此擴充程式，訊息索引可能會失敗。"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "由於伺服器無法讀取搜尋叢集版本，因此未收集擴充程式清單。"
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "請在每個搜尋節點上安裝 analysis-icu 擴充程式（elasticsearch-plugin install analysis-icu 或 opensearch-plugin install analysis-icu），然後重新啟動節點。不只是多語言搜尋，訊息索引也需要此擴充程式。"
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "搜尋引擎缺少 analysis-icu 擴充程式"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "搜尋引擎連線測試失敗：{{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "搜尋引擎連線測試失敗，且資料庫搜尋已停用，因此搜尋不會傳回任何結果：{{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "搜尋引擎連線測試在 {{.nodes}} 上失敗，而其他節點可以連線，因此這些節點上的搜尋與索引可能會失敗。請檢查這些節點上的網路、防火牆、Proxy 與 DNS 設定。錯誤：{{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "請確認 ElasticsearchSettings.ConnectionURL 的連線能力、TLS 與認證資訊。請檢查搜尋叢集的健康狀態（GET /_cluster/health）。"
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "伺服器回報 Elasticsearch 叢集錯誤"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "在 https 連線上 SkipTLSVerification 為 true，因此伺服器不會驗證搜尋引擎的憑證。在受信任的內部網路上這是可以接受的，但在其他環境中將失去對中間人攻擊的防護。"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "若搜尋端點位於不受信任的路徑上，請安裝其 CA（憑證授權單位）憑證，讓憑證能通過驗證，並將 SkipTLSVerification 設為 false。在受信任的內部網路上，請確認此設定是刻意為之。"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch 連線略過 TLS 憑證驗證"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} 比支援的主要版本（{{.min}} 到 {{.max}}）更新。請將 Mattermost 升級至支援此版本的發行版本，或將搜尋叢集改回受支援的版本。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} 比支援的主要版本（{{.min}} 到 {{.max}}）更舊。請將搜尋叢集升級至受支援的版本。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "由於伺服器尚未連線至搜尋叢集，因此未收集搜尋叢集版本。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "無法辨識搜尋引擎的後端或版本。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "請執行此 Mattermost 版本所支援的搜尋叢集主要版本。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "搜尋引擎版本不受支援"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout 為 {{.value}} 秒。此設定限制匯出作業等待連線至 Global Relay SMTP 伺服器的時間，若少於 30 秒，連線緩慢時傳送就會失敗。"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "請將 MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout 提高至至少 30 秒。預設值為 1800。"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay 的 SMTPServerTimeout 少於 30 秒"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "FileSettings.Directory 所在的磁碟區在 {{.total_gib}} GiB 中僅剩 {{.available_gib}} GiB（{{.percent}}%）可用。磁碟區用盡時，檔案上傳與其他檔案操作可能會失敗。"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "請立即擴充磁碟區，或從其檔案系統中移除無關的資料；請勿手動從 FileSettings.Directory 刪除由 Mattermost 管理的檔案。請至少保留 10% 或 10 GiB 的可用空間，且絕不少於 1 GiB。"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "檔案儲存磁碟即將用盡"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "FileSettings.Directory 所在的磁碟區在 {{.total_gib}} GiB 中有 {{.available_gib}} GiB（{{.percent}}%）可用。"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "請擴充磁碟區，或從其檔案系統中移除無關的資料；請勿手動從 FileSettings.Directory 刪除由 Mattermost 管理的檔案。請至少保留 10% 或 10 GiB 的可用空間，且絕不少於 1 GiB。"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "檔案儲存磁碟空間不足"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName 為 local 且 ClusterSettings.Enable 已開啟，FileSettings.Directory 為 {{.directory}}。在叢集中，此目錄必須是在每個節點上以相同方式掛載的共用掛載點（NFS、EFS、GlusterFS、CephFS），否則上傳至某個節點的檔案在其他節點上將無法看到。設定無法顯示此目錄是否為共用，且節點可能在寫入自己本機磁碟的同時，仍通過檔案儲存連線測試。"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "請在每個應用程式節點上，以 FileSettings.Directory 的路徑執行 findmnt。相對路徑會以 Mattermost 工作目錄（通常為 /opt/mattermost）為基準解析。每個節點都必須顯示相同的遠端來源，且 Mattermost 使用者必須能在該處讀取與寫入。若此目錄不是共用掛載點，請將其移至共用掛載點，或將 FileSettings.DriverName 切換為 amazons3。"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "高可用性叢集中使用本機檔案儲存：請確認共用掛載點"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket 為空白，因此檔案上傳會失敗。"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "請設定 FileSettings.AmazonS3Bucket，以及區域與端點。"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "已選擇 Amazon S3 檔案儲存，但儲存貯體為空白"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL 為 false，因此檔案在伺服器與 S3 端點之間會以未加密的方式傳輸。"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "除非端點僅支援純 HTTP，否則請將 FileSettings.AmazonS3SSL 設為 true。"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3 SSL 已停用"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "伺服器無法連線至其檔案儲存：{{.error}}。檔案上傳與下載可能會失敗。"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "檔案儲存連線測試在 {{.nodes}} 上失敗，而其他節點可以連線，因此透過這些節點進行的檔案上傳與下載可能會失敗。請檢查這些節點上的網路、防火牆、Proxy 與 DNS 設定。若使用本機儲存，也請確認共用目錄已掛載於這些節點上。錯誤：{{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "請檢查檔案儲存設定，然後在「系統控制台 > 環境 > 檔案儲存」中使用「測試連線」。若使用本機儲存，請確認 FileSettings.Directory 存在，且 Mattermost 使用者可以寫入該目錄。若使用 Amazon S3，請檢查儲存貯體、端點與認證資訊。"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "檔案儲存連線測試失敗"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "最近一次完成的 {{.job_type}} 執行（{{.job_id}}）以錯誤結束：{{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "最近一次完成的 {{.job_type}} 執行（{{.job_id}}）以錯誤結束，但未記錄任何錯誤訊息。"
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "請查看作業的錯誤，以及失敗執行開始時間前後的伺服器日誌，以找出原因。應排除的常見原因包括：資料庫負載、連線集區上限、網路或容錯移轉事件，以及陳述式逾時。解決問題後，請再次執行作業並確認其順利完成。在執行成功之前，該作業負責的工作（目錄同步、法遵匯出、資料保留或搜尋索引）都不會進行。"
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "最近一次作業執行失敗"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "{{.job_type}} 作業 {{.job_id}} 正在進行中，但已有 {{.hours}} 小時未記錄任何活動。這通常表示工作程序在執行途中終止，或排程器已卡住。"
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "{{.job_type}} 作業 {{.job_id}} 正在進行中，但已有 {{.days}} 天未記錄任何活動。這通常表示工作程序在執行途中終止，或排程器已卡住。"
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "請在該作業的系統控制台頁面、使用 mmctl job cancel，或透過 API 取消卡住的作業。請檢查作業最後一次活動前後的伺服器日誌，然後再次執行。"
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "作業卡在進行中超過 24 小時"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "{{.job_type}} 作業 {{.job_id}} 超過一小時未回報任何進度，也未記錄任何活動。這通常表示工作程序在處理第一個批次之前已終止、發生死結，或失去資料庫連線。"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "請在該作業的系統控制台頁面、使用 mmctl job cancel，或透過 API 取消該作業。請檢查自作業開始時間起的伺服器日誌中是否有 panic 或連線錯誤，然後再次執行。若問題再次發生，請在作業卡住時，從效能指標伺服器的 /debug/pprof/goroutine 擷取 goroutine 剖析資料。"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "作業進行中，但超過一小時沒有進度或活動"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute 為 {{.attribute}}。Mattermost 透過此屬性將每個帳號連結至其目錄項目，因此當使用者的電子郵件變更時（例如結婚、品牌更名、部門調動），連結就會中斷，使用者將無法再存取其現有帳號。"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "請將 IdAttribute 改為穩定的屬性，例如 objectGUID（AD）或 entryUUID（OpenLDAP），然後使用 mmctl ldap idmigrate 遷移現有帳號。"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP 的 IdAttribute 是電子郵件屬性"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "連接埠 636 依慣例使用隱含式 TLS（LDAPS），但 ConnectionSecurity 為 None 或 STARTTLS。此組合通常是設定錯誤，但在會終止 TLS 的 Proxy 後方則可能是有效的。請確認 LDAP 登入與同步皆正常運作。"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "若 LDAP 登入或同步失敗，請為連接埠 636 將 ConnectionSecurity 設為 TLS。若運作正常，則不需要變更。"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP 連接埠 636 未設定 ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "連接埠 389 依慣例使用純文字或 STARTTLS，而隱含式 TLS（LDAPS）依慣例使用 636。此組合通常是設定錯誤，但在會終止 TLS 的 Proxy 後方，或伺服器經過刻意重新設定時，則可能是有效的。請確認 LDAP 登入與同步皆正常運作。"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "若 LDAP 登入或同步失敗，請改用連接埠 636 搭配 TLS，或為連接埠 389 將 ConnectionSecurity 改為 STARTTLS。若運作正常，則不需要變更。"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP 連接埠 389 設定了 ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "LDAP 測試（連線、繫結及使用者搜尋）失敗，因此 LDAP 登入與同步可能無法正常運作。"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "LDAP 測試（連線、繫結及使用者搜尋）在 {{.nodes}} 上失敗，而其他節點可以連線至 LDAP 伺服器，因此這些節點上的 LDAP 登入可能會失敗。請檢查這些節點上的網路、防火牆、Proxy 與 DNS 設定。"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "請查看錯誤詳細資料，然後確認 LdapServer、LdapPort、ConnectionSecurity 與繫結認證資訊，以及 Mattermost 伺服器能否連線至 LDAP 伺服器。請在 AD/LDAP 頁面上使用「測試連線」再次檢查。"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP 連線測試失敗"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout 為 {{.timeout}} 秒。逾時過短會在回應緩慢的目錄上造成不必要的 LDAP 登入與同步失敗。"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "請將 LdapSettings.QueryTimeout 提高至 60 秒（預設值）。"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP 的 QueryTimeout 少於 10 秒"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "有 {{.users}} 個啟用中的使用者帳號是以手動方式管理。Mattermost 建議工作區超過 100 位使用者時使用單一登入：在此規模下手動管理帳號，會導致過時帳號、新手上路延遲，以及離職帳號處理疏漏，每一項都是安全性與授權方面的風險。"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "請將 Mattermost 連接至您的身分識別提供者：若您有使用目錄服務，請使用 AD/LDAP，否則請使用 SAML 或 OpenID Connect。"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "超過 100 位使用者但未使用單一登入"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost 不會驗證 LDAP 伺服器的 TLS 憑證，因此與目錄之間的連線容易遭受中間人攻擊。此設定僅適用於開發與測試。"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "請在 Mattermost 伺服器上安裝 LDAP 伺服器的 CA 憑證鏈，並將 SkipCertificateVerification 設為 false。"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP 的 SkipCertificateVerification 已啟用"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes 為 {{.interval_minutes}}，而最近的 LDAP 同步執行平均耗時 {{.avg_run_seconds}} 秒，占間隔的 {{.duty_pct}}%。在短間隔下長時間執行，會使資料庫負載持續偏高，並可能增加複本延遲。"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "找不到可測量執行時間的 LDAP 同步執行。"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "請縮小 LdapSettings.UserFilter 與 BaseDN 以限制目錄的走訪範圍，或延長 SyncIntervalMinutes。目標是讓每次同步執行所需時間少於間隔的 25%。"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP 同步執行時間占其間隔的比例過高"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP 同步會從 BaseDN 開始搜尋目錄，因此當它為空白時，同步將找不到應更新的使用者。"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "請將 LdapSettings.BaseDN 設為您要同步的目錄根節點。"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "已啟用 LDAP 同步，但 BaseDN 為空白"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "授權已於 {{.expires_at}} 到期。伺服器會在授權到期 10 天後將其移除，屆時 Enterprise 功能將停止運作。"
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "試用版授權已於 {{.expires_at}} 到期。伺服器會在授權到期 10 天後將其移除，屆時 Enterprise 功能將停止運作。"
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "請取得新的授權，並在「系統控制台 > 關於 > 版本與授權」中上傳。"
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "授權已到期"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "授權將於 {{.expires_at}} 到期。"
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "試用版授權將於 {{.expires_at}} 到期。"
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "請立即取得新的授權，以便在目前的授權到期前，於「系統控制台 > 關於 > 版本與授權」中上傳。"
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "授權將在 30 天內到期"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel 為 {{.level}}。除錯層級的檔案日誌會讓日誌檔快速增長，且額外的詳細資訊可能包含要求內容。排解問題時這樣做沒有問題，但不適合作為正式環境的常態設定。"
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "若您目前沒有在排解問題，請將 LogSettings.FileLevel 設為 INFO 以減少日誌量。"
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "檔案日誌處於除錯或追蹤層級"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile 為 false，因此伺服器不會寫入日誌檔。即使外部收集器有擷取 stdout 或 journald，支援套件中也不會包含伺服器日誌，與 Mattermost 支援團隊一同排解問題時將耗費更多時間。"
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "請將 LogSettings.EnableFile 設為 true。此設定可與主控台日誌同時運作，因此現有的日誌收集器仍可繼續運作。"
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "檔案日誌已停用"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging 為 true，因此失敗的送入 Webhook 要求會連同其內容一起被記錄，而內容可能包含訊息文字。"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "除非您正在排解 Webhook 的問題，否則請將 LogSettings.EnableWebhookDebugging 設為 false。"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Webhook 內容會被記錄"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel 為 {{.limit}}，因此在有數千名成員的頻道中，@channel、@all 與 @here 仍可使用。在這類頻道中，一次全頻道提及就會同時發出數千則通知，造成延遲飆升。"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "請將 TeamSettings.MaxNotificationsPerChannel 降至 5000 或以下（預設值為 1000）。頻道成員數達到此數量時，@channel、@all 與 @here 會被停用，因此請先與在大型頻道中使用這些提及的團隊確認。"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "超大型頻道中允許全頻道提及"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost 沒有記錄效能指標，例如資料庫連線、要求延遲與伺服器負載。缺少這些資料時，使用者回報速度緩慢時將沒有歷史紀錄可供回顧，也沒有資料可以提供給 Mattermost 支援團隊。"
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "請在系統控制台中開啟「效能監控」，並確認已在「擴充程式 > 擴充程式管理」中啟用 Metrics 擴充程式。此擴充程式會在伺服器上保留 15 天的效能指標，不需要 Prometheus。若您有執行 Prometheus，請將其指向效能指標接聽程式（預設為連接埠 8067）。"
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "效能監控已關閉"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "容器的記憶體工作集為 {{.working_set}} MB，上限為 {{.limit}} MB。若持續增長，核心可能會終止伺服器或擴充程式的處理程序。"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "請減少 Mattermost 及其擴充程式的記憶體用量，或提高容器的記憶體上限。請為擴充程式處理程序、Go 執行階段與流量高峰保留足夠的餘裕。"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "容器記憶體即將耗盡"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "此容器自啟動以來已記錄 {{.kills}} 次記憶體不足（OOM）終止。被終止的處理程序可能是擴充程式或其他子處理程序；請檢查擴充程式清單與容器的記憶體上限。"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "請檢查擴充程式處理程序與容器日誌，找出被終止的項目，然後減少其記憶體用量，或提高容器的記憶體上限。"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "容器中有處理程序因記憶體不足而被終止"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "在 {{.periods}} 個 CPU 排程週期中，此容器有 {{.throttled}} 個週期遭到節流。持續的 CPU 節流可能使 Mattermost 變慢，即使主機的 CPU 使用率看起來很低。"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "請提高容器的 CPU 上限（limit），或移除上限但保留 CPU 要求（request）。"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "容器的 CPU 節流程度偏高"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "伺服器處理程序已開啟 {{.open}} 個檔案描述元，上限為 {{.max}} 個。達到上限後，新的連線與檔案操作將會失敗。"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "請提高開啟檔案數上限：在 Mattermost 的 systemd 單元中設定 LimitNOFILE，或提高容器的 nofile ulimit，然後重新啟動伺服器。"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "檔案描述元即將耗盡"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Go 記憶體上限為 {{.go_limit}} MB，但容器上限為 {{.container_limit}} MB。在核心終止處理程序之前，記憶體回收器可能不會加強回收。"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "請將 GOMEMLIMIT 設為容器記憶體上限的 80–90% 左右，為 Go 堆積以外的記憶體及擴充程式處理程序保留餘裕。"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go 記憶體上限等於或高於容器上限"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS 為 {{.go_max_procs}}，高於容器的 CPU 上限 {{.cpu_limit}} 個 CPU。多出的可執行執行緒可能會加劇 CPU 節流。"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "請取消設定 GOMAXPROCS，讓 Go 執行階段依容器的 CPU 上限自動調整，然後重新啟動伺服器。"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS 超過容器的 CPU 上限"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "主機在 {{.cores}} 個 CPU 核心上的 15 分鐘平均負載為 {{.load}}。若每個核心持續有兩個以上的工作負載，可能表示 CPU 或 I/O 壓力過大。"
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "請檢查此節點上的 CPU 使用率、磁碟 I/O 與執行中的處理程序，然後增加容量或減少工作負載。"
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "主機負載偏高"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "主機的 {{.total}} MB 記憶體中有 {{.available}} MB 可用。若記憶體持續減少，Mattermost 與其他處理程序可能會被終止或變慢。"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "請找出並減少使用最多記憶體的處理程序，或為主機增加記憶體。重新啟動服務前，請先檢查 Mattermost 與擴充程式的記憶體用量。"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "主機記憶體不足"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "此節點未傳回健康檢查所需的診斷資訊。它可能已停止運作、負載過重，或與其他節點斷線。在它回應之前，其其他健康檢查結果會維持最後已知的狀態。"
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "請確認 Mattermost 正在此節點上執行，檢查其日誌及 CPU 與記憶體用量，並確認它能透過 gossip 連接埠（ClusterSettings.GossipPort）連線至其他節點。"
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "叢集節點沒有回應"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "所有回報的 Mattermost 節點對 OAuth/OIDC 提供者的連線探測皆失敗，因此可能無法透過此提供者登入。"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "OAuth/OIDC 提供者的連線探測在 {{.nodes}} 上失敗，而其他回報的節點可以連線至該提供者。這些節點上透過此提供者登入可能會失敗。"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "請檢查錯誤詳細資料、提供者的探索或權杖端點，以及對外的網路、防火牆、Proxy 與 DNS 設定。然後確認可以透過該提供者登入。"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC 提供者連線探測失敗"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "已啟用開放伺服器與電子郵件註冊，但電子郵件驗證為關閉，因此任何能連線至此伺服器的人，都可以用虛構的電子郵件地址建立帳號並加入開放的團隊。若開放註冊是刻意的設定，請將此健康檢查結果靜音。"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "已啟用開放伺服器與電子郵件註冊，但電子郵件驗證為關閉。TeamSettings.RestrictCreationToDomains 將註冊限制於部分網域，但 Mattermost 只會檢查地址是否以允許的網域結尾，而不會確認此人是否擁有該地址。任何能連線至此伺服器的人，都可以用允許的網域註冊，並偽裝成同事。若開放註冊是刻意的設定，請將此健康檢查結果靜音。"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "請將 EmailSettings.RequireEmailVerification 設為 true。請先確認 SMTP 運作正常：從未驗證電子郵件地址的現有使用者，必須在下次登入時進行驗證。若您不希望開放註冊，請將 TeamSettings.EnableOpenServer 設為 false；使用者仍可透過團隊邀請連結加入，因此仍建議啟用電子郵件驗證。若要將註冊限制於您的組織，請將 TeamSettings.RestrictCreationToDomains 與電子郵件驗證一併設定；若未啟用驗證，此限制可能會被繞過。"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "任何人都能以未驗證的電子郵件地址註冊"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck 為 false，因此當機的擴充程式不會自動重新啟動。"
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "請將 PluginSettings.EnableHealthCheck 設為 true。"
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "擴充程式健康檢查已停用"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "以下擴充程式已啟用但未執行：{{.plugins}}。"
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "請在「系統控制台 > 擴充程式 > 擴充程式管理」中，檢查每個列出的擴充程式狀態，並嘗試將其停用後再重新啟用。伺服器日誌會記錄擴充程式無法啟動，或被擴充程式健康檢查停止的原因。"
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "已啟用的擴充程式未執行"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable 為 false，因此不會執行任何擴充程式。這適合部分嚴格鎖定的部署，但通常並非刻意的設定。"
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "若這不符合預期，請將 PluginSettings.Enable 設為 true。"
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "擴充程式已停用"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents 設為 full，因此訊息文字與傳送者會包含在推播內容中，並經由推播代理伺服器以及 Apple 與 Google 的推播服務傳送。"
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "若要獲得最高的推播隱私，請將 EmailSettings.PushNotificationContents 設為 id_loaded。如此只會傳送訊息 ID，行動應用程式會再從伺服器取得訊息內容。因此行動裝置在收到通知時必須能夠連線至伺服器，若伺服器只能透過 VPN 或內部網路連線，通知將無法顯示訊息內容。若 full 是刻意的選擇，請將此健康檢查結果靜音。"
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "推播通知包含完整的訊息文字"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "推播通知伺服器連線測試失敗：{{.error}}。行動裝置使用者可能收不到推播通知。"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "推播通知伺服器連線測試在 {{.nodes}} 上失敗，而其他節點可以連線。由這些節點傳送的推播通知可能會失敗。請檢查這些節點上的網路、防火牆、Proxy 與 DNS 設定。錯誤：{{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "請檢查 PushNotificationServer、TLS 憑證與推播代理伺服器的健康狀態。請確認每個 Mattermost 應用程式節點都能透過 HTTPS 連線至所設定的主機，然後檢查其 /version 端點。"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "推播通知伺服器連線測試失敗"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com 是 Mattermost 的測試用推播代理伺服器。它沒有 SLA、傳輸量有限，且不適用於正式環境。您的授權包含 Mattermost Hosted Push Notification Service：請將 PushNotificationServer 設為 https://global.push.mattermost.com。"
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable 為 false，而註冊使用者有 {{.users}} 位。速率限制可保護伺服器免受大量要求，以及濫用或行為異常的用戶端影響；在有這麼多使用者，再加上 Webhook 與機器人整合的情況下，單一設定錯誤的用戶端就可能使 API 飽和。依 Mattermost 文件說明，其內建的速率限制器適用於較小型的部署（最多數百位使用者），因此在更大的規模下，通常較適合在負載平衡器或 API 閘道處理要求節流。"
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "請確認已有適合此規模的要求節流機制，可以是 Mattermost 內建的速率限制（「系統控制台 > 環境 > 速率限制」），或是在您的負載平衡器或閘道上設定。"
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "大型站台已停用 API 速率限制"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize 為 {{.size}}，但註冊使用者有 {{.users}} 位。速率限制器最多只會追蹤此數量的用戶端；存放空間已滿時，會捨棄最久未出現的用戶端，而該用戶端的要求配額會重新計算，因此存放空間過小會削弱速率限制的效果。"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "請將 RateLimitSettings.MemoryStoreSize 提高至至少等於註冊使用者人數。"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "速率限制的記憶體存放空間小於使用者人數"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds 為 {{.value}}。資料保留作業會在每批刪除之間暫停這段時間，讓資料庫有時間處理線上流量。若少於 100 毫秒，大量刪除可能會讓所有人的資料庫存取都變慢。"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "請在設定中將 DataRetentionSettings.TimeBetweenBatchesMilliseconds 提高至至少 100（預設值）。"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "資料保留的 TimeBetweenBatchesMilliseconds 少於 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "斷言在 SAML 層以未加密的方式傳輸。連線仍受 TLS 保護，因此這並非基本的安全性缺失，但若您的 IdP 支援斷言加密，啟用它可增加縱深防禦。"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "若您的 IdP 支援斷言加密，請啟用 SamlSettings.Encrypt，並設定服務提供者的私密金鑰與公開憑證。"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "SAML 斷言加密已停用"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost 以電子郵件地址作為 SAML 帳號的識別鍵，原因是 IdAttribute 為空白，或其指定的是電子郵件屬性。當使用者的電子郵件在 IdP 上變更時，與其現有帳號的連結就會中斷。"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "請將 IdP 設定為傳送穩定的識別碼（例如 objectGUID 或不可變的 ID），然後將 SamlSettings.IdAttribute 設為該屬性的名稱。現有帳號會自動移轉至新的識別碼：每位使用者下次登入時，Mattermost 會透過電子郵件找到該帳號並儲存新的 ID。"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML 的 IdAttribute 為空白或為電子郵件屬性"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute 為 {{.attribute}}。使用者名稱、uid 與使用者主體名稱經常在不同員工之間重複使用，發生這種情況時，第二個人會繼承第一個人的 Mattermost 帳號。"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "建議使用永遠不會重新指派的識別碼，例如 objectGUID（AD）或不可變的 ID（Microsoft Entra ID），並檢查 IdP 關於識別碼重複使用的政策。"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML 的 IdAttribute 可能在 IdP 上被重新指派"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "SAML 對 IdP 憑證與 IdP 網址的檢查失敗，因此 SAML 登入很可能無法運作。"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "SAML 對 IdP 憑證與 IdP 網址的檢查在 {{.nodes}} 上失敗，但在其他節點上通過，因此這些節點上的 SAML 登入可能會失敗。請確認這些節點擁有與其他節點相同的有效 IdP 憑證。"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "請查看錯誤詳細資料，然後在 SAML 設定中修正 IdP 憑證（IdpCertificateFile）或 IdP 網址（IdpURL）。若憑證已過期，請上傳 IdP 目前的簽署憑證。"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "SAML 設定檢查失敗"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO 使用已被淘汰的 SHA-1 簽章演算法。SSO 目前仍可運作，但部分身分識別提供者已開始拒絕 SHA-1，因此這是應排定進行的相容性與安全性改善，尤其是在任何 IdP 變更或升級之前。"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "請在方便時，與您的 IdP 協調後，將 SamlSettings.SignatureAlgorithm 設為 RSAwithSHA256。"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML 的 SignatureAlgorithm 為 SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost 在接受 SAML 回應時不會驗證您 IdP 的簽章，因此無法分辨真正的驗證回應與偽造的回應。"
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "請將 SamlSettings.Verify 設為 true，並確認已設定 AssertionConsumerServiceURL。由於驗證需要正確設定 IdP 憑證，請與您的 IdP 協調後再啟用，並測試登入。"
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "SAML 簽章驗證已停用"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "此工作區有 {{.posts}} 則訊息，且搜尋是在資料庫上執行。訊息超過 2,500,000 則時建議使用 Elasticsearch，超過 5,000,000 則時則必須使用。"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "請在下一個主要成長期之前，或在達到 5,000,000 則訊息之前，規劃部署 Elasticsearch。"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "訊息數量即將達到需要 Elasticsearch 的門檻"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "此工作區有 {{.posts}} 則訊息，且搜尋是在資料庫上執行。在此規模下，可能會出現搜尋緩慢、逾時，以及資料庫 CPU 飆升的情況。"
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "請部署 Elasticsearch 或 OpenSearch，執行完整的初始索引，然後啟用 EnableIndexing、EnableSearching 與 EnableAutocomplete。"
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "訊息超過 5,000,000 則時必須使用 Elasticsearch"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "資料庫搜尋已停用，且 Elasticsearch 搜尋為關閉。搜尋不會傳回任何結果。啟用 Elasticsearch 或 OpenSearch 搜尋也能恢復搜尋功能。"
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "資料庫搜尋已停用，且授權不包含 Elasticsearch，因此 Elasticsearch 設定不會有任何作用。搜尋不會傳回任何結果。"
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "請在 config.json 中將 SqlSettings.DisableDatabaseSearch 設為 false（或設定 MM_SQLSETTINGS_DISABLEDATABASESEARCH=false）。"
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "搜尋已停用"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "計入授權上限的使用者有 {{.used}} 位，已達到 {{.limit}} 位使用者的授權上限。在釋出或增加席次之前，伺服器不會建立或重新啟用使用者。"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "請購買更多席次，或停用不再需要存取權的使用者以釋出席次。"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "已達到授權使用者上限"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "計入授權席次的使用者有 {{.used}} 位，授權席次為 {{.seats}} 個（{{.percent}}%）。"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "若您預期會有更多使用者，請在授權額滿之前規劃增加席次。停用不再需要存取權的使用者可以釋出席次。"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "授權席次即將額滿"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "計入授權席次的使用者有 {{.used}} 位，授權席次為 {{.seats}} 個（{{.percent}}%）。"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "請購買更多席次，或停用不再需要存取權的使用者。已停用的使用者不會占用席次。"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "使用者人數超過授權席次"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "工作階段會依固定時程到期，不論是否有活動，因此正在使用的使用者也會被登出。大多數部署都能從讓活躍使用者保持登入中獲益。"
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "除非您的安全性政策禁止，否則請啟用 ServiceSettings.ExtendSessionLengthWithActivity。"
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity 已停用"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "SMTP 伺服器連線測試失敗：{{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "SMTP 伺服器連線測試在 {{.nodes}} 上失敗，而其他節點可以連線。請檢查這些節點上的網路、防火牆、Proxy 與 DNS 設定。錯誤：{{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "電子郵件通知、邀請與重設密碼郵件可能無法送達。請在系統控制台中檢查 SMTP 伺服器、連接埠、連線安全性與認證資訊，確認 Mattermost 伺服器可以連線至 SMTP 主機，然後使用「測試連線」進行驗證。"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTP 伺服器連線測試失敗"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "最新發行版本未知：可能是無法取得，或支援套件中沒有記錄。"
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "未檢查最新版本：「檢查安全性與版本更新」已關閉，因此伺服器不會取得最新版本。"
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "此版本不在此建置的發行版本表中。若要評估來自較新伺服器的支援套件，請使用較新版本的 mmctl。"
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "伺服器版本未知或無法辨識。"
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "目前執行 {{.version}}。最新版本為 {{.latest}}，比目前版本新兩個以上的發行版本。"
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "請在此版本系列的支援結束之前，規劃升級至最新發行版本，或改用延長支援版本（ESR）以降低升級頻率。"
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "落後最新發行版本數個版本"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "目前執行 {{.version}}。最新版本為 {{.latest}}。"
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "請規劃升級至最新發行版本。"
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "有較新的發行版本可用"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "目前執行 Mattermost {{.version}}。此版本系列的支援已於 {{.eol_date}} 結束。此版本系列不會再發布任何安全性修補程式。"
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "目前執行 Mattermost {{.version}}，這是已不再受支援的舊版本系列。此版本系列不會再發布任何安全性修補程式。"
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "目前執行 Mattermost {{.version}}，這是已不再受支援的舊版本系列。此版本系列不會再發布任何安全性修補程式。目前仍受支援的最新延長支援版本為 {{.target}}。"
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "目前執行 Mattermost {{.version}}。此版本系列的支援已於 {{.eol_date}} 結束。此版本系列不會再發布任何安全性修補程式。請升級至最新發行版本。"
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "目前執行 Mattermost {{.version}}。此版本系列的支援已於 {{.eol_date}} 結束。此版本系列不會再發布任何安全性修補程式。目前仍受支援的最新延長支援版本為 {{.target}}。"
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "請規劃分階段升級至受支援的延長支援版本或最新發行版本。受支援的版本列於 https://docs.mattermost.com/product-overview/mattermost-server-releases.html。"
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost 版本已超過支援終止日期"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "目前執行 {{.version}}，屬於延長支援版本 {{.esr}}。請在 {{.eol_date}} 之前規劃升級，以持續獲得安全性修補程式。"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "請排定升級至最新發行版本或下一個延長支援版本。"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "延長支援版本即將終止支援"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "權限政策上的頻道存取動作只能套用於系統使用者、系統訪客或系統管理員角色。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "權限政策上的頻道存取規則不能指定自己的角色，而是套用政策的角色。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "「管理頻道」動作僅允許用於權限政策與頻道政策。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "「頻道讀取權限」動作僅允許用於權限政策與頻道政策。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "「頻道寫入權限」動作僅允許用於權限政策與頻道政策。"
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "發生內部錯誤。"
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis 快取前綴不得包含 ':'、'*'、'?'、'['、']' 或 '\\'。"
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert 與 RedisTLSClientKey 必須同時設定。"
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "額外範圍必須是以空格分隔的 OAuth 範圍名稱，總長度最多 {{.MaxLength}} 個字元。"
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "欄位篩選條件無效。欄位名稱最多 {{.MaxLength}} 個字元，且不得為空白、\"level\" 或 \"timestamp\"。"
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "欄位篩選條件無效。欄位值最多 {{.MaxLength}} 個字元。"
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "欄位篩選條件無效。每個欄位必須有 1 到 {{.MaxValues}} 個值。"
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "欄位篩選條件無效。最多只能篩選 {{.MaxKeys}} 個欄位。"
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "搜尋篩選條件無效。長度最多 {{.MaxLength}} 個字元。"
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "無法取得討論串的追蹤者。"
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "伺服器不支援使用選項列出擴充程式的鍵。"
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "無法使用選項列出擴充程式的鍵。"
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "討論串 ID 無效。"
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "使用者 ID 無效。"
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "此訊息是回覆，而非討論串的根訊息。"
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "檔案建立者無效。"
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "新手上路時提供的網站網址無效。必須是不含路徑的 http 或 https 網址，例如 https://chat.example.com。"
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "無法匯出健康狀態報告。"
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "訊息屬性需要 Enterprise 授權。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "下列頻道缺少頻道屬性值：{{.ChannelList}}\n\n您是這些頻道的頻道管理員。請開啟頻道並選擇 **新增值**，或在 **頻道資訊** 中設定。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})（{{.TeamDisplayName}}）需要：{{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "擴充程式 ID {{.ID}} 保留給核心伺服器使用，無法安裝或載入。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "此伺服器有 {{.users}} 位註冊使用者，目前在單一節點上執行，未啟用高可用性。Mattermost 的參考架構建議在超過 200 位使用者時採用高可用性，因此請在節點故障或升級導致工作區離線之前做好規劃。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "請在負載平衡器後方執行至少兩個應用程式節點，並使用共用的資料庫與共用的檔案儲存空間，然後在每個節點上以相同的 ClusterName 啟用 ClusterSettings.Enable。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "請考慮設定高可用性"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "此伺服器有 {{.users}} 位註冊使用者，目前在單一節點上執行，未啟用高可用性。任何節點故障、重新啟動或升級都會導致整個工作區離線。在此規模下，Mattermost 的參考架構要求採用高可用性。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "請在負載平衡器後方執行至少兩個應用程式節點，並使用共用的資料庫與共用的檔案儲存空間，然後在每個節點上以相同的 ClusterName 啟用 ClusterSettings.Enable。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "在此規模下未啟用高可用性"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper 為 true，因此會向使用者與用戶端顯示詳細的錯誤資訊。此設定僅供開發使用。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "請將 ServiceSettings.EnableDeveloper 設為 false。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "已啟用 ServiceSettings.EnableDeveloper"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "尚未設定電子郵件，因此密碼重設、通知等電子郵件將無法送達。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "在 {{.nodes}} 上，預設的 SMTP 位址 localhost:10025 沒有郵件伺服器回應，因此這些節點寄出的電子郵件（例如密碼重設與通知）將無法送達。其他節點可以在該位址連線至郵件伺服器。錯誤：{{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "請在系統控制台中設定 SMTP 伺服器。若此伺服器不應寄送電子郵件，請關閉電子郵件通知、電子郵件邀請與電子郵件驗證，然後將此健康檢查結果靜音。請保持開啟以電子郵件或使用者名稱登入：若關閉，未透過 SSO 登入的使用者將無法登入。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "尚未設定 SMTP 伺服器"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting 為 true，因此測試模式會公開僅供開發使用的測試命令與端點。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "請將 ServiceSettings.EnableTesting 設為 false，然後重新啟動伺服器。部分測試端點只會在重新啟動時移除。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "已啟用 ServiceSettings.EnableTesting"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections 為 true，因此伺服器不會驗證對外 HTTPS 連線的 TLS 憑證，例如寄出的 Webhook、斜線命令、OAuth 權杖交換、連結預覽與擴充程式下載。網路路徑上的任何人都能讀取或竄改這些流量，包括 OAuth 權杖。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "請將內部 CA 憑證加入每台 Mattermost 伺服器的系統信任存放區，然後將 ServiceSettings.EnableInsecureOutgoingConnections 設為 false。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "對外連線的 TLS 憑證驗證已關閉"
   }
 ]

@@ -436,5 +436,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "看板",
+    "note": "The ordinary noun, as the webapp renders it (看板属性, 使用看板管理您的任务). Some server errors say Boards 频道 for a board channel; that is the product name Boards, not this term. Do not use 白板 or 面板."
+  },
+  "post attribute": {
+    "target": "消息属性",
+    "note": "post is 消息 and attribute is 属性 in zh-CN. Not 帖子属性."
+  },
+  "holdings": {
+    "target": "持有值",
+    "note": "No precedent. Built on 持有 as in 用户持有的选项 (the values a user holds). In running text 其持有的值 also reads well; do not use 持股 or 资产, which mean financial holdings."
+  },
+  "Manage Channel": {
+    "target": "管理频道",
+    "note": "Matches the permission names 管理频道设置, 管理频道成员. As the policy action name it stands alone; the ordinary phrase manage channel settings stays 管理频道设置."
+  },
+  "Channel Read Access": {
+    "target": "频道读取权限",
+    "note": "No precedent for the action name. 读取 and 写入权限 follow existing strings (Mattermost 拥有写入权限); pair it with 频道写入权限. Render Title Case and sentence-case forms the same way."
+  },
+  "Channel Write Access": {
+    "target": "频道写入权限",
+    "note": "写入权限 is the catalog rendering of write access. Pair it with 频道读取权限. Render Title Case and sentence-case forms the same way."
+  },
+  "Extended Support Release": {
+    "target": "扩展支持版本",
+    "note": "No precedent. A release is 版本 in zh-CN (未来版本, 发布说明 for release notes). The acronym ESR stays as is: 扩展支持版本（ESR）."
+  },
+  "release line": {
+    "target": "版本系列",
+    "note": "No precedent. A release is 版本; for example 10.5 版本系列. Do not use 发布线."
   }
 }

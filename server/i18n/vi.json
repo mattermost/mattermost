@@ -104,10 +104,6 @@
     "translation": "Xin vui lòng nhập vào văn bản cho Điều Khoản của Dịch vụ."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Chúng tôi đã gặp lỗi khi xoá các kiểm duyệt"
-  },
-  {
     "id": "api.channel.add_guest.added",
     "translation": "%v được thêm vào làm khách trong kênh bởi %v."
   },
@@ -358,10 +354,6 @@
     "translation": "Không thể đọc được hình ảnh trong hồ sơ."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Phiên không hợp lệ token={{.Token}}, err={{.Error}}"
-  },
-  {
     "id": "app.import.import_line.null_direct_channel.error",
     "translation": "Dòng dữ liệu nhập có loại \"direct_channel\" nhưng đối tượng direct_channel không hợp lệ."
   },
@@ -556,10 +548,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
     "translation": " đã bình luận vào bài đăng của bạn."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Thuộc tính Reaction EmojiName dài hơn so với độ dài tối đa được cho phép."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
@@ -1857,7 +1845,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Version 156+"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1897,7 +1885,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 153+"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2403,7 +2391,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 156+"
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -3371,7 +3359,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Người dùng tối đa không hợp lệ cho mỗi nhóm cho cài đặt nhóm. Phải là một số dương."
+    "translation": "Số người dùng tối đa cho mỗi nhóm trong cài đặt nhóm không hợp lệ. Phải là 0 (không giới hạn) hoặc một số dương."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -3816,10 +3804,6 @@
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
     "translation": "Không thể tạo emoji. Có lỗi xảy ra khi tiến hành mã hóa file ảnh GIF đầu vào."
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Không thể phân tích kết quả tìm kiếm phù hợp"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -4559,7 +4543,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Các kênh tối đa không hợp lệ cho mỗi nhóm cho cài đặt nhóm. Phải là một số dương."
+    "translation": "Số kênh tối đa cho mỗi nhóm trong cài đặt nhóm không hợp lệ. Phải là 0 (không giới hạn) hoặc một số dương."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
@@ -5106,10 +5090,6 @@
     "translation": "Tên hiển thị kết nối an toàn"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Không thể mã hóa lời mời: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Không thể tìm nạp kết nối an toàn: {{.Error}}"
   },
@@ -5506,10 +5486,6 @@
     "translation": "Dịch vụ chỉ có ở phiên bản Matter Extreme Enterprise"
   },
   {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Cổng thông tin không có sẵn để đăng ký tự lưu trữ."
-  },
-  {
     "id": "api.push_notifications.session.expired",
     "translation": "Phiên đã hết hạn: Vui lòng đăng nhập để tiếp tục nhận thông báo. Các phiên dành cho {{.siteName}} được Quản trị viên hệ thống của bạn định cấu hình để hết hạn sau mỗi {{.hoursCount}} giờ."
   },
@@ -5830,10 +5806,6 @@
     "translation": "Đã xảy ra lỗi khi tìm Ứng dụng OAuth2."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Không thể xóa mã ủy quyền."
-  },
-  {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "Không thể xóa mã thông báo truy cập."
   },
@@ -6068,14 +6040,6 @@
   {
     "id": "api.command_channel_header.update_channel.max_length",
     "translation": "Văn bản đã nhập vượt quá giới hạn ký tự. Tiêu đề kênh được giới hạn ở {{.MaxLength}} ký tự."
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Không thể tạo nhóm vì đã đạt đến giới hạn số lượng nhóm"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Không thể khôi phục đội vì đã đạt đến giới hạn nhóm"
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -6398,15 +6362,7 @@
     "translation": "Không thể xóa webhooks."
   },
   {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Không thể xóa webhooks."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Không thể xóa webhooks."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
     "translation": "Không thể xóa webhooks."
   },
   {
@@ -6962,10 +6918,6 @@
     "translation": "Không thể xóa kênh."
   },
   {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Không thể xóa thành viên kênh."
-  },
-  {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Không thể tìm thấy bài viết được ghim."
   },
@@ -7206,10 +7158,6 @@
     "translation": "Chúng tôi đã gặp lỗi khi tìm tùy chọn."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Chúng tôi đã gặp lỗi khi xóa tùy chọn."
-  },
-  {
     "id": "app.reaction.get_for_post.app_error",
     "translation": "Không thể nhận được phản ứng cho bài viết."
   },
@@ -7416,18 +7364,6 @@
   {
     "id": "app.session.permanent_delete_sessions_by_user.app_error",
     "translation": "Không thể xóa tất cả các phiên của người dùng."
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Lỗi tìm nạp tệp có thể truy cập lần cuối"
-  },
-  {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Không thể chọn bài viết để xóa cho người dùng."
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Không thể xóa phản ứng cho người dùng."
   },
   {
     "id": "app.team.get_by_name.app_error",
@@ -7738,10 +7674,6 @@
     "translation": "Mã thông báo CWS không hợp lệ"
   },
   {
-    "id": "api.user.login_cws.license.error",
-    "translation": "Đăng nhập CWS bị cấm."
-  },
-  {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": "Trường '{{.Field}}' phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
   },
@@ -7858,10 +7790,6 @@
     "translation": "Không thể thực hiện thao tác cho loại nguồn đó."
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Không thể nhập thành viên nhóm vì không có thêm thành viên nào được phép vào nhóm đó"
-  },
-  {
     "id": "app.import.validate_post_import_data.props_too_large.error",
     "translation": "Post Props dài hơn độ dài tối đa cho phép."
   },
@@ -7888,10 +7816,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Không truy xuất được thành viên kênh."
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Không nhận được mức sử dụng bộ nhớ."
   },
   {
     "id": "app.user.get_thread_membership_for_user.app_error",
@@ -8190,10 +8114,6 @@
     "translation": "Không thể thêm tệp vào kho lưu trữ zip trong khi xuất."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Không thể tìm nạp tệp vì nó đã vượt quá giới hạn của gói đám mây."
-  },
-  {
     "id": "app.file_info.get.app_error",
     "translation": "Không thể lấy thông tin tập tin."
   },
@@ -8204,10 +8124,6 @@
   {
     "id": "app.file_info.get_with_options.app_error",
     "translation": "Không thể lấy thông tin tệp với các tùy chọn"
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Không thể xóa tệp đính kèm của người dùng."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -8224,10 +8140,6 @@
   {
     "id": "app.group.no_rows",
     "translation": "không tìm thấy nhóm phù hợp"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Không thể xóa thành viên nhóm có UserID \"{{.UserId}}\"."
   },
   {
     "id": "app.group.uniqueness_error",
@@ -8256,10 +8168,6 @@
   {
     "id": "app.import.import_user_teams.save_members.error",
     "translation": "Không thể nhập thành viên nhóm"
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Không thể lấy được số đội"
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -8392,10 +8300,6 @@
   {
     "id": "app.user.permanent_delete.app_error",
     "translation": "Không thể xóa tài khoản hiện có."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Không thể xóa người dùng."
   },
   {
     "id": "app.user.promote_guest.user_update.app_error",
@@ -8876,10 +8780,6 @@
   {
     "id": "api.command_share.invite_remote_to_channel.error",
     "translation": "Không thể mời kết nối từ xa vào kênh: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Dịch vụ Kênh được chia sẻ đã được bật nhưng chưa hoạt động."
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
@@ -10814,10 +10714,6 @@
     "translation": "Bản nháp đã bị plugin từ chối: {{.Reason}}"
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Không thể xóa bản nháp của người dùng."
-  },
-  {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Không thể tạo thư mục cho hình ảnh biểu tượng cảm xúc tùy chỉnh"
   },
@@ -12016,10 +11912,6 @@
     "translation": {
       "other": "Không thể gửi {{.Count}} tin nhắn đã lên lịch."
     }
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Không thể xóa tin nhắn đã lên lịch của người dùng."
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -14579,7 +14471,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Bảng Tình trạng hệ thống yêu cầu giấy phép Enterprise."
+    "translation": "Bảng Tình trạng hệ thống yêu cầu giấy phép Professional trở lên."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14627,7 +14519,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Cấu hình ghi nhật ký chứa đường dẫn tệp nhật ký hoặc tệp kiểm toán nằm ngoài thư mục gốc ghi nhật ký. Hãy kiểm tra nhật ký máy chủ để biết chi tiết."
+    "translation": "Cấu hình ghi nhật ký chứa đường dẫn tệp nhật ký hoặc tệp kiểm toán nằm ngoài thư mục gốc ghi nhật ký hoặc nằm trong một thư mục do máy chủ quản lý. Hãy kiểm tra nhật ký máy chủ để biết chi tiết."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14695,7 +14587,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Chuyển sang https://push.mattermost.com (dịch vụ Hosted Push Notification Service dành cho môi trường sản xuất, đi kèm với Enterprise) hoặc một proxy đẩy tự lưu trữ."
+    "translation": "Trỏ PushNotificationServer tới một proxy đẩy dành cho môi trường sản xuất: một Mattermost Push Proxy tự lưu trữ, phục vụ các bản dựng ứng dụng di động của riêng bạn."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14728,5 +14620,1993 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Không thể gửi tin nhắn tự hủy sau khi đọc dưới dạng tin nhắn đã lên lịch lặp lại."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Tính năng hành động quyền kênh chưa được bật."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Chứng chỉ Nhà cung cấp danh tính đã tải lên không phải là chứng chỉ X.509 mã hóa PEM hợp lệ."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Khóa riêng tư của Nhà cung cấp dịch vụ đã tải lên không phải là khóa riêng tư mã hóa PEM hợp lệ."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Chứng chỉ công khai của Nhà cung cấp dịch vụ đã tải lên không phải là chứng chỉ X.509 mã hóa PEM hợp lệ."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Tệp đã tải lên không khớp với chứng chỉ hoặc khóa riêng tư của Nhà cung cấp dịch vụ đã lưu. Hãy tắt mã hóa để thay thế từng tệp một."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Hiện tại bạn không có quyền quản lý kênh này."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Hiện tại bạn không có quyền truy cập kênh này."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Hiện tại bạn không có quyền viết trong kênh này."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Dấu nháy đơn gần `{{.Near}}` chưa được đóng trước ` --`. Hãy đóng dấu nháy, hoặc dùng dấu nháy kép nếu giá trị có chứa ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Văn bản không mong đợi gần `{{.Near}}`. Hãy đặt giá trị có chứa khoảng trắng trong dấu nháy, và dùng dấu nháy kép nếu giá trị đó cũng chứa dấu nháy đơn (apostrophe)."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Dấu nháy gần `{{.Near}}` không bao giờ được đóng."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Không thể so sánh các cấu hình đã lưu."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Không thể so sánh cấu hình đã lưu với cấu hình hiện tại."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Phiên không hợp lệ hoặc đã hết hạn."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Không thể hủy các công việc thuộc loại này."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Phải tải lên đúng một tệp khóa công khai của plugin trong trường public_key."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Khóa công khai của plugin {{.Name}} chưa được cấu hình."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Không thể phân tích khóa công khai của plugin đã tải lên."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Bạn không có quyền đặt một hoặc nhiều giá trị thuộc tính bài đăng được yêu cầu."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Bài đăng tự hủy sau khi đọc không thể có thuộc tính bài đăng."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Thuộc tính bài đăng chưa được bật trên máy chủ này."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Không thể áp dụng một hoặc nhiều giá trị thuộc tính bài đăng."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Chỉ quản trị viên của kênh, nhóm hoặc hệ thống chứa trường này mới có thể đặt quyền cho trường khi tạo."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Chỉ quản trị viên hệ thống mới có thể đặt quyền khi tạo trường thuộc tính."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Thuộc tính này đã bị xóa."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Không thể tra cứu dữ liệu tuân thủ cho trường thuộc tính v1 qua API này."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Bạn không có quyền xem dữ liệu tuân thủ của trường thuộc tính này."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Chỉ những thuộc tính áp dụng cho mọi nhóm mới có thể liệt kê hoặc thông báo cho các kênh thiếu giá trị."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "other": "Chưa gửi thông báo vì các quản trị viên kênh vừa được thông báo về việc này. Bạn có thể gửi thông báo khác sau {{.Count}} phút."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Chưa gửi thông báo vì các quản trị viên kênh vừa được thông báo về việc này. Vui lòng thử lại sau."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Bạn không thể thay đổi quyền của trường thuộc tính theo cách khiến chính bạn không thể chỉnh sửa trường đó."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Đối tượng hạn chế được gửi phải đặt đủ cả năm mức quyền: đọc giá trị, ghi giá trị, đọc tùy chọn, ghi tùy chọn và ghi trường."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Đối tượng quyền được gửi không hợp lệ."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Nhóm thuộc tính này không hỗ trợ gửi đối tượng quyền."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Đối tượng quyền phải cho phép quản trị viên hệ thống chỉnh sửa trường, vì vậy mức ghi trường không thể là none."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Chưa thể đánh dấu thuộc tính này là bắt buộc vì một số kênh đang hoạt động chưa có giá trị cho thuộc tính. Hãy thông báo cho các quản trị viên kênh, rồi thử lại."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Lời mời đã hết hạn. Hãy yêu cầu trang từ xa gửi lời mời mới."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Trang từ xa đã trả về phản hồi không hợp lệ."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Lời mời chứa địa chỉ trang không hợp lệ: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Trang từ xa đã từ chối lời mời."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Không thể kết nối tới trang từ xa tại {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Tải lên từ kết nối an toàn không thể tiếp tục một tệp đã nhận được một phần."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Quá nhiều tài nguyên trong một lần đánh giá kiểm soát truy cập; giới hạn là {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Tính năng kiểm tra phiên bản Mattermost mới nhất đang bị tắt. Hãy bật Kiểm tra cập nhật bảo mật và bản phát hành để cho phép."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Không thể tra cứu quản trị viên kênh."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Không thể tra cứu các kênh thiếu giá trị cho thuộc tính này."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Không thể đếm các kênh thiếu giá trị cho thuộc tính này."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Không thể đếm tất cả các kênh thiếu giá trị cho thuộc tính này."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Không thể đếm các kênh cục bộ thiếu giá trị cho thuộc tính này."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Không thể liệt kê các kênh thiếu giá trị cho thuộc tính này."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Không thể tra cứu các kênh từ xa thiếu giá trị cho thuộc tính này."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Không thể đếm số quản trị viên kênh và số kênh bị ảnh hưởng bởi thuộc tính này."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Không thể tra cứu các quản trị viên kênh cần thông báo về thuộc tính này."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _và {{.Count}} kênh khác_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Vui lòng đặt giá trị cho **{{.AttributeName}}** trên các kênh bạn quản lý sau đây. Quản trị viên hệ thống cần mọi kênh đều có giá trị trước khi thuộc tính này có thể được đặt là bắt buộc."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "other": "Bạn là quản trị viên kênh của các kênh đang thiếu một thuộc tính kênh bắt buộc. Vui lòng đặt giá trị cho **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Không thể giữ thời gian chờ thông báo cho thuộc tính này."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Không thể lấy các cấu hình đã lưu."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Không có cấu hình đã lưu nào có ID này."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Lịch sử cấu hình chỉ khả dụng khi cấu hình được lưu trong cơ sở dữ liệu."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Như đã viết: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Dấu thời gian"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Không thể bắt đầu lượt kiểm tra tình trạng."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Một lượt kiểm tra tình trạng đang được khởi động. Hãy thử lại sau giây lát."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Lỗi nhập bài đăng. Không thể lưu mức độ ưu tiên."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Lỗi nhập nhóm của người dùng. Không tìm thấy nhóm."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Tệp này thêm {{.Adding}} người dùng vào nhóm {{.Team}}, nâng tổng số thành viên lên {{.Total}}, nhưng TeamSettings.MaxUsersPerTeam là {{.Limit}}. Hãy tăng giới hạn hoặc đặt thành 0 (không giới hạn) trước khi nhập."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Không thể đọc tệp nhập để kiểm tra TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Thuộc tính AcknowledgedAt của Acknowledgement phải được đặt và không được sớm hơn CreateAt của bài đăng."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Thiếu thuộc tính Acknowledgement bắt buộc: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Xác nhận bài đăng yêu cầu Priority có RequestedAck được đặt thành true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "PersistentNotifications của bài đăng yêu cầu Priority khẩn cấp (urgent)."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Thiếu thuộc tính Priority bắt buộc: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Thuộc tính EmojiName của Reaction không hợp lệ. Thuộc tính này phải gồm từ 1 đến 64 chữ cái và chữ số ASCII, +, - hoặc _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Chỉ quản trị viên hệ thống mới có thể thay đổi các quy tắc thành viên sử dụng logic nâng cao. Hãy chỉnh sửa chúng trong Bảng điều khiển Hệ thống."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Quy tắc thành viên này sử dụng một biểu thức mà tính năng đồng bộ thành viên không thể đánh giá. Hãy viết lại quy tắc chỉ dùng các phép so sánh, &&, ||, in và các hàm thuộc tính được hỗ trợ."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Quy tắc thành viên này sử dụng {{.Function}}, mà tính năng đồng bộ thành viên không thể đánh giá. Hãy viết lại quy tắc chỉ dùng các phép so sánh, &&, ||, in và các hàm thuộc tính được hỗ trợ."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Không thể xác định hành động có chính sách quyền hay không"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Không thể xác định chính sách truy cập của tài nguyên có áp dụng cho hành động này hay không."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Đã tồn tại một tệp cấu hình có tên {{.Name}}."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Tệp này không phải là khóa công khai OpenPGP hợp lệ."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Tên khóa công khai của plugin {{.Name}} không hợp lệ. Tên chỉ được chứa chữ cái, chữ số, '.', '_' và '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Không thể xóa trường này vì một mẫu có che giá trị đọc giá trị nắm giữ của từng người từ trường này. Hãy thay đổi hoặc gỡ bỏ cơ chế che giá trị của mẫu trước."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Cấp option.read ({{.FieldTier}}) của trường được liên kết không thể cho phép rộng hơn cấp ({{.TemplateTier}}) của mẫu ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Không thể liên kết thuộc tính với một claim OpenID Connect khi tính năng đồng bộ thuộc tính OpenID Connect đang tắt."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Không thể tìm kiếm các thuộc tính toàn cục."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Trường này là nguồn giá trị nắm giữ cho mẫu có che giá trị của nó, vì vậy mức ghi giá trị của trường không thể là '{{.ValueWrite}}'. Nếu không, những người được mẫu lọc có thể tự chỉnh sửa giá trị nắm giữ của mình và mở rộng phạm vi những gì họ có thể xem."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Thuộc tính được đồng bộ từ OpenID Connect không thể đồng thời được đồng bộ từ AD/LDAP hoặc SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Không thể thay đổi chủ sở hữu, chế độ truy cập, cài đặt bảo vệ hoặc đồng bộ của trường này theo cách này vì quyền của trường không thể biểu diễn ở dạng đó. Hãy cập nhật trực tiếp quyền của trường."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Không thể thay đổi chế độ truy cập của trường này vì trường chứa dữ liệu mà bên gọi có thể không được phép đọc."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Không thể cập nhật: trường được liên kết {{.DependentID}} đang ở cấp option.read {{.DependentTier}}, sẽ vượt quá cấp mới {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Không thể thay đổi đồng thời quyền của trường này và các mức quyền, chủ sở hữu, chế độ truy cập, cài đặt bảo vệ hoặc đồng bộ của trường trong cùng một lần cập nhật. Hãy gửi thay đổi theo một trong hai dạng."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Không thể cập nhật: trường được liên kết {{.DependentID}} sẽ tự cung cấp giá trị nắm giữ của chính nó theo cơ chế che giá trị này, nhưng mức ghi giá trị của trường là '{{.ValueWrite}}'. Hãy hạ mức ghi giá trị của trường đó xuống admin hoặc thấp hơn trước."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Không thể hủy liên kết trường này vì một mẫu có che giá trị đọc giá trị nắm giữ của từng người từ trường này. Hãy thay đổi hoặc gỡ bỏ cơ chế che giá trị của mẫu trước."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Tài khoản đã bị hủy kích hoạt và bị xóa một phần. Chạy lại thao tác xóa là an toàn và sẽ hoàn tất việc xóa."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Lượt này đã xóa tối đa {{.Max}} bài đăng. Tài khoản đã bị hủy kích hoạt và bị xóa một phần. Hãy chạy lại thao tác xóa để tiếp tục."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Không thể hoàn tất việc xóa {{.Count}} người dùng: {{.Usernames}}. Hãy chạy lại lệnh để tiếp tục."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Không thể gửi yêu cầu tới cụm"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML chưa được cấu hình đúng. Vui lòng liên hệ với quản trị viên hệ thống của bạn."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "Các lượt chạy gần đây nhất vẫn đang chờ trong hàng đợi, đang chạy hoặc đã bị hủy, nên không thể kiểm tra các lượt chạy cũ hơn."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Xác thực"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Tính sẵn sàng cao"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Tuân thủ"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Cơ sở dữ liệu"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Công việc"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Giấy phép"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Thông báo"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Nền tảng"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Tìm kiếm"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Cập nhật"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} trên {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Thời điểm thu thập dữ liệu"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Không xác định"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Được cấp phép cho"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Đánh giá lần cuối"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Thời điểm tạo"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Giấy phép"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Chưa được đánh giá"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Phiên bản máy chủ"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "URL trang web"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Quá trình đánh giá dường như đã dừng."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Mở cài đặt này trong Bảng điều khiển Hệ thống"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Chi tiết"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Đọc tài liệu"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Cách khắc phục"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Tóm tắt"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Đã ẩn"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Đã giải quyết"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Không thể đánh giá"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Nghiêm trọng"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Thông tin"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Cảnh báo"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "other": "{{.Count}} nghiêm trọng"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "other": "{{.Count}} thông tin"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Không có phát hiện nào đang mở."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Chưa có lần kiểm tra tình trạng nào được chạy."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "other": "{{.Count}} không thể đánh giá"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "other": "{{.Count}} cảnh báo"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Báo cáo tình trạng"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Không có đích nhật ký kiểm toán nào đang hoạt động trong khi không gian làm việc này có {{.users}} người dùng đã đăng ký. Các thao tác quản trị, lượt đăng nhập và thay đổi cấu hình không để lại dấu vết kiểm toán riêng. Đây là lỗ hổng về tuân thủ và điều tra số, không phải rủi ro về độ ổn định."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Nếu tổ chức của bạn có yêu cầu kiểm toán (dịch vụ tài chính, y tế, quốc phòng, khu vực công được quản lý), hãy bật ghi nhật ký kiểm toán trong Bảng điều khiển Hệ thống > Tuân thủ > Ghi nhật ký kiểm toán, hoặc thêm một đích cho các cấp kiểm toán vào ExperimentalAuditSettings.AdvancedLoggingJSON, và cấu hình xoay vòng nhật ký. Nếu không, có thể bỏ qua cảnh báo này."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Ghi nhật ký kiểm toán đang tắt"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress gắn với cổng {{.port}}, thấp hơn 1024. Trên Linux, máy chủ Mattermost không chạy dưới quyền root chỉ có thể gắn với cổng này thông qua file capability CAP_NET_BIND_SERVICE trên tệp thực thi của nó. Việc nâng cấp gói sẽ thay thế tệp thực thi và xóa capability đó, nên máy chủ có thể không khởi động được sau lần nâng cấp tiếp theo với lỗi \"bind: permission denied\". Cấu hình không thể cho biết capability được cấp như thế nào, nên cảnh báo này vẫn hiển thị ngay cả sau khi bạn cấp nó thông qua systemd unit."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Thêm AmbientCapabilities=CAP_NET_BIND_SERVICE vào systemd unit của Mattermost để capability được giữ lại qua các lần nâng cấp, hoặc chạy lại setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost sau mỗi lần nâng cấp. Ngoài ra, có thể đặt một reverse proxy phía trước Mattermost và gắn Mattermost với một cổng cao như 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Máy chủ gắn trực tiếp với một cổng đặc quyền"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Nút leader quảng bá địa chỉ {{.address}}. Các nút khác không thể kết nối tới nút này tại địa chỉ đó, nên gossip tạo thành một cụm chỉ có một nút và tình trạng split brain bị che giấu."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Đặt ClusterSettings.AdvertiseAddress thành địa chỉ IP hoặc tên DNS có thể truy cập được của nút, hoặc để trống để dùng địa chỉ của giao diện mạng. Kiểm tra này đọc cấu hình của nút leader, vì vậy hãy xem lại cài đặt này trên mọi nút."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "Các nút khác không thể truy cập ClusterSettings.AdvertiseAddress"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Cấu hình được lưu trong một tệp trên mỗi nút và có thể được thay đổi trong Bảng điều khiển Hệ thống. Một thay đổi được lưu trên một nút và được đẩy sang các nút khác theo cơ chế nỗ lực tối đa; nút nào bỏ lỡ lần đẩy sẽ giữ nguyên tệp của mình, nên cấu hình giữa các nút có thể dần sai lệch."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Đặt ClusterSettings.ReadOnlyConfig thành true và quản lý cấu hình thông qua tệp cấu hình hoặc biến môi trường trên mọi nút, hoặc chuyển cấu hình vào cơ sở dữ liệu."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig đang tắt trong cụm HA dùng cấu hình dạng tệp"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption là false, nên lưu lượng giữa các nút trong cụm không được mã hóa."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Bật mã hóa gossip, sau đó khởi động lại đồng thời tất cả các nút trong khoảng thời gian bảo trì. Các nút có và không có mã hóa không thể giao tiếp với nhau, nên khởi động lại cuốn chiếu sẽ chia tách cụm cho đến khi nút cuối cùng khởi động lại."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Gossip của cụm HA không được mã hóa"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Với {{.users}} người dùng đã đăng ký trên HA, bộ nhớ đệm LRU trong bộ nhớ mặc định khiến mỗi nút duy trì bản sao riêng và dùng gossip để vô hiệu hóa bộ nhớ đệm. Mattermost khuyến nghị dùng Redis từ 100.000 người dùng trở lên để giảm lưu lượng vô hiệu hóa bộ nhớ đệm ở quy mô này."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Cân nhắc đặt CacheSettings.CacheType thành redis và cấu hình CacheSettings.RedisAddress. Redis yêu cầu giấy phép có tính năng Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Ở quy mô lớn, hãy cân nhắc dùng Redis làm bộ nhớ đệm"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Cấu trúc HA dự kiến thực tế không hoạt động. Một nút duy nhất không cung cấp khả năng chuyển đổi dự phòng và che giấu rủi ro split-brain."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Kiểm tra kết nối gossip (ClusterSettings.GossipPort), các quy tắc tường lửa, và đảm bảo mọi nút ứng dụng dùng chung một ClusterName. ClusterName để trống cũng khiến nút hoạt động riêng lẻ: khi đó máy chủ sẽ ghi nhật ký rằng tính sẵn sàng cao đã bị tắt."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Tính sẵn sàng cao đã được bật nhưng cụm chỉ có một nút"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Các nút trong cụm báo cáo các phiên bản sau: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Các nút đang chia ra nhiều phiên bản, không có phiên bản nào phổ biến hơn các phiên bản khác, nên không rõ nút nào đã lỗi thời."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Nút này chạy {{.version}}, trong khi phần lớn các nút chạy {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Trừ khi đang trong quá trình nâng cấp, hãy nâng cấp mọi nút lên cùng một phiên bản và đảm bảo các nút có thể giao tiếp với nhau qua gossip."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Phát hiện nhiều phiên bản Mattermost trong cụm"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory đang để trống, nên báo cáo tuân thủ được ghi vào thư mục compliance bên trong thư mục làm việc của máy chủ. Các báo cáo này sẽ bị mất khi máy chủ được nâng cấp hoặc container của máy chủ được dựng lại."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Đặt Thư mục Báo cáo Tuân thủ trong Bảng điều khiển Hệ thống > Tuân thủ > Giám Sát Tuân Thủ (ComplianceSettings.Directory) thành một đường dẫn lâu dài và có thể ghi được."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Giám sát tuân thủ đã được bật nhưng Directory đang để trống"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Mỗi nút giữ một nhóm tối đa MaxOpenConns kết nối tới máy chủ chính. Với {{.nodes}} nút và MaxOpenConns={{.max_open}}, một lần chuyển đổi dự phòng cơ sở dữ liệu có thể tạo ra tới {{.burst}} lượt kết nối đồng thời tới máy chủ chính vừa được nâng cấp, và máy chủ DataSource không có vẻ là một connection pooler. Nếu con số đó vượt quá max_connections của cơ sở dữ liệu, cơ sở dữ liệu sẽ từ chối kết nối ('sorry, too many clients already') và quá trình khôi phục sẽ lâu hơn."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Hãy định cỡ mọi tầng theo đợt tăng đột biến này. Cách khắc phục bền vững nhất là giảm SqlSettings.MaxOpenConns trên mỗi nút và/hoặc đặt PgBouncer (chế độ transaction) phía trước cơ sở dữ liệu để hấp thụ các đợt kết nối lại, thay vì chỉ tăng max_connections: mỗi kết nối tốn bộ nhớ của cơ sở dữ liệu, nên mức trần cao có nguy cơ gây hết bộ nhớ. Nếu tăng max_connections, hãy chừa khoảng dư trên mức tăng đột biến cho sao chép, giám sát và các phiên quản trị. Khởi động các nút lệch thời điểm trong lúc chuyển đổi dự phòng cũng giúp giữ mức tăng đột biến dưới mức trần."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Chuyển đổi dự phòng cơ sở dữ liệu có thể gây ra cơn bão kết nối"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) được đặt cao hơn MaxOpenConns ({{.max_open}}). Tầng database/sql của Go âm thầm giới hạn nhóm kết nối nhàn rỗi ở mức MaxOpenConns, nên dung lượng nhàn rỗi dư thừa không có tác dụng. Không có gì bị hỏng, nhưng giá trị này gây hiểu nhầm và thường cho thấy nhóm kết nối đã được tinh chỉnh mà không biết rằng số kết nối nhàn rỗi không bao giờ vượt quá số kết nối mở."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Đặt MaxIdleConns thành giá trị bằng hoặc thấp hơn MaxOpenConns (hướng dẫn phổ biến là 25-50% của MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns vượt quá MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Với {{.users}} người dùng và MaxOpenConns={{.max_open}}, các yêu cầu có thể bị xếp hàng ở phía ứng dụng khi tải tăng đột biến. Giá trị mặc định hiện tại là 100 (MaxIdleConns 50, tỷ lệ 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Nếu thấy yêu cầu bị xếp hàng ở phía ứng dụng, hãy tăng SqlSettings.MaxOpenConns dựa trên nhu cầu được giám sát (mặc định 100/50 là mức cơ sở). Mức trần thực tế của cơ sở dữ liệu là MaxOpenConns x số nút x số nguồn dữ liệu, vì vậy hãy xác nhận max_connections của cơ sở dữ liệu đáp ứng tổng đó trước khi tăng."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns có thể quá thấp với số lượng người dùng này"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas đang để trống. Với {{.users}} người dùng, mọi thao tác đọc đều đi vào máy chủ chính. Nên dùng bản sao chỉ đọc (read replica) cho các triển khai lớn hơn."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Cân nhắc cấp phát một bản sao chỉ đọc và thêm nó vào SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Chưa cấu hình bản sao chỉ đọc nào"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Với {{.posts}} bài đăng và tìm kiếm bằng cơ sở dữ liệu, máy chủ chính và các bản sao phải gánh các lượt quét toàn văn. Điều này gây áp lực CPU và làm tìm kiếm bị hết thời gian chờ ở quy mô này."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Với {{.posts}} bài đăng và tìm kiếm bằng cơ sở dữ liệu, máy chủ chính và các bản sao phải gánh các lượt quét toàn văn. Điều này gây áp lực CPU và làm tìm kiếm bị hết thời gian chờ ở quy mô này. Giấy phép của bạn bao gồm Elasticsearch, giúp chuyển hoàn toàn việc tìm kiếm ra khỏi cơ sở dữ liệu."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Cấu hình SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Không có bản sao tìm kiếm và tìm kiếm Elasticsearch đang tắt"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.in_use}} trên {{.max_open}} kết nối cơ sở dữ liệu chính đang được sử dụng ({{.percent}}%), bằng hoặc vượt 90% MaxOpenConns. Các truy vấn mới sẽ phải xếp hàng và độ trễ HTTP tăng lên."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Tăng SqlSettings.MaxOpenConns và max_connections của cơ sở dữ liệu. Đồng thời điều tra các truy vấn chạy lâu."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Nhóm kết nối cơ sở dữ liệu chính gần bão hòa"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} thấp hơn phiên bản tối thiểu được hỗ trợ, {{.minimum}}. Mattermost vẫn khởi động được trên phiên bản này, nhưng các phiên bản không được hỗ trợ có thể dẫn đến hành vi không mong muốn. Hãy nâng cấp lên PostgreSQL {{.minimum}} trở lên."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Hãy lên kế hoạch nâng cấp. Các phiên bản mới hơn cũng có hiệu năng truy vấn song song và JSONB tốt hơn."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "Phiên bản PostgreSQL thấp hơn mức tối thiểu được hỗ trợ"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL hiện đang vacuum bảng Posts. Hãy để lần vacuum đó hoàn tất trước khi đánh giá có cần vacuum lần nữa hay không."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Bảng Posts có khoảng {{.dead_tuples}} dead tuples ước tính ({{.dead_percent}}% trên khoảng {{.estimated_rows}} hàng ước tính), mặc dù lần vacuum gần nhất là lúc {{.last_vacuum}}. Vacuum đang chạy nhưng nhiều khả năng không thể loại bỏ chúng vì có thứ gì đó đang cản trở việc dọn dẹp, chẳng hạn như một phiên chạy lâu hoặc ở trạng thái idle-in-transaction, một replication slot không hoạt động, hoặc một prepared transaction bị bỏ dở. Tình trạng phình to của bảng và chỉ mục có thể làm giảm hiệu năng truy vấn và tăng dung lượng đĩa sử dụng."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Bảng Posts có khoảng {{.dead_tuples}} dead tuples ước tính ({{.dead_percent}}% trên khoảng {{.estimated_rows}} hàng ước tính), và PostgreSQL không có bản ghi nào về việc bảng được vacuum kể từ lần cuối thống kê được đặt lại. Autovacuum có vẻ không theo kịp bảng này. Tình trạng phình to của bảng và chỉ mục có thể làm giảm hiệu năng truy vấn và tăng dung lượng đĩa sử dụng."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Bảng Posts có khoảng {{.dead_tuples}} dead tuples ước tính ({{.dead_percent}}% trên khoảng {{.estimated_rows}} hàng ước tính), và lần vacuum gần nhất là {{.age_days}} ngày trước, lúc {{.last_vacuum}}. Autovacuum có vẻ không theo kịp bảng này. Tình trạng phình to của bảng và chỉ mục có thể làm giảm hiệu năng truy vấn và tăng dung lượng đĩa sử dụng."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Nếu pg_stat_progress_vacuum cho thấy một lần vacuum đang chạy trên Posts, hãy để nó hoàn tất, vì bắt đầu một lệnh VACUUM thủ công sẽ hủy nó. Nếu Posts vừa được vacuum gần đây, hãy tìm thứ đang cản trở việc dọn dẹp và kết thúc hoặc gỡ bỏ nó: các phiên chạy lâu hoặc idle-in-transaction trong pg_stat_activity, các replication slot không hoạt động trong pg_replication_slots, và các prepared transaction cũ trong pg_prepared_xacts. Khi đó lần vacuum tiếp theo có thể loại bỏ các dead tuples. Nếu Posts chưa được vacuum gần đây, hãy xác minh autovacuum đã được bật trên toàn hệ thống và cho Posts, đồng thời kiểm tra nhật ký PostgreSQL để tìm các tác vụ autovacuum bị hủy. Nếu autovacuum không theo kịp, hãy giảm autovacuum_vacuum_scale_factor cho Posts và tăng autovacuum_vacuum_cost_limit và autovacuum_work_mem trong phạm vi tài nguyên cho phép, rồi lên lịch một lệnh VACUUM (ANALYZE) nhắm vào Posts trong thời gian ít lưu lượng. Tránh dùng VACUUM FULL trừ khi bạn đã tính đến khóa độc quyền và dung lượng đĩa bổ sung mà nó cần; nếu có sẵn, pg_repack là giải pháp thay thế ít khóa hơn."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Bảng Posts có nhiều dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout được đặt là {{.timeout}} giây. Thời gian chờ dài cho phép các truy vấn mất kiểm soát giữ khóa trong suốt thời gian đó, chặn autovacuum, việc di chuyển lược đồ và các thao tác ghi đang chờ trên cùng một hàng. Điều này làm tăng rủi ro trên các cơ sở dữ liệu bận rộn không có bản sao chỉ đọc."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Giảm SqlSettings.QueryTimeout xuống 30. Hãy điều tra riêng từng truy vấn chậm cụ thể thay vì tăng mức trần chung."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout quá cao (mặc định là 30 giây)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas đã được đặt nhưng không thể truy cập bản sao nào, nên các thao tác đọc đang quay về máy chủ chính."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Xác minh DSN của bản sao, khả năng truy cập mạng và xác thực. Kiểm tra nhật ký máy chủ để tìm các cảnh báo kết nối bản sao."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Đã cấu hình bản sao chỉ đọc nhưng không thể truy cập bản sao nào"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Mọi câu lệnh SQL đều được ghi nhật ký. Tính năng này chỉ dùng để gỡ lỗi: để bật sẽ làm đầy ổ đĩa và ghi nội dung truy vấn vào các tệp nhật ký."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Đặt SqlSettings.Trace thành false trừ khi đang gỡ lỗi."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace đang bật"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Máy chủ đang chạy trên {{.os}}. Mattermost hỗ trợ Linux cho môi trường sản xuất; các hệ điều hành khác chỉ phù hợp cho phát triển."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Chuyển máy chủ sang một bản phân phối Linux được hỗ trợ."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Máy chủ không chạy trên Linux"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Mỗi bài đăng mới được lập chỉ mục đồng bộ bằng một yêu cầu riêng. Trên các máy chủ bận rộn, điều này làm quá tải cụm tìm kiếm và làm chậm việc lập chỉ mục."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Tăng LiveIndexingBatchSize lên trong khoảng từ 10 đến 20, và tinh chỉnh trong khoảng đó dựa trên tốc độ bài đăng quan sát được."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "LiveIndexingBatchSize của Elasticsearch là 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize là {{.size}}. Các yêu cầu _bulk lớn có thể vượt quá http.max_content_length của cụm tìm kiếm và thất bại với lỗi 413, gây ra thử lại và làm chậm việc lập chỉ mục."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Giảm LiveIndexingBatchSize xuống trong khoảng từ 10 đến 20, hoặc tăng http.max_content_length trên cụm tìm kiếm nếu bạn chủ ý dùng các lô rất lớn."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "LiveIndexingBatchSize của Elasticsearch lớn hơn 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL trỏ đến {{.host}}, địa chỉ mà mỗi nút ứng dụng phân giải thành chính nó. Các nút không có công cụ tìm kiếm cục bộ sẽ không thể lập chỉ mục hoặc tìm kiếm."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Đặt ConnectionURL thành một tên máy chủ hoặc tên DNS dịch vụ mà mọi nút ứng dụng đều có thể truy cập."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "ConnectionURL của Elasticsearch trỏ đến localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Cụm tìm kiếm không báo cáo plugin analysis-icu. Mẫu chỉ mục bài đăng sử dụng tokenizer và normalizer ICU, nên việc lập chỉ mục bài đăng có thể thất bại nếu thiếu plugin này."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Danh sách plugin chưa được thu thập vì máy chủ không thể đọc phiên bản của cụm tìm kiếm."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Cài đặt plugin analysis-icu trên mọi nút tìm kiếm (elasticsearch-plugin install analysis-icu, hoặc opensearch-plugin install analysis-icu), sau đó khởi động lại các nút. Việc lập chỉ mục bài đăng cần plugin này, không chỉ tìm kiếm đa ngôn ngữ."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Công cụ tìm kiếm thiếu plugin analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Kiểm tra kết nối tới công cụ tìm kiếm không thành công: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Kiểm tra kết nối tới công cụ tìm kiếm không thành công và tìm kiếm bằng cơ sở dữ liệu đang tắt, nên tìm kiếm không trả về kết quả nào: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Kiểm tra kết nối tới công cụ tìm kiếm không thành công trên {{.nodes}}, trong khi các nút khác vẫn kết nối được, nên việc tìm kiếm và lập chỉ mục trên các nút đó có thể thất bại. Hãy kiểm tra cài đặt mạng, tường lửa, proxy và DNS trên các nút đó. Lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Xác minh khả năng truy cập, TLS và thông tin xác thực của ElasticsearchSettings.ConnectionURL. Kiểm tra tình trạng của cụm tìm kiếm (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Máy chủ báo lỗi cụm Elasticsearch"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification là true trên một kết nối https, nên máy chủ không xác thực chứng chỉ của công cụ tìm kiếm. Điều này chấp nhận được trên mạng nội bộ đáng tin cậy, nhưng ở những nơi khác sẽ mất khả năng bảo vệ trước tấn công xen giữa (man-in-the-middle)."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Nếu endpoint tìm kiếm nằm trên đường truyền không đáng tin cậy, hãy cài đặt CA của nó để chứng chỉ được xác thực và đặt SkipTLSVerification thành false. Trên mạng nội bộ đáng tin cậy, hãy xác nhận rằng cài đặt này là có chủ ý."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Kết nối Elasticsearch bỏ qua xác minh chứng chỉ TLS"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} mới hơn các phiên bản chính được hỗ trợ ({{.min}} đến {{.max}}). Hãy nâng cấp Mattermost lên bản phát hành có hỗ trợ phiên bản này, hoặc chuyển cụm tìm kiếm về một phiên bản được hỗ trợ."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} cũ hơn các phiên bản chính được hỗ trợ ({{.min}} đến {{.max}}). Hãy nâng cấp cụm tìm kiếm lên một phiên bản được hỗ trợ."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Phiên bản của cụm tìm kiếm chưa được thu thập vì máy chủ chưa kết nối tới cụm tìm kiếm."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Không thể nhận diện backend hoặc phiên bản của công cụ tìm kiếm."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Chạy một phiên bản chính của cụm tìm kiếm được phiên bản Mattermost này hỗ trợ."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Phiên bản công cụ tìm kiếm không được hỗ trợ"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout là {{.value}} giây. Giá trị này giới hạn thời gian quá trình xuất chờ kết nối tới máy chủ SMTP của Global Relay, và nếu dưới 30 giây thì một kết nối chậm sẽ khiến việc gửi thất bại."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Tăng MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout lên ít nhất 30 giây. Giá trị mặc định là 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "SMTPServerTimeout của Global Relay dưới 30 giây"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Ổ đĩa chứa FileSettings.Directory còn trống {{.available_gib}} GiB ({{.percent}}%) trên tổng {{.total_gib}} GiB. Việc tải tệp lên và các thao tác tệp khác có thể thất bại khi ổ đĩa đầy."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Hãy mở rộng ổ đĩa ngay lập tức hoặc xóa dữ liệu không liên quan khỏi hệ thống tệp của ổ đĩa đó; không xóa thủ công các tệp do Mattermost quản lý khỏi FileSettings.Directory. Giữ dung lượng trống ít nhất 10% hoặc 10 GiB, và không bao giờ dưới 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Ổ đĩa lưu trữ tệp sắp đầy"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Ổ đĩa chứa FileSettings.Directory còn trống {{.available_gib}} GiB ({{.percent}}%) trên tổng {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Mở rộng ổ đĩa hoặc xóa dữ liệu không liên quan khỏi hệ thống tệp của ổ đĩa đó; không xóa thủ công các tệp do Mattermost quản lý khỏi FileSettings.Directory. Giữ dung lượng trống ít nhất 10% hoặc 10 GiB, và không bao giờ dưới 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Ổ đĩa lưu trữ tệp sắp hết dung lượng"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName là local trong khi ClusterSettings.Enable đang bật, và FileSettings.Directory là {{.directory}}. Trong một cụm, thư mục này phải là một điểm gắn kết dùng chung (NFS, EFS, GlusterFS, CephFS) được gắn kết giống hệt nhau trên mọi nút, nếu không các tệp được tải lên một nút sẽ không hiển thị trên các nút khác. Cấu hình không thể cho biết thư mục có được dùng chung hay không, và một nút vẫn có thể vượt qua kiểm tra kết nối lưu trữ tệp trong khi đang ghi vào ổ đĩa cục bộ của riêng nó."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Trên mọi nút ứng dụng, hãy chạy findmnt với đường dẫn FileSettings.Directory. Đường dẫn tương đối được phân giải theo thư mục làm việc của Mattermost, thường là /opt/mattermost. Mọi nút phải hiển thị cùng một nguồn từ xa, và người dùng hệ điều hành chạy Mattermost phải có quyền đọc và ghi tại đó. Nếu thư mục không phải là điểm gắn kết dùng chung, hãy chuyển nó sang một điểm gắn kết dùng chung hoặc chuyển FileSettings.DriverName sang amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Lưu trữ tệp cục bộ trong cụm tính sẵn sàng cao: hãy xác nhận điểm gắn kết dùng chung"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket đang để trống, nên việc tải tệp lên sẽ thất bại."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Đặt FileSettings.AmazonS3Bucket, cùng với vùng (region) và endpoint."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Đã chọn lưu trữ tệp Amazon S3 nhưng tên bucket đang để trống"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL là false, nên tệp được truyền giữa máy chủ và endpoint S3 mà không được mã hóa."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Đặt FileSettings.AmazonS3SSL thành true, trừ khi endpoint chỉ hỗ trợ HTTP thông thường."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL của Amazon S3 đang tắt"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Máy chủ không thể kết nối tới bộ lưu trữ tệp của mình: {{.error}}. Việc tải lên và tải xuống tệp có thể thất bại."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Kiểm tra kết nối tới bộ lưu trữ tệp không thành công trên {{.nodes}}, trong khi các nút khác vẫn kết nối được, nên việc tải lên và tải xuống tệp qua các nút đó có thể thất bại. Hãy kiểm tra cài đặt mạng, tường lửa, proxy và DNS trên các nút đó. Với lưu trữ cục bộ, cũng hãy kiểm tra rằng thư mục dùng chung đã được gắn kết trên các nút đó. Lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Kiểm tra cài đặt lưu trữ tệp, sau đó dùng Kiểm tra kết nối trong Bảng điều khiển Hệ thống > Môi trường > Lưu trữ Tệp. Với lưu trữ cục bộ, hãy kiểm tra rằng FileSettings.Directory tồn tại và người dùng hệ điều hành chạy Mattermost có thể ghi vào đó. Với Amazon S3, hãy kiểm tra bucket, endpoint và thông tin xác thực."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Kiểm tra kết nối lưu trữ tệp không thành công"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Lượt chạy {{.job_type}} đã kết thúc gần nhất ({{.job_id}}) kết thúc với lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Lượt chạy {{.job_type}} đã kết thúc gần nhất ({{.job_id}}) kết thúc với lỗi nhưng không ghi lại thông báo lỗi nào."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Xem lại lỗi của công việc và nhật ký máy chủ tại thời điểm bắt đầu của lượt chạy thất bại để tìm nguyên nhân. Các nguyên nhân thường gặp cần loại trừ: tải cơ sở dữ liệu, giới hạn nhóm kết nối, sự cố mạng hoặc chuyển đổi dự phòng, và hết thời gian chờ câu lệnh. Khắc phục nguyên nhân, sau đó chạy lại công việc và xác nhận rằng nó hoàn tất. Cho đến khi có một lượt chạy thành công, phần việc của công việc này (đồng bộ thư mục, xuất tuân thủ, lưu giữ dữ liệu hoặc lập chỉ mục tìm kiếm) sẽ không được thực hiện."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Lượt chạy công việc gần nhất đã thất bại"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "Công việc {{.job_type}} {{.job_id}} đang chạy nhưng không ghi nhận hoạt động nào trong {{.hours}} giờ. Điều này thường có nghĩa là worker đã dừng giữa chừng hoặc bộ lập lịch đã bị treo."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "Công việc {{.job_type}} {{.job_id}} đang chạy nhưng không ghi nhận hoạt động nào trong {{.days}} ngày. Điều này thường có nghĩa là worker đã dừng giữa chừng hoặc bộ lập lịch đã bị treo."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Hủy công việc bị treo từ trang của nó trong Bảng điều khiển Hệ thống, bằng mmctl job cancel, hoặc thông qua API. Kiểm tra nhật ký máy chủ quanh thời điểm hoạt động cuối cùng của công việc, sau đó chạy lại."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Công việc bị treo ở trạng thái đang chạy hơn 24 giờ"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "Công việc {{.job_type}} {{.job_id}} chưa báo cáo tiến độ nào và không ghi nhận hoạt động nào trong hơn một giờ. Điều này thường có nghĩa là worker đã dừng, bị khóa chết (deadlock), hoặc mất kết nối cơ sở dữ liệu trước lô đầu tiên."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Hủy công việc từ trang của nó trong Bảng điều khiển Hệ thống, bằng mmctl job cancel, hoặc thông qua API. Kiểm tra nhật ký máy chủ từ thời điểm công việc bắt đầu để tìm panic hoặc lỗi kết nối, sau đó chạy lại. Nếu sự cố lặp lại, hãy thu thập một goroutine profile từ /debug/pprof/goroutine trên máy chủ số liệu trong khi công việc đang bị treo."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Công việc đang chạy nhưng không có tiến độ hoặc hoạt động nào trong hơn một giờ"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute là {{.attribute}}. Mattermost liên kết mỗi tài khoản với mục thư mục tương ứng bằng thuộc tính này, nên khi email của người dùng thay đổi (kết hôn, đổi thương hiệu, chuyển phòng ban), liên kết sẽ bị đứt và người dùng không thể truy cập tài khoản hiện có của mình nữa."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Chuyển IdAttribute sang một thuộc tính ổn định như objectGUID (AD) hoặc entryUUID (OpenLDAP), sau đó di chuyển các tài khoản hiện có bằng mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "IdAttribute của LDAP là một thuộc tính email"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Theo quy ước, cổng 636 dùng TLS ngầm định (LDAPS), nhưng ConnectionSecurity là None hoặc STARTTLS. Tổ hợp này thường là cấu hình sai, nhưng có thể hợp lệ khi đặt sau một proxy kết thúc TLS. Hãy xác minh rằng việc đăng nhập và đồng bộ LDAP đang thành công."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Nếu việc đăng nhập hoặc đồng bộ LDAP đang thất bại, hãy đặt ConnectionSecurity thành TLS cho cổng 636. Nếu chúng vẫn hoạt động, không cần thay đổi gì."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "Cổng LDAP 636 được cấu hình mà không có ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Theo quy ước, cổng 389 dùng văn bản thuần hoặc STARTTLS, còn TLS ngầm định (LDAPS) dùng cổng 636. Tổ hợp này thường là cấu hình sai, nhưng có thể hợp lệ khi đặt sau một proxy kết thúc TLS hoặc một máy chủ được cấu hình lại có chủ ý. Hãy xác minh rằng việc đăng nhập và đồng bộ LDAP đang thành công."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Nếu việc đăng nhập hoặc đồng bộ LDAP đang thất bại, hãy dùng cổng 636 cho TLS hoặc chuyển ConnectionSecurity sang STARTTLS cho cổng 389. Nếu chúng vẫn hoạt động, không cần thay đổi gì."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "Cổng LDAP 389 được cấu hình với ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "Kiểm tra LDAP (kết nối, bind và tìm kiếm người dùng) không thành công, nên việc đăng nhập và đồng bộ LDAP có thể đang thất bại."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "Kiểm tra LDAP (kết nối, bind và tìm kiếm người dùng) không thành công trên {{.nodes}}, trong khi các nút khác vẫn kết nối được tới máy chủ LDAP, nên việc đăng nhập LDAP có thể thất bại trên các nút đó. Hãy kiểm tra cài đặt mạng, tường lửa, proxy và DNS trên các nút đó."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Kiểm tra chi tiết lỗi, sau đó xác nhận LdapServer, LdapPort, ConnectionSecurity và thông tin xác thực bind, đồng thời đảm bảo các máy chủ Mattermost có thể kết nối tới máy chủ LDAP. Dùng Kiểm tra kết nối trên trang AD/LDAP để kiểm tra lại."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "Kiểm tra kết nối LDAP không thành công"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout là {{.timeout}} giây. Thời gian chờ quá ngắn gây ra các lỗi đăng nhập và đồng bộ LDAP không đáng có trên các thư mục phản hồi chậm."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Tăng LdapSettings.QueryTimeout lên 60 giây (giá trị mặc định)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "QueryTimeout của LDAP dưới 10 giây"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} tài khoản người dùng đang hoạt động được quản lý thủ công. Mattermost khuyến nghị dùng đăng nhập một lần (SSO) khi không gian làm việc có hơn 100 người dùng: quản lý tài khoản thủ công ở quy mô này dẫn đến tài khoản lỗi thời, chậm trễ khi tiếp nhận người dùng mới và sót tài khoản khi người dùng rời đi, mỗi vấn đề đều là một rủi ro về bảo mật và giấy phép."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Kết nối Mattermost với nhà cung cấp danh tính của bạn: AD/LDAP nếu bạn vận hành một dịch vụ thư mục, nếu không thì SAML hoặc OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Hơn 100 người dùng nhưng không có đăng nhập một lần"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost không xác minh chứng chỉ TLS của máy chủ LDAP, nên các kết nối tới thư mục có nguy cơ bị tấn công xen giữa (man-in-the-middle). Điều này chỉ chấp nhận được cho mục đích phát triển và thử nghiệm."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Cài đặt chuỗi CA của máy chủ LDAP trên các máy chủ Mattermost và đặt SkipCertificateVerification thành false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "SkipCertificateVerification của LDAP đang bật"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes là {{.interval_minutes}}, và các lượt đồng bộ LDAP gần đây chạy trung bình {{.avg_run_seconds}} giây, bằng {{.duty_pct}}% khoảng thời gian đồng bộ. Các lượt chạy dài với khoảng thời gian ngắn khiến tải cơ sở dữ liệu luôn ở mức cao và có thể làm tăng độ trễ của bản sao."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Không tìm thấy lượt đồng bộ LDAP nào có thời lượng đo được."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Thu hẹp LdapSettings.UserFilter và BaseDN để giới hạn phạm vi duyệt thư mục, hoặc tăng SyncIntervalMinutes. Hãy nhắm tới các lượt đồng bộ chiếm ít hơn 25% khoảng thời gian đồng bộ."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "Đồng bộ LDAP chạy trong phần lớn khoảng thời gian đồng bộ"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "Đồng bộ LDAP tìm kiếm thư mục bắt đầu từ BaseDN, nên khi giá trị này để trống, quá trình đồng bộ không thể tìm thấy những người dùng cần cập nhật."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Đặt LdapSettings.BaseDN thành gốc thư mục mà bạn muốn đồng bộ."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "Đồng bộ LDAP đã bật nhưng BaseDN đang để trống"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Giấy phép đã hết hạn vào {{.expires_at}}. Máy chủ sẽ gỡ bỏ giấy phép hết hạn sau 10 ngày kể từ khi hết hạn, và các tính năng Enterprise sẽ ngừng hoạt động."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Giấy phép dùng thử đã hết hạn vào {{.expires_at}}. Máy chủ sẽ gỡ bỏ giấy phép hết hạn sau 10 ngày kể từ khi hết hạn, và các tính năng Enterprise sẽ ngừng hoạt động."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Lấy giấy phép mới và tải lên trong Bảng điều khiển Hệ thống > Giới thiệu > Phiên bản và Giấy phép."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Giấy phép đã hết hạn"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Giấy phép sẽ hết hạn vào {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Giấy phép dùng thử sẽ hết hạn vào {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Hãy lấy giấy phép mới ngay bây giờ để có thể tải lên trong Bảng điều khiển Hệ thống > Giới thiệu > Phiên bản và Giấy phép trước khi giấy phép hiện tại hết hạn."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Giấy phép sẽ hết hạn trong vòng 30 ngày"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel là {{.level}}. Ghi nhật ký vào tệp ở cấp debug khiến tệp nhật ký tăng kích thước nhanh, và các chi tiết bổ sung có thể bao gồm nội dung yêu cầu. Điều này chấp nhận được khi đang khắc phục sự cố, nhưng không phù hợp làm cài đặt lâu dài cho môi trường sản xuất."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Nếu bạn không đang khắc phục sự cố, hãy đặt LogSettings.FileLevel thành INFO để giảm lượng nhật ký."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Ghi nhật ký vào tệp ở cấp debug hoặc trace"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile là false, nên máy chủ không ghi tệp nhật ký nào. Khi đó Support Packet sẽ không chứa nhật ký máy chủ, ngay cả khi một trình thu thập bên ngoài ghi lại stdout hoặc journald, và việc khắc phục sự cố cùng Bộ phận Hỗ trợ của Mattermost sẽ mất nhiều thời gian hơn."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Đặt LogSettings.EnableFile thành true. Cài đặt này hoạt động song song với ghi nhật ký ra console, nên trình thu thập nhật ký hiện có vẫn tiếp tục hoạt động."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Ghi nhật ký vào tệp đang tắt"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging là true, nên các yêu cầu webhook đến bị lỗi được ghi nhật ký kèm theo nội dung, vốn có thể chứa văn bản tin nhắn."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Đặt LogSettings.EnableWebhookDebugging thành false trừ khi bạn đang khắc phục sự cố một webhook."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Nội dung webhook đang được ghi nhật ký"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel là {{.limit}}, nên @channel, @all và @here vẫn hoạt động trong các kênh có hàng nghìn thành viên. Ở đó, chỉ một lượt đề cập toàn kênh cũng tạo ra hàng nghìn thông báo cùng lúc, gây ra các đợt tăng đột biến về độ trễ."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Giảm TeamSettings.MaxNotificationsPerChannel xuống 5000 hoặc thấp hơn (mặc định là 1000). @channel, @all và @here sẽ bị tắt khi một kênh đạt đến số thành viên này, vì vậy trước tiên hãy trao đổi với các nhóm đang dùng chúng trong các kênh lớn."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Đề cập toàn kênh được cho phép trong các kênh rất lớn"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost không ghi lại các số liệu hiệu suất, chẳng hạn như kết nối cơ sở dữ liệu, độ trễ yêu cầu và tải máy chủ. Thiếu chúng, sẽ không có lịch sử để xem lại khi người dùng báo cáo tình trạng chậm, và không có gì để chia sẻ với Bộ phận Hỗ trợ của Mattermost."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Bật Giám sát Hiệu suất trong Bảng điều khiển Hệ thống, và kiểm tra rằng plugin Metrics đã được bật trong Plugins > Quản lý Plugin. Plugin này lưu giữ số liệu của 15 ngày trên máy chủ mà không cần Prometheus. Nếu bạn dùng Prometheus, hãy trỏ nó tới cổng lắng nghe số liệu (mặc định là cổng 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Giám sát hiệu suất đang tắt"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Working set bộ nhớ của container là {{.working_set}} MB trên giới hạn {{.limit}} MB. Nếu tiếp tục tăng, kernel có thể kết thúc máy chủ hoặc một tiến trình plugin."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Giảm mức sử dụng bộ nhớ của Mattermost và các plugin, hoặc tăng giới hạn bộ nhớ của container. Hãy chừa đủ khoảng dư cho các tiến trình plugin, Go runtime và các đợt tăng đột biến lưu lượng."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Bộ nhớ của container gần cạn kiệt"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "Container đã ghi nhận {{.kills}} lần tiến trình bị kết thúc do hết bộ nhớ (OOM) kể từ khi khởi động. Tiến trình bị kết thúc có thể là một plugin hoặc một tiến trình con khác; hãy xem lại danh sách plugin và giới hạn bộ nhớ của container."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Xem lại các tiến trình plugin và nhật ký container để xác định tiến trình nào đã bị kết thúc, sau đó giảm mức sử dụng bộ nhớ của nó hoặc tăng giới hạn bộ nhớ của container."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Một tiến trình trong container đã bị kết thúc do hết bộ nhớ"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Container đã bị điều tiết (throttle) trong {{.throttled}} trên {{.periods}} chu kỳ lập lịch CPU. Việc điều tiết CPU kéo dài có thể khiến Mattermost chạy chậm ngay cả khi mức sử dụng CPU của máy host có vẻ thấp."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Tăng giới hạn CPU (CPU limit) của container, hoặc gỡ bỏ giới hạn này trong khi vẫn giữ yêu cầu CPU (CPU request)."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Container bị điều tiết CPU ở mức cao"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Tiến trình máy chủ đang mở {{.open}} trên {{.max}} file descriptor. Khi đạt đến giới hạn, các kết nối mới và thao tác tệp sẽ thất bại."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Tăng giới hạn số tệp được mở: đặt LimitNOFILE trong systemd unit của Mattermost, hoặc tăng ulimit nofile của container, sau đó khởi động lại máy chủ."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "File descriptor gần cạn kiệt"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Giới hạn bộ nhớ Go là {{.go_limit}} MB, nhưng giới hạn của container là {{.container_limit}} MB. Bộ thu gom rác có thể không tăng cường hoạt động trước khi kernel kết thúc tiến trình."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Đặt GOMEMLIMIT ở khoảng 80–90% giới hạn bộ nhớ của container, chừa khoảng dư cho bộ nhớ nằm ngoài heap của Go và cho các tiến trình plugin."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Giới hạn bộ nhớ Go bằng hoặc cao hơn giới hạn của container"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS là {{.go_max_procs}}, cao hơn giới hạn CPU của container là {{.cpu_limit}} CPU. Các luồng thực thi dư thừa có thể làm tăng mức điều tiết CPU."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Bỏ đặt GOMAXPROCS để Go runtime tự định cỡ theo giới hạn CPU của container, sau đó khởi động lại máy chủ."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS vượt quá giới hạn CPU của container"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Tải trung bình 15 phút của máy host là {{.load}} trên {{.cores}} lõi CPU. Mức tải kéo dài từ hai tác vụ trở lên trên mỗi lõi có thể cho thấy áp lực về CPU hoặc I/O."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Kiểm tra mức sử dụng CPU, I/O đĩa và các tiến trình đang chạy trên nút, sau đó bổ sung tài nguyên hoặc giảm khối lượng công việc."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Tải của máy host đang cao"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Máy host còn trống {{.available}} MB trên tổng {{.total}} MB bộ nhớ. Mattermost và các tiến trình khác có thể bị kết thúc hoặc chạy chậm nếu bộ nhớ tiếp tục giảm."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Tìm và giảm các tiến trình đang dùng nhiều bộ nhớ nhất, hoặc bổ sung bộ nhớ cho máy host. Xem lại mức sử dụng bộ nhớ của Mattermost và các plugin trước khi khởi động lại dịch vụ."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Bộ nhớ của máy host sắp cạn"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Nút này không trả về dữ liệu chẩn đoán cho lần kiểm tra tình trạng. Nút có thể đang ngừng hoạt động, quá tải, hoặc bị cô lập khỏi các nút khác. Cho đến khi nút phản hồi, các phát hiện khác của nút sẽ giữ trạng thái đã biết gần nhất."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Kiểm tra rằng Mattermost đang chạy trên nút này, xem lại nhật ký cũng như mức sử dụng CPU và bộ nhớ của nút, và xác nhận nút có thể kết nối tới các nút khác qua cổng gossip (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Một nút trong cụm không phản hồi"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Kiểm tra kết nối tới nhà cung cấp OAuth/OIDC không thành công trên mọi nút Mattermost đã báo cáo, nên nhiều khả năng không thể đăng nhập qua nhà cung cấp này."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Kiểm tra kết nối tới nhà cung cấp OAuth/OIDC không thành công trên {{.nodes}}, trong khi các nút đã báo cáo khác vẫn kết nối được tới nhà cung cấp. Việc đăng nhập qua nhà cung cấp này có thể thất bại trên các nút đó."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Kiểm tra chi tiết lỗi, endpoint discovery hoặc token của nhà cung cấp, và các cài đặt mạng đi ra, tường lửa, proxy và DNS. Sau đó xác nhận việc đăng nhập qua nhà cung cấp."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Kiểm tra kết nối tới nhà cung cấp OAuth/OIDC không thành công"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Máy chủ mở và đăng ký bằng email đang được bật trong khi xác minh email đang tắt, nên bất kỳ ai truy cập được máy chủ này đều có thể tạo tài khoản bằng một địa chỉ email bịa đặt và tham gia các nhóm mở. Nếu bạn chủ ý cho phép đăng ký mở, hãy ẩn phát hiện này."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Máy chủ mở và đăng ký bằng email đang được bật trong khi xác minh email đang tắt. TeamSettings.RestrictCreationToDomains giới hạn việc đăng ký ở một số tên miền, nhưng Mattermost chỉ kiểm tra rằng địa chỉ kết thúc bằng một tên miền được cho phép, chứ không kiểm tra người đó có sở hữu địa chỉ hay không. Bất kỳ ai truy cập được máy chủ này đều có thể đăng ký dưới một tên miền được cho phép và trông như một đồng nghiệp. Nếu bạn chủ ý cho phép đăng ký mở, hãy ẩn phát hiện này."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Đặt EmailSettings.RequireEmailVerification thành true. Trước tiên hãy xác nhận SMTP hoạt động: những người dùng hiện có chưa từng xác minh địa chỉ email sẽ phải xác minh ở lần đăng nhập tiếp theo. Nếu bạn không muốn cho phép đăng ký mở, hãy đặt TeamSettings.EnableOpenServer thành false; người dùng vẫn có thể tham gia qua liên kết mời vào nhóm, nên vẫn nên bật xác minh email. Để giới hạn việc đăng ký trong tổ chức của bạn, hãy đặt TeamSettings.RestrictCreationToDomains cùng với xác minh email; nếu không có xác minh, giới hạn này có thể bị vượt qua."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Bất kỳ ai cũng có thể đăng ký bằng địa chỉ email chưa được xác minh"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck là false, nên plugin bị lỗi dừng đột ngột sẽ không được tự động khởi động lại."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Đặt PluginSettings.EnableHealthCheck thành true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Kiểm tra tình trạng plugin đang tắt"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Các plugin sau đã được bật nhưng không chạy: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "Trong Bảng điều khiển Hệ thống > Plugins > Quản lý Plugin, hãy kiểm tra trạng thái của từng plugin được liệt kê, và thử tắt rồi bật lại plugin đó. Nhật ký máy chủ ghi lại lý do một plugin không khởi động được hoặc bị kiểm tra tình trạng plugin dừng lại."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Các plugin đã bật nhưng không chạy"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable là false, nên không có plugin nào chạy. Điều này phù hợp với một số triển khai bị khóa chặt, nhưng thường là ngoài ý muốn."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Nếu điều này nằm ngoài dự kiến, hãy đặt PluginSettings.Enable thành true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Plugin đang tắt"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents được đặt là full, nên văn bản tin nhắn và người gửi được đưa vào nội dung thông báo đẩy, vốn được truyền qua proxy đẩy và các dịch vụ thông báo đẩy của Apple và Google."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Để bảo vệ quyền riêng tư của thông báo đẩy ở mức tối đa, hãy đặt EmailSettings.PushNotificationContents thành id_loaded. Khi đó chỉ ID của tin nhắn được gửi đi, và ứng dụng di động sẽ tải nội dung tin nhắn từ máy chủ. Thiết bị di động khi đó phải truy cập được máy chủ lúc nhận thông báo, nên trên các máy chủ chỉ truy cập được qua VPN hoặc mạng nội bộ, thông báo sẽ không thể hiển thị nội dung tin nhắn. Nếu bạn chủ ý chọn full, hãy ẩn phát hiện này."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Thông báo đẩy chứa toàn bộ văn bản tin nhắn"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Kiểm tra kết nối tới máy chủ thông báo đẩy không thành công: {{.error}}. Người dùng di động có thể không nhận được thông báo đẩy."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Kiểm tra kết nối tới máy chủ thông báo đẩy không thành công trên {{.nodes}}, trong khi các nút khác vẫn kết nối được. Thông báo đẩy được gửi từ các nút đó có thể thất bại. Hãy kiểm tra cài đặt mạng, tường lửa, proxy và DNS trên các nút đó. Lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Kiểm tra PushNotificationServer, chứng chỉ TLS và tình trạng của proxy đẩy. Xác nhận mọi nút ứng dụng Mattermost đều có thể kết nối tới máy chủ đã cấu hình qua HTTPS, sau đó kiểm tra endpoint /version của máy chủ đó."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Kiểm tra kết nối tới máy chủ thông báo đẩy không thành công"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com là proxy đẩy dùng để thử nghiệm của Mattermost. Proxy này không có SLA, thông lượng hạn chế và không dành cho môi trường sản xuất. Giấy phép của bạn bao gồm Mattermost Hosted Push Notification Service: hãy đặt PushNotificationServer thành https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable là false trong khi có {{.users}} người dùng đã đăng ký. Giới hạn tốc độ bảo vệ máy chủ khỏi các đợt yêu cầu ồ ạt và các ứng dụng khách lạm dụng hoặc hoạt động sai; với số lượng người dùng lớn như vậy cùng với webhook và các tích hợp bot, chỉ một ứng dụng khách bị cấu hình sai cũng có thể làm bão hòa API. Mattermost ghi trong tài liệu rằng bộ giới hạn tốc độ tích hợp sẵn dành cho các triển khai nhỏ hơn (tối đa vài trăm người dùng), nên ở quy mô lớn hơn, việc điều tiết yêu cầu thường được xử lý tốt hơn tại bộ cân bằng tải hoặc API gateway."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Đảm bảo đã có cơ chế điều tiết yêu cầu phù hợp với quy mô này, hoặc là giới hạn tốc độ tích hợp sẵn của Mattermost (Bảng điều khiển Hệ thống > Môi trường > Giới hạn Tỷ lệ), hoặc tại bộ cân bằng tải hay gateway của bạn."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Giới hạn tốc độ API đang tắt trên một hệ thống lớn"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize là {{.size}}, nhưng có {{.users}} người dùng đã đăng ký. Bộ giới hạn tốc độ chỉ theo dõi tối đa bằng ấy ứng dụng khách; khi đầy, nó sẽ loại bỏ ứng dụng khách lâu nhất chưa xuất hiện lại, và hạn mức yêu cầu của ứng dụng khách đó sẽ bắt đầu lại từ đầu, nên một bộ lưu trữ nhỏ sẽ làm suy yếu việc giới hạn tốc độ."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Tăng RateLimitSettings.MemoryStoreSize lên ít nhất bằng số người dùng đã đăng ký."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Bộ nhớ lưu trữ của giới hạn tốc độ nhỏ hơn số người dùng"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds là {{.value}}. Công việc lưu giữ dữ liệu tạm dừng trong khoảng thời gian này giữa các lô xóa để cơ sở dữ liệu có thời gian phục vụ lưu lượng thực tế. Dưới 100 ms, các lần xóa lớn có thể làm chậm cơ sở dữ liệu đối với mọi người."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Tăng DataRetentionSettings.TimeBetweenBatchesMilliseconds lên ít nhất 100 (giá trị mặc định) trong cấu hình."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds của lưu giữ dữ liệu dưới 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Các assertion được truyền mà không được mã hóa ở tầng SAML. TLS vẫn bảo vệ kết nối, nên đây không phải là lỗi bảo mật cơ bản, nhưng nếu IdP của bạn hỗ trợ mã hóa assertion, việc bật tính năng này sẽ bổ sung thêm một lớp bảo vệ theo chiều sâu."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Nếu IdP của bạn hỗ trợ mã hóa assertion, hãy bật SamlSettings.Encrypt và cấu hình khóa riêng tư và chứng chỉ công khai của nhà cung cấp dịch vụ."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Mã hóa assertion SAML đang tắt"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost định danh tài khoản SAML theo địa chỉ email, vì IdAttribute đang để trống hoặc đang chỉ định một thuộc tính email. Khi email của người dùng thay đổi tại IdP, liên kết tới tài khoản hiện có của họ sẽ bị đứt."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Cấu hình IdP để gửi một mã định danh ổn định (chẳng hạn như objectGUID hoặc một ID bất biến), sau đó đặt SamlSettings.IdAttribute thành tên của thuộc tính đó. Các tài khoản hiện có sẽ tự chuyển sang mã định danh mới: ở lần đăng nhập tiếp theo của mỗi người dùng, Mattermost tìm tài khoản theo email và lưu ID mới."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "IdAttribute của SAML đang để trống hoặc là một thuộc tính email"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute là {{.attribute}}. Tên người dùng, uid và user principal name thường được tái sử dụng giữa các nhân viên, và khi điều đó xảy ra, người thứ hai sẽ thừa hưởng tài khoản Mattermost của người thứ nhất."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Nên dùng một mã định danh không bao giờ được gán lại, chẳng hạn như objectGUID (AD) hoặc một ID bất biến (Microsoft Entra ID), và xem lại chính sách của IdP về việc tái sử dụng mã định danh."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "IdAttribute của SAML có thể bị gán lại tại IdP"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "Kiểm tra SAML đối với chứng chỉ IdP và URL IdP không thành công, nên nhiều khả năng đăng nhập SAML đang bị lỗi."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "Kiểm tra SAML đối với chứng chỉ IdP và URL IdP không thành công trên {{.nodes}}, trong khi vẫn thành công trên các nút khác, nên đăng nhập SAML có thể thất bại trên các nút đó. Hãy đảm bảo các nút đó có cùng chứng chỉ IdP hợp lệ như các nút khác."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Kiểm tra chi tiết lỗi, sau đó sửa chứng chỉ IdP (IdpCertificateFile) hoặc URL IdP (IdpURL) trong cài đặt SAML. Nếu chứng chỉ đã hết hạn, hãy tải lên chứng chỉ ký hiện tại của IdP."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Kiểm tra cấu hình SAML không thành công"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO đang dùng thuật toán chữ ký SHA-1, vốn đã bị ngừng khuyến nghị. SSO hiện vẫn hoạt động, nhưng một số nhà cung cấp danh tính đã bắt đầu từ chối SHA-1, nên đây là một cải tiến về khả năng tương thích và bảo mật cần lên lịch thực hiện, đặc biệt là trước bất kỳ thay đổi hoặc nâng cấp IdP nào."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Khi thuận tiện, và có phối hợp với IdP của bạn, hãy đặt SamlSettings.SignatureAlgorithm thành RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SignatureAlgorithm của SAML là SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost chấp nhận các phản hồi SAML mà không xác minh chữ ký của IdP, nên không thể phân biệt phản hồi xác thực thật với phản hồi giả mạo."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Đặt SamlSettings.Verify thành true và đảm bảo AssertionConsumerServiceURL đã được đặt. Hãy bật cài đặt này khi có phối hợp với IdP của bạn và thử đăng nhập, vì việc xác minh yêu cầu chứng chỉ IdP được cấu hình chính xác."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Xác minh chữ ký SAML đang tắt"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Không gian làm việc có {{.posts}} bài đăng và tìm kiếm đang chạy trên cơ sở dữ liệu. Nên dùng Elasticsearch khi vượt quá 2.500.000 bài đăng và bắt buộc khi vượt quá 5.000.000 bài đăng."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Lên kế hoạch triển khai Elasticsearch trước giai đoạn tăng trưởng lớn tiếp theo, hoặc trước khi đạt 5.000.000 bài đăng."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Số lượng bài đăng sắp đạt ngưỡng cần Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Không gian làm việc có {{.posts}} bài đăng và tìm kiếm đang chạy trên cơ sở dữ liệu. Ở quy mô này, hãy lường trước việc tìm kiếm chậm, hết thời gian chờ và các đợt tăng đột biến CPU của cơ sở dữ liệu."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Triển khai Elasticsearch hoặc OpenSearch, chạy lập chỉ mục ban đầu toàn bộ, sau đó bật EnableIndexing, EnableSearching và EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Bắt buộc dùng Elasticsearch khi vượt quá 5.000.000 bài đăng"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Tìm kiếm bằng cơ sở dữ liệu đang tắt và tìm kiếm bằng Elasticsearch cũng đang tắt. Tìm kiếm không trả về kết quả nào. Bật tìm kiếm bằng Elasticsearch hoặc OpenSearch cũng sẽ khôi phục chức năng tìm kiếm."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Tìm kiếm bằng cơ sở dữ liệu đang tắt và giấy phép không bao gồm Elasticsearch, nên các cài đặt Elasticsearch không có tác dụng. Tìm kiếm không trả về kết quả nào."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Đặt SqlSettings.DisableDatabaseSearch thành false trong config.json (hoặc MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Tìm kiếm đang bị tắt"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} người dùng được tính vào giới hạn {{.limit}} người dùng của giấy phép, và giới hạn này hiện đã đạt. Máy chủ sẽ không tạo hoặc kích hoạt lại người dùng cho đến khi có chỗ được giải phóng hoặc bổ sung."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Mua thêm chỗ, hoặc hủy kích hoạt những người dùng không còn cần quyền truy cập để giải phóng chỗ."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Đã đạt giới hạn người dùng của giấy phép"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} người dùng được tính vào {{.seats}} chỗ được cấp phép ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Nếu bạn dự kiến có thêm người dùng, hãy lên kế hoạch bổ sung chỗ trước khi giấy phép bị dùng hết. Hủy kích hoạt những người dùng không còn cần quyền truy cập sẽ giải phóng chỗ."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Số chỗ được cấp phép sắp được dùng hết"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} người dùng được tính vào {{.seats}} chỗ được cấp phép ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Mua thêm chỗ, hoặc hủy kích hoạt những người dùng không còn cần quyền truy cập. Người dùng đã bị hủy kích hoạt không chiếm chỗ."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Số người dùng nhiều hơn số chỗ được cấp phép"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Phiên hết hạn theo lịch cố định bất kể hoạt động, nên người dùng đang hoạt động sẽ bị đăng xuất. Hầu hết các triển khai đều được lợi khi giữ người dùng đang hoạt động ở trạng thái đăng nhập."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Bật ServiceSettings.ExtendSessionLengthWithActivity trừ khi chính sách bảo mật của bạn không cho phép."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity đang tắt"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Kiểm tra kết nối tới máy chủ SMTP không thành công: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Kiểm tra kết nối tới máy chủ SMTP không thành công trên {{.nodes}}, trong khi các nút khác vẫn kết nối được. Hãy kiểm tra cài đặt mạng, tường lửa, proxy và DNS trên các nút đó. Lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Thông báo qua email, lời mời và email đặt lại mật khẩu có thể không được gửi đến. Kiểm tra máy chủ SMTP, cổng, bảo mật kết nối và thông tin xác thực trong Bảng điều khiển Hệ thống, xác nhận máy chủ Mattermost có thể kết nối tới máy chủ SMTP, sau đó dùng Kiểm Tra Kết Nối để xác minh."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Kiểm tra kết nối tới máy chủ SMTP không thành công"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Không xác định được bản phát hành mới nhất: không thể tải thông tin này, hoặc Support Packet không ghi lại thông tin này."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Chưa kiểm tra phiên bản mới nhất: Kiểm tra cập nhật bảo mật và bản phát hành đang tắt, nên máy chủ không tải thông tin này."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Phiên bản này không có trong bảng phát hành của bản dựng này. Để đánh giá Support Packet từ một máy chủ mới hơn, hãy dùng phiên bản mmctl mới hơn."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Phiên bản máy chủ không xác định hoặc không nhận diện được."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Đang chạy {{.version}}. Phiên bản mới nhất là {{.latest}}, mới hơn từ hai bản phát hành trở lên."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Lên kế hoạch nâng cấp lên bản phát hành mới nhất trước khi dòng phát hành này hết thời gian hỗ trợ, hoặc chuyển sang Bản phát hành hỗ trợ mở rộng để có nhịp nâng cấp chậm hơn."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Chậm nhiều bản phát hành so với bản mới nhất"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Đang chạy {{.version}}. Phiên bản mới nhất là {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Lên kế hoạch nâng cấp lên bản phát hành mới nhất."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Đã có bản phát hành mới hơn"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Đang chạy Mattermost {{.version}}. Dòng phát hành này đã hết thời gian hỗ trợ vào {{.eol_date}}. Dòng phát hành này không còn nhận được bản vá bảo mật."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Đang chạy Mattermost {{.version}}, một dòng phát hành cũ không còn được hỗ trợ. Dòng phát hành này không còn nhận được bản vá bảo mật."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Đang chạy Mattermost {{.version}}, một dòng phát hành cũ không còn được hỗ trợ. Dòng phát hành này không còn nhận được bản vá bảo mật. Bản phát hành hỗ trợ mở rộng mới nhất còn được hỗ trợ là {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Đang chạy Mattermost {{.version}}. Dòng phát hành này đã hết thời gian hỗ trợ vào {{.eol_date}}. Dòng phát hành này không còn nhận được bản vá bảo mật. Hãy nâng cấp lên bản phát hành mới nhất."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Đang chạy Mattermost {{.version}}. Dòng phát hành này đã hết thời gian hỗ trợ vào {{.eol_date}}. Dòng phát hành này không còn nhận được bản vá bảo mật. Bản phát hành hỗ trợ mở rộng mới nhất còn được hỗ trợ là {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Lên kế hoạch nâng cấp theo từng giai đoạn lên một Bản phát hành hỗ trợ mở rộng còn được hỗ trợ hoặc lên bản phát hành mới nhất. Các phiên bản được hỗ trợ được liệt kê tại https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Phiên bản Mattermost đã hết vòng đời hỗ trợ"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Đang chạy {{.version}} trên Bản phát hành hỗ trợ mở rộng {{.esr}}. Hãy lên kế hoạch nâng cấp trước {{.eol_date}} để tiếp tục nhận các bản vá bảo mật."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Lên lịch nâng cấp lên bản phát hành mới nhất hoặc lên Bản phát hành hỗ trợ mở rộng tiếp theo."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Bản phát hành hỗ trợ mở rộng sắp hết vòng đời hỗ trợ"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Các hành động truy cập kênh trong chính sách quyền chỉ có thể áp dụng cho vai trò Người dùng Hệ thống, Khách Hệ thống hoặc Quản trị hệ thống."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Quy tắc truy cập kênh trong chính sách quyền không thể tự chỉ định vai trò riêng. Vai trò của chính sách sẽ được áp dụng."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Hành động Quản lý kênh chỉ được phép trong các chính sách quyền và chính sách kênh."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Hành động Quyền đọc kênh chỉ được phép trong các chính sách quyền và chính sách kênh."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Hành động Quyền ghi kênh chỉ được phép trong các chính sách quyền và chính sách kênh."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Đã xảy ra lỗi nội bộ."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Tiền tố bộ nhớ đệm Redis không được chứa ':', '*', '?', '[', ']' hoặc '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert và RedisTLSClientKey phải được thiết lập cùng nhau."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Phạm vi bổ sung phải là các tên phạm vi OAuth phân tách bằng dấu cách, tổng cộng tối đa {{.MaxLength}} ký tự."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Bộ lọc trường không hợp lệ. Tên trường phải có tối đa {{.MaxLength}} ký tự, không được để trống và không được là \"level\" hoặc \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Bộ lọc trường không hợp lệ. Giá trị trường phải có tối đa {{.MaxLength}} ký tự."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Bộ lọc trường không hợp lệ. Mỗi trường phải có từ 1 đến {{.MaxValues}} giá trị."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Bộ lọc trường không hợp lệ. Chỉ có thể lọc theo tối đa {{.MaxKeys}} trường."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Bộ lọc tìm kiếm không hợp lệ. Bộ lọc phải có tối đa {{.MaxLength}} ký tự."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Không thể lấy danh sách người theo dõi của chủ đề."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Máy chủ không hỗ trợ liệt kê các khóa của plugin theo tùy chọn."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Không thể liệt kê các khóa của plugin theo tùy chọn."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "ID chủ đề không hợp lệ."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "ID người dùng không hợp lệ."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Bài đăng này là một câu trả lời, không phải bài đăng gốc của chủ đề."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Người tạo tệp không hợp lệ."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL trang web được cung cấp cho quá trình hướng dẫn bắt đầu không hợp lệ. URL phải là URL http hoặc https không có đường dẫn, chẳng hạn như https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Không thể xuất báo cáo tình trạng."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Thuộc tính bài đăng yêu cầu giấy phép Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Đang thiếu giá trị thuộc tính kênh trong:{{.ChannelList}}\n\nBạn là quản trị viên kênh tại đó. Hãy mở kênh và chọn **Thêm giá trị**, hoặc đặt các giá trị trong **Thông tin kênh**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) cần: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "ID plugin {{.ID}} được dành riêng cho máy chủ lõi và không thể cài đặt hoặc tải."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Với {{.users}} người dùng đã đăng ký, máy chủ này đang chạy trên một nút duy nhất mà không có tính sẵn sàng cao. Các kiến trúc tham chiếu của Mattermost khuyến nghị tính sẵn sàng cao khi có trên 200 người dùng, vì vậy hãy lên kế hoạch triển khai trước khi sự cố của một nút hoặc một lần nâng cấp khiến không gian làm việc bị ngoại tuyến."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Chạy ít nhất hai nút ứng dụng phía sau một bộ cân bằng tải, với cơ sở dữ liệu dùng chung và bộ lưu trữ tệp dùng chung, sau đó bật ClusterSettings.Enable với cùng một ClusterName trên mọi nút."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Cân nhắc thiết lập tính sẵn sàng cao"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Với {{.users}} người dùng đã đăng ký, máy chủ này đang chạy trên một nút duy nhất mà không có tính sẵn sàng cao. Bất kỳ sự cố, lần khởi động lại hoặc nâng cấp nào của nút cũng sẽ khiến toàn bộ không gian làm việc bị ngoại tuyến. Các kiến trúc tham chiếu của Mattermost yêu cầu tính sẵn sàng cao ở quy mô này."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Chạy ít nhất hai nút ứng dụng phía sau một bộ cân bằng tải, với cơ sở dữ liệu dùng chung và bộ lưu trữ tệp dùng chung, sau đó bật ClusterSettings.Enable với cùng một ClusterName trên mọi nút."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Tính sẵn sàng cao chưa được bật ở quy mô này"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper đang là true, nên thông tin lỗi chi tiết được hiển thị cho người dùng và ứng dụng khách. Cài đặt này chỉ dành cho mục đích phát triển."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Đặt ServiceSettings.EnableDeveloper thành false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper đang được bật"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Email chưa được cấu hình, nên các email như đặt lại mật khẩu và thông báo sẽ không được gửi đi."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Không có máy chủ thư nào phản hồi tại địa chỉ SMTP mặc định localhost:10025 trên {{.nodes}}, nên các email mà những nút đó gửi, chẳng hạn như đặt lại mật khẩu và thông báo, sẽ không được gửi đến nơi. Các nút khác kết nối được tới một máy chủ thư tại địa chỉ đó. Lỗi: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Cấu hình máy chủ SMTP trong Bảng điều khiển Hệ thống. Nếu máy chủ này không cần gửi email, hãy tắt thông báo qua email, lời mời qua email và xác minh email, rồi ẩn phát hiện này. Hãy giữ bật đăng nhập bằng email hoặc tên người dùng: nếu không, những người dùng không đăng nhập qua SSO sẽ không thể đăng nhập."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Máy chủ SMTP chưa được cấu hình"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting đang là true, nên chế độ kiểm thử để lộ các lệnh và điểm cuối kiểm thử vốn chỉ dành cho mục đích phát triển."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Đặt ServiceSettings.EnableTesting thành false, sau đó khởi động lại máy chủ. Một số điểm cuối kiểm thử chỉ bị gỡ bỏ khi khởi động lại."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting đang được bật"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections đang là true, nên máy chủ không xác minh chứng chỉ TLS trên các kết nối HTTPS đi, chẳng hạn như webhook đi, lệnh gạch chéo, trao đổi mã thông báo OAuth, bản xem trước liên kết và tải xuống plugin. Bất kỳ ai trên đường truyền mạng đều có thể đọc hoặc thay đổi lưu lượng đó, bao gồm cả mã thông báo OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Thêm chứng chỉ CA nội bộ vào kho tin cậy của hệ thống trên mọi máy chủ Mattermost, sau đó đặt ServiceSettings.EnableInsecureOutgoingConnections thành false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Xác minh chứng chỉ TLS đang tắt đối với các kết nối đi"
   }
 ]

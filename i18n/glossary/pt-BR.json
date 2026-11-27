@@ -459,5 +459,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "quadro",
+    "note": "Masculine; plural \"quadros\". Matches the Board Attributes strings (\"atributo de quadro\"). The product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "atributo de publicação",
+    "note": "Plural \"atributos de publicação\". Built like \"atributo de quadro\" from the glossary targets for attribute and post; \"Atributos de Publicação\" in Title Case headings."
+  },
+  "holdings": {
+    "target": "valores do usuário",
+    "note": "No precedent in the catalog. Render as the user's own values (\"seus valores\" when addressing the reader); avoid the financial senses \"participações\" and \"posses\"."
+  },
+  "Manage Channel": {
+    "target": "Gerenciar Canal",
+    "note": "Follows the permission names \"Gerenciar Banner do Canal\" and \"Gerenciar Configurações de Canal\". Sentence case \"Gerenciar canal\" in Channel Settings; same words in both."
+  },
+  "Channel Read Access": {
+    "target": "Acesso de Leitura ao Canal",
+    "note": "\"Acesso de leitura\" is the catalog's rendering of read access. Sentence case \"Acesso de leitura ao canal\" in Channel Settings and server errors."
+  },
+  "Channel Write Access": {
+    "target": "Acesso de Escrita ao Canal",
+    "note": "The catalog renders write access as both \"escrita\" and \"gravação\"; \"gravação\" reads as file storage, so use \"escrita\" here. Sentence case \"Acesso de escrita ao canal\" in Channel Settings."
+  },
+  "Extended Support Release": {
+    "target": "Versão de Suporte Estendido",
+    "note": "No precedent; \"versão\" is how the catalog renders release (\"notas de versão\", \"versão futura\"). Feminine. Keep the abbreviation ESR unchanged."
+  },
+  "release line": {
+    "target": "linha de versão",
+    "note": "No precedent; \"versão\" follows the catalog's rendering of release. Feminine; plural \"linhas de versão\"."
   }
 }

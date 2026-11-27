@@ -512,14 +512,6 @@
     "translation": "Klaida apdorojant užklausą į CWS."
   },
   {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Nepavyksta sukurti komandos, nes pasiektas komandų limitas"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Nepavyksta atkurti komandos, nes pasiektas komandų limitas"
-  },
-  {
     "id": "api.command.command_post.forbidden.app_error",
     "translation": "Nurodytas naudotojas nėra nurodyto kanalo narys."
   },
@@ -1586,10 +1578,6 @@
     "translation": "Rodomas pavadinimas saugiam ryšiui"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Nepavyko užšifruoti kvietimo: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Nepavyko gauti saugių ryšių: {{.Error}}"
   },
@@ -1882,10 +1870,6 @@
     "translation": "Bendrinamų kanalų paslauga išjungta."
   },
   {
-    "id": "api.command_share.service_inactive",
-    "translation": "Bendrinamų kanalų paslauga įjungta, bet neaktyvi."
-  },
-  {
     "id": "api.command_share.share_channel.error",
     "translation": "Negalima bendrinti šio kanalo: {{.Error}}"
   },
@@ -2012,10 +1996,6 @@
   {
     "id": "api.context.invalid_param.app_error",
     "translation": "Netinkamas parametras {{.Name}}."
-  },
-  {
-    "id": "api.context.invalid_token.error",
-    "translation": "Netinkamas seanso prieigos raktas token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -3685,10 +3665,6 @@
     "translation": "Paslauga pasiekiama tik Mattermost Enterprise laidoje"
   },
   {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portalas nepasiekiamas savarankiškai talpinamo serverio registracijai."
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Nepavyko išsiųsti el. laiškų apie būtiną licencijos pratęsimą"
   },
@@ -5013,10 +4989,6 @@
     "translation": "Nepavyko išanalizuoti autentifikavimo duomenų iš {{.Service}} naudotojo objekto."
   },
   {
-    "id": "api.user.login_cws.license.error",
-    "translation": "Prisijungti per CWS draudžiama."
-  },
-  {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP šiame serveryje negalimas."
   },
@@ -5549,10 +5521,6 @@
     "translation": "Viršytas puslapiavimo limitas."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Trinant audito įrašus įvyko klaida."
-  },
-  {
     "id": "app.audit.save.saving.app_error",
     "translation": "Išsaugant audito įrašą įvyko klaida."
   },
@@ -5951,10 +5919,6 @@
   {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Nepavyksta ištrinti kanalo."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Nepavyksta pašalinti kanalo nario."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -6791,10 +6755,6 @@
     "translation": "Papildinys atmetė juodraštį: {{.Reason}}"
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Nepavyksta ištrinti naudotojo juodraščių."
-  },
-  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Spartos ribotuvas nenustatytas."
   },
@@ -6923,10 +6883,6 @@
     "translation": "Eksportuojant nepavyko pridėti failo į zip archyvą."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Nepavyksta gauti failo, nes jis viršija debesijos plano limitą."
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Nepavyko pašalinti nurodytų failų iš duomenų bazės"
   },
@@ -6965,10 +6921,6 @@
   {
     "id": "app.file_info.not_found",
     "translation": "Failas nurodytu keliu failų saugykloje nerastas."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Nepavyksta ištrinti naudotojo priedų."
   },
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
@@ -7025,10 +6977,6 @@
   {
     "id": "app.group.no_rows",
     "translation": "atitinkančių grupių nerasta"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Nepavyksta pašalinti grupės nario, kurio UserID yra \"{{.UserId}}\"."
   },
   {
     "id": "app.group.uniqueness_error",
@@ -7279,10 +7227,6 @@
     "translation": "Nepavyksta importuoti komandų narysčių"
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Nepavyksta importuoti komandos narystės, nes toje komandoje daugiau narių neleidžiama"
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Nepavyksta išsaugoti komandos temos nuostatų"
   },
@@ -7485,10 +7429,6 @@
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
     "translation": "Reaction savybė CreateAt negali būti lygi nuliui."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reaction savybė EmojiName ilgesnė nei didžiausias leidžiamas ilgis."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
@@ -7815,10 +7755,6 @@
     "translation": "Nepavyksta atnaujinti užduoties būsenos. Nustatyta netinkama būsena"
   },
   {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Klaida gaunant paskutinį pasiekiamą failą"
-  },
-  {
     "id": "app.last_accessible_post.app_error",
     "translation": "Klaida gaunant paskutinį pasiekiamą pranešimą"
   },
@@ -8021,10 +7957,6 @@
   {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "Ieškant OAuth2 programų įvyko klaida."
-  },
-  {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Nepavyksta pašalinti įgaliojimo kodo."
   },
   {
     "id": "app.oauth.remove_access_data.app_error",
@@ -8659,10 +8591,6 @@
     "translation": "Nepavyksta ištrinti kanalo pranešimų."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Nepavyksta atrinkti trintinų naudotojo pranešimų."
-  },
-  {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Nepavyko negrįžtamai ištrinti pranešimo."
   },
@@ -8769,10 +8697,6 @@
   {
     "id": "app.preference.get_category.app_error",
     "translation": "Ieškant nuostatų įvyko klaida."
-  },
-  {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Trinant nuostatas įvyko klaida."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -9139,10 +9063,6 @@
     "translation": "Nepavyksta gauti pranešimo reakcijų."
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Nepavyksta ištrinti naudotojo reakcijų."
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Nepavyksta išsaugoti reakcijos."
   },
@@ -9451,10 +9371,6 @@
       "many": "Nepavyko išsiųsti {{.Count}} suplanuoto pranešimo.",
       "other": "Nepavyko išsiųsti {{.Count}} suplanuotų pranešimų."
     }
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Nepavyksta ištrinti naudotojo suplanuotų pranešimų."
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -9901,10 +9817,6 @@
     "translation": "Nepavyksta nustatyti, ar naudotojas priklauso nurodytoms komandoms."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Nepavyksta gauti komandų skaičiaus"
-  },
-  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Nepavyksta išsaugoti paslaugų teikimo sąlygų."
   },
@@ -10033,10 +9945,6 @@
     "translation": "Nepavyko atnaujinti įkėlimo seanso."
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Nepavyko gauti saugyklos naudojimo duomenų."
-  },
-  {
     "id": "app.user.analytics_daily_active_users.app_error",
     "translation": "Nepavyksta gauti aktyvių naudotojų per nurodytą laikotarpį."
   },
@@ -10151,10 +10059,6 @@
   {
     "id": "app.user.permanent_delete.app_error",
     "translation": "Nepavyksta ištrinti esamos paskyros."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Nepavyksta ištrinti naudotojo."
   },
   {
     "id": "app.user.promote_guest.user_update.app_error",
@@ -10485,15 +10389,7 @@
     "translation": "Nepavyksta ištrinti žiniatinklio kablio."
   },
   {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Nepavyksta ištrinti žiniatinklio kablio."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Nepavyksta ištrinti žiniatinklio kablio."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
     "translation": "Nepavyksta ištrinti žiniatinklio kablio."
   },
   {
@@ -10931,10 +10827,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} paieška šiame serveryje išjungta"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Nepavyko išanalizuoti paieškos rezultatų atitikmenų"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -12638,7 +12530,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Netinkamas komandos nustatymų didžiausias kanalų skaičius komandoje. Turi būti teigiamas skaičius."
+    "translation": "Netinkamas komandos nustatymų didžiausias kanalų skaičius komandoje. Turi būti 0 (neribota) arba teigiamas skaičius."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -12662,7 +12554,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Netinkamas komandos nustatymų didžiausias naudotojų skaičius komandoje. Turi būti teigiamas skaičius."
+    "translation": "Netinkamas komandos nustatymų didžiausias naudotojų skaičius komandoje. Turi būti 0 (neribota) arba teigiamas skaičius."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -14462,15 +14354,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versija 150+"
+    "translation": "Versija 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versija 150+"
+    "translation": "Versija 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versija 140+"
+    "translation": "Versija 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -14614,7 +14506,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Svetainės būklės skydeliui reikalinga Enterprise licencija."
+    "translation": "Svetainės būklės skydeliui reikalinga Professional arba aukštesnio lygio licencija."
   },
   {
     "id": "api.team.set_team_icon.seek.app_error",
@@ -14658,7 +14550,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Žurnalų konfigūracijoje yra žurnalo arba audito failo kelias, esantis už žurnalų šakninio katalogo ribų. Išsamesnės informacijos ieškokite serverio žurnaluose."
+    "translation": "Žurnalų konfigūracijoje yra žurnalo arba audito failo kelias, esantis už žurnalų šakninio katalogo ribų arba serverio valdomame kataloge. Išsamesnės informacijos ieškokite serverio žurnaluose."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14726,7 +14618,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Perjunkite į https://push.mattermost.com (gamybinę Hosted Push Notification Service paslaugą, įtrauktą į Enterprise) arba į savarankiškai talpinamą tiesioginių pranešimų tarpinį serverį."
+    "translation": "Nukreipkite PushNotificationServer į gamybinį tiesioginių pranešimų tarpinį serverį: savarankiškai talpinamą Mattermost Push Proxy, aptarnaujantį jūsų pačių sukompiliuotas mobiliųjų programėlių versijas."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14755,5 +14647,2011 @@
   {
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL naudoja http:// (ne https://)"
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Kanalo leidimų veiksmų funkcija neįjungta."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Įkeltas tapatybės teikėjo sertifikatas nėra tinkamas PEM koduotės X.509 sertifikatas."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Įkeltas paslaugų teikėjo privatusis raktas nėra tinkamas PEM koduotės privatusis raktas."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Įkeltas paslaugų teikėjo viešasis sertifikatas nėra tinkamas PEM koduotės X.509 sertifikatas."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Įkeltas failas neatitinka saugomo paslaugų teikėjo sertifikato arba privačiojo rakto. Norėdami juos pakeisti po vieną, išjunkite šifravimą."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Šiuo metu neturite leidimo valdyti šio kanalo."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Šiuo metu neturite prieigos prie šio kanalo."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Šiuo metu neturite leidimo rašyti šiame kanale."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Viengubos kabutės ties `{{.Near}}` neuždarytos prieš ` --`. Uždarykite jas arba naudokite dvigubas kabutes, jei reikšmėje yra ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Netikėtas tekstas ties `{{.Near}}`. Reikšmę, kurioje yra tarpų, įrašykite į kabutes, o jei joje yra ir apostrofas, naudokite dvigubas kabutes."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Kabutės ties `{{.Near}}` nėra uždarytos."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Nepavyko palyginti išsaugotų konfigūracijų."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Nepavyko palyginti išsaugotos konfigūracijos su dabartine."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Netinkamas arba pasibaigęs seansas."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Šio tipo užduočių atšaukti negalima."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Lauke public_key turi būti įkeltas lygiai vienas papildinio viešojo rakto failas."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Papildinio viešasis raktas {{.Name}} nesukonfigūruotas."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Nepavyko išanalizuoti įkelto papildinio viešojo rakto."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Neturite leidimo nustatyti vienos ar kelių prašomų pranešimo atributų reikšmių."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Perskaičius išnykstantys pranešimai negali turėti pranešimo atributų."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Pranešimų atributai šiame serveryje neįjungti."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Nepavyko pritaikyti vienos ar kelių pranešimo atributų reikšmių."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Nustatyti lauko leidimus jį kuriant gali tik lauko kanalo, komandos arba sistemos administratorius."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Nustatyti leidimus kuriant atributo lauką gali tik sistemos administratorius."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Šis atributas ištrintas."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Per šią API negalima gauti v1 savybės lauko atitikties duomenų."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Neturite leidimo peržiūrėti šio savybės lauko atitikties duomenų."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Pateikti kanalų, kuriems trūksta reikšmės, sąrašą arba apie juos pranešti galima tik tiems atributams, kurie taikomi visoms komandoms."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Pranešimai neišsiųsti, nes kanalų administratoriams apie tai neseniai jau buvo pranešta. Kitą pranešimą galėsite išsiųsti po {{.Count}} minutės.",
+      "few": "Pranešimai neišsiųsti, nes kanalų administratoriams apie tai neseniai jau buvo pranešta. Kitą pranešimą galėsite išsiųsti po {{.Count}} minučių.",
+      "many": "Pranešimai neišsiųsti, nes kanalų administratoriams apie tai neseniai jau buvo pranešta. Kitą pranešimą galėsite išsiųsti po {{.Count}} minutės.",
+      "other": "Pranešimai neišsiųsti, nes kanalų administratoriams apie tai neseniai jau buvo pranešta. Kitą pranešimą galėsite išsiųsti po {{.Count}} minučių."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Pranešimai neišsiųsti, nes kanalų administratoriams apie tai neseniai jau buvo pranešta. Bandykite dar kartą vėliau."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Negalite pakeisti savybės lauko leidimų taip, kad nebegalėtumėte jo redaguoti."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Pateiktame apribojimų objekte turi būti nustatyti visi penki leidimų lygiai: reikšmės skaitymo, reikšmės rašymo, parinkčių skaitymo, parinkčių rašymo ir lauko rašymo."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Pateiktas leidimų objektas netinkamas."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Ši savybių grupė nepalaiko leidimų objekto pateikimo."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Leidimų objektas turi leisti sistemos administratoriams redaguoti lauką, todėl jo lauko rašymo lygis negali būti none."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Šio atributo kol kas negalima pažymėti kaip privalomo, nes kai kurie aktyvūs kanalai neturi jo reikšmės. Informuokite kanalų administratorius ir bandykite dar kartą."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Kvietimo galiojimas baigėsi. Paprašykite nuotolinės svetainės naujo kvietimo."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Nuotolinė svetainė grąžino netinkamą atsakymą."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Kvietime nurodytas netinkamas svetainės adresas: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Nuotolinė svetainė atmetė kvietimą."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Nepavyko pasiekti nuotolinės svetainės adresu {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Įkėlimas iš saugaus ryšio negali tęsti iš dalies gauto failo."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Per daug išteklių viename prieigos kontrolės įvertinime; riba yra {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Naujausios Mattermost laidos tikrinimas išjungtas. Įjunkite nustatymą „Tikrinti saugos ir laidų atnaujinimus“, kad tai būtų leidžiama."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Nepavyksta rasti kanalų administratorių."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Nepavyksta rasti kanalų, kuriems trūksta šio atributo reikšmės."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Nepavyksta suskaičiuoti kanalų, kuriems trūksta šio atributo reikšmės."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Nepavyksta suskaičiuoti visų kanalų, kuriems trūksta šio atributo reikšmės."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Nepavyksta suskaičiuoti vietinių kanalų, kuriems trūksta šio atributo reikšmės."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Nepavyksta pateikti kanalų, kuriems trūksta šio atributo reikšmės, sąrašo."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Nepavyksta rasti nuotolinių kanalų, kuriems trūksta šio atributo reikšmės."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Nepavyksta suskaičiuoti kanalų administratorių ir kanalų, kuriems taikomas šis atributas."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Nepavyksta rasti kanalų administratorių, kuriuos reikia informuoti apie šį atributą."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _ir kiti kanalai ({{.Count}})_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Nustatykite **{{.AttributeName}}** reikšmę šiems jūsų valdomiems kanalams. Kad šį atributą būtų galima padaryti privalomu, sistemos administratoriui reikia, kad kiekvienas kanalas turėtų reikšmę."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Esate kanalo, kuriam trūksta privalomo kanalo atributo, administratorius. Nustatykite **{{.AttributeName}}** reikšmę.",
+      "few": "Esate kanalų, kuriems trūksta privalomo kanalo atributo, administratorius. Nustatykite **{{.AttributeName}}** reikšmę.",
+      "many": "Esate kanalų, kuriems trūksta privalomo kanalo atributo, administratorius. Nustatykite **{{.AttributeName}}** reikšmę.",
+      "other": "Esate kanalų, kuriems trūksta privalomo kanalo atributo, administratorius. Nustatykite **{{.AttributeName}}** reikšmę."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Nepavyksta rezervuoti šio atributo pranešimų siuntimo pertraukos."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Nepavyksta gauti išsaugotų konfigūracijų."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Išsaugotos konfigūracijos su šiuo ID nėra."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Konfigūracijos istorija pasiekiama tik tada, kai konfigūracija saugoma duomenų bazėje."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Kaip parašyta: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Laiko žyma"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Nepavyksta pradėti būklės patikros."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Būklės patikra jau pradedama. Netrukus bandykite dar kartą."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Klaida importuojant pranešimą. Nepavyko išsaugoti prioriteto."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Klaida importuojant naudotojo komandas. Komanda nerasta."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Šis failas į komandą {{.Team}} prideda naudotojų: {{.Adding}}, todėl joje būtų narių: {{.Total}}, tačiau TeamSettings.MaxUsersPerTeam yra {{.Limit}}. Prieš importuodami padidinkite ribą arba nustatykite ją į 0 (be ribos)."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Nepavyksta perskaityti importo failo, kad būtų galima patikrinti TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Acknowledgement savybė AcknowledgedAt turi būti nustatyta ir negali būti ankstesnė už pranešimo CreateAt."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Trūksta privalomos Acknowledgement savybės: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Pranešimo patvirtinimams reikia Priority, kurio RequestedAck nustatytas į true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Pranešimo PersistentNotifications galima naudoti tik su skubiu (urgent) Priority."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Trūksta privalomos Priority savybės: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction savybė EmojiName netinkama. Ją turi sudaryti nuo 1 iki 64 ASCII raidžių ir skaitmenų, +, - arba _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Narystės taisykles, kuriose naudojama išplėstinė logika, gali keisti tik sistemos administratorius. Redaguokite jas Sistemos konsolėje."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Šioje narystės taisyklėje naudojama išraiška, kurios narystės sinchronizavimas negali įvertinti. Perrašykite taisyklę naudodami tik palyginimus, &&, ||, in ir palaikomas atributų funkcijas."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Šioje narystės taisyklėje naudojamas elementas {{.Function}}, kurio narystės sinchronizavimas negali įvertinti. Perrašykite taisyklę naudodami tik palyginimus, &&, ||, in ir palaikomas atributų funkcijas."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Nepavyko nustatyti, ar veiksmui taikoma leidimų politika"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Nepavyko nustatyti, ar ištekliaus prieigos politika reglamentuoja šį veiksmą."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Konfigūracijos failas pavadinimu {{.Name}} jau egzistuoja."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Failas nėra tinkamas OpenPGP viešasis raktas."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Netinkamas papildinio viešojo rakto pavadinimas {{.Name}}. Pavadinimuose gali būti tik raidės, skaitmenys, '.', '_' ir '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Šio lauko ištrinti negalima, nes užmaskuotas šablonas iš jo skaito kiekvieno asmens turimas reikšmes. Pirmiausia pakeiskite arba pašalinkite šablono maskavimą."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Susieto lauko option.read lygis ({{.FieldTier}}) negali būti laisvesnis nei jo šablono ({{.TemplateID}}) lygis ({{.TemplateTier}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Atributo negalima susieti su OpenID Connect teiginiu, kol OpenID Connect atributų sinchronizavimas išjungtas."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Nepavyksta ieškoti globaliųjų atributų."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Šis laukas yra jo užmaskuoto šablono turimų reikšmių šaltinis, todėl jo reikšmės rašymo lygis negali būti '{{.ValueWrite}}'. Kitaip šablono filtruojami asmenys galėtų redaguoti savo turimas reikšmes ir išplėsti tai, ką gali matyti."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Iš OpenID Connect sinchronizuojamo atributo negalima kartu sinchronizuoti iš AD/LDAP arba SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Šiuo būdu negalima pakeisti šio lauko savininkų, prieigos režimo, apsaugos ar sinchronizavimo nustatymų, nes jo leidimų negalima išreikšti tokia forma. Vietoj to atnaujinkite jo leidimus tiesiogiai."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Negalima pakeisti šio lauko prieigos režimo, nes jame yra duomenų, kurių užklausos siuntėjui gali būti neleidžiama skaityti."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Nepavyko atnaujinti: susieto lauko {{.DependentID}} option.read lygis yra {{.DependentTier}}, o tai viršytų naują lygį {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Tuo pačiu atnaujinimu negalima keisti ir šio lauko leidimų, ir jo leidimų lygių, savininkų, prieigos režimo, apsaugos ar sinchronizavimo nustatymų. Pakeitimą siųskite viena arba kita forma."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Nepavyko atnaujinti: taikant šį maskavimą susietas laukas {{.DependentID}} pats teiktų savo turimas reikšmes, tačiau jo reikšmės rašymo lygis yra '{{.ValueWrite}}'. Pirmiausia sumažinkite šio lauko reikšmės rašymo lygį iki admin arba žemesnio."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Šio lauko atsieti negalima, nes užmaskuotas šablonas iš jo skaito kiekvieno asmens turimas reikšmes. Pirmiausia pakeiskite arba pašalinkite šablono maskavimą."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Paskyra išaktyvinta ir iš dalies ištrinta. Ištrynimą galima saugiai paleisti dar kartą – taip jis bus užbaigtas."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Šio paleidimo metu ištrintas didžiausias leidžiamas pranešimų skaičius ({{.Max}}). Paskyra išaktyvinta ir iš dalies ištrinta. Paleiskite ištrynimą dar kartą, kad tęstumėte."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Nepavyksta užbaigti naudotojų ištrynimo ({{.Count}}): {{.Usernames}}. Paleiskite komandą dar kartą, kad tęstumėte."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Nepavyko išsiųsti klasterio užklausos"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML sukonfigūruotas netinkamai. Kreipkitės į sistemos administratorių."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "Naujausi vykdymai vis dar laukia eilėje, vykdomi arba buvo atšaukti, todėl senesnių vykdymų patikrinti nepavyko."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Autentifikavimas"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Aukštas prieinamumas"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Atitiktis"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Duomenų bazė"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Užduotys"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licencijavimas"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Pranešimai"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platforma"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Paieška"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Atnaujinimai"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} mazge {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Duomenys surinkti"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Nežinoma"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licencija išduota"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Paskutinį kartą įvertinta"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Sugeneruota"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licencija"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Dar neįvertinta"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Serverio versija"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Svetainės URL"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Panašu, kad vertinimas sustojo."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Atidaryti šį nustatymą Sistemos konsolėje"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Išsami informacija"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Skaityti dokumentaciją"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Kaip ištaisyti"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Santrauka"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Nutildyta"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Išspręsta"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Nepavyko įvertinti"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritinis"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Informacija"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Įspėjimas"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritinis",
+      "few": "{{.Count}} kritiniai",
+      "many": "{{.Count}} kritinio",
+      "other": "{{.Count}} kritinių"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} informacinis",
+      "few": "{{.Count}} informaciniai",
+      "many": "{{.Count}} informacinio",
+      "other": "{{.Count}} informacinių"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Atvirų pastebėjimų nėra."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Dar neatlikta nė viena būklės patikra."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} nepavyko įvertinti",
+      "few": "{{.Count}} nepavyko įvertinti",
+      "many": "{{.Count}} nepavyko įvertinti",
+      "other": "{{.Count}} nepavyko įvertinti"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} įspėjimas",
+      "few": "{{.Count}} įspėjimai",
+      "many": "{{.Count}} įspėjimo",
+      "other": "{{.Count}} įspėjimų"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Būklės ataskaita"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Nėra aktyvios audito žurnalo paskirties vietos, o šios darbo srities registruotų naudotojų skaičius yra {{.users}}. Administravimo veiksmai, prisijungimai ir konfigūracijos pakeitimai nepalieka atskiro audito pėdsako. Tai atitikties ir kriminalistinio tyrimo spraga, o ne stabilumo rizika."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Jei jūsų organizacijai taikomi audito reikalavimai (finansinės paslaugos, sveikatos priežiūra, gynyba, reguliuojamas viešasis sektorius), įjunkite audito registravimą skiltyje Sistemos konsolė > Laikymasis > Audito registravimas arba į ExperimentalAuditSettings.AdvancedLoggingJSON įtraukite audito lygių paskirties vietą ir sukonfigūruokite rotaciją. Priešingu atveju į tai galima nekreipti dėmesio."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Audito registravimas išjungtas"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress susieja prievadą {{.port}}, kurio numeris mažesnis nei 1024. Linux sistemoje ne root teisėmis veikiantis Mattermost serveris šį prievadą gali susieti tik per savo vykdomajam failui suteiktą CAP_NET_BIND_SERVICE failo galimybę. Atnaujinant paketą vykdomasis failas pakeičiamas ir ši galimybė panaikinama, todėl po kito atnaujinimo serveris gali nepasileisti dėl klaidos \"bind: permission denied\". Iš konfigūracijos neįmanoma nustatyti, kaip galimybė suteikta, todėl šis įspėjimas lieka net ir suteikus ją per systemd įrenginį."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Į Mattermost systemd įrenginį įtraukite AmbientCapabilities=CAP_NET_BIND_SERVICE, kad galimybė išliktų po atnaujinimų, arba po kiekvieno atnaujinimo iš naujo paleiskite setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost. Arba prieš Mattermost įdiekite atvirkštinį tarpinį serverį ir susiekite Mattermost su aukštu prievadu, pvz., 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Serveris tiesiogiai susieja privilegijuotą prievadą"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Lyderis skelbia adresą {{.address}}. Kiti mazgai juo jo pasiekti negali, todėl paskalų protokolas sudaro vieno mazgo klasterį, o klasterio skilimai (split brain) lieka nepastebėti."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Nustatykite ClusterSettings.AdvertiseAddress į pasiekiamą mazgo IP adresą arba DNS vardą, arba palikite tuščią, kad būtų naudojamas tinklo sąsajos adresas. Ši patikra skaito lyderio konfigūraciją, todėl peržiūrėkite nustatymą kiekviename mazge."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress nepasiekiamas iš kitų mazgų"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Konfigūracija saugoma faile kiekviename mazge ir gali būti keičiama Sistemos konsolėje. Pakeitimas išsaugomas viename mazge ir, kiek įmanoma, perduodamas kitiems; mazgas, negavęs perdavimo, išlaiko savo failą, todėl mazgų konfigūracijos gali išsiskirti."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Nustatykite ClusterSettings.ReadOnlyConfig į true ir valdykite konfigūraciją per konfigūracijos failą arba aplinkos kintamuosius kiekviename mazge, arba perkelkite konfigūraciją į duomenų bazę."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "Failu pagrįstame HA klasteryje ClusterSettings.ReadOnlyConfig išjungtas"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption yra false, todėl srautas tarp klasterio mazgų nešifruojamas."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Įjunkite paskalų protokolo šifravimą, tada techninės priežiūros metu kartu paleiskite iš naujo visus mazgus. Mazgai su šifravimu ir be jo negali tarpusavyje susisiekti, todėl pakopinis paleidimas iš naujo suskaido klasterį, kol bus paleistas iš naujo paskutinis mazgas."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "HA klasterio paskalų protokolas nešifruojamas"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Kai HA klasteryje registruotų naudotojų yra {{.users}}, numatytoji atmintyje laikoma LRU talpykla reiškia, kad kiekvienas mazgas palaiko savo kopiją, o anuliavimui naudoja paskalų protokolą. Esant 100 000 ir daugiau naudotojų, Mattermost rekomenduoja Redis, kad tokiu mastu sumažėtų talpyklos anuliavimo srautas."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Apsvarstykite galimybę nustatyti CacheSettings.CacheType į redis ir sukonfigūruoti CacheSettings.RedisAddress. Redis reikalinga licencija su Cluster funkcija."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Esant dideliam mastui, apsvarstykite Redis talpyklos posistemę"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Numatyta HA topologija iš tikrųjų neveikia. Vienas mazgas neužtikrina perjungimo esant gedimui ir slepia klasterio skilimo (split-brain) riziką."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Patikrinkite paskalų protokolo ryšį (ClusterSettings.GossipPort), užkardos taisykles ir ar visi programos mazgai naudoja tą patį ClusterName. Tuščias ClusterName taip pat palieka mazgą vieną: tada serveris į žurnalą įrašo, kad aukštas prieinamumas išjungtas."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Aukštas prieinamumas įjungtas, bet klasteryje yra tik vienas mazgas"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Klasterio mazgai praneša šias versijas: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Mazgai pasiskirstę tarp versijų ir nė viena versija nėra dažnesnė už kitas, todėl neaišku, kurie mazgai pasenę."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Šiame mazge veikia {{.version}}, o daugumoje mazgų – {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Jei šiuo metu nevyksta atnaujinimas, atnaujinkite visus mazgus į tą pačią versiją ir įsitikinkite, kad mazgai gali susisiekti per paskalų protokolą."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Klasteryje aptiktos kelios Mattermost versijos"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory tuščias, todėl atitikties ataskaitos rašomos į compliance aplanką serverio darbiniame kataloge. Jos prarandamos atnaujinus serverį arba iš naujo sukūrus jo konteinerį."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Skiltyje Sistemos konsolė > Laikymasis > Atitikties stebėjimas nustatykite Atitikties ataskaitų katalogą (ComplianceSettings.Directory) į nuolatinį, įrašomą kelią."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Atitikties stebėjimas įjungtas, bet Directory tuščias"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Kiekvienas mazgas palaiko iki MaxOpenConns jungčių su pagrindine duomenų baze telkinį. Esant mazgų skaičiui {{.nodes}} ir MaxOpenConns={{.max_open}}, duomenų bazės perjungimas esant gedimui gali sukelti iki {{.burst}} vienu metu vykdomų bandymų prisijungti prie naujai paaukštintos pagrindinės duomenų bazės, o DataSource pagrindinis kompiuteris neatrodo kaip jungčių telkinio tarpininkas. Jei tai viršija duomenų bazės max_connections, ji atmeta jungtis ('sorry, too many clients already') ir atkūrimas užtrunka ilgiau."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Kiekvieną sluoksnį pritaikykite šiam pliūpsniui. Patvariausias sprendimas – sumažinti SqlSettings.MaxOpenConns kiekviename mazge ir (arba) prieš duomenų bazę įdiegti PgBouncer (transaction režimu), kad jis sugertų pakartotinio jungimosi pliūpsnius, o ne tik didinti max_connections: kiekviena jungtis naudoja duomenų bazės atmintį, todėl aukšta riba kelia atminties išsekimo riziką. Jei didinate max_connections, palikite atsargą virš pliūpsnio replikacijai, stebėsenai ir administravimo seansams. Perjungimo esant gedimui metu mazgus paleidžiant ne vienu metu, pliūpsnis taip pat išlieka žemiau ribos."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Duomenų bazės perjungimas esant gedimui gali sukelti jungčių audrą"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) nustatytas didesnis nei MaxOpenConns ({{.max_open}}). Go database/sql sluoksnis neperspėdamas apriboja neaktyvių jungčių telkinį iki MaxOpenConns, todėl papildoma neaktyvių jungčių talpa neturi jokio poveikio. Niekas nesugedę, tačiau reikšmė klaidina ir paprastai rodo, kad telkinys buvo derinamas nežinant, jog neaktyvių jungčių niekada negali būti daugiau nei atvirų."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Nustatykite MaxIdleConns reikšmę, lygią MaxOpenConns arba mažesnę (įprasta rekomendacija – 25–50 % MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns viršija MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Kai naudotojų yra {{.users}}, o MaxOpenConns={{.max_open}}, esant apkrovos pliūpsniams programos pusėje galimos užklausų eilės. Dabartinė numatytoji reikšmė yra 100 (MaxIdleConns 50, santykis 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Jei programos pusėje pastebimos užklausų eilės, padidinkite SqlSettings.MaxOpenConns pagal stebėjimu nustatytą poreikį (atskaitos taškas – numatytosios reikšmės 100/50). Tikroji duomenų bazės riba yra MaxOpenConns x mazgai x duomenų šaltiniai, todėl prieš didindami įsitikinkite, kad duomenų bazės max_connections apima šią sumą."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns gali būti per mažas šiam naudotojų skaičiui"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas tuščias. Kai naudotojų yra {{.users}}, visi skaitymai tenka pagrindinei duomenų bazei. Didesniems diegimams rekomenduojamos skaitymo replikos."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Apsvarstykite galimybę parengti skaitymo repliką ir įtraukti ją į SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Nesukonfigūruota jokių skaitymo replikų"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Kai pranešimų yra {{.posts}}, o paieška vykdoma duomenų bazėje, viso teksto skenavimai tenka pagrindinei duomenų bazei ir replikoms. Tokiu mastu tai apkrauna procesorių ir sukelia paieškos skirtojo laiko viršijimus."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Kai pranešimų yra {{.posts}}, o paieška vykdoma duomenų bazėje, viso teksto skenavimai tenka pagrindinei duomenų bazei ir replikoms. Tokiu mastu tai apkrauna procesorių ir sukelia paieškos skirtojo laiko viršijimus. Jūsų licencija apima Elasticsearch, kuris visiškai perima paiešką iš duomenų bazės."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Sukonfigūruokite SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Nėra paieškos replikos, o Elasticsearch paieška išjungta"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "Naudojama {{.in_use}} iš {{.max_open}} pagrindinės duomenų bazės jungčių ({{.percent}} %), t. y. 90 % MaxOpenConns arba daugiau. Naujos užklausos bus dedamos į eilę, o HTTP delsa didės."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Padidinkite SqlSettings.MaxOpenConns ir duomenų bazės max_connections. Taip pat ištirkite ilgai vykdomas užklausas."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Pagrindinės duomenų bazės telkinys beveik užpildytas"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} yra senesnė už mažiausią palaikomą versiją {{.minimum}}. Mattermost su ja vis tiek pasileidžia, tačiau nepalaikomos versijos gali lemti netikėtą veikimą. Atnaujinkite į PostgreSQL {{.minimum}} ar naujesnę."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Suplanuokite atnaujinimą. Naujesnės versijos taip pat pasižymi geresniu lygiagrečių užklausų ir JSONB našumu."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL versija senesnė už mažiausią palaikomą"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL šiuo metu vykdo Posts lentelės vacuum. Leiskite šiam vacuum baigtis ir tik tada vertinkite, ar reikia kito."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Posts lentelėje yra apytiksliai {{.dead_tuples}} dead tuples ({{.dead_percent}} % iš apytiksliai {{.estimated_rows}} eilučių), nors paskutinis vacuum atliktas {{.last_vacuum}}. Vacuum vykdomas, bet greičiausiai negali jų pašalinti, nes valymą kažkas stabdo, pvz., ilgai trunkantis arba idle-in-transaction seansas, neaktyvus replication slot ar apleista prepared transaction. Lentelės ir indeksų išsipūtimas gali pabloginti užklausų našumą ir padidinti disko naudojimą."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Posts lentelėje yra apytiksliai {{.dead_tuples}} dead tuples ({{.dead_percent}} % iš apytiksliai {{.estimated_rows}} eilučių), o PostgreSQL neturi įrašo, kad jai būtų atliktas vacuum nuo paskutinio statistikos nustatymo iš naujo. Panašu, kad Autovacuum su šia lentele nespėja. Lentelės ir indeksų išsipūtimas gali pabloginti užklausų našumą ir padidinti disko naudojimą."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Posts lentelėje yra apytiksliai {{.dead_tuples}} dead tuples ({{.dead_percent}} % iš apytiksliai {{.estimated_rows}} eilučių), o paskutinis jos vacuum atliktas prieš {{.age_days}} d., {{.last_vacuum}}. Panašu, kad Autovacuum su šia lentele nespėja. Lentelės ir indeksų išsipūtimas gali pabloginti užklausų našumą ir padidinti disko naudojimą."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Jei pg_stat_progress_vacuum rodo, kad Posts lentelei vykdomas vacuum, leiskite jam baigtis, nes paleidus rankinį VACUUM jis atšaukiamas. Jei Posts vacuum atliktas neseniai, raskite, kas stabdo valymą, ir tai užbaikite arba pašalinkite: ilgai trunkančius arba idle-in-transaction seansus pg_stat_activity, neaktyvius replication slots pg_replication_slots ir senas prepared transactions pg_prepared_xacts. Tada kitas vacuum galės pašalinti dead tuples. Jei Posts vacuum neseniai neatliktas, patikrinkite, ar autovacuum įjungtas globaliai ir Posts lentelei, ir PostgreSQL žurnaluose ieškokite atšauktų autovacuum užduočių. Jei autovacuum nespėja, sumažinkite autovacuum_vacuum_scale_factor Posts lentelei ir, kiek leidžia pajėgumai, padidinkite autovacuum_vacuum_cost_limit ir autovacuum_work_mem, tada mažo srauto metu suplanuokite tikslinį VACUUM (ANALYZE) Posts lentelei. Venkite VACUUM FULL, nebent esate pasirengę jo išskirtiniam užraktui ir papildomai disko vietai; jei įmanoma, pg_repack yra mažiau blokuojanti alternatyva."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Posts lentelėje daug dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout nustatytas į {{.timeout}} s. Dėl ilgo skirtojo laiko nekontroliuojamos užklausos visą tą laiką laiko užraktus ir blokuoja autovacuum, schemos perkėlimus bei rašymus, laukiančius tos pačios eilutės. Užimtose duomenų bazėse be skaitymo replikų tai dar padidina riziką."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Sumažinkite SqlSettings.QueryTimeout iki 30. Konkrečias lėtas užklausas tirkite atskirai, užuot didinę bendrą ribą."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout per didelis (numatytasis – 30 s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas nustatytas, bet nė viena replika nepasiekiama, todėl skaitymai grąžinami pagrindinei duomenų bazei."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Patikrinkite replikos DSN, pasiekiamumą tinkle ir autentifikavimą. Serverio žurnaluose ieškokite įspėjimų apie jungtis su replikomis."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Skaitymo replikos sukonfigūruotos, bet nė viena nepasiekiama"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Registruojamas kiekvienas SQL sakinys. Tai skirta tik derinimui: palikus įjungtą, užpildomas diskas, o užklausų turinys įrašomas į žurnalų failus."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Nustatykite SqlSettings.Trace į false, nebent šiuo metu derinate."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace įjungtas"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Serveris veikia sistemoje {{.os}}. Gamybinei aplinkai Mattermost palaiko Linux; kitos operacinės sistemos tinka tik kūrimui."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Perkelkite serverį į palaikomą Linux distribuciją."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Serveris veikia ne Linux sistemoje"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Kiekvienas naujas pranešimas indeksuojamas sinchroniškai, atskira užklausa. Užimtuose serveriuose tai perkrauna paieškos klasterį ir vėlina indeksavimą."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Padidinkite LiveIndexingBatchSize iki 10–20 ir šiame intervale derinkite pagal stebimą pranešimų srautą."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize yra 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize yra {{.size}}. Didelės _bulk užklausos gali viršyti paieškos klasterio http.max_content_length ir nepavykti su 413 klaidomis, todėl kartojami bandymai ir vėluoja indeksavimas."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Sumažinkite LiveIndexingBatchSize iki 10–20 arba, jei labai dideli paketai naudojami sąmoningai, paieškos klasteryje padidinkite http.max_content_length."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize viršija 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL nukreiptas į {{.host}}, kurį kiekvienas programos mazgas nukreipia į save. Mazgai be vietinio paieškos variklio negali indeksuoti ir ieškoti."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Nustatykite ConnectionURL į pagrindinio kompiuterio vardą arba paslaugos DNS vardą, kurį gali pasiekti kiekvienas programos mazgas."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch ConnectionURL nukreiptas į localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Paieškos klasteris nepraneša apie analysis-icu papildinį. Pranešimų indekso šablonas naudoja ICU leksemų skaidytuvą ir normalizatorių, todėl be jo pranešimų indeksavimas gali nepavykti."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Papildinių sąrašas nesurinktas, nes serveriui nepavyko nuskaityti paieškos klasterio versijos."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Įdiekite analysis-icu papildinį kiekviename paieškos mazge (elasticsearch-plugin install analysis-icu arba opensearch-plugin install analysis-icu), tada paleiskite mazgus iš naujo. Jo reikia pranešimų indeksavimui, o ne tik daugiakalbei paieškai."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Paieškos varikliui trūksta analysis-icu papildinio"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Ryšio su paieškos varikliu patikra nepavyko: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Ryšio su paieškos varikliu patikra nepavyko, o paieška duomenų bazėje išjungta, todėl paieška negrąžina rezultatų: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Ryšio su paieškos varikliu patikra nepavyko šiuose mazguose: {{.nodes}}, nors kiti mazgai jį pasiekia, todėl paieška ir indeksavimas tuose mazguose gali neveikti. Patikrinkite tų mazgų tinklo, užkardos, tarpinio serverio ir DNS nustatymus. Klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Patikrinkite ElasticsearchSettings.ConnectionURL pasiekiamumą, TLS ir prisijungimo duomenis. Patikrinkite paieškos klasterio būklę (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Serveris praneša apie Elasticsearch klasterio klaidą"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification yra true https ryšyje, todėl serveris netikrina paieškos variklio sertifikato. Patikimame vidiniame tinkle tai priimtina, tačiau kitur panaikina apsaugą nuo „žmogaus viduryje“ atakų."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Jei paieškos galinis taškas pasiekiamas nepatikimu keliu, įdiekite jo CA, kad sertifikatas būtų patvirtintas, ir nustatykite SkipTLSVerification į false. Patikimame vidiniame tinkle įsitikinkite, kad nustatymas pasirinktas sąmoningai."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch ryšys praleidžia TLS sertifikato patikrą"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} yra naujesnė už palaikomas pagrindines versijas (nuo {{.min}} iki {{.max}}). Atnaujinkite Mattermost į ją palaikančią laidą arba grąžinkite paieškos klasterį į palaikomą versiją."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} yra senesnė už palaikomas pagrindines versijas (nuo {{.min}} iki {{.max}}). Atnaujinkite paieškos klasterį į palaikomą versiją."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Paieškos klasterio versija nesurinkta, nes serveris neprisijungė prie paieškos klasterio."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Nepavyko atpažinti paieškos variklio posistemės arba versijos."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Naudokite tokią paieškos klasterio pagrindinę versiją, kurią palaiko ši Mattermost versija."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Paieškos variklio versija nepalaikoma"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout yra {{.value}} s. Jis riboja, kiek laiko eksportas laukia prisijungimo prie Global Relay SMTP serverio, o esant mažiau nei 30 sekundžių lėtas ryšys lemia nepavykusį pristatymą."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Padidinkite MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout iki bent 30 sekundžių. Numatytoji reikšmė yra 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout mažesnis nei 30 sekundžių"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Tome, kuriame yra FileSettings.Directory, laisva {{.available_gib}} GiB ({{.percent}} %) iš {{.total_gib}} GiB. Tomui prisipildžius, failų įkėlimas ir kitos failų operacijos gali nepavykti."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Nedelsdami padidinkite tomą arba pašalinkite nesusijusius duomenis iš jo failų sistemos; rankiniu būdu netrinkite Mattermost valdomų failų iš FileSettings.Directory. Palikite laisvos bent 10 % arba 10 GiB vietos ir niekada ne mažiau nei 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Failų saugyklos diskas beveik pilnas"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Tome, kuriame yra FileSettings.Directory, laisva {{.available_gib}} GiB ({{.percent}} %) iš {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Padidinkite tomą arba pašalinkite nesusijusius duomenis iš jo failų sistemos; rankiniu būdu netrinkite Mattermost valdomų failų iš FileSettings.Directory. Palikite laisvos bent 10 % arba 10 GiB vietos ir niekada ne mažiau nei 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Failų saugyklos diske mažai vietos"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName yra local, ClusterSettings.Enable įjungtas, o FileSettings.Directory yra {{.directory}}. Klasteryje šis katalogas turi būti bendrinama prijungta failų sistema (NFS, EFS, GlusterFS, CephFS), vienodai prijungta kiekviename mazge, kitaip į vieną mazgą įkelti failai nematomi kituose. Iš konfigūracijos neįmanoma nustatyti, ar katalogas bendrinamas, o mazgas gali sėkmingai išlaikyti failų saugyklos ryšio patikrą, nors rašo į savo vietinį diską."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Kiekviename programos mazge paleiskite findmnt su FileSettings.Directory keliu. Santykinis kelias skaičiuojamas nuo Mattermost darbinio katalogo, paprastai /opt/mattermost. Visuose mazguose turi būti rodomas tas pats nuotolinis šaltinis, o Mattermost naudotojas turi galėti ten skaityti ir rašyti. Jei katalogas nėra bendrinama prijungta failų sistema, perkelkite jį į tokią arba pakeiskite FileSettings.DriverName į amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Vietinė failų saugykla aukšto prieinamumo klasteryje: patikrinkite, ar katalogas bendrinamas"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket tuščias, todėl failų įkėlimas nepavyksta."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Nustatykite FileSettings.AmazonS3Bucket, taip pat regioną ir galinį tašką."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Pasirinkta Amazon S3 failų saugykla, bet kibiras nenurodytas"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL yra false, todėl failai tarp serverio ir S3 galinio taško perduodami nešifruoti."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Nustatykite FileSettings.AmazonS3SSL į true, nebent galinis taškas palaiko tik paprastą HTTP."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3 SSL išjungtas"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Serveriui nepavyko prisijungti prie savo failų saugyklos: {{.error}}. Failų įkėlimas ir atsisiuntimas gali nepavykti."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Ryšio su failų saugykla patikra nepavyko šiuose mazguose: {{.nodes}}, nors kiti mazgai ją pasiekia, todėl failų įkėlimas ir atsisiuntimas per tuos mazgus gali nepavykti. Patikrinkite tų mazgų tinklo, užkardos, tarpinio serverio ir DNS nustatymus. Vietinės saugyklos atveju taip pat patikrinkite, ar juose prijungtas bendrinamas katalogas. Klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Patikrinkite failų saugyklos nustatymus, tada skiltyje Sistemos konsolė > Aplinka > Failų saugykla naudokite „Testuoti ryšį“. Vietinės saugyklos atveju patikrinkite, ar FileSettings.Directory egzistuoja ir ar Mattermost naudotojas gali į jį rašyti. Amazon S3 atveju patikrinkite kibirą, galinį tašką ir prisijungimo duomenis."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Failų saugyklos ryšio patikra nepavyko"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Paskutinis užbaigtas {{.job_type}} vykdymas ({{.job_id}}) baigėsi klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Paskutinis užbaigtas {{.job_type}} vykdymas ({{.job_id}}) baigėsi klaida, tačiau klaidos pranešimas neįrašytas."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Peržiūrėkite užduoties klaidą ir serverio žurnalus ties nepavykusio vykdymo pradžios laiku, kad nustatytumėte priežastį. Dažnos priežastys, kurias verta atmesti: duomenų bazės apkrova, jungčių telkinio ribos, tinklo ar perjungimo esant gedimui įvykiai ir sakinių skirtojo laiko viršijimai. Pašalinkite priežastį, tada vėl paleiskite užduotį ir įsitikinkite, kad ji baigiama. Kol vykdymas nebus sėkmingas, užduoties darbas (katalogo sinchronizavimas, atitikties eksportas, duomenų saugojimas arba paieškos indeksavimas) neatliekamas."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Paskutinis užduoties vykdymas nepavyko"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "{{.job_type}} užduotis {{.job_id}} vykdoma, tačiau jau {{.hours}} val. neužfiksavo jokios veiklos. Paprastai tai reiškia, kad darbinis procesas nutrūko vykdymo viduryje arba planuoklis užstrigo."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "{{.job_type}} užduotis {{.job_id}} vykdoma, tačiau jau {{.days}} d. neužfiksavo jokios veiklos. Paprastai tai reiškia, kad darbinis procesas nutrūko vykdymo viduryje arba planuoklis užstrigo."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Atšaukite užstrigusią užduotį jos Sistemos konsolės puslapyje, komanda mmctl job cancel arba per API. Patikrinkite serverio žurnalus ties paskutinės užduoties veiklos laiku, tada vėl ją paleiskite."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Užduotis įstrigo vykdymo būsenoje ilgiau nei 24 valandas"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "{{.job_type}} užduotis {{.job_id}} nepranešė apie jokią pažangą ir ilgiau nei valandą neužfiksavo jokios veiklos. Paprastai tai reiškia, kad darbinis procesas nutrūko, pateko į aklavietę arba prarado ryšį su duomenų baze prieš pirmąjį paketą."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Atšaukite užduotį jos Sistemos konsolės puslapyje, komanda mmctl job cancel arba per API. Serverio žurnaluose nuo užduoties pradžios laiko ieškokite panikų ar ryšio klaidų, tada vėl paleiskite užduotį. Jei tai kartojasi, kol užduotis užstrigusi, metrikų serveryje iš /debug/pprof/goroutine užfiksuokite goroutine profilį."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Užduotis vykdoma ilgiau nei valandą be pažangos ir veiklos"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute yra {{.attribute}}. Mattermost kiekvieną paskyrą susieja su jos katalogo įrašu pagal šį atributą, todėl pasikeitus naudotojo el. pašto adresui (dėl santuokos, prekės ženklo keitimo, perkėlimo į kitą skyrių) ryšys nutrūksta ir naudotojas nebegali pasiekti savo esamos paskyros."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Pakeiskite IdAttribute į stabilų atributą, pvz., objectGUID (AD) arba entryUUID (OpenLDAP), tada perkelkite esamas paskyras komanda mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute yra el. pašto atributas"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Prievadui 636 įprastai naudojamas numanomasis TLS (LDAPS), tačiau ConnectionSecurity yra None arba STARTTLS. Toks derinys paprastai reiškia konfigūracijos klaidą, tačiau gali būti tinkamas, jei naudojamas TLS ryšį užbaigiantis tarpinis serveris. Patikrinkite, ar LDAP prisijungimas ir sinchronizavimas veikia sėkmingai."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Jei LDAP prisijungimas arba sinchronizavimas nepavyksta, prievadui 636 nustatykite ConnectionSecurity į TLS. Jei jie veikia, nieko keisti nereikia."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP prievadas 636 sukonfigūruotas be ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Prievadas 389 įprastai naudojamas nešifruotam ryšiui arba STARTTLS, o numanomasis TLS (LDAPS) įprastai naudoja 636. Toks derinys paprastai reiškia konfigūracijos klaidą, tačiau gali būti tinkamas, jei naudojamas TLS ryšį užbaigiantis tarpinis serveris arba serveris sąmoningai perkonfigūruotas. Patikrinkite, ar LDAP prisijungimas ir sinchronizavimas veikia sėkmingai."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Jei LDAP prisijungimas arba sinchronizavimas nepavyksta, TLS ryšiui naudokite prievadą 636 arba prievadui 389 pakeiskite ConnectionSecurity į STARTTLS. Jei jie veikia, nieko keisti nereikia."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP prievadas 389 sukonfigūruotas su ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "LDAP patikra (ryšio užmezgimas, susiejimas (bind) ir naudotojo paieška) nepavyko, todėl LDAP prisijungimas ir sinchronizavimas gali neveikti."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "LDAP patikra (ryšio užmezgimas, susiejimas (bind) ir naudotojo paieška) nepavyko šiuose mazguose: {{.nodes}}, nors kiti mazgai LDAP serverį pasiekia, todėl tuose mazguose LDAP prisijungimas gali nepavykti. Patikrinkite tų mazgų tinklo, užkardos, tarpinio serverio ir DNS nustatymus."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Peržiūrėkite išsamią klaidos informaciją, tada patikrinkite LdapServer, LdapPort, ConnectionSecurity ir susiejimo (bind) prisijungimo duomenis bei ar Mattermost serveriai gali pasiekti LDAP serverį. Norėdami patikrinti dar kartą, AD/LDAP puslapyje naudokite „Testuoti ryšį“."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP ryšio patikra nepavyko"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout yra {{.timeout}} s. Dėl per trumpo skirtojo laiko lėtuose kataloguose atsiranda nepagrįstų LDAP prisijungimo ir sinchronizavimo klaidų."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Padidinkite LdapSettings.QueryTimeout iki 60 sekundžių (numatytoji reikšmė)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout mažesnis nei 10 sekundžių"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "Rankiniu būdu valdomų aktyvių naudotojų paskyrų: {{.users}}. Kai darbo srityje yra daugiau nei 100 naudotojų, Mattermost rekomenduoja vienkartinį prisijungimą (SSO): tokiu mastu rankinis paskyrų valdymas lemia pasenusias paskyras, vėluojantį naujų naudotojų pradinį supažindinimą ir nenuoseklų išeinančių naudotojų prieigos panaikinimą, o visa tai kelia saugumo ir licencijavimo riziką."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Prijunkite Mattermost prie savo tapatybės teikėjo: AD/LDAP, jei naudojate katalogą, kitu atveju – SAML arba OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Daugiau nei 100 naudotojų be vienkartinio prisijungimo"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost netikrina LDAP serverio TLS sertifikato, todėl ryšiai su katalogu pažeidžiami „žmogaus viduryje“ atakoms. Tai priimtina tik kūrimo ir testavimo aplinkose."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Įdiekite LDAP serverio CA grandinę Mattermost serveriuose ir nustatykite SkipCertificateVerification į false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification įjungtas"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes yra {{.interval_minutes}}, o pastarieji LDAP sinchronizavimo vykdymai vidutiniškai truko {{.avg_run_seconds}} s, t. y. {{.duty_pct}} % intervalo. Ilgi vykdymai esant trumpam intervalui nuolat palaiko padidintą duomenų bazės apkrovą ir gali padidinti replikų vėlavimą."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Nerasta nė vieno LDAP sinchronizavimo vykdymo su išmatuojama trukme."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Susiaurinkite LdapSettings.UserFilter ir BaseDN, kad apribotumėte katalogo peržiūros apimtį, arba pailginkite SyncIntervalMinutes. Siekite, kad sinchronizavimo vykdymai truktų mažiau nei 25 % intervalo."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP sinchronizavimas trunka didelę savo intervalo dalį"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP sinchronizavimas kataloge ieško pradėdamas nuo BaseDN, todėl jam esant tuščiam sinchronizavimas negali rasti naudotojų, kuriuos turėtų atnaujinti."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Nustatykite LdapSettings.BaseDN į katalogo šaknį, kurią norite sinchronizuoti."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP sinchronizavimas įjungtas, bet BaseDN tuščias"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Licencija baigė galioti {{.expires_at}}. Serveris pašalina nebegaliojančią licenciją praėjus 10 dienų po jos galiojimo pabaigos, ir Enterprise funkcijos nustoja veikti."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Bandomoji licencija baigė galioti {{.expires_at}}. Serveris pašalina nebegaliojančią licenciją praėjus 10 dienų po jos galiojimo pabaigos, ir Enterprise funkcijos nustoja veikti."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Gaukite naują licenciją ir įkelkite ją skiltyje Sistemos konsolė > Apie > Laida ir licencija."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Licencija nebegalioja"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Licencija baigs galioti {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Bandomoji licencija baigs galioti {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Gaukite naują licenciją jau dabar, kad ją būtų galima įkelti skiltyje Sistemos konsolė > Apie > Laida ir licencija, kol dar galioja dabartinė."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Licencija baigs galioti per 30 dienų"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel yra {{.level}}. Derinimo lygio registravimas į failą greitai didina žurnalų failus, o papildomoje informacijoje gali būti užklausų turinio. Tai tinka trikčių šalinimo metu, bet nėra ideali nuolatinė gamybinės aplinkos nuostata."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Jei šiuo metu nešalinate trikčių, nustatykite LogSettings.FileLevel į INFO, kad sumažintumėte žurnalų apimtį."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Registravimas į failą derinimo (debug) arba sekimo (trace) lygiu"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile yra false, todėl serveris nerašo žurnalo failo. Tada palaikymo paketuose nėra serverio žurnalų, net jei išorinis rinktuvas fiksuoja stdout ar journald, o trikčių šalinimas su Mattermost Support užtrunka ilgiau."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Nustatykite LogSettings.EnableFile į true. Tai veikia kartu su registravimu į konsolę, todėl esamas žurnalų rinktuvas toliau veikia."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Registravimas į failą išjungtas"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging yra true, todėl nepavykusios gaunamųjų žiniatinklio kablių užklausos registruojamos kartu su jų turiniu, kuriame gali būti pranešimų teksto."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Nustatykite LogSettings.EnableWebhookDebugging į false, nebent šalinate žiniatinklio kablio triktis."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Registruojamas žiniatinklio kablių užklausų turinys"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel yra {{.limit}}, todėl @channel, @all ir @here vis dar veikia kanaluose, kuriuose yra tūkstančiai narių. Vienas viso kanalo paminėjimas tokiame kanale vienu metu sukelia tūkstančius pranešimų, todėl staigiai išauga delsa."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Sumažinkite TeamSettings.MaxNotificationsPerChannel iki 5000 ar mažiau (numatytoji reikšmė – 1000). Kai kanale tampa tiek narių, @channel, @all ir @here išjungiami, todėl pirmiausia pasitarkite su komandomis, kurios juos naudoja dideliuose kanaluose."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Viso kanalo paminėjimai leidžiami labai dideliuose kanaluose"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost neregistruoja našumo metrikų, pvz., duomenų bazės jungčių, užklausų delsos ir serverio apkrovos. Be jų nėra istorijos, į kurią būtų galima atsigręžti, kai naudotojai praneša apie lėtą veikimą, ir nėra ką pateikti Mattermost Support."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Sistemos konsolėje įjunkite Veiklos stebėjimą (Performance Monitoring) ir patikrinkite, ar Metrics papildinys įjungtas skiltyje Papildiniai > Papildinių valdymas. Papildinys serveryje saugo 15 dienų metrikas, Prometheus nereikia. Jei naudojate Prometheus, nukreipkite jį į metrikų klausytuvą (numatytasis prievadas – 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Našumo stebėjimas išjungtas"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Konteinerio atminties darbinis rinkinys yra {{.working_set}} MB iš {{.limit}} MB ribos. Jei jis toliau didės, branduolys gali nutraukti serverio arba papildinio procesą."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Sumažinkite Mattermost ir jo papildinių naudojamą atmintį arba padidinkite konteinerio atminties ribą. Palikite pakankamą atsargą papildinių procesams, Go vykdymo aplinkai ir srauto šuoliams."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Konteinerio atmintis beveik išnaudota"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "Nuo paleidimo konteineris užfiksavo procesų nutraukimų dėl atminties trūkumo (OOM): {{.kills}}. Nutrauktas procesas galėjo būti papildinys ar kitas antrinis procesas; peržiūrėkite papildinių sąrašą ir konteinerio atminties ribą."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Peržiūrėkite papildinių procesus ir konteinerio žurnalus, kad nustatytumėte, kas buvo nutraukta, tada sumažinkite jo atminties naudojimą arba padidinkite konteinerio atminties ribą."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Konteinerio procesas nutrauktas dėl atminties trūkumo"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Konteineris buvo ribojamas per {{.throttled}} iš {{.periods}} CPU planavimo periodų. Ilgalaikis CPU ribojimas gali sulėtinti Mattermost net tada, kai pagrindinio kompiuterio CPU naudojimas atrodo mažas."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Padidinkite konteinerio CPU ribą (CPU limit) arba pašalinkite ribą, palikdami CPU užklausą (CPU request)."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Didelis konteinerio CPU ribojimas"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Serverio procese atidaryta {{.open}} iš {{.max}} failų deskriptorių. Pasiekus ribą, nauji ryšiai ir failų operacijos nepavyksta."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Padidinkite atidarytų failų ribą: nustatykite LimitNOFILE Mattermost systemd įrenginyje arba padidinkite konteinerio nofile ulimit, tada paleiskite serverį iš naujo."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Failų deskriptoriai beveik išnaudoti"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Go atminties riba yra {{.go_limit}} MB, tačiau konteinerio riba yra {{.container_limit}} MB. Šiukšlių surinkėjas gali nepradėti dirbti intensyviau, kol branduolys nenutrauks proceso."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Nustatykite GOMEMLIMIT maždaug į 80–90 % konteinerio atminties ribos, palikdami atsargą atminčiai už Go krūvos ribų ir papildinių procesams."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go atminties riba lygi konteinerio ribai arba ją viršija"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS yra {{.go_max_procs}}, t. y. daugiau nei konteinerio CPU riba ({{.cpu_limit}} CPU). Papildomos vykdyti paruoštos gijos gali padidinti CPU ribojimą."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Panaikinkite GOMAXPROCS nustatymą, kad Go vykdymo aplinka jį pritaikytų pagal konteinerio CPU ribą, tada paleiskite serverį iš naujo."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS viršija konteinerio CPU ribą"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Pagrindinio kompiuterio 15 minučių vidutinė apkrova yra {{.load}}, o CPU branduolių – {{.cores}}. Ilgalaikė dviejų ar daugiau užduočių vienam branduoliui apkrova gali rodyti CPU arba įvesties ir išvesties (I/O) perkrovą."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Patikrinkite mazgo CPU naudojimą, disko įvestį ir išvestį (I/O) bei veikiančius procesus, tada padidinkite pajėgumus arba sumažinkite darbo krūvį."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Didelė pagrindinio kompiuterio apkrova"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Pagrindiniame kompiuteryje laisva {{.available}} MB iš {{.total}} MB. Jei laisvos atminties toliau mažės, Mattermost ir kiti procesai gali būti nutraukti arba sulėtėti."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Raskite daugiausia atminties naudojančius procesus ir sumažinkite jų naudojimą arba pridėkite pagrindiniam kompiuteriui atminties. Prieš paleisdami paslaugas iš naujo, peržiūrėkite Mattermost ir papildinių atminties naudojimą."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Pagrindiniame kompiuteryje baigiasi atmintis"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Šis mazgas negrąžino savo diagnostikos duomenų būklės patikrai. Jis gali neveikti, būti perkrautas arba atjungtas nuo kitų mazgų. Kol jis neatsakys, kiti jo pastebėjimai išlaiko paskutinę žinomą būseną."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Patikrinkite, ar šiame mazge veikia Mattermost, peržiūrėkite jo žurnalus, CPU ir atminties naudojimą ir įsitikinkite, kad jis pasiekia kitus mazgus per paskalų protokolo prievadą (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Klasterio mazgas neatsako"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "OAuth/OIDC teikėjo ryšio patikra nepavyko visuose duomenis pateikusiuose Mattermost mazguose, todėl prisijungimas per šį teikėją greičiausiai neveikia."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "OAuth/OIDC teikėjo ryšio patikra nepavyko šiuose mazguose: {{.nodes}}, nors kiti duomenis pateikę mazgai teikėją pasiekia. Tuose mazguose prisijungimas per šį teikėją gali nepavykti."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Peržiūrėkite išsamią klaidos informaciją, teikėjo aptikimo (discovery) arba prieigos rakto galinį tašką bei išeinančio tinklo srauto, užkardos, tarpinio serverio ir DNS nustatymus. Tada patikrinkite, ar prisijungimas per teikėją veikia."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC teikėjo ryšio patikra nepavyko"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Atvirasis serveris ir registracija el. paštu įjungti, o el. pašto patvirtinimas išjungtas, todėl bet kas, galintis pasiekti šį serverį, gali susikurti paskyrą su išgalvotu el. pašto adresu ir prisijungti prie atvirų komandų. Jei atviroji registracija numatyta sąmoningai, nutildykite šį pastebėjimą."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Atvirasis serveris ir registracija el. paštu įjungti, o el. pašto patvirtinimas išjungtas. TeamSettings.RestrictCreationToDomains leidžia registruotis tik tam tikriems domenams, tačiau Mattermost tikrina tik tai, ar adresas baigiasi leidžiamu domenu, o ne tai, ar asmuo jį valdo. Bet kas, galintis pasiekti šį serverį, gali užsiregistruoti su leidžiamo domeno adresu ir apsimesti kolega. Jei atviroji registracija numatyta sąmoningai, nutildykite šį pastebėjimą."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Nustatykite EmailSettings.RequireEmailVerification į true. Pirmiausia įsitikinkite, kad SMTP veikia: esami naudotojai, niekada nepatvirtinę savo el. pašto adreso, turės jį patvirtinti kito prisijungimo metu. Jei nenorite atvirosios registracijos, nustatykite TeamSettings.EnableOpenServer į false; naudotojai vis tiek gali prisijungti per komandos pakvietimo nuorodas, todėl el. pašto patvirtinimas vis tiek rekomenduojamas. Norėdami leisti registruotis tik savo organizacijos nariams, nustatykite TeamSettings.RestrictCreationToDomains kartu su el. pašto patvirtinimu; be patvirtinimo šį apribojimą galima apeiti."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Bet kas gali užsiregistruoti su nepatvirtintu el. pašto adresu"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck yra false, todėl strigęs papildinys automatiškai nepaleidžiamas iš naujo."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Nustatykite PluginSettings.EnableHealthCheck į true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Papildinių būklės patikra išjungta"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Šie papildiniai įjungti, bet neveikia: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "Skiltyje Sistemos konsolė > Papildiniai > Papildinių valdymas patikrinkite kiekvieno išvardyto papildinio būseną ir pabandykite jį išjungti bei vėl įjungti. Serverio žurnale įrašoma, kodėl papildinio nepavyko paleisti arba kodėl jį sustabdė papildinių būklės patikra."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Įjungti papildiniai neveikia"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable yra false, todėl jokie papildiniai neveikia. Tai tinka kai kuriems griežtai apribotiems diegimams, tačiau dažnai būna netyčia."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Jei to nesitikėjote, nustatykite PluginSettings.Enable į true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Papildiniai išjungti"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents nustatytas į full, todėl žinutės tekstas ir siuntėjas įtraukiami į tiesioginio pranešimo turinį, kuris keliauja per tiesioginių pranešimų tarpinį serverį ir Apple bei Google tiesioginių pranešimų paslaugas."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Didžiausiam tiesioginių pranešimų privatumui nustatykite EmailSettings.PushNotificationContents į id_loaded. Tada siunčiamas tik žinutės ID, o mobilioji programėlė žinutės turinį gauna iš serverio. Todėl mobilieji įrenginiai, gavę pranešimą, turi galėti pasiekti serverį, tad serveriuose, pasiekiamuose tik per VPN arba vidinį tinklą, pranešimuose žinutės turinys nebus rodomas. Jei full pasirinktas sąmoningai, nutildykite šį pastebėjimą."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Tiesioginiuose pranešimuose yra visas žinutės tekstas"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Ryšio su tiesioginių pranešimų serveriu patikra nepavyko: {{.error}}. Mobiliųjų įrenginių naudotojai gali negauti tiesioginių pranešimų."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Ryšio su tiesioginių pranešimų serveriu patikra nepavyko šiuose mazguose: {{.nodes}}, nors kiti mazgai jį pasiekia. Tų mazgų siunčiami tiesioginiai pranešimai gali nepasiekti gavėjų. Patikrinkite tų mazgų tinklo, užkardos, tarpinio serverio ir DNS nustatymus. Klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Patikrinkite PushNotificationServer, TLS sertifikatus ir tiesioginių pranešimų tarpinio serverio būklę. Įsitikinkite, kad kiekvienas Mattermost programos mazgas per HTTPS pasiekia sukonfigūruotą pagrindinį kompiuterį, tada patikrinkite jo /version galinį tašką."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Tiesioginių pranešimų serverio ryšio patikra nepavyko"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com yra Mattermost bandomasis tiesioginių pranešimų tarpinis serveris. Jam netaikomas SLA, jo pralaidumas ribotas ir jis neskirtas gamybinei aplinkai. Jūsų licencija apima Mattermost Hosted Push Notification Service: nustatykite PushNotificationServer į https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable yra false, o registruotų naudotojų yra {{.users}}. Dažnumo ribojimas apsaugo serverį nuo užklausų antplūdžių ir piktnaudžiaujančių ar netinkamai veikiančių klientų; esant tiek naudotojų, taip pat žiniatinklio kabliams ir robotų integracijoms, vienas netinkamai sukonfigūruotas klientas gali perkrauti API. Mattermost dokumentacijoje nurodyta, kad integruotasis dažnumo ribotuvas skirtas mažesniems diegimams (iki kelių šimtų naudotojų), todėl didesniu mastu užklausų ribojimą dažnai geriau atlikti apkrovos balansavimo priemonėje arba API šliuze."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Įsitikinkite, kad taikomas šiam mastui tinkamas užklausų ribojimas: arba integruotasis Mattermost dažnumo ribojimas (Sistemos konsolė > Aplinka > Dažnumo ribojimas), arba ribojimas jūsų apkrovos balansavimo priemonėje ar šliuze."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Dideliame egzemplioriuje API dažnumo ribojimas išjungtas"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize yra {{.size}}, tačiau registruotų naudotojų yra {{.users}}. Dažnumo ribotuvas seka ne daugiau nei tiek klientų; kai saugykla pilna, jis pašalina seniausiai matytą klientą, kurio užklausų kvota tada skaičiuojama iš naujo, todėl maža saugykla susilpnina dažnumo ribojimą."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Padidinkite RateLimitSettings.MemoryStoreSize bent iki registruotų naudotojų skaičiaus."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Dažnumo ribojimo atminties saugykla mažesnė nei naudotojų skaičius"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds yra {{.value}}. Tiek laiko duomenų saugojimo užduotis daro pertrauką tarp šalinimo paketų, kad duomenų bazė spėtų aptarnauti tiesioginį srautą. Esant mažiau nei 100 ms, dideli šalinimai gali sulėtinti duomenų bazę visiems."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Konfigūracijoje padidinkite DataRetentionSettings.TimeBetweenBatchesMilliseconds bent iki 100 (numatytoji reikšmė)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "Duomenų saugojimo TimeBetweenBatchesMilliseconds mažesnis nei 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "SAML lygmeniu tvirtinimai (assertions) perduodami nešifruoti. Ryšį vis tiek apsaugo TLS, todėl tai nėra bazinio saugumo pažeidimas, tačiau jei jūsų IdP palaiko tvirtinimų šifravimą, jį įjungus pridedamas papildomas apsaugos sluoksnis."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Jei jūsų IdP palaiko tvirtinimų šifravimą, įjunkite SamlSettings.Encrypt ir sukonfigūruokite paslaugos teikėjo privatųjį raktą ir viešąjį sertifikatą."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "SAML tvirtinimų šifravimas išjungtas"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost SAML paskyras identifikuoja pagal el. pašto adresą, nes IdAttribute yra tuščias arba nurodo el. pašto atributą. Pasikeitus naudotojo el. pašto adresui IdP, ryšys su jo esama paskyra nutrūksta."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Sukonfigūruokite IdP siųsti stabilų identifikatorių (pvz., objectGUID arba nekintamą ID), tada nustatykite SamlSettings.IdAttribute į to atributo pavadinimą. Esamos paskyros pereina prie naujo identifikatoriaus savaime: kiekvienam naudotojui kitą kartą prisijungus, Mattermost randa paskyrą pagal el. pašto adresą ir išsaugo naują ID."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute tuščias arba yra el. pašto atributas"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute yra {{.attribute}}. Naudotojų vardai, uid ir naudotojų pagrindiniai vardai (UPN) dažnai pakartotinai priskiriami kitiems darbuotojams, o tada antrasis asmuo perima pirmojo asmens Mattermost paskyrą."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Rinkitės identifikatorių, kuris niekada nepriskiriamas pakartotinai, pvz., objectGUID (AD) arba nekintamą ID (Microsoft Entra ID), ir peržiūrėkite IdP identifikatorių pakartotinio naudojimo politiką."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute gali būti pakartotinai priskirtas IdP"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "SAML IdP sertifikato ir IdP URL patikra nepavyko, todėl SAML prisijungimas greičiausiai neveikia."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "SAML IdP sertifikato ir IdP URL patikra nepavyko šiuose mazguose: {{.nodes}}, nors kituose mazguose ji sėkminga, todėl tuose mazguose SAML prisijungimas gali nepavykti. Įsitikinkite, kad tuose mazguose yra tas pats galiojantis IdP sertifikatas kaip ir kituose mazguose."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Peržiūrėkite išsamią klaidos informaciją, tada SAML nustatymuose pataisykite IdP sertifikatą (IdpCertificateFile) arba IdP URL (IdpURL). Jei sertifikato galiojimas baigėsi, įkelkite dabartinį IdP pasirašymo sertifikatą."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "SAML konfigūracijos patikra nepavyko"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO naudoja pasenusį SHA-1 parašo algoritmą. Šiuo metu SSO veikia, tačiau kai kurie tapatybės teikėjai pradeda atmesti SHA-1, todėl tai suderinamumo ir saugumo patobulinimas, kurį verta suplanuoti, ypač prieš bet kokį IdP keitimą ar atnaujinimą."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Kai bus patogu, suderinę su savo IdP, nustatykite SamlSettings.SignatureAlgorithm į RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm yra SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost priima SAML atsakymus netikrindamas jūsų IdP parašo, todėl negali atskirti tikro autentifikavimo atsakymo nuo suklastoto."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Nustatykite SamlSettings.Verify į true ir įsitikinkite, kad AssertionConsumerServiceURL nustatytas. Įjunkite tai suderinę su savo IdP ir išbandykite prisijungimą, nes patikrai reikia, kad IdP sertifikatas būtų tinkamai sukonfigūruotas."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "SAML parašo tikrinimas išjungtas"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Darbo srities pranešimų skaičius: {{.posts}}, o paieška vykdoma duomenų bazėje. Elasticsearch rekomenduojamas, kai pranešimų yra daugiau nei 2 500 000, ir būtinas, kai jų daugiau nei 5 000 000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Suplanuokite Elasticsearch diegimą prieš kitą didelio augimo laikotarpį arba prieš pasiekiant 5 000 000 pranešimų."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Pranešimų skaičius artėja prie Elasticsearch ribos"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Darbo srities pranešimų skaičius: {{.posts}}, o paieška vykdoma duomenų bazėje. Tokiu mastu tikėkitės lėtos paieškos, skirtojo laiko viršijimų ir duomenų bazės CPU apkrovos šuolių."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Įdiekite Elasticsearch arba OpenSearch, atlikite visą pradinį indeksavimą, tada įjunkite EnableIndexing, EnableSearching ir EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Kai pranešimų daugiau nei 5 000 000, būtinas Elasticsearch"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Paieška duomenų bazėje išjungta, o Elasticsearch paieška taip pat išjungta. Paieška negrąžina rezultatų. Įjungus paiešką su Elasticsearch arba OpenSearch, paieška taip pat atkuriama."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Paieška duomenų bazėje išjungta, o licencija neapima Elasticsearch, todėl Elasticsearch nustatymai neturi jokio poveikio. Paieška negrąžina rezultatų."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Faile config.json nustatykite SqlSettings.DisableDatabaseSearch į false (arba MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Paieška išjungta"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "Į licencijos ribą įskaičiuojami naudotojai: {{.used}}; riba ({{.limit}}) jau pasiekta. Serveris nekuria naujų ir neaktyvina iš naujo esamų naudotojų, kol nebus atlaisvinta arba pridėta vietų."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Įsigykite papildomų vietų arba išaktyvinkite naudotojus, kuriems prieiga nebereikalinga, kad atlaisvintumėte vietų."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Pasiekta licencijuotų naudotojų riba"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "Licencijuotos vietos užimtos: {{.used}} iš {{.seats}} ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Jei tikitės daugiau naudotojų, suplanuokite papildomas vietas, kol licencija dar neužpildyta. Išaktyvinus naudotojus, kuriems prieiga nebereikalinga, vietos atlaisvinamos."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Licencijuotos vietos beveik užpildytos"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "Licencijuotos vietos užimtos: {{.used}} iš {{.seats}} ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Įsigykite papildomų vietų arba išaktyvinkite naudotojus, kuriems prieiga nebereikalinga. Išaktyvinti naudotojai vietos neužima."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Naudotojų daugiau nei licencijuotų vietų"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Seansai baigiasi pagal fiksuotą grafiką nepriklausomai nuo veiklos, todėl aktyvūs naudotojai atjungiami. Daugumai diegimų naudinga, kad aktyvūs naudotojai liktų prisijungę."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Įjunkite ServiceSettings.ExtendSessionLengthWithActivity, nebent tai draudžia jūsų saugumo politika."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity išjungtas"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Ryšio su SMTP serveriu patikra nepavyko: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Ryšio su SMTP serveriu patikra nepavyko šiuose mazguose: {{.nodes}}, nors kiti mazgai jį pasiekia. Patikrinkite tų mazgų tinklo, užkardos, tarpinio serverio ir DNS nustatymus. Klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "El. pašto pranešimai, kvietimai ir slaptažodžio nustatymo iš naujo laiškai gali būti nepristatyti. Sistemos konsolėje patikrinkite SMTP serverį, prievadą, ryšio saugumą ir prisijungimo duomenis, įsitikinkite, kad Mattermost serveris pasiekia SMTP pagrindinį kompiuterį, tada patikrinkite naudodami „Išbandyti ryšį“."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTP serverio ryšio patikra nepavyko"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Naujausia laida nežinoma: jos nepavyko gauti arba ji neįrašyta pakete."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Naujausia laida netikrinta: nustatymas „Tikrinti saugos ir laidų atnaujinimus“ išjungtas, todėl serveris jos negauna."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Šios versijos nėra į šią kompiliaciją įtrauktoje laidų lentelėje. Norėdami įvertinti naujesnio serverio palaikymo paketą, naudokite naujesnį mmctl."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Serverio versija nežinoma arba neatpažinta."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Naudojama {{.version}}. Naujausia yra {{.latest}}, dviem ar daugiau laidų naujesnė."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Suplanuokite atnaujinimą į naujausią laidą, kol nesibaigė šios laidų serijos palaikymas, arba pereikite prie Išplėstinio palaikymo laidos, jei norite retesnių atnaujinimų."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Atsiliekama keliomis laidomis nuo naujausios laidos"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Naudojama {{.version}}. Naujausia yra {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Suplanuokite atnaujinimą į naujausią laidą."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Yra naujesnė laida"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Naudojama Mattermost {{.version}}. Šios laidų serijos palaikymas baigėsi {{.eol_date}}. Šiai laidų serijai saugos pataisos neišleidžiamos."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Naudojama Mattermost {{.version}} – senesnė, nebepalaikoma laidų serija. Šiai laidų serijai saugos pataisos neišleidžiamos."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Naudojama Mattermost {{.version}} – senesnė, nebepalaikoma laidų serija. Šiai laidų serijai saugos pataisos neišleidžiamos. Naujausia palaikoma Išplėstinio palaikymo laida yra {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Naudojama Mattermost {{.version}}. Šios laidų serijos palaikymas baigėsi {{.eol_date}}. Šiai laidų serijai saugos pataisos neišleidžiamos. Atnaujinkite į naujausią laidą."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Naudojama Mattermost {{.version}}. Šios laidų serijos palaikymas baigėsi {{.eol_date}}. Šiai laidų serijai saugos pataisos neišleidžiamos. Naujausia palaikoma Išplėstinio palaikymo laida yra {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Suplanuokite laipsnišką atnaujinimą į palaikomą Išplėstinio palaikymo laidą arba naujausią laidą. Palaikomos versijos nurodytos adresu https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost versijos palaikymas baigėsi"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Naudojama {{.version}}, Išplėstinio palaikymo laida {{.esr}}. Suplanuokite atnaujinimą iki {{.eol_date}}, kad toliau gautumėte saugos pataisas."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Suplanuokite atnaujinimą į naujausią laidą arba į kitą Išplėstinio palaikymo laidą."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Išplėstinio palaikymo laidos palaikymas netrukus baigsis"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Kanalo prieigos veiksmai leidimų politikoje gali būti taikomi tik vaidmeniui „Sistemos naudotojas“, „Sistemos svečias“ arba „Sistemos administratorius“."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Kanalo prieigos taisyklėje leidimų politikoje negalima nurodyti atskiro vaidmens. Taikomas politikos vaidmuo."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Veiksmas „Tvarkyti kanalą“ leidžiamas tik leidimų ir kanalų politikose."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Veiksmas „Kanalo skaitymo prieiga“ leidžiamas tik leidimų ir kanalų politikose."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Veiksmas „Kanalo rašymo prieiga“ leidžiamas tik leidimų ir kanalų politikose."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Įvyko vidinė klaida."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis talpyklos priešdėlyje negali būti ':', '*', '?', '[', ']' arba '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert ir RedisTLSClientKey turi būti nustatyti kartu."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Papildomos aprėptys turi būti tarpais atskirti OAuth aprėpčių pavadinimai. Didžiausias bendras ilgis simboliais: {{.MaxLength}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Netinkamas lauko filtras. Lauko pavadinimas negali būti tuščias, \"level\" ar \"timestamp\", o didžiausias jo ilgis simboliais: {{.MaxLength}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Netinkamas lauko filtras. Didžiausias lauko reikšmės ilgis simboliais: {{.MaxLength}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Netinkamas lauko filtras. Kiekvieno lauko reikšmių skaičius turi būti nuo 1 iki {{.MaxValues}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Netinkamas lauko filtras. Didžiausias filtruojamų laukų skaičius: {{.MaxKeys}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Netinkamas paieškos filtras. Didžiausias ilgis simboliais: {{.MaxLength}}."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Nepavyko gauti gijos sekėjų."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Serveris nepalaiko papildinio raktų išvardijimo su parinktimis."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Nepavyko išvardyti papildinio raktų su parinktimis."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Netinkamas gijos ID."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Netinkamas naudotojo ID."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Pranešimas yra atsakymas, o ne gijos šakninis pranešimas."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Netinkamas failo kūrėjas."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Pradiniam supažindinimui pateiktas svetainės URL netinkamas. Jis turi būti http arba https URL be kelio, pvz., https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Nepavyko eksportuoti būklės ataskaitos."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Pranešimų atributams reikia Enterprise licencijos."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Šiuose kanaluose trūksta kanalo atributų reikšmių:{{.ChannelList}}\n\nŠiuose kanaluose esate kanalo administratorius. Atidarykite kanalą ir pasirinkite **Pridėti reikšmes** arba nustatykite jas skiltyje **Kanalo informacija**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) reikia nustatyti: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Papildinio ID {{.ID}} rezervuotas pagrindiniam serveriui, todėl jo negalima įdiegti ar įkelti."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Kai registruotų naudotojų yra {{.users}}, šis serveris veikia viename mazge be aukšto prieinamumo. Mattermost etaloninės architektūros rekomenduoja aukštą prieinamumą, kai naudotojų yra daugiau nei 200, todėl pasirūpinkite juo iš anksto, kad mazgo gedimas ar atnaujinimas nepadarytų darbo srities nepasiekiamos."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Paleiskite bent du programos mazgus už apkrovos balansavimo įrenginio su bendra duomenų baze ir bendra failų saugykla, tada kiekviename mazge įjunkite ClusterSettings.Enable su tuo pačiu ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Apsvarstykite galimybę sukonfigūruoti aukštą prieinamumą"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Kai registruotų naudotojų yra {{.users}}, šis serveris veikia viename mazge be aukšto prieinamumo. Bet koks mazgo gedimas, paleidimas iš naujo ar atnaujinimas padaro visą darbo sritį nepasiekiamą. Tokiu mastu Mattermost etaloninės architektūros reikalauja aukšto prieinamumo."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Paleiskite bent du programos mazgus už apkrovos balansavimo įrenginio su bendra duomenų baze ir bendra failų saugykla, tada kiekviename mazge įjunkite ClusterSettings.Enable su tuo pačiu ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Tokiu mastu aukštas prieinamumas neįjungtas"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper yra true, todėl naudotojams ir klientams rodoma išsami informacija apie klaidas. Šis nustatymas skirtas tik kūrimui."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Nustatykite ServiceSettings.EnableDeveloper į false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper įjungtas"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "El. paštas nesukonfigūruotas, todėl el. laiškai, pvz., slaptažodžio atkūrimo laiškai ir pranešimai, nebus pristatyti."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Numatytuoju SMTP adresu localhost:10025 mazguose {{.nodes}} neatsako joks pašto serveris, todėl tų mazgų siunčiami el. laiškai, pvz., slaptažodžio atkūrimo laiškai ir pranešimai, nebus pristatyti. Kiti mazgai tuo adresu pasiekia pašto serverį. Klaida: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Sistemos konsolėje sukonfigūruokite SMTP serverį. Jei šis serveris neturėtų siųsti el. laiškų, išjunkite el. pašto pranešimus, kvietimus el. paštu ir el. pašto patvirtinimą, tada nutildykite šį pastebėjimą. Palikite įjungtą prisijungimą el. paštu ar naudotojo vardu: be jų naudotojai, kurie neprisijungia per SSO, negalės prisijungti."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP serveris nesukonfigūruotas"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting yra true, todėl testavimo režimas atveria testavimo komandas ir galinius taškus, skirtus tik kūrimui."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Nustatykite ServiceSettings.EnableTesting į false, tada iš naujo paleiskite serverį. Kai kurie testavimo galiniai taškai pašalinami tik paleidus iš naujo."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting įjungtas"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections yra true, todėl serveris netikrina TLS sertifikatų siunčiamuosiuose HTTPS ryšiuose, pvz., siunčiamųjų žiniatinklio kablių, pasvirojo brūkšnio komandų, OAuth prieigos raktų mainų, nuorodų peržiūrų ir papildinių atsisiuntimų. Bet kas tinklo kelyje gali skaityti arba keisti šį srautą, įskaitant OAuth prieigos raktus."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Kiekviename Mattermost serveryje įtraukite vidinės CA sertifikatą į sistemos patikimų sertifikatų saugyklą, tada nustatykite ServiceSettings.EnableInsecureOutgoingConnections į false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Siunčiamųjų ryšių TLS sertifikatų patikra išjungta"
   }
 ]

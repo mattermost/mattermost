@@ -439,5 +439,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "看板",
+    "note": "Existing zh-TW renders the channel-as-board noun as 看板 (看板頻道, 看板屬性, 看板書籤). Keep the product name Boards in English; a few server strings write \"Boards 頻道\" for \"board channel\", which should be 看板頻道."
+  },
+  "post attribute": {
+    "target": "訊息屬性",
+    "note": "Combines post (訊息) and attribute (屬性). No precedent for the feature; existing server strings already use 訊息屬性 for internal message fields."
+  },
+  "holdings": {
+    "target": "持有值",
+    "note": "No precedent in the zh-TW catalogs. 持有值 means the values the user holds in the field; do not render as 持股 or 資產, which mean financial holdings."
+  },
+  "Manage Channel": {
+    "target": "管理頻道",
+    "note": "Policy action name, rendered as in existing 管理頻道成員 and 管理頻道設定. Use the same form for the Title Case and sentence case variants."
+  },
+  "Channel Read Access": {
+    "target": "頻道讀取權限",
+    "note": "Policy action name. The catalog renders read and write access as 讀取/寫入存取權限 in long sentences and write permission as 寫入權限; use the shorter 讀取權限 as the action name, parallel with 頻道寫入權限. Use one form for Title Case, sentence case and quoted server errors."
+  },
+  "Channel Write Access": {
+    "target": "頻道寫入權限",
+    "note": "Policy action name. Follows the catalog rendering of write permission as 寫入權限 (寫入存取權限 in long sentences); keep it parallel with 頻道讀取權限."
+  },
+  "Extended Support Release": {
+    "target": "延長支援版本",
+    "note": "No precedent in the zh-TW catalogs; release follows 版本 as in 版本資訊. The acronym ESR stays as is, e.g. 延長支援版本 (ESR)."
+  },
+  "release line": {
+    "target": "版本系列",
+    "note": "No precedent in the zh-TW catalogs; a major.minor series such as 10.5 is 10.5 版本系列."
   }
 }

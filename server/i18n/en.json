@@ -9719,7 +9719,7 @@
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
     "translation": "Reaction EmojiName property is invalid. It must be 1 to 64 ASCII letters and numbers, +, -, or _.",
-    "description": ""
+    "description": "Bulk-import validation error for an emoji reaction entry whose emoji name is empty, longer than 64 characters, or contains characters other than A–Z, a–z, 0–9, '+', '-' and '_'. 'Reaction' and 'EmojiName' are literal names from the import file format: keep them in English. Keep '+', '-' and '_' exactly as written. Shown to the administrator running the import."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",

@@ -503,5 +503,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "nástěnka",
+    "note": "Feminine; plural 'nástěnky', genitive plural 'nástěnek', e.g. 'kanál nástěnky', 'atributy nástěnek'. The webapp consistently says 'nástěnka'; some server errors leave 'board' in English ('Zobrazovaný název boardu', 'Kanály typu board') and one tooltip says 'tabule'. Do not propagate either. Distinct from the product name Boards."
+  },
+  "post attribute": {
+    "target": "atribut příspěvku",
+    "note": "Masculine; plural 'atributy příspěvků' (the Post attributes modal: 'Atributy příspěvků'). Built from the glossary's 'atribut' and 'příspěvek'; no precedent in the catalogs. Keep it distinct from 'atribut' on user profiles."
+  },
+  "holdings": {
+    "target": "vlastní hodnoty",
+    "note": "No precedent in the catalogs. Feminine plural (genitive 'vlastních hodnot'): the values a user holds in the field, e.g. 'zdroj vlastních hodnot'. Here 'vlastní' means 'one's own', not 'custom'; add 'uživatele' where the sentence would otherwise be ambiguous."
+  },
+  "Manage Channel": {
+    "target": "Spravovat kanál",
+    "note": "Follows the catalog's permission names, which are infinitive phrases ('Spravovat nastavení kanálu', 'Spravovat banner kanálu'). Use the same form in the System Console and Channel Settings; quote it rather than declining it inside a sentence."
+  },
+  "Channel Read Access": {
+    "target": "Přístup pro čtení kanálu",
+    "note": "Built from the catalog's 'přístup pro čtení' (System Roles strings). Use the same wording in the System Console, Channel Settings and server errors; quote it rather than declining it inside a sentence. For boards: 'Přístup pro čtení nástěnky'."
+  },
+  "Channel Write Access": {
+    "target": "Přístup pro zápis do kanálu",
+    "note": "Built from the catalog's 'přístup pro čtení a/nebo zápis' (System Roles strings), matching 'Přístup pro čtení kanálu'. Use the same wording in the System Console and Channel Settings; quote it rather than declining it inside a sentence. For boards: 'Přístup pro zápis do nástěnky'."
+  },
+  "Extended Support Release": {
+    "target": "vydání s rozšířenou podporou",
+    "note": "No precedent in the catalogs; 'release' follows 'poznámky k vydání'. The head noun 'vydání' is neuter and the same in most cases. Capitalize the first letter only where it starts a sentence or label. Keep the abbreviation ESR as is."
+  },
+  "release line": {
+    "target": "řada vydání",
+    "note": "No precedent in the catalogs; 'release' follows 'poznámky k vydání'. Feminine ('řady vydání', 'v řadě vydání 10.5')."
   }
 }

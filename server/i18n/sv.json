@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 140+"
+    "translation": "Version 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 144+"
+    "translation": "Version 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 144+"
+    "translation": "Version 156+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -517,7 +517,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Ogiltigt max antal användare per grupp i gruppinställningarna. Måste vara ett positivt tal."
+    "translation": "Ogiltigt maximalt antal användare per team i teaminställningarna. Måste vara 0 (obegränsat) eller ett positivt tal."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -529,7 +529,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Ogiltigt max antal kanaler per grupp i gruppinställningarna. Måste vara ett positivt tal."
+    "translation": "Ogiltigt maximalt antal kanaler per team i teaminställningarna. Måste vara 0 (obegränsat) eller ett positivt tal."
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
@@ -1072,15 +1072,7 @@
     "translation": "Kunde inte spara den inkommande webhooken."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Kunde inte radera webhooken."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Kunde inte radera webhooken."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Kunde inte radera webhooken."
   },
   {
@@ -1816,10 +1808,6 @@
     "translation": "Misslyckades att uppdatera användaren."
   },
   {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Kan inte radera användare."
-  },
-  {
     "id": "app.user.permanent_delete.app_error",
     "translation": "Kunde inte radera det befintliga kontot."
   },
@@ -2404,10 +2392,6 @@
     "translation": "Kunde inte ta bort access-token."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Kunde inte ta bort auktorisationskoden."
-  },
-  {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "Ett fel uppstod när OAuth2 App skulle hittas."
   },
@@ -2788,10 +2772,6 @@
     "translation": "Sökningen misslyckades"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Kunde inte tolka sökresultatets matchningar"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}}-sökning är avaktiverat på denna server"
   },
@@ -3156,10 +3136,6 @@
     "translation": "Saknar en obligatorisk egenskap för reaktionen: EmojiName."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reaktionens EmojiName-värde är för lång."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
     "translation": "Reaktionens CreateAt-värde får inte vara noll."
   },
@@ -3320,10 +3296,6 @@
     "translation": "Kunde inte spara gruppens tema-inställningar"
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Kunde inte importera teammedlemsskapet eftersom det inte tillåts fler medlemmar i teamet"
-  },
-  {
     "id": "app.import.import_user_teams.save_members.error",
     "translation": "Kunde inte importera teammedlemsskap"
   },
@@ -3470,10 +3442,6 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "gruppmedlem finns redan"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Kunde inte ta bort gruppmedlem med UserID \"{{.UserId}}\"."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
@@ -3660,10 +3628,6 @@
     "translation": "Kunde inte hitta det nålade meddelandet."
   },
   {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Kunde inte radera kanalmedlemmen."
-  },
-  {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Kunde inte radera kanalen."
   },
@@ -3812,10 +3776,6 @@
     "translation": "Ett fel uppstod när inställningar uppdaterades."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Ett fel uppstod när inställningar raderades."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Ett fel uppstod när inställningar hämtades."
   },
@@ -3846,10 +3806,6 @@
   {
     "id": "app.post.save.app_error",
     "translation": "Kunde inte spara meddelandet."
-  },
-  {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Kunde inte utröna meddelanden att radera utifrån användare."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -4030,10 +3986,6 @@
   {
     "id": "app.audit.save.saving.app_error",
     "translation": "Ett fel uppstod när audits sparades."
-  },
-  {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Ett fel uppstod vid radering av audits."
   },
   {
     "id": "app.audit.get.limit.app_error",
@@ -4294,10 +4246,6 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP är inte tillgänglig på denna server."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS-login är inte tillåten."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -4614,10 +4562,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Kunde inte spara filinformationen."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Kunde inte radera användarens bilagor."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -5577,10 +5521,6 @@
   {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Fel eller saknad {{.Name}} parameter i request URL."
-  },
-  {
-    "id": "api.context.invalid_token.error",
-    "translation": "Ogiltig session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -7387,10 +7327,6 @@
     "translation": "Det gick inte att hämta säkra anslutningar: {{.Error}}"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Kunde inte skapa inbjudan: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.desc",
     "translation": "Bjud in till en säker anslutning för kommunikation mellan Mattermostinstanser."
   },
@@ -8102,24 +8038,8 @@
     "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Det gick inte att få fram lagringsvolym."
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Det går inte att få fram antalet team"
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "Kunde inte ta fram team-användning"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Kunde inte återställa team eftersom gränsen för antal team har uppnåtts"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Kunde inte skapa nytt team eftersom gränsen för antal team har uppnåtts"
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -8212,14 +8132,6 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "gruppnamnet finns redan som ett reserverat namn"
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Fel vid hämtning av den senast tillgängliga filen"
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Ditt abonnemang begränsar möjligheten att hämta filen."
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
@@ -8356,10 +8268,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Ogiltiga attribut."
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portalen är inte tillgänglig för egen-hostad registrering."
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
@@ -8592,10 +8500,6 @@
   {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "Det gick inte att arkivera importerad kanal."
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Det gick inte att radera reaktioner för användaren."
   },
   {
     "id": "humanize.list_join",
@@ -9788,10 +9692,6 @@
     "translation": "Privat kanal"
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Det går inte att ta bort användarens schemalagda inlägg."
-  },
-  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Okänd kanal"
   },
@@ -10010,10 +9910,6 @@
   {
     "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
     "translation": "Ogiltigt värde för ldap-attributet max antal inloggningsförsök. Måste vara ett positivt värde."
-  },
-  {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Kunde inte radera användarens utkast."
   },
   {
     "id": "model.config.is_valid.elastic_search.empty_index_prefix.app_error",
@@ -10294,10 +10190,6 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "Filnamnet får inte vara en filkatalog."
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Tjänsten för Delade kanaler är aktiverad med inte igång."
   },
   {
     "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
@@ -14591,7 +14483,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Systemhälsa kräver en Enterprise-licens."
+    "translation": "Systemhälsa kräver en Professional-licens eller högre."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14639,7 +14531,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Loggkonfigurationen innehåller en sökväg till en logg- eller granskningsfil som ligger utanför loggningens rotkatalog. Mer information finns i serverloggarna."
+    "translation": "Loggkonfigurationen innehåller en sökväg till en logg- eller granskningsfil som ligger utanför loggningens rotkatalog eller i en katalog som servern hanterar. Mer information finns i serverloggarna."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14707,7 +14599,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Byt till https://push.mattermost.com (produktionstjänsten Hosted Push Notification Service, som ingår i Enterprise) eller till en egen push-proxy."
+    "translation": "Låt PushNotificationServer peka på en push-proxy för produktion: en egen Mattermost Push Proxy som betjänar dina egna byggen av mobilapparna."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14740,5 +14632,1999 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Meddelanden med bränn vid läsning kan inte skickas som återkommande schemalagda meddelanden."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Funktionen för kanalbehörighetsåtgärder är inte aktiverad."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Det uppladdade certifikatet för Identity Provider är inte ett giltigt PEM-kodat X.509-certifikat."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Den uppladdade privata nyckeln för Service Provider är inte en giltig PEM-kodad privat nyckel."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Det uppladdade publika certifikatet för Service Provider är inte ett giltigt PEM-kodat X.509-certifikat."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Den uppladdade filen matchar inte det sparade certifikatet eller den privata nyckeln för Service Provider. Inaktivera kryptering för att ersätta dem en i taget."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Du har för närvarande inte behörighet att hantera den här kanalen."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Du har för närvarande inte åtkomst till den här kanalen."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Du har för närvarande inte behörighet att skriva i den här kanalen."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Ett enkelt citattecken nära `{{.Near}}` stängs inte före ` --`. Stäng det, eller använd dubbla citattecken om värdet innehåller ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Oväntad text nära `{{.Near}}`. Omge ett värde som innehåller mellanslag med citattecken, och använd dubbla citattecken om värdet även innehåller en apostrof."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Ett citattecken nära `{{.Near}}` stängs aldrig."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Det gick inte att jämföra de sparade konfigurationerna."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Det gick inte att jämföra den sparade konfigurationen med den aktuella."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Ogiltig eller utgången session."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Jobb av den här typen kan inte avbrytas."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Exakt en fil med en publik nyckel för plugin måste laddas upp i fältet public_key."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Den publika nyckeln {{.Name}} för plugin är inte konfigurerad."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Det gick inte att tolka den uppladdade publika nyckeln för plugin."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Du har inte behörighet att ange ett eller flera av de begärda värdena för meddelandeattribut."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Meddelanden med bränn vid läsning kan inte ha meddelandeattribut."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Meddelandeattribut är inte aktiverade på den här servern."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Ett eller flera värden för meddelandeattribut kunde inte tillämpas."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Endast en administratör för fältets kanal, team eller system kan ange dess behörigheter när det skapas."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Endast en systemadministratör kan ange behörigheter när ett attributfält skapas."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Det här attributet har tagits bort."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Det går inte att slå upp efterlevnadsdata för ett v1-egenskapsfält via detta API."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Du har inte behörighet att visa efterlevnadsdata för det här egenskapsfältet."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Endast attribut som gäller för alla team kan lista eller notifiera kanaler som saknar ett värde."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Notifieringarna skickades inte eftersom kanaladministratörerna nyligen har notifierats om detta. Du kan skicka en ny notifiering om {{.Count}} minut.",
+      "other": "Notifieringarna skickades inte eftersom kanaladministratörerna nyligen har notifierats om detta. Du kan skicka en ny notifiering om {{.Count}} minuter."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Notifieringarna skickades inte eftersom kanaladministratörerna nyligen har notifierats om detta. Försök igen senare."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Du kan inte ändra ett egenskapsfälts behörigheter så att du inte längre kan redigera det."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Ett skickat restrictions-objekt måste ange alla fem behörighetsnivåer: läsa värde, skriva värde, läsa alternativ, skriva alternativ och skriva fält."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Det skickade behörighetsobjektet är ogiltigt."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Den här egenskapsgruppen har inte stöd för att ta emot ett behörighetsobjekt."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Behörighetsobjektet måste låta systemadministratörer redigera fältet, så dess nivå för att skriva fält kan inte vara ingen."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Det här attributet kan inte markeras som obligatoriskt ännu eftersom vissa aktiva kanaler saknar ett värde för det. Notifiera kanaladministratörerna och försök sedan igen."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Inbjudan har gått ut. Be fjärrservern om en ny inbjudan."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Fjärrservern returnerade ett ogiltigt svar."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Inbjudan innehåller en ogiltig serveradress: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Fjärrservern avvisade inbjudan."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Det gick inte att nå fjärrservern på {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "En uppladdning från en säker anslutning kan inte återuppta en delvis mottagen fil."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "För många resurser i en och samma åtkomstkontrollsutvärdering; gränsen är {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Kontroll av den senaste Mattermost-versionen är inaktiverad. Aktivera ”Sök efter säkerhets- och versionsuppdateringar” för att tillåta den."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Det gick inte att slå upp kanaladministratörer."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Det gick inte att slå upp kanaler som saknar ett värde för det här attributet."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Det gick inte att räkna kanaler som saknar ett värde för det här attributet."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Det gick inte att räkna alla kanaler som saknar ett värde för det här attributet."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Det gick inte att räkna lokala kanaler som saknar ett värde för det här attributet."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Det gick inte att lista kanaler som saknar ett värde för det här attributet."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Det gick inte att slå upp fjärrkanaler som saknar ett värde för det här attributet."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Det gick inte att räkna de kanaladministratörer och kanaler som berörs av det här attributet."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Det gick inte att slå upp vilka kanaladministratörer som ska notifieras om det här attributet."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _och {{.Count}} kanaler till_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Ange ett värde för **{{.AttributeName}}** i de här kanalerna som du hanterar. Systemadministratören behöver att alla kanaler har ett värde innan attributet kan göras obligatoriskt."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Du är kanaladministratör för en kanal som saknar ett obligatoriskt kanalattribut. Ange ett värde för **{{.AttributeName}}**.",
+      "other": "Du är kanaladministratör för kanaler som saknar ett obligatoriskt kanalattribut. Ange ett värde för **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Det gick inte att reservera notifieringsspärren för det här attributet."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Det gick inte att hämta de sparade konfigurationerna."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Det finns ingen sparad konfiguration med detta ID."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Konfigurationshistorik är bara tillgänglig när konfigurationen lagras i databasen."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Som det skrevs: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Tidsstämpel"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Det gick inte att starta en hälsokontroll."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "En hälsokontroll håller redan på att starta. Försök igen om en stund."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Fel vid import av meddelande. Det gick inte att spara prioriteten."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Fel vid import av användarens team. Teamet hittades inte."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Den här filen lägger till {{.Adding}} användare i teamet {{.Team}}, vilket ger det {{.Total}} medlemmar, men TeamSettings.MaxUsersPerTeam är {{.Limit}}. Höj gränsen eller sätt den till 0 (ingen gräns) innan du importerar."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Det gick inte att läsa importfilen för att kontrollera TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Egenskapen AcknowledgedAt för Acknowledgement måste vara angiven och får inte vara tidigare än meddelandets CreateAt."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Saknar en obligatorisk egenskap för Acknowledgement: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Bekräftelser av meddelanden kräver en Priority där RequestedAck är satt till true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "PersistentNotifications för ett meddelande kräver att Priority är brådskande (urgent)."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Saknar en obligatorisk egenskap för Priority: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Egenskapen EmojiName för Reaction är ogiltig. Den måste bestå av 1 till 64 ASCII-bokstäver och siffror, +, - eller _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Endast en systemadministratör kan ändra medlemskapsregler som använder avancerad logik. Redigera dem i systemkonsolen."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Den här medlemskapsregeln använder ett uttryck som medlemskapssynkroniseringen inte kan utvärdera. Skriv om regeln med endast jämförelser, &&, ||, in och de attributfunktioner som stöds."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Den här medlemskapsregeln använder {{.Function}}, som medlemskapssynkroniseringen inte kan utvärdera. Skriv om regeln med endast jämförelser, &&, ||, in och de attributfunktioner som stöds."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Det gick inte att avgöra om åtgärden har en behörighetspolicy"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Det gick inte att avgöra om resursens åtkomstpolicy styr åtgärden."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "En konfigurationsfil med namnet {{.Name}} finns redan."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Filen är inte en giltig publik OpenPGP-nyckel."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Ogiltigt namn på publik nyckel för plugin: {{.Name}}. Namn får bara innehålla bokstäver, siffror, '.', '_' och '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Det går inte att ta bort det här fältet eftersom en maskerad mall läser varje persons egna värden från det. Ändra eller ta bort mallens maskering först."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Ett länkat fälts option.read-nivå ({{.FieldTier}}) kan inte vara mer tillåtande än nivån ({{.TemplateTier}}) för dess mall ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Ett attribut kan inte länkas till ett OpenID Connect-claim medan attributsynkronisering från OpenID Connect är avstängd."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Det gick inte att söka i de globala attributen."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Det här fältet är källan till egna värden för sin maskerade mall, så dess nivå för att skriva värden kan inte vara '{{.ValueWrite}}'. De personer som mallen filtrerar skulle annars kunna redigera sina egna värden och utöka vad de kan se."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Ett attribut som synkroniseras från OpenID Connect kan inte också synkroniseras från AD/LDAP eller SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Det går inte att ändra fältets ägare, åtkomstläge, skyddsinställning eller synkroniseringsinställningar på det här sättet eftersom dess behörigheter inte kan uttryckas i den formen. Uppdatera dess behörigheter direkt i stället."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Det går inte att ändra fältets åtkomstläge eftersom det innehåller data som anroparen kanske inte får läsa."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Det går inte att uppdatera: det länkade fältet {{.DependentID}} har option.read-nivån {{.DependentTier}}, vilket skulle överskrida den nya nivån {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Det går inte att ändra fältets behörigheter och dess behörighetsnivåer, ägare, åtkomstläge, skyddsinställning eller synkroniseringsinställningar i samma uppdatering. Skicka ändringen i den ena eller den andra formen."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Det går inte att uppdatera: det länkade fältet {{.DependentID}} skulle tillhandahålla sina egna värden med den här maskeringen, men dess nivå för att skriva värden är '{{.ValueWrite}}'. Sänk först fältets nivå för att skriva värden till admin eller lägre."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Det går inte att ta bort länken för det här fältet eftersom en maskerad mall läser varje persons egna värden från det. Ändra eller ta bort mallens maskering först."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Kontot har avaktiverats och delvis raderats. Det är säkert att köra borttagningen igen, och den slutförs då."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Den här omgången raderade maximalt {{.Max}} meddelanden. Kontot har avaktiverats och delvis raderats. Kör borttagningen igen för att fortsätta."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Det gick inte att slutföra borttagningen av {{.Count}} användare: {{.Usernames}}. Kör kommandot igen för att fortsätta."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Det gick inte att skicka klusterbegäran"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML är inte korrekt konfigurerat. Kontakta din systemadministratör."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "De senaste körningarna står fortfarande i kö, körs eller avbröts, så äldre körningar kunde inte kontrolleras."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Autentisering"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Hög tillgänglighet"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Efterlevnad"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Databas"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Jobb"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licensiering"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Notifieringar"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Plattform"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Sökning"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Uppdateringar"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} på {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Insamlingstid"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Okänd"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licensierad till"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Senast utvärderad"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Genererad"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licens"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Inte utvärderad ännu"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Serverversion"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Site URL"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Utvärderingen verkar ha stannat."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Öppna den här inställningen i systemkonsolen"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Detaljer"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Läs dokumentationen"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Så åtgärdar du det"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Sammanfattning"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Mjutade"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Lösta"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Kunde inte utvärderas"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritisk"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Info"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Varning"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritisk",
+      "other": "{{.Count}} kritiska"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} info",
+      "other": "{{.Count}} info"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Inga öppna avvikelser."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Ingen hälsokontroll har körts ännu."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} kunde inte utvärderas",
+      "other": "{{.Count}} kunde inte utvärderas"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} varning",
+      "other": "{{.Count}} varningar"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Hälsorapport"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Inget mål för granskningsloggen är aktivt och den här arbetsytan har {{.users}} registrerade användare. Administrativa åtgärder, inloggningar och konfigurationsändringar lämnar inget separat granskningsspår. Detta är en lucka i efterlevnaden och i möjligheten till forensisk utredning, inte en stabilitetsrisk."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Om din organisation har krav på granskning (finansiella tjänster, sjukvård, försvar, reglerad offentlig sektor), aktivera granskningsloggning i System Console > Compliance > Audit Logging, eller lägg till ett mål för granskningsnivåerna i ExperimentalAuditSettings.AdvancedLoggingJSON, och konfigurera rotation. Annars kan detta ignoreras."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Granskningsloggning är inaktiverad"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress binder port {{.port}}, som är lägre än 1024. På Linux kan en Mattermost-server som inte körs som root binda den här porten endast genom filkapabiliteten CAP_NET_BIND_SERVICE på sin binärfil. En paketuppgradering ersätter binärfilen och rensar den kapabiliteten, så servern kan misslyckas med att starta efter nästa uppgradering med \"bind: permission denied\". Konfigurationen kan inte visa hur kapabiliteten beviljas, så den här varningen kvarstår även efter att du har beviljat den via systemd-enheten."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Lägg till AmbientCapabilities=CAP_NET_BIND_SERVICE i Mattermosts systemd-enhet så att kapabiliteten överlever uppgraderingar, eller kör setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost igen efter varje uppgradering. Alternativt kan du placera en omvänd proxy framför Mattermost och binda Mattermost till en hög port, till exempel 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Servern binder en privilegierad port direkt"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Ledaren annonserar {{.address}}. Andra noder kan inte nå den på den adressen, så gossip bildar ett kluster med en enda nod och split brain-situationer döljs."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Sätt ClusterSettings.AdvertiseAddress till nodens nåbara IP-adress eller DNS-namn, eller lämna den tom för att använda nätverksgränssnittets adress. Den här kontrollen läser ledarens konfiguration, så granska inställningen på varje nod."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress går inte att nå från andra noder"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Konfigurationen lagras i en fil på varje nod och kan ändras i systemkonsolen. En ändring sparas på en nod och skickas till de andra så långt det går; en nod som missar överföringen behåller sin egen fil, så nodernas konfigurationer kan glida isär."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Sätt ClusterSettings.ReadOnlyConfig till true och hantera konfigurationen via konfigurationsfilen eller miljövariabler på varje nod, eller flytta konfigurationen till databasen."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig är avstängd i ett filbaserat HA-kluster"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption är false, så trafiken mellan klusternoderna krypteras inte."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Aktivera gossip-kryptering och starta sedan om alla noder samtidigt under ett underhållsfönster. Noder med och utan kryptering kan inte kommunicera med varandra, så en rullande omstart delar klustret tills den sista noden har startats om."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Gossip i HA-klustret är inte krypterad"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Med {{.users}} registrerade användare i HA innebär den förvalda LRU-cachen i minnet att varje nod har en egen kopia och använder gossip för invalidering. Mattermost rekommenderar Redis från 100 000 användare och uppåt för att minska trafiken för cacheinvalidering i den här skalan."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Överväg att sätta CacheSettings.CacheType till redis med CacheSettings.RedisAddress konfigurerad. Redis kräver en licens med funktionen Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Överväg cachebackenden Redis i stor skala"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Den avsedda HA-topologin körs inte i praktiken. En enda nod ger ingen failover och döljer risken för split brain."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Kontrollera gossip-anslutningen (ClusterSettings.GossipPort), brandväggsregler och att alla applikationsnoder har samma ClusterName. Ett tomt ClusterName gör också att noden står ensam: servern loggar då att hög tillgänglighet har inaktiverats."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Hög tillgänglighet är aktiverad men klustret har bara en nod"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Noderna i klustret rapporterar dessa versioner: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Noderna är fördelade på flera versioner utan att någon version är vanligare än de andra, så det är oklart vilka noder som är inaktuella."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Den här noden kör {{.version}}, medan de flesta noder kör {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Om ingen uppgradering pågår, uppgradera alla noder till samma version och se till att noderna kan kommunicera via gossip."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Flera Mattermost-versioner upptäcktes i klustret"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory är tom, så efterlevnadsrapporter skrivs till en compliance-mapp under serverns arbetskatalog. De går förlorade när servern uppgraderas eller dess container byggs om."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Sätt Compliance Report Directory i System Console > Compliance > Compliance Monitoring (ComplianceSettings.Directory) till en beständig, skrivbar sökväg."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Efterlevnadsövervakning är aktiverad men Directory är tom"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Varje nod har en pool med upp till MaxOpenConns anslutningar till den primära databasen. Med {{.nodes}} noder och MaxOpenConns={{.max_open}} kan en databas-failover ge upp till {{.burst}} samtidiga anslutningsförsök till den nyligen befordrade primära databasen, och värden i DataSource ser inte ut att vara en anslutningspool. Om det överskrider databasens max_connections avvisar den anslutningar ('sorry, too many clients already') och återställningen tar längre tid."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Dimensionera varje lager för den här toppen. Den mest hållbara lösningen är att sänka SqlSettings.MaxOpenConns per nod och/eller placera PgBouncer (transaction mode) framför databasen för att ta emot återanslutningstoppar, i stället för att bara höja max_connections: varje anslutning kostar databasminne, så ett högt tak riskerar att minnet tar slut. Om max_connections höjs, behåll marginal över toppen för replikering, övervakning och administratörssessioner. Att sprida ut nodernas start under en failover håller också toppen under taket."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "En databas-failover kan orsaka en anslutningsstorm"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) är satt högre än MaxOpenConns ({{.max_open}}). Go-lagret database/sql begränsar tyst den vilande poolen till MaxOpenConns, så den extra vilande kapaciteten har ingen effekt. Inget är trasigt, men värdet är missvisande och tyder oftast på att poolen justerades utan vetskap om att antalet vilande anslutningar aldrig kan överstiga antalet öppna."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Sätt MaxIdleConns till ett värde som är lika med eller lägre än MaxOpenConns (en vanlig riktlinje är 25–50 % av MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns överstiger MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "Med {{.users}} användare och MaxOpenConns={{.max_open}} kan förfrågningar köas på applikationssidan vid belastningstoppar. Standardvärdet är för närvarande 100 (MaxIdleConns 50, förhållandet 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Om köade förfrågningar observeras på applikationssidan, höj SqlSettings.MaxOpenConns utifrån uppmätt behov (standardvärdena 100/50 är utgångspunkten). Det verkliga taket i databasen är MaxOpenConns x noder x datakällor, så bekräfta att databasens max_connections täcker den summan innan du höjer det."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns kan vara för lågt för den här användarbasen"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas är tom. Med {{.users}} användare går alla läsningar till den primära databasen. Läsrepliker rekommenderas för större installationer."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Överväg att etablera en läsreplik och lägga till den i SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Inga läsrepliker är konfigurerade"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "Med {{.posts}} meddelanden och databassökning får den primära databasen och replikerna ta hand om fulltextsökningar. Det orsakar hög CPU-belastning och överskridna tidsgränser vid sökning i den här skalan."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "Med {{.posts}} meddelanden och databassökning får den primära databasen och replikerna ta hand om fulltextsökningar. Det orsakar hög CPU-belastning och överskridna tidsgränser vid sökning i den här skalan. Din licens inkluderar Elasticsearch, som helt flyttar sökningen från databasen."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Konfigurera SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Ingen sökreplik och Elasticsearch-sökning är inaktiverad"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.in_use}} av {{.max_open}} anslutningar till den primära databasen används ({{.percent}} %), vilket är minst 90 % av MaxOpenConns. Nya frågor kommer att köas och HTTP-latensen ökar."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Höj SqlSettings.MaxOpenConns och databasens max_connections. Undersök även långvariga frågor."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Den primära databaspoolen är nära mättnad"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} är äldre än den lägsta version som stöds, {{.minimum}}. Mattermost startar fortfarande på den, men versioner som inte stöds kan leda till oväntat beteende. Uppgradera till PostgreSQL {{.minimum}} eller senare."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Planera en uppgradering. Nyare versioner har också bättre prestanda för parallella frågor och JSONB."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL-versionen är äldre än den lägsta som stöds"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL kör just nu vacuum på tabellen Posts. Låt den vacuum-körningen slutföras innan du bedömer om ytterligare vacuum behövs."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Tabellen Posts har uppskattningsvis {{.dead_tuples}} dead tuples ({{.dead_percent}} % av uppskattningsvis {{.estimated_rows}} rader), trots att vacuum senast kördes {{.last_vacuum}}. Vacuum körs men kan troligen inte ta bort dem eftersom något håller tillbaka rensningen, till exempel en långvarig session eller en session i idle-in-transaction, en inaktiv replication slot eller en övergiven prepared transaction. Uppsvällda tabeller och index kan försämra frågeprestandan och öka diskanvändningen."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Tabellen Posts har uppskattningsvis {{.dead_tuples}} dead tuples ({{.dead_percent}} % av uppskattningsvis {{.estimated_rows}} rader), och PostgreSQL har ingen uppgift om att vacuum har körts på den sedan statistiken senast återställdes. Autovacuum verkar inte hinna med den här tabellen. Uppsvällda tabeller och index kan försämra frågeprestandan och öka diskanvändningen."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Tabellen Posts har uppskattningsvis {{.dead_tuples}} dead tuples ({{.dead_percent}} % av uppskattningsvis {{.estimated_rows}} rader), och den senaste vacuum-körningen var för {{.age_days}} dagar sedan, {{.last_vacuum}}. Autovacuum verkar inte hinna med den här tabellen. Uppsvällda tabeller och index kan försämra frågeprestandan och öka diskanvändningen."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Om pg_stat_progress_vacuum visar att vacuum körs på Posts, låt den slutföras, eftersom en manuell VACUUM avbryter den. Om vacuum nyligen har körts på Posts, ta reda på vad som håller tillbaka rensningen och avsluta eller ta bort det: långvariga sessioner eller sessioner i idle-in-transaction i pg_stat_activity, inaktiva replication slots i pg_replication_slots och gamla prepared transactions i pg_prepared_xacts. Nästa vacuum kan då ta bort dead tuples. Om vacuum inte har körts nyligen på Posts, kontrollera att autovacuum är aktiverat globalt och för Posts, och sök i PostgreSQL-loggarna efter avbrutna autovacuum-jobb. Om autovacuum inte hinner med, sänk autovacuum_vacuum_scale_factor för Posts och höj autovacuum_vacuum_cost_limit och autovacuum_work_mem i den mån kapaciteten tillåter, och schemalägg sedan en riktad VACUUM (ANALYZE) på Posts när trafiken är låg. Undvik VACUUM FULL om du inte planerar för dess exklusiva lås och extra diskutrymme; om det finns tillgängligt är pg_repack ett alternativ med mindre låsning."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Tabellen Posts har många dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout är satt till {{.timeout}} sekunder. Långa tidsgränser låter skenande frågor hålla lås under hela tiden, vilket blockerar autovacuum, schemamigreringar och skrivningar som väntar på samma rad. Det ökar risken på hårt belastade databaser utan läsrepliker."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Sänk SqlSettings.QueryTimeout till 30. Undersök specifika långsamma frågor separat i stället för att höja det globala taket."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout är högt (standard är 30 s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas är angiven men ingen replik går att nå, så läsningar faller tillbaka på den primära databasen."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Kontrollera replikens DSN, nätverksåtkomst och autentisering. Sök i serverloggarna efter varningar om replikanslutningar."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Läsrepliker är konfigurerade men ingen går att nå"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Varje SQL-sats loggas. Detta är endast avsett för felsökning: om det lämnas på fylls disken och frågornas innehåll skrivs till loggfilerna."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Sätt SqlSettings.Trace till false om du inte aktivt felsöker."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace är aktiverad"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Servern körs på {{.os}}. Mattermost stöder Linux för produktion; andra operativsystem lämpar sig endast för utveckling."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Flytta servern till en Linux-distribution som stöds."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Servern körs inte på Linux"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Varje nytt meddelande indexeras synkront med en egen begäran. På hårt belastade servrar överbelastar detta sökklustret och fördröjer indexeringen."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Höj LiveIndexingBatchSize till mellan 10 och 20, och finjustera inom det intervallet utifrån den observerade meddelandetakten."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch-inställningen LiveIndexingBatchSize är 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize är {{.size}}. Stora _bulk-förfrågningar kan överskrida sökklustrets http.max_content_length och misslyckas med 413-fel, vilket orsakar nya försök och fördröjd indexering."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Sänk LiveIndexingBatchSize till mellan 10 och 20, eller höj http.max_content_length på sökklustret om mycket stora batcher är avsiktliga."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch-inställningen LiveIndexingBatchSize är högre än 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL pekar på {{.host}}, som varje applikationsnod tolkar som sig själv. Noder utan en lokal sökmotor kan inte indexera eller söka."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Sätt ConnectionURL till ett värdnamn eller ett DNS-namn för en tjänst som varje applikationsnod kan nå."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch-inställningen ConnectionURL pekar på localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Sökklustret rapporterar inte pluginet analysis-icu. Indexmallen för meddelanden använder ICU-tokeniseraren och ICU-normaliseraren, så indexeringen av meddelanden kan misslyckas utan det."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Listan över plugins samlades inte in eftersom servern inte kunde läsa sökklustrets version."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Installera pluginet analysis-icu på varje söknod (elasticsearch-plugin install analysis-icu eller opensearch-plugin install analysis-icu) och starta sedan om noderna. Det krävs för indexering av meddelanden, inte bara för flerspråkig sökning."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Sökmotorn saknar pluginet analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Anslutningstestet mot sökmotorn misslyckades: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Anslutningstestet mot sökmotorn misslyckades och databassökning är inaktiverad, så sökningar ger inga resultat: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Anslutningstestet mot sökmotorn misslyckades på {{.nodes}}, medan de andra noderna når den, så sökning och indexering på de noderna kan misslyckas. Kontrollera nätverks-, brandväggs-, proxy- och DNS-inställningarna på de noderna. Fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Kontrollera att ElasticsearchSettings.ConnectionURL går att nå, samt TLS och inloggningsuppgifter. Kontrollera sökklustrets hälsa (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Servern rapporterar ett fel i Elasticsearch-klustret"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification är true på en https-anslutning, så servern validerar inte sökmotorns certifikat. Det är godtagbart i ett betrott internt nätverk, men tar i andra fall bort skyddet mot mellanhandsattacker (man-in-the-middle)."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Om sökslutpunkten nås via en obetrodd väg, installera dess CA så att certifikatet valideras och sätt SkipTLSVerification till false. I ett betrott internt nätverk, bekräfta att inställningen är avsiktlig."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch-anslutningen hoppar över verifiering av TLS-certifikat"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} är nyare än de huvudversioner som stöds ({{.min}} till {{.max}}). Uppgradera Mattermost till en version som stöder den, eller flytta tillbaka sökklustret till en version som stöds."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} är äldre än de huvudversioner som stöds ({{.min}} till {{.max}}). Uppgradera sökklustret till en version som stöds."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Sökklustrets version samlades inte in eftersom servern inte har anslutit till sökklustret."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Sökmotorns backend eller version kunde inte identifieras."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Kör en huvudversion av sökklustret som den här Mattermost-versionen stöder."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Sökmotorns version stöds inte"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout är {{.value}} sekunder. Den begränsar hur länge exporten väntar på att ansluta till SMTP-servern för Global Relay, och under 30 sekunder gör en långsam anslutning att leveransen misslyckas."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Höj MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout till minst 30 sekunder. Standardvärdet är 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "SMTPServerTimeout för Global Relay är under 30 sekunder"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Volymen som innehåller FileSettings.Directory har {{.available_gib}} GiB ({{.percent}} %) ledigt av {{.total_gib}} GiB. Filuppladdningar och andra filåtgärder kan misslyckas när volymen blir full."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Utöka volymen omedelbart eller ta bort orelaterad data från dess filsystem; ta inte bort filer som Mattermost hanterar i FileSettings.Directory manuellt. Håll minst 10 % eller 10 GiB ledigt, och aldrig mindre än 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Disken för fillagring är nästan full"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Volymen som innehåller FileSettings.Directory har {{.available_gib}} GiB ({{.percent}} %) ledigt av {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Utöka volymen eller ta bort orelaterad data från dess filsystem; ta inte bort filer som Mattermost hanterar i FileSettings.Directory manuellt. Håll minst 10 % eller 10 GiB ledigt, och aldrig mindre än 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Lite diskutrymme kvar för fillagring"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName är local och ClusterSettings.Enable är på, och FileSettings.Directory är {{.directory}}. I ett kluster måste den här katalogen vara en delad montering (NFS, EFS, GlusterFS, CephFS) som är monterad på samma sätt på varje nod, annars syns inte filer som laddats upp till en nod på de andra. Konfigurationen kan inte visa om katalogen är delad, och en nod kan klara anslutningstestet för fillagring samtidigt som den skriver till sin egen lokala disk."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Kör findmnt med sökvägen i FileSettings.Directory på varje applikationsnod. En relativ sökväg utgår från Mattermosts arbetskatalog, vanligtvis /opt/mattermost. Varje nod måste visa samma fjärrkälla, och Mattermost-användaren måste kunna läsa och skriva där. Om katalogen inte är en delad montering, flytta den till en sådan eller byt FileSettings.DriverName till amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Lokal fillagring i ett HA-kluster: bekräfta den delade monteringen"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket är tom, så filuppladdningar misslyckas."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Ange FileSettings.AmazonS3Bucket, tillsammans med region och slutpunkt."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3 är vald för fillagring men bucketnamnet är tomt"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL är false, så filer skickas okrypterade mellan servern och S3-slutpunkten."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Sätt FileSettings.AmazonS3SSL till true, om inte slutpunkten bara stöder vanlig HTTP."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL för Amazon S3 är inaktiverat"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Servern kunde inte ansluta till sin fillagring: {{.error}}. Uppladdningar och nedladdningar av filer kan misslyckas."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Anslutningstestet mot fillagringen misslyckades på {{.nodes}}, medan de andra noderna når den, så uppladdningar och nedladdningar av filer via de noderna kan misslyckas. Kontrollera nätverks-, brandväggs-, proxy- och DNS-inställningarna på de noderna. För lokal lagring, kontrollera också att den delade katalogen är monterad på dem. Fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Kontrollera inställningarna för fillagring och använd sedan Testa anslutning i Systemkonsolen > Miljö > Lagringsplats för filer. För lokal lagring, kontrollera att FileSettings.Directory finns och att Mattermost-användaren kan skriva till den. För Amazon S3, kontrollera bucket, slutpunkt och inloggningsuppgifter."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Anslutningstestet mot fillagringen misslyckades"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Den senaste avslutade körningen av {{.job_type}} ({{.job_id}}) slutade med ett fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Den senaste avslutade körningen av {{.job_type}} ({{.job_id}}) slutade med ett fel utan att något felmeddelande registrerades."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Granska jobbets fel och serverloggarna från starttiden för den misslyckade körningen för att hitta orsaken. Vanliga orsaker att utesluta: databasbelastning, gränser i anslutningspoolen, nätverks- eller failover-händelser och tidsgränser för satser. Åtgärda orsaken, kör sedan jobbet igen och bekräfta att det slutförs. Tills en körning lyckas utförs inte jobbets arbete (katalogsynkronisering, efterlevnadsexport, gallring eller sökindexering)."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Den senaste jobbkörningen misslyckades"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "Jobbet {{.job_type}} {{.job_id}} pågår men har inte registrerat någon aktivitet på {{.hours}} timmar. Det betyder oftast att arbetsprocessen dog mitt i körningen eller att schemaläggaren har fastnat."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "Jobbet {{.job_type}} {{.job_id}} pågår men har inte registrerat någon aktivitet på {{.days}} dagar. Det betyder oftast att arbetsprocessen dog mitt i körningen eller att schemaläggaren har fastnat."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Avbryt det fastnade jobbet från dess sida i systemkonsolen, med mmctl job cancel eller via API:et. Kontrollera serverloggarna kring jobbets senaste aktivitet och kör det sedan igen."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Jobbet har fastnat som pågående i mer än 24 timmar"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "Jobbet {{.job_type}} {{.job_id}} har inte rapporterat några framsteg och har inte registrerat någon aktivitet på mer än en timme. Det betyder oftast att arbetsprocessen dog, hamnade i ett dödläge eller tappade databasanslutningen före den första batchen."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Avbryt jobbet från dess sida i systemkonsolen, med mmctl job cancel eller via API:et. Sök efter paniker eller anslutningsfel i serverloggarna från jobbets starttid och kör det sedan igen. Om det upprepas, ta en goroutine-profil från /debug/pprof/goroutine på metrikservern medan jobbet har fastnat."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Jobbet pågår utan framsteg eller aktivitet i mer än en timme"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute är {{.attribute}}. Mattermost kopplar varje konto till dess katalogpost via det här attributet, så när en användares e-postadress ändras (giftermål, nytt varumärke, byte av avdelning) bryts kopplingen och användaren kommer inte längre åt sitt befintliga konto."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Byt IdAttribute till ett stabilt attribut som objectGUID (AD) eller entryUUID (OpenLDAP) och migrera sedan befintliga konton med mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP-inställningen IdAttribute är ett e-postattribut"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Port 636 förväntar sig enligt konvention implicit TLS (LDAPS), men ConnectionSecurity är None eller STARTTLS. Den här kombinationen är oftast en felkonfiguration, men den kan vara giltig bakom en proxy som avslutar TLS. Kontrollera att LDAP-inloggning och synkronisering lyckas."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Om LDAP-inloggning eller synkronisering misslyckas, sätt ConnectionSecurity till TLS för port 636. Om de fungerar behövs ingen ändring."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP-port 636 är konfigurerad utan ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Port 389 används enligt konvention för okrypterad trafik eller STARTTLS, medan implicit TLS (LDAPS) enligt konvention använder 636. Den här kombinationen är oftast en felkonfiguration, men den kan vara giltig bakom en proxy som avslutar TLS eller med en server som avsiktligt har konfigurerats om. Kontrollera att LDAP-inloggning och synkronisering lyckas."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Om LDAP-inloggning eller synkronisering misslyckas, använd port 636 för TLS eller byt ConnectionSecurity till STARTTLS för port 389. Om de fungerar behövs ingen ändring."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP-port 389 är konfigurerad med ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "LDAP-testet (anslutning, bindning och en användarsökning) misslyckades, så LDAP-inloggning och synkronisering kan misslyckas."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "LDAP-testet (anslutning, bindning och en användarsökning) misslyckades på {{.nodes}}, medan de andra noderna når LDAP-servern, så LDAP-inloggning kan misslyckas på de noderna. Kontrollera nätverks-, brandväggs-, proxy- och DNS-inställningarna på de noderna."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Kontrollera felinformationen och bekräfta sedan LdapServer, LdapPort, ConnectionSecurity och inloggningsuppgifterna för bindning, samt att Mattermost-servrarna kan nå LDAP-servern. Använd Test Connection på sidan AD/LDAP för att kontrollera igen."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "Anslutningstestet mot LDAP misslyckades"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout är {{.timeout}} sekunder. Snäva tidsgränser orsakar falska fel vid LDAP-inloggning och synkronisering mot långsamma kataloger."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Höj LdapSettings.QueryTimeout till 60 sekunder (standardvärdet)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP-inställningen QueryTimeout är under 10 sekunder"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} aktiva användarkonton hanteras manuellt. Mattermost rekommenderar enkel inloggning (SSO) när en arbetsyta har fler än 100 användare: manuell kontohantering i den här skalan leder till inaktuella konton, fördröjd onboarding och konton som blir kvar när personer slutar, vilket var för sig är en säkerhets- och licensrisk."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Anslut Mattermost till din identitetsleverantör: AD/LDAP om du kör en katalogtjänst, annars SAML eller OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Fler än 100 användare utan enkel inloggning (SSO)"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost verifierar inte LDAP-serverns TLS-certifikat, så anslutningarna till katalogen är sårbara för mellanhandsattacker (man-in-the-middle). Det är godtagbart endast vid utveckling och testning."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Installera LDAP-serverns CA-kedja på Mattermost-servrarna och sätt SkipCertificateVerification till false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP-inställningen SkipCertificateVerification är aktiverad"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes är {{.interval_minutes}}, och de senaste LDAP-synkroniseringarna tog i genomsnitt {{.avg_run_seconds}} sekunder, {{.duty_pct}} % av intervallet. Långa körningar med ett kort intervall håller databasbelastningen förhöjd och kan öka replikeringsfördröjningen."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Ingen LDAP-synkronisering med mätbar varaktighet hittades."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Begränsa LdapSettings.UserFilter och BaseDN så att genomgången av katalogen blir mindre, eller förläng SyncIntervalMinutes. Sikta på synkroniseringar som tar mindre än 25 % av intervallet."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP-synkroniseringen pågår under en stor del av sitt intervall"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP-synkroniseringen söker i katalogen från BaseDN, så när den är tom kan synkroniseringen inte hitta de användare den ska uppdatera."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Sätt LdapSettings.BaseDN till den katalogrot du vill synkronisera."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP-synkronisering är aktiverad men BaseDN är tom"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Licensen gick ut {{.expires_at}}. Servern tar bort en utgången licens 10 dagar efter att den har gått ut, och Enterprise-funktionerna slutar fungera."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Licensen för prova-på-perioden gick ut {{.expires_at}}. Servern tar bort en utgången licens 10 dagar efter att den har gått ut, och Enterprise-funktionerna slutar fungera."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Skaffa en ny licens och ladda upp den i Systemkonsolen > Om > Version och licens."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Licensen har gått ut"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Licensen går ut {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Licensen för prova-på-perioden går ut {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Skaffa en ny licens nu, så att den kan laddas upp i Systemkonsolen > Om > Version och licens innan den nuvarande går ut."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Licensen går ut inom 30 dagar"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel är {{.level}}. Filloggning på debug-nivå gör att loggfilerna växer snabbt, och de extra detaljerna kan innehålla innehållet i förfrågningar. Det går bra vid felsökning, men är inte idealiskt som permanent inställning i produktion."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Om du inte aktivt felsöker, sätt LogSettings.FileLevel till INFO för att minska loggvolymen."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Filloggning på debug- eller trace-nivå"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile är false, så servern skriver ingen loggfil. Supportpaket innehåller då inga serverloggar, även om en extern insamlare fångar stdout eller journald, och felsökning tillsammans med Mattermost Support tar längre tid."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Sätt LogSettings.EnableFile till true. Det fungerar parallellt med konsolloggning, så en befintlig logginsamlare fortsätter att fungera."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Filloggning är inaktiverad"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging är true, så misslyckade förfrågningar till inkommande webhooks loggas med sitt innehåll, som kan innehålla meddelandetext."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Sätt LogSettings.EnableWebhookDebugging till false om du inte felsöker en webhook."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Innehållet i webhook-förfrågningar loggas"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel är {{.limit}}, så @channel, @all och @here fungerar fortfarande i kanaler med tusentals medlemmar. Ett enda omnämnande av hela kanalen där skickar ut tusentals notifieringar på en gång, vilket orsakar fördröjningstoppar."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Sänk TeamSettings.MaxNotificationsPerChannel till 5000 eller lägre (standardvärdet är 1000). @channel, @all och @here inaktiveras när en kanal når så många medlemmar, så stäm först av med de team som använder dem i stora kanaler."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Omnämnanden av hela kanalen tillåts i mycket stora kanaler"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost registrerar inga prestandamått, som databasanslutningar, svarstider för förfrågningar och serverbelastning. Utan dem finns ingen historik att gå tillbaka till när användare rapporterar att något går långsamt, och inget att dela med Mattermost Support."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Slå på Performance Monitoring i systemkonsolen och kontrollera att pluginet Metrics är aktiverat under Plugins > Pluginadministration. Pluginet sparar 15 dagars mätvärden på servern, utan att Prometheus behövs. Om du kör Prometheus, låt det peka på metriklyssnaren (port 8067 som standard)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Prestandaövervakning är avstängd"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Containerns arbetsminne (working set) är {{.working_set}} MB av gränsen på {{.limit}} MB. Om det fortsätter att växa kan kärnan avsluta servern eller en pluginprocess."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Minska minnesanvändningen för Mattermost och dess plugins, eller höj containerns minnesgräns. Lämna tillräckligt med marginal för pluginprocesser, Go-körmiljön och trafiktoppar."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Containerns minne är nästan slut"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "Containern har registrerat {{.kills}} processer som avslutats på grund av minnesbrist (OOM kill) sedan den startade. Den avslutade processen kan ha varit ett plugin eller en annan underprocess; granska listan över plugins och containerns minnesgräns."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Granska pluginprocesserna och containerloggarna för att ta reda på vad som avslutades, och minska sedan dess minnesanvändning eller höj containerns minnesgräns."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "En process i containern avslutades på grund av minnesbrist"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Containern har strypts under {{.throttled}} av {{.periods}} schemaläggningsperioder för CPU. Långvarig CPU-strypning kan göra Mattermost långsamt även när värdens CPU-användning ser låg ut."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Höj containerns CPU-gräns (CPU limit), eller ta bort gränsen och behåll en CPU-begäran (CPU request)."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Containerns CPU-strypning är hög"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Serverprocessen har {{.open}} av {{.max}} filbeskrivare öppna. När den når gränsen misslyckas nya anslutningar och filåtgärder."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Höj gränsen för öppna filer: ange LimitNOFILE i Mattermosts systemd-enhet, eller höj containerns ulimit för nofile, och starta sedan om servern."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Filbeskrivarna är nästan slut"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Go-minnesgränsen är {{.go_limit}} MB, men containerns gräns är {{.container_limit}} MB. Skräpsamlaren kanske inte hinner arbeta hårdare innan kärnan avslutar processen."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Sätt GOMEMLIMIT till ungefär 80–90 % av containerns minnesgräns, så att det finns marginal för minne utanför Go-heapen och för pluginprocesser."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go-minnesgränsen är lika med eller högre än containerns gräns"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS är {{.go_max_procs}}, vilket är högre än containerns CPU-gräns på {{.cpu_limit}} CPU:er. De extra körbara trådarna kan öka CPU-strypningen."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Ta bort inställningen GOMAXPROCS så att Go-körmiljön anpassar den efter containerns CPU-gräns, och starta sedan om servern."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS överstiger containerns CPU-gräns"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Värdens genomsnittliga belastning över 15 minuter är {{.load}} fördelat på {{.cores}} CPU-kärnor. En långvarig belastning på två eller fler uppgifter per kärna kan tyda på hög CPU- eller I/O-belastning."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Kontrollera CPU-användning, disk-I/O och körande processer på noden, och lägg sedan till kapacitet eller minska arbetsbelastningen."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Värdens belastning är hög"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Värden har {{.available}} MB tillgängligt av {{.total}} MB. Mattermost och andra processer kan avslutas eller bli långsamma om minnet fortsätter att minska."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Hitta och begränsa de processer som använder mest minne, eller lägg till minne i värden. Granska minnesanvändningen för Mattermost och plugins innan du startar om tjänster."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Värdens minne håller på att ta slut"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Den här noden returnerade inte sin diagnostik för hälsokontrollen. Den kan vara nere, överbelastad eller avskuren från de andra noderna. Tills den svarar behåller dess övriga avvikelser sitt senast kända tillstånd."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Kontrollera att Mattermost körs på den här noden, granska dess loggar och dess CPU- och minnesanvändning, och bekräfta att den kan nå de andra noderna på gossip-porten (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "En nod i klustret svarar inte"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Anslutningstestet mot OAuth/OIDC-leverantören misslyckades från alla rapporterande Mattermost-noder, så inloggning via den här leverantören är troligen inte tillgänglig."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Anslutningstestet mot OAuth/OIDC-leverantören misslyckades på {{.nodes}}, medan de andra rapporterande noderna kan nå leverantören. Inloggning via den här leverantören kan misslyckas på de noderna."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Kontrollera felinformationen, leverantörens discovery- eller token-slutpunkt samt inställningarna för utgående nätverk, brandvägg, proxy och DNS. Bekräfta sedan att inloggning via leverantören fungerar."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Anslutningstestet mot OAuth/OIDC-leverantören misslyckades"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Öppen server och registrering med e-post är aktiverade medan e-postverifiering är avstängd, så vem som helst som kan nå den här servern kan skapa ett konto med en påhittad e-postadress och gå med i öppna team. Om öppen registrering är avsiktlig, mjuta den här avvikelsen."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Öppen server och registrering med e-post är aktiverade medan e-postverifiering är avstängd. TeamSettings.RestrictCreationToDomains begränsar registreringen till vissa domäner, men Mattermost kontrollerar bara att adressen slutar med en tillåten domän, inte att personen äger den. Vem som helst som kan nå den här servern kan registrera sig under en tillåten domän och framstå som en kollega. Om öppen registrering är avsiktlig, mjuta den här avvikelsen."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Sätt EmailSettings.RequireEmailVerification till true. Bekräfta först att SMTP fungerar: befintliga användare som aldrig har verifierat sin e-postadress måste verifiera den nästa gång de loggar in. Om du inte vill ha öppen registrering, sätt TeamSettings.EnableOpenServer till false; användare kan fortfarande gå med via inbjudningslänkar till team, så e-postverifiering rekommenderas ändå. För att begränsa registreringen till din organisation, ange TeamSettings.RestrictCreationToDomains tillsammans med e-postverifiering; utan verifiering kan begränsningen kringgås."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Vem som helst kan registrera sig med en overifierad e-postadress"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck är false, så ett plugin som kraschar startas inte om automatiskt."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Sätt PluginSettings.EnableHealthCheck till true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Hälsokontrollen för plugins är inaktiverad"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Dessa plugins är aktiverade men körs inte: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "Kontrollera statusen för varje listat plugin i Systemkonsolen > Plugins > Pluginadministration, och prova att inaktivera och aktivera det igen. Serverloggen visar varför ett plugin inte kunde starta eller stoppades av hälsokontrollen för plugins."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Aktiverade plugins körs inte"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable är false, så inga plugins körs. Det passar vissa låsta installationer, men är ofta oavsiktligt."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Om detta är oväntat, sätt PluginSettings.Enable till true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Plugins är inaktiverade"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents är satt till full, så meddelandetexten och avsändaren ingår i push-innehållet, som skickas via push-proxyn och Apples och Googles push-tjänster."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "För maximal integritet vid push, sätt EmailSettings.PushNotificationContents till id_loaded. Då skickas bara ett meddelande-ID, och mobilappen hämtar meddelandets innehåll från servern. Mobila enheter måste då kunna nå servern när en notifiering kommer, så på servrar som bara går att nå via VPN eller ett internt nätverk kan notifieringar inte visa meddelandets innehåll. Om full är ett medvetet val, mjuta den här avvikelsen."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Push-notifieringar innehåller hela meddelandetexten"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Anslutningstestet mot servern för push-notifieringar misslyckades: {{.error}}. Mobilanvändare kanske inte får push-notifieringar."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Anslutningstestet mot servern för push-notifieringar misslyckades på {{.nodes}}, medan de andra noderna når den. Push-notifieringar som skickas av de noderna kan misslyckas. Kontrollera nätverks-, brandväggs-, proxy- och DNS-inställningarna på de noderna. Fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Kontrollera PushNotificationServer, TLS-certifikaten och push-proxyns hälsa. Bekräfta att varje Mattermost-applikationsnod kan nå den konfigurerade värden via HTTPS, och kontrollera sedan dess slutpunkt /version."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Anslutningstestet mot servern för push-notifieringar misslyckades"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com är Mattermosts push-proxy för test. Den har inget SLA, begränsad kapacitet och är inte avsedd för produktionsbruk. Din licens inkluderar Mattermost Hosted Push Notification Service: sätt PushNotificationServer till https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable är false med {{.users}} registrerade användare. Nyttjandebegränsning skyddar servern mot flöden av förfrågningar och mot klienter som missbrukar eller beter sig felaktigt; med så här många användare, plus webhooks och bot-integrationer, kan en enda felkonfigurerad klient mätta API:et. Enligt Mattermosts dokumentation är den inbyggda nyttjandebegränsningen avsedd för mindre installationer (upp till några hundra användare), så i större skala hanteras strypning av förfrågningar ofta bättre i en lastbalanserare eller API-gateway."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Se till att det finns en strypning av förfrågningar som passar den här skalan, antingen Mattermosts inbyggda nyttjandebegränsning (Systemkonsolen > Miljö > Begränsa) eller i din lastbalanserare eller gateway."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Nyttjandebegränsning för API:et är inaktiverad på en stor instans"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize är {{.size}}, men det finns {{.users}} registrerade användare. Nyttjandebegränsningen håller reda på högst så här många klienter; när lagret är fullt släpps den klient som senast sågs för längst tid sedan, vars kvot för förfrågningar då börjar om, så ett litet lager försvagar nyttjandebegränsningen."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Höj RateLimitSettings.MemoryStoreSize till minst antalet registrerade användare."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Minneslagret för nyttjandebegränsning är mindre än antalet användare"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds är {{.value}}. Gallringsjobbet pausar så här länge mellan raderingsbatcher för att ge databasen tid att betjäna den löpande trafiken. Under 100 ms kan stora raderingar göra databasen långsam för alla."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Höj DataRetentionSettings.TimeBetweenBatchesMilliseconds till minst 100 (standardvärdet) i konfigurationen."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds för gallring är under 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Assertions skickas okrypterade i SAML-lagret. TLS skyddar fortfarande anslutningen, så detta är inte ett grundläggande säkerhetsfel, men om din IdP stöder kryptering av assertions ger det ett extra skyddslager att aktivera den."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Om din IdP stöder kryptering av assertions, aktivera SamlSettings.Encrypt och konfigurera tjänsteleverantörens privata nyckel och publika certifikat."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Kryptering av SAML-assertions är inaktiverad"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost identifierar SAML-konton via e-postadress, antingen för att IdAttribute är tom eller för att den anger ett e-postattribut. När en användares e-postadress ändras hos IdP:n bryts kopplingen till användarens befintliga konto."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Konfigurera IdP:n så att den skickar en stabil identifierare (som objectGUID eller ett oföränderligt ID), och sätt sedan SamlSettings.IdAttribute till namnet på det attributet. Befintliga konton flyttas över till den nya identifieraren av sig själva: nästa gång varje användare loggar in hittar Mattermost kontot via e-postadressen och sparar det nya ID:t."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML-inställningen IdAttribute är tom eller ett e-postattribut"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute är {{.attribute}}. Användarnamn, uid och UPN-namn (user principal name) återanvänds ofta mellan anställda, och när det händer ärver den andra personen den första personens Mattermost-konto."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Välj hellre en identifierare som aldrig återanvänds, som objectGUID (AD) eller ett oföränderligt ID (Microsoft Entra ID), och granska IdP:ns policy för återanvändning av identifierare."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML-inställningen IdAttribute kan tilldelas på nytt hos IdP:n"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "SAML-kontrollen av IdP-certifikatet och IdP-URL:en misslyckades, så SAML-inloggning fungerar troligen inte."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "SAML-kontrollen av IdP-certifikatet och IdP-URL:en misslyckades på {{.nodes}}, medan den lyckas på de andra noderna, så SAML-inloggning kan misslyckas på de noderna. Se till att de noderna har samma giltiga IdP-certifikat som de andra noderna."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Kontrollera felinformationen och rätta sedan IdP-certifikatet (IdpCertificateFile) eller IdP-URL:en (IdpURL) i SAML-inställningarna. Om certifikatet har gått ut, ladda upp IdP:ns aktuella signeringscertifikat."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Kontrollen av SAML-konfigurationen misslyckades"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO använder signaturalgoritmen SHA-1, som är föråldrad. SSO fungerar i dag, men vissa identitetsleverantörer har börjat avvisa SHA-1, så det här är en förbättring av kompatibilitet och säkerhet som bör planeras in, särskilt före ett byte eller en uppgradering av IdP."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "När det passar, och i samråd med din IdP, sätt SamlSettings.SignatureAlgorithm till RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML-inställningen SignatureAlgorithm är SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost godtar SAML-svar utan att verifiera din IdP:s signatur, så det går inte att skilja ett äkta autentiseringssvar från ett förfalskat."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Sätt SamlSettings.Verify till true och se till att AssertionConsumerServiceURL är angiven. Aktivera det i samråd med din IdP och testa inloggningen, eftersom verifieringen kräver att IdP-certifikatet är korrekt konfigurerat."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Verifiering av SAML-signaturer är inaktiverad"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Arbetsytan har {{.posts}} meddelanden och sökningen körs mot databasen. Elasticsearch rekommenderas över 2 500 000 meddelanden och krävs över 5 000 000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Planera en installation av Elasticsearch före nästa period av kraftig tillväxt, eller innan antalet meddelanden når 5 000 000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Antalet meddelanden närmar sig gränsen för Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Arbetsytan har {{.posts}} meddelanden och sökningen körs mot databasen. I den här skalan kan du räkna med långsamma sökningar, överskridna tidsgränser och CPU-toppar i databasen."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Installera Elasticsearch eller OpenSearch, kör en fullständig initial indexering och aktivera sedan EnableIndexing, EnableSearching och EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Elasticsearch krävs över 5 000 000 meddelanden"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Databassökning är inaktiverad och sökning med Elasticsearch är avstängd. Sökningar ger inga resultat. Att aktivera sökning med Elasticsearch eller OpenSearch återställer också sökningen."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Databassökning är inaktiverad och licensen inkluderar inte Elasticsearch, så inställningarna för Elasticsearch har ingen effekt. Sökningar ger inga resultat."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Sätt SqlSettings.DisableDatabaseSearch till false i config.json (eller MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Sökning är inaktiverad"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} användare räknas mot licensens gräns på {{.limit}} användare, som nu är nådd. Servern skapar eller återaktiverar inga användare förrän platser frigörs eller läggs till."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Köp fler platser, eller avaktivera användare som inte längre behöver åtkomst för att frigöra platser."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Licensens gräns för antal användare är nådd"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} användare räknas mot {{.seats}} licensierade platser ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Om du räknar med fler användare, planera för fler platser innan licensen är full. Att avaktivera användare som inte längre behöver åtkomst frigör platser."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "De licensierade platserna är nästan fulla"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} användare räknas mot {{.seats}} licensierade platser ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Köp fler platser, eller avaktivera användare som inte längre behöver åtkomst. Avaktiverade användare tar ingen plats."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Fler användare än licensierade platser"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Sessioner går ut enligt ett fast schema oavsett aktivitet, så aktiva användare loggas ut. De flesta installationer tjänar på att aktiva användare förblir inloggade."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Aktivera ServiceSettings.ExtendSessionLengthWithActivity om inte din säkerhetspolicy förbjuder det."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity är inaktiverad"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Anslutningstestet mot SMTP-servern misslyckades: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Anslutningstestet mot SMTP-servern misslyckades på {{.nodes}}, medan de andra noderna når den. Kontrollera nätverks-, brandväggs-, proxy- och DNS-inställningarna på de noderna. Fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Notifieringar via e-post, inbjudningar och e-post för återställning av lösenord kanske inte levereras. Kontrollera SMTP-server, port, anslutningssäkerhet och inloggningsuppgifter i systemkonsolen, bekräfta att Mattermost-servern kan nå SMTP-värden och använd sedan Testa anslutning för att verifiera."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Anslutningstestet mot SMTP-servern misslyckades"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Den senaste versionen är okänd: den kunde inte hämtas, eller så finns den inte registrerad i paketet."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Senaste versionen har inte kontrollerats: ”Sök efter säkerhets- och versionsuppdateringar” är avstängd, så servern hämtar den inte."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Den här versionen finns inte i versionstabellen för det här bygget. Använd en nyare mmctl för att utvärdera ett supportpaket från en nyare server."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Serverversionen är okänd eller känns inte igen."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Kör {{.version}}. Den senaste är {{.latest}}, två eller fler versioner nyare."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Planera en uppgradering till den senaste versionen innan supporten för den här versionsserien upphör, eller byt till en version med utökad support för en långsammare uppgraderingstakt."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Flera versioner efter den senaste versionen"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Kör {{.version}}. Den senaste är {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Planera en uppgradering till den senaste versionen."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "En nyare version finns tillgänglig"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Kör Mattermost {{.version}}. Supporten för den här versionsserien upphörde {{.eol_date}}. Inga säkerhetsuppdateringar släpps för den här versionsserien."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Kör Mattermost {{.version}}, en äldre versionsserie som inte längre stöds. Inga säkerhetsuppdateringar släpps för den här versionsserien."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Kör Mattermost {{.version}}, en äldre versionsserie som inte längre stöds. Inga säkerhetsuppdateringar släpps för den här versionsserien. Den nyaste versionen med utökad support (ESR) som stöds är {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Kör Mattermost {{.version}}. Supporten för den här versionsserien upphörde {{.eol_date}}. Inga säkerhetsuppdateringar släpps för den här versionsserien. Uppgradera till den senaste versionen."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Kör Mattermost {{.version}}. Supporten för den här versionsserien upphörde {{.eol_date}}. Inga säkerhetsuppdateringar släpps för den här versionsserien. Den nyaste versionen med utökad support (ESR) som stöds är {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Planera en stegvis uppgradering till en version med utökad support (ESR) som stöds eller till den senaste versionen. Versioner som stöds listas på https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermost-versionen har nått slutet av sin livslängd"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Kör {{.version}} på versionen med utökad support (ESR) {{.esr}}. Planera en uppgradering före {{.eol_date}} för att fortsätta få säkerhetsuppdateringar."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Schemalägg en uppgradering till den senaste versionen eller till nästa version med utökad support (ESR)."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Versionen med utökad support (ESR) närmar sig slutet av sin livslängd"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Kanalåtkomståtgärder i en behörighetspolicy kan endast gälla rollen Systemanvändare, Systemgäst eller Systemadministratör."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "En kanalåtkomstregel i en behörighetspolicy kan inte ange en egen roll. Policyns roll gäller."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Åtgärden Hantera kanal är endast tillåten i behörighets- och kanalpolicyer."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Åtgärden Läsbehörighet för kanal är endast tillåten i behörighets- och kanalpolicyer."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Åtgärden Skrivbehörighet för kanal är endast tillåten i behörighets- och kanalpolicyer."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Ett internt fel uppstod."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redis-cacheprefixet får inte innehålla ':', '*', '?', '[', ']' eller '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert och RedisTLSClientKey måste anges tillsammans."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Ytterligare scopes måste vara OAuth-scopenamn separerade med mellanslag, högst {{.MaxLength}} tecken totalt."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Ogiltigt fältfilter. Ett fältnamn får vara högst {{.MaxLength}} tecken långt och får inte vara tomt, \"level\" eller \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Ogiltigt fältfilter. Ett fältvärde får vara högst {{.MaxLength}} tecken långt."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Ogiltigt fältfilter. Varje fält måste ha mellan 1 och {{.MaxValues}} värden."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Ogiltigt fältfilter. Det går att filtrera på högst {{.MaxKeys}} fält."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Ogiltigt sökfilter. Det får vara högst {{.MaxLength}} tecken långt."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Kunde inte hämta trådens följare."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Servern stöder inte listning av pluginnycklar med alternativ."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Kunde inte lista pluginnycklar med alternativ."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Ogiltigt tråd-id."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Ogiltigt användarid."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Meddelandet är ett svar, inte rotmeddelandet i en tråd."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Ogiltig filskapare."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "Den Site URL som angavs för onboarding är ogiltig. Den måste vara en http- eller https-URL utan sökväg, till exempel https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Kunde inte exportera hälsorapporten."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Meddelandeattribut kräver en Enterprise-licens."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Värden för kanalattribut saknas i:{{.ChannelList}}\n\nDu är kanaladministratör där. Öppna kanalen och välj **Lägg till värden**, eller ange dem i **Information om kanalen**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) behöver: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Plugin-ID:t {{.ID}} är reserverat för kärnservern och kan inte installeras eller läsas in."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Med {{.users}} registrerade användare körs den här servern på en enda nod utan hög tillgänglighet. Mattermosts referensarkitekturer rekommenderar hög tillgänglighet över 200 användare, så planera för det innan ett nodfel eller en uppgradering gör att arbetsytan går offline."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Kör minst två applikationsnoder bakom en lastbalanserare, med en delad databas och delad fillagring, och aktivera sedan ClusterSettings.Enable med samma ClusterName på varje nod."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Överväg att konfigurera hög tillgänglighet"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Med {{.users}} registrerade användare körs den här servern på en enda nod utan hög tillgänglighet. Varje nodfel, omstart eller uppgradering gör att hela arbetsytan går offline. Mattermosts referensarkitekturer kräver hög tillgänglighet i den här skalan."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Kör minst två applikationsnoder bakom en lastbalanserare, med en delad databas och delad fillagring, och aktivera sedan ClusterSettings.Enable med samma ClusterName på varje nod."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Hög tillgänglighet är inte aktiverad i den här skalan"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper är true, så detaljerad felinformation visas för användare och klienter. Den här inställningen är endast avsedd för utveckling."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Sätt ServiceSettings.EnableDeveloper till false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper är aktiverad"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-post är inte konfigurerad, så e-post som lösenordsåterställningar och notifieringar levereras inte."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Ingen e-postserver svarar på SMTP-standardadressen localhost:10025 på {{.nodes}}, så e-post som dessa noder skickar, som lösenordsåterställningar och notifieringar, levereras inte. De andra noderna når en e-postserver där. Fel: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Konfigurera en SMTP-server i systemkonsolen. Om den här servern inte ska skicka e-post stänger du av e-postnotifieringar, e-postinbjudningar och e-postverifiering och mjutar sedan den här avvikelsen. Låt inloggning med e-post eller användarnamn vara aktiverad: utan dem kan användare som inte loggar in via SSO inte logga in."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-servern är inte konfigurerad"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting är true, så testläget exponerar testkommandon och slutpunkter som endast är avsedda för utveckling."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Sätt ServiceSettings.EnableTesting till false och starta sedan om servern. Vissa testslutpunkter tas bort först vid omstart."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting är aktiverad"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections är true, så servern verifierar inte TLS-certifikat för utgående HTTPS-anslutningar som utgående webhooks, slash-kommandon, utbyten av OAuth-token, länkförhandsvisningar och nedladdningar av plugins. Vem som helst längs nätverksvägen kan läsa eller ändra den trafiken, inklusive OAuth-token."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Lägg till den interna certifikatutfärdarens certifikat i systemets förtroendearkiv på varje Mattermost-server och sätt sedan ServiceSettings.EnableInsecureOutgoingConnections till false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Verifiering av TLS-certifikat är avstängd för utgående anslutningar"
   }
 ]

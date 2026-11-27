@@ -498,5 +498,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "lenta",
+    "note": "Feminine. Genitive „lentos“, plural „lentos“, genitive plural „lentų“: „lentos kanalas“, „lentų žymelės“, as the server strings already say. Distinct from the product name Boards, which stays English („Integruotų Boards funkcija“)."
+  },
+  "post attribute": {
+    "target": "pranešimo atributas",
+    "note": "From post → „pranešimas“ and attribute → „atributas“; no precedent. Plural „pranešimų atributai“; its values are „pranešimo atributo reikšmės“."
+  },
+  "holdings": {
+    "target": "turimos reikšmės",
+    "note": "No precedent; built from „reikšmė“, the catalog’s word for a field value (not „vertė“). Plural only; genitive „turimų reikšmių“, e.g. „naudotojo turimos reikšmės“."
+  },
+  "Manage Channel": {
+    "target": "Tvarkyti kanalą",
+    "note": "Follows the permission names „Tvarkyti kanalo narius“, „Tvarkyti žymeles“: infinitive verb phrase with the object in the accusative. As an action name it does not decline; quote it („Tvarkyti kanalą“) where a case is needed. Same rendering in Title Case and sentence case contexts."
+  },
+  "Channel Read Access": {
+    "target": "Kanalo skaitymo prieiga",
+    "note": "From „Tik skaitymo prieiga“ and „rašymo prieigos“ in the catalogs. Genitive „Kanalo skaitymo prieigos“; same rendering in the System Console, Channel Settings and server errors."
+  },
+  "Channel Write Access": {
+    "target": "Kanalo rašymo prieiga",
+    "note": "From „rašymo prieigos“ in the catalogs. Genitive „Kanalo rašymo prieigos“; same rendering in the System Console and Channel Settings."
+  },
+  "Extended Support Release": {
+    "target": "Išplėstinio palaikymo laida",
+    "note": "No precedent; release → „laida“ as in „laidos pastabos“ (release notes), support → „palaikymas“. Do not use „leidimas“, which is permission. Genitive „Išplėstinio palaikymo laidos“. The acronym ESR stays as is."
+  },
+  "release line": {
+    "target": "laidų serija",
+    "note": "No precedent; release → „laida“ as in „laidos pastabos“. Genitive „laidų serijos“, plural „laidų serijos“. Do not use „leidimas“, which is permission."
   }
 }

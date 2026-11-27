@@ -455,5 +455,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "보드",
+    "note": "Established in both catalogs (보드 채널, 보드 속성, 비공개 보드). The ordinary noun; the product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "게시물 속성",
+    "note": "No precedent; composed from post = 게시물 and attribute = 속성. Keep 게시물 so it stays distinct from user profile attributes (사용자 속성)."
+  },
+  "holdings": {
+    "target": "보유 값",
+    "note": "No precedent; the catalog says a user 보유하다 a value (admin.global_attributes.attribute_details.options.synced_help). In running text 사용자가 보유한 값 also reads well."
+  },
+  "Manage Channel": {
+    "target": "채널 관리",
+    "note": "Follows the permission-name pattern 채널 설정 관리, 채널 배너 관리. Use 채널 관리 for both Title Case and sentence case; the ordinary verb phrase (Manage channel settings) stays 채널 설정 관리."
+  },
+  "Channel Read Access": {
+    "target": "채널 읽기 권한",
+    "note": "The catalog renders read access as 읽기 권한 (admin.ldap.bindUserDesc, system roles copy). Same rendering in System Console, Channel Settings and server errors."
+  },
+  "Channel Write Access": {
+    "target": "채널 쓰기 권한",
+    "note": "The catalog renders write access as 쓰기 권한 in both catalogs. Same rendering in System Console and Channel Settings."
+  },
+  "Extended Support Release": {
+    "target": "확장 지원 릴리스",
+    "note": "No precedent. The acronym ESR stays ESR. Use 릴리스, the standard spelling; the webapp catalog mixes 릴리스 and 릴리즈."
+  },
+  "release line": {
+    "target": "릴리스 라인",
+    "note": "No precedent. Use 릴리스, not 릴리즈, as for Extended Support Release."
   }
 }

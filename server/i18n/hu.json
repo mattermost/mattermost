@@ -876,10 +876,6 @@
     "translation": "Hiba merült fel a beállítások frissítése közben."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Hiba merült fel a beállítások törlése közben."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Hiba merült fel a beállítások keresése közben."
   },
@@ -910,10 +906,6 @@
   {
     "id": "app.post.save.app_error",
     "translation": "Nem sikerült elmenteni a bejegyzést."
-  },
-  {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Nem sikerült kiválasztani a törlendő bejegyzéseket a felhasználóhoz."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -1166,10 +1158,6 @@
   {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "Nem sikerült eltávolítani a hozzáférési tokent."
-  },
-  {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Nem sikerült eltávolítani a hitelesítési kódot."
   },
   {
     "id": "app.oauth.get_apps.find.app_error",
@@ -1897,7 +1885,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Érvénytelen csapatonkénti maximális felhasználók száma a csapat beállításoknál. Pozitív számnak kell lennie."
+    "translation": "Érvénytelen csapatonkénti maximális felhasználók száma a csapat beállításoknál. 0 (korlátlan) vagy pozitív számnak kell lennie."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -1909,7 +1897,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Érvénytelen csapatonkénti maximális csatornák száma a csapat beállításoknál. Pozitív számnak kell lennie."
+    "translation": "Érvénytelen csapatonkénti maximális csatornák száma a csapat beállításoknál. 0 (korlátlan) vagy pozitív számnak kell lennie."
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
@@ -2224,10 +2212,6 @@
     "translation": "Hiányzó kötelező reakció tulajdonság: EmojiName."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Reakció EmojiName tulajdonság hosszabb mint a megengedett maximális hosszúság."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
     "translation": "Reakció CreateAt tulajdonsága nem lehet nulla."
   },
@@ -2368,10 +2352,6 @@
     "translation": "csoporttag már létezik"
   },
   {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Nem sikerült eltávolítani a következő csoporttagot UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "app.group.no_rows",
     "translation": "nem található egyező csoport"
   },
@@ -2386,10 +2366,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Nem sikerült menteni a fájl infót."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Nem sikerült törölni a felhasználó mellékleteit."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -2652,10 +2628,6 @@
     "translation": "Nem sikerült megtalálni a kitűzött bejegyzéseket."
   },
   {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Nem sikerült eltávolítani a csatorna tagot."
-  },
-  {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Nem sikerült törölni a csatornát."
   },
@@ -2765,15 +2737,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 115+"
+    "translation": "Verzió 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verzió 126+"
+    "translation": "Verzió 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 126+"
+    "translation": "Verzió 156+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3120,10 +3092,6 @@
     "translation": "A keresés nem sikerült"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Nem sikerült feldolgozni a keresési eredményeket"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Nem sikerült dekódolni a keresési eredményeket"
   },
@@ -3280,15 +3248,7 @@
     "translation": "Nem sikerült menteni az IncomingWebhook-ot."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Nem sikerült törölni a webhookot."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Nem sikerült törölni a webhookot."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Nem sikerült törölni a webhookot."
   },
   {
@@ -3454,10 +3414,6 @@
   {
     "id": "app.user.promote_guest.user_update.app_error",
     "translation": "Nem sikerült frissíteni a felhasználót."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Nem sikerült törölni a felhasználót."
   },
   {
     "id": "app.user.permanent_delete.app_error",
@@ -3888,10 +3844,6 @@
     "translation": "Hiba történt az auditok mentésekor."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Hiba történt az auditok törlésekor."
-  },
-  {
     "id": "app.audit.get.limit.app_error",
     "translation": "Túllépte a lapozás korlátját."
   },
@@ -4166,10 +4118,6 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP nem elérhető ezen a szerveren."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS bejelentkezés tiltott."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -4714,10 +4662,6 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Nem sikerült elmenteni a csapat téma beállításokat"
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Nem sikerült importálni a csapat tagságot mert abba a csapatba már nem engedélyezett több tag"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -5623,10 +5567,6 @@
     "translation": "Érvénytelen vagy hiányzó {{.Name}} paraméter a kérés URL-ben."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Érvénytelen munkafolyamat token={{.Token}}, hiba={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_param.app_error",
     "translation": "{{.Name}} érvénytelen paraméter."
   },
@@ -6049,10 +5989,6 @@
   {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Nem sikerült lekérni a biztonságos kapcsolatokat: {{.Error}}"
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Nem sikerült titkosítani a meghívót: {{.Error}}"
   },
   {
     "id": "api.command_remote.displayname.hint",
@@ -7979,24 +7915,8 @@
     "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Hiba a tároló használtságának lekérdezése közben."
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Nem kérdezhető le a csapatok száma"
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "Nem kérdezhető le a csapat használtság"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Nem lehet visszaállítani a csapatot, mert a csapatok száma elérte a korlátot"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Nem lehet csapatot létrehozni, mert a csapatok száma elérte a korlátot"
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -8061,10 +7981,6 @@
   {
     "id": "app.job.error",
     "translation": "Hiba a művelet végrehajtása közben."
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Nem sikerült lekérni a fájlt, mivel az meghaladta a felhőcsomag határértékét."
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -8597,10 +8513,6 @@
   {
     "id": "api.command_share.invite_remote_to_channel.error",
     "translation": "Nem lehet meghívni a távoli példányt a csatornára: {{.Error}}"
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "A megosztott csatornák szolgáltatás engedélyezve van, de nem aktív."
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
@@ -9237,10 +9149,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "A szolgáltatás csak a Mattermost Enterprise kiadásban érhető el"
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "A portál nem érhető el a saját üzemeltetésű regisztrációhoz."
   },
   {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
@@ -10677,10 +10585,6 @@
     "translation": "A piszkozatot egy bővítmény elutasította: {{.Reason}}"
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Nem sikerült törölni a felhasználó piszkozatait."
-  },
-  {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Nem sikerült könyvtárat létrehozni az egyéni emoji képeknek"
   },
@@ -10903,10 +10807,6 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Nem sikerült frissíteni a munka állapotát. Érvénytelen állapot lett beállítva"
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Hiba a legutóbbi elérhető fájl lekérésekor"
   },
   {
     "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
@@ -11673,10 +11573,6 @@
     "translation": "A tulajdonságérték nem felelt meg az érvényesítésnek."
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Nem sikerült törölni a felhasználó reakcióit."
-  },
-  {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Elérte a reakciók korlátját ennél a bejegyzésnél."
   },
@@ -11933,10 +11829,6 @@
       "one": "Nem sikerült elküldeni {{.Count}} időzített bejegyzést.",
       "other": "Nem sikerült elküldeni {{.Count}} időzített bejegyzést."
     }
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Nem sikerült törölni a felhasználó időzített bejegyzéseit."
   },
   {
     "id": "app.scheduled_post.private_channel",
@@ -14588,7 +14480,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "A Rendszerállapot funkcióhoz Enterprise licenc szükséges."
+    "translation": "A Rendszerállapot funkcióhoz Professional vagy magasabb szintű licenc szükséges."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14636,7 +14528,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "A naplózási konfiguráció a naplózási gyökérkönyvtáron kívüli napló- vagy auditfájl-útvonalat tartalmaz. A részletekért ellenőrizze a szervernaplókat."
+    "translation": "A naplózási konfiguráció olyan napló- vagy auditfájl-útvonalat tartalmaz, amely a naplózási gyökérkönyvtáron kívül vagy egy, a szerver által kezelt könyvtáron belül található. A részletekért ellenőrizze a szervernaplókat."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14704,7 +14596,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Váltson a https://push.mattermost.com címre (az Enterprise részét képező éles Hosted Push Notification Service) vagy egy saját üzemeltetésű push proxyra."
+    "translation": "Irányítsa a PushNotificationServer beállítást egy éles push proxyra: egy saját üzemeltetésű Mattermost Push Proxyra, amely a mobilalkalmazások saját buildjeit szolgálja ki."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14737,5 +14629,1999 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Az olvasás után megsemmisülő üzenetek nem küldhetők ismétlődő időzített bejegyzésként."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "A csatornajogosultsági műveletek funkció nincs engedélyezve."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "A feltöltött személyazonosság-szolgáltatói (IdP) tanúsítvány nem érvényes, PEM-kódolású X.509-tanúsítvány."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "A feltöltött szolgáltatói (SP) privát kulcs nem érvényes, PEM-kódolású privát kulcs."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "A feltöltött szolgáltatói (SP) nyilvános tanúsítvány nem érvényes, PEM-kódolású X.509-tanúsítvány."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "A feltöltött fájl nem egyezik a tárolt szolgáltatói (SP) tanúsítvánnyal vagy privát kulccsal. Ha egyenként szeretné lecserélni őket, kapcsolja ki a titkosítást."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Jelenleg nincs jogosultsága a csatorna kezeléséhez."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Jelenleg nincs hozzáférése ehhez a csatornához."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Jelenleg nincs jogosultsága írni ebbe a csatornába."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "A(z) `{{.Near}}` közelében lévő egyszeres idézőjel nincs lezárva a ` --` előtt. Zárja le, vagy használjon dupla idézőjelet, ha az érték tartalmazza a ` --` karaktersort."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Váratlan szöveg a(z) `{{.Near}}` közelében. A szóközt tartalmazó értéket tegye idézőjelek közé, és használjon dupla idézőjelet, ha az érték aposztrófot is tartalmaz."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "A(z) `{{.Near}}` közelében lévő idézőjel nincs lezárva."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Nem sikerült összehasonlítani a mentett konfigurációkat."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Nem sikerült összehasonlítani a mentett konfigurációt a jelenlegivel."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Érvénytelen vagy lejárt munkamenet."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Az ilyen típusú feladatok nem szakíthatók meg."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "A public_key mezőben pontosan egy, a bővítmények nyilvános kulcsát tartalmazó fájlt kell feltölteni."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "A(z) {{.Name}} nyilvános bővítménykulcs nincs beállítva."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Nem sikerült feldolgozni a feltöltött nyilvános bővítménykulcsot."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Nincs jogosultsága egy vagy több kért bejegyzés-attribútum értékének beállításához."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Az olvasás után megsemmisülő bejegyzéseknek nem lehetnek bejegyzés-attribútumaik."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "A bejegyzés-attribútumok nincsenek engedélyezve ezen a szerveren."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Egy vagy több bejegyzés-attribútum értékét nem sikerült alkalmazni."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "A mező jogosultságait létrehozáskor csak a mező csatornájának, csapatának vagy a rendszernek az adminisztrátora állíthatja be."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Attribútummező létrehozásakor csak rendszergazda állíthat be jogosultságokat."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Ezt az attribútumot törölték."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Ezen az API-n keresztül nem kérdezhetők le megfelelőségi adatok v1 tulajdonságmezőhöz."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Nincs jogosultsága megtekinteni ennek a tulajdonságmezőnek a megfelelőségi adatait."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Csak a minden csapatra vonatkozó attribútumoknál lehet listázni vagy értesíteni azokat a csatornákat, amelyeknél hiányzik az érték."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Az értesítések nem lettek elküldve, mert a csatorna adminok nemrég már értesítést kaptak erről. {{.Count}} perc múlva küldhet újabb értesítést.",
+      "other": "Az értesítések nem lettek elküldve, mert a csatorna adminok nemrég már értesítést kaptak erről. {{.Count}} perc múlva küldhet újabb értesítést."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Az értesítések nem lettek elküldve, mert a csatorna adminok nemrég már értesítést kaptak erről. Próbálja újra később."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Nem módosíthatja egy tulajdonságmező jogosultságait úgy, hogy utána ne tudja szerkeszteni."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "A beküldött korlátozási objektumnak mind az öt jogosultsági szintet meg kell adnia: érték olvasása, érték írása, opció olvasása, opció írása és mező írása."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "A beküldött jogosultsági objektum érvénytelen."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Ez a tulajdonságcsoport nem támogatja jogosultsági objektum beküldését."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "A jogosultsági objektumnak lehetővé kell tennie, hogy a rendszergazdák szerkesszék a mezőt, ezért a mezőírási szint nem lehet „none”."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Ez az attribútum még nem jelölhető kötelezőként, mert egyes aktív csatornáknál nincs megadva hozzá érték. Értesítse a csatorna adminokat, majd próbálja újra."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "A meghívó lejárt. Kérjen új meghívót a távoli webhelytől."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "A távoli webhely érvénytelen választ adott."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "A meghívó érvénytelen webhelycímet tartalmaz: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "A távoli webhely elutasította a meghívót."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Nem sikerült elérni a távoli webhelyet a következő címen: {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Biztonságos kapcsolatról érkező feltöltés nem folytathat részben fogadott fájlt."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Túl sok erőforrás egyetlen hozzáférés-vezérlési kiértékelésben; a korlát {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "A legfrissebb Mattermost-kiadás keresése le van tiltva. Az engedélyezéséhez kapcsolja be a Biztonsági és kiadási frissítések keresése beállítást."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Nem sikerült lekérdezni a csatorna adminokat."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Nem sikerült lekérdezni azokat a csatornákat, amelyeknél hiányzik ennek az attribútumnak az értéke."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Nem sikerült megszámolni azokat a csatornákat, amelyeknél hiányzik ennek az attribútumnak az értéke."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Nem sikerült megszámolni az összes olyan csatornát, amelynél hiányzik ennek az attribútumnak az értéke."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Nem sikerült megszámolni azokat a helyi csatornákat, amelyeknél hiányzik ennek az attribútumnak az értéke."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Nem sikerült listázni azokat a csatornákat, amelyeknél hiányzik ennek az attribútumnak az értéke."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Nem sikerült lekérdezni azokat a távoli csatornákat, amelyeknél hiányzik ennek az attribútumnak az értéke."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Nem sikerült megszámolni az attribútum által érintett csatorna adminokat és csatornákat."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Nem sikerült lekérdezni, mely csatorna adminokat kell értesíteni erről az attribútumról."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _és további {{.Count}} csatorna_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Kérjük, adjon meg értéket a(z) **{{.AttributeName}}** attribútumhoz az alábbi, Ön által kezelt csatornákon. A rendszergazdának minden csatornán szüksége van értékre ahhoz, hogy ezt az attribútumot kötelezővé tehesse."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Ön csatorna admin egy olyan csatornában, amelynél hiányzik egy kötelező csatornaattribútum. Kérjük, adjon meg értéket a(z) **{{.AttributeName}}** attribútumhoz.",
+      "other": "Ön csatorna admin olyan csatornákban, amelyeknél hiányzik egy kötelező csatornaattribútum. Kérjük, adjon meg értéket a(z) **{{.AttributeName}}** attribútumhoz."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Nem sikerült lefoglalni az értesítési várakozási időt ehhez az attribútumhoz."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Nem sikerült lekérni a mentett konfigurációkat."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Nincs ilyen azonosítójú mentett konfiguráció."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "A konfigurációs előzmények csak akkor érhetők el, ha a konfiguráció az adatbázisban van tárolva."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Ahogy a szerző írta: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Időbélyeg"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Nem sikerült elindítani az állapot-ellenőrzés futtatását."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Egy állapot-ellenőrzés futtatása éppen indul. Próbálja újra egy pillanat múlva."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Hiba a bejegyzés importálásakor. A prioritás mentése sikertelen."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Hiba a felhasználói csapatok importálásakor. A csapat nem található."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Ez a fájl {{.Adding}} felhasználót ad hozzá a(z) {{.Team}} csapathoz, így annak {{.Total}} tagja lesz, de a TeamSettings.MaxUsersPerTeam értéke {{.Limit}}. Importálás előtt emelje meg a korlátot, vagy állítsa 0-ra (nincs korlát)."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Nem sikerült beolvasni az importfájlt a TeamSettings.MaxUsersPerTeam ellenőrzéséhez."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Az Acknowledgement AcknowledgedAt tulajdonságát meg kell adni, és nem lehet korábbi a bejegyzés CreateAt értékénél."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Hiányzó kötelező Acknowledgement tulajdonság: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "A bejegyzés nyugtázásaihoz olyan Priority szükséges, amelyben a RequestedAck értéke true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "A bejegyzés PersistentNotifications beállításához sürgős (urgent) Priority szükséges."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Hiányzó kötelező Priority tulajdonság: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "A Reaction EmojiName tulajdonsága érvénytelen. 1–64 karakter hosszú lehet, és csak ASCII betűket, számjegyeket, valamint +, - vagy _ karaktert tartalmazhat."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "A speciális logikát használó tagsági szabályokat csak rendszergazda módosíthatja. Szerkessze őket a rendszerkonzolban."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Ez a tagsági szabály olyan kifejezést használ, amelyet a tagsági szinkronizálás nem tud kiértékelni. Írja át a szabályt úgy, hogy csak összehasonlításokat, a &&, || és in operátort, valamint a támogatott attribútumfüggvényeket használja."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Ez a tagsági szabály a következőt használja: {{.Function}}, amelyet a tagsági szinkronizálás nem tud kiértékelni. Írja át a szabályt úgy, hogy csak összehasonlításokat, a &&, || és in operátort, valamint a támogatott attribútumfüggvényeket használja."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Nem sikerült megállapítani, hogy a művelethez tartozik-e jogosultsági szabályzat"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Nem sikerült megállapítani, hogy az erőforrás hozzáférési szabályzata vonatkozik-e a műveletre."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Már létezik {{.Name}} nevű konfigurációs fájl."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "A fájl nem érvényes OpenPGP nyilvános kulcs."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Érvénytelen nyilvános bővítménykulcsnév: {{.Name}}. A név csak betűket, számjegyeket, valamint '.', '_' és '-' karaktert tartalmazhat."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Ez a mező nem törölhető, mert egy maszkolt sablon ebből olvassa ki az egyes felhasználók saját értékeit. Előbb módosítsa vagy távolítsa el a sablon maszkolását."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Egy kapcsolt mező option.read szintje ({{.FieldTier}}) nem lehet megengedőbb a sablonja ({{.TemplateID}}) szintjénél ({{.TemplateTier}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Attribútum nem kapcsolható OpenID Connect-jogcímhez, amíg az OpenID Connect attribútum-szinkronizálás ki van kapcsolva."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Nem sikerült keresni a globális attribútumok között."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Ez a mező a maszkolt sablonja számára a saját értékek forrása, ezért az értékírási szintje nem lehet '{{.ValueWrite}}'. Ellenkező esetben a sablon által szűrt felhasználók szerkeszthetnék a saját értékeiket, és kibővíthetnék, amit láthatnak."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Az OpenID Connect használatával szinkronizált attribútum nem szinkronizálható egyidejűleg AD/LDAP vagy SAML használatával is."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Ezen a módon nem módosíthatók a mező tulajdonosai, hozzáférési módja, védett vagy szinkronizálási beállításai, mert a jogosultságai ebben a formában nem fejezhetők ki. Ehelyett közvetlenül a jogosultságait frissítse."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "A mező hozzáférési módja nem módosítható, mert olyan adatokat tartalmaz, amelyeket a hívó nem olvashat."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "A frissítés nem lehetséges: a(z) {{.DependentID}} kapcsolt mező option.read szintje {{.DependentTier}}, amely meghaladná az új {{.NewTier}} szintet."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Egyetlen frissítésben nem módosíthatók egyszerre a mező jogosultságai és a jogosultsági szintjei, tulajdonosai, hozzáférési módja, védett vagy szinkronizálási beállításai. A módosítást csak az egyik formában küldje el."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "A frissítés nem lehetséges: a(z) {{.DependentID}} kapcsolt mező ennél a maszkolásnál a saját értékeit szolgáltatná, de az értékírási szintje '{{.ValueWrite}}'. Előbb csökkentse ennek a mezőnek az értékírási szintjét admin vagy alacsonyabb szintre."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Ennek a mezőnek a kapcsolata nem bontható, mert egy maszkolt sablon ebből olvassa ki az egyes felhasználók saját értékeit. Előbb módosítsa vagy távolítsa el a sablon maszkolását."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "A fiók deaktiválva lett, és részben törölve. A törlés újbóli futtatása biztonságos, és befejezi a folyamatot."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Ez a futtatás a megengedett legtöbb, {{.Max}} bejegyzést törölte. A fiók deaktiválva lett, és részben törölve. A folytatáshoz futtassa újra a törlést."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "{{.Count}} felhasználó törlését nem sikerült befejezni: {{.Usernames}}. A folytatáshoz futtassa újra a parancsot."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Nem sikerült elküldeni a fürtkérést"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "A SAML nincs megfelelően konfigurálva. Kérjük, lépjen kapcsolatba a rendszergazdával."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "A legutóbbi futtatások még várakoznak, futnak vagy meg lettek szakítva, ezért a korábbi futtatásokat nem lehetett ellenőrizni."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Hitelesítés"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Magas rendelkezésreállás"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Megfelelőség"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Adatbázis"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Feladatok"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licencelés"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Értesítések"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platform"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Keresés"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Frissítések"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} (csomópont: {{.Node}})"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Adatgyűjtés ideje"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Ismeretlen"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licenc tulajdonosa"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Utolsó kiértékelés"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Létrehozva"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licenc"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Még nincs kiértékelve"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Szerververzió"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "Rendszer URL"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Úgy tűnik, a kiértékelés leállt."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "A beállítás megnyitása a Rendszerkonzolon"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Részletek"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "A dokumentáció elolvasása"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "A javítás módja"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Összegzés"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Elnémítva"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Megoldva"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Nem sikerült kiértékelni"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritikus"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Információ"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Figyelmeztetés"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritikus",
+      "other": "{{.Count}} kritikus"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} információ",
+      "other": "{{.Count}} információ"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Nincs nyitott megállapítás."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Még egyetlen állapot-ellenőrzés sem futott le."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} nem kiértékelhető",
+      "other": "{{.Count}} nem kiértékelhető"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} figyelmeztetés",
+      "other": "{{.Count}} figyelmeztetés"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Állapotjelentés"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Nincs aktív auditnapló-cél, és ezen a munkaterületen {{.users}} regisztrált felhasználó van. Az adminisztratív műveletekről, a bejelentkezésekről és a konfigurációs változásokról nem készül külön auditnyomvonal. Ez megfelelőségi és törvényszéki vizsgálati hiányosság, nem stabilitási kockázat."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Ha szervezetére auditkövetelmények vonatkoznak (pénzügyi szolgáltatások, egészségügy, védelmi ipar, szabályozott közszféra), engedélyezze az auditnaplózást a Rendszerkonzol > Megfelelőség > Auditnaplózás oldalon, vagy adjon meg célt az auditszintekhez az ExperimentalAuditSettings.AdvancedLoggingJSON beállításban, és állítsa be a naplórotációt. Egyébként ez figyelmen kívül hagyható."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Az auditnaplózás ki van kapcsolva"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "A ServiceSettings.ListenAddress a(z) {{.port}} portot használja, amely 1024 alatti. Linuxon a nem root felhasználóként futó Mattermost szerver ezt a portot csak a bináris fájlján beállított CAP_NET_BIND_SERVICE fájlképességgel (file capability) tudja lefoglalni. Egy csomagfrissítés lecseréli a bináris fájlt és törli ezt a képességet, így a következő frissítés után a szerver „bind: permission denied” hibával nem indulhat el. A konfigurációból nem látható, hogyan van megadva a képesség, ezért ez a figyelmeztetés akkor is megmarad, ha a systemd unitban adja meg."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Adja hozzá az AmbientCapabilities=CAP_NET_BIND_SERVICE sort a Mattermost systemd unitjához, hogy a képesség megmaradjon a frissítések után, vagy minden frissítés után futtassa újra a setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost parancsot. Másik lehetőségként helyezzen egy fordított proxyt a Mattermost elé, és a Mattermostot egy magas számú portra, például a 8065-ösre kösse."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "A szerver közvetlenül privilegizált portot használ"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "A vezető csomópont a(z) {{.address}} címet hirdeti. A többi csomópont ezen a címen nem éri el, ezért a gossip protokoll egycsomópontos fürtöt alkot, és az osztott agy (split-brain) helyzetek rejtve maradnak."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Állítsa a ClusterSettings.AdvertiseAddress értékét a csomópont elérhető IP-címére vagy DNS-nevére, vagy hagyja üresen, hogy a hálózati interfész címe legyen használva. Ez az ellenőrzés a vezető csomópont konfigurációját olvassa, ezért a beállítást minden csomóponton ellenőrizze."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "A ClusterSettings.AdvertiseAddress nem érhető el a többi csomópontról"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "A konfiguráció minden csomóponton egy fájlban van tárolva, és a Rendszerkonzolon módosítható. A módosítás egy csomóponton kerül mentésre, és a többi csomópontra csak legjobb igyekezettel (best effort) jut el; az a csomópont, amelyhez nem jut el, megtartja a saját fájlját, így a csomópontok konfigurációi eltérhetnek egymástól."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Állítsa a ClusterSettings.ReadOnlyConfig értékét true-ra, és a konfigurációt minden csomóponton a konfigurációs fájlon vagy környezeti változókon keresztül kezelje, vagy helyezze át a konfigurációt az adatbázisba."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "A ClusterSettings.ReadOnlyConfig ki van kapcsolva egy fájlalapú magas rendelkezésreállású fürtben"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "A ClusterSettings.EnableGossipEncryption értéke false, ezért a fürtcsomópontok közötti forgalom nincs titkosítva."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Engedélyezze a gossip titkosítását, majd egy karbantartási időablakban indítsa újra egyszerre az összes csomópontot. A titkosítást használó és nem használó csomópontok nem tudnak kommunikálni egymással, ezért egy gördülő újraindítás az utolsó csomópont újraindulásáig kettéosztja a fürtöt."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "A magas rendelkezésreállású fürt gossip forgalma nincs titkosítva"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "{{.users}} regisztrált felhasználó és magas rendelkezésreállás mellett az alapértelmezett, memóriában tárolt LRU gyorsítótár miatt minden csomópont saját példányt tart fenn, és az érvénytelenítéshez a gossip protokollt használja. A Mattermost 100 000 felhasználótól a Redis használatát javasolja, hogy ekkora méretben csökkenjen a gyorsítótár-érvénytelenítési forgalom."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Fontolja meg a CacheSettings.CacheType redis értékre állítását a CacheSettings.RedisAddress beállításával együtt. A Redis használatához Cluster funkciót tartalmazó licenc szükséges."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Nagy méretben fontolja meg a Redis gyorsítótár-háttérrendszert"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "A tervezett magas rendelkezésreállású topológia valójában nem fut. Egyetlen csomópont nem biztosít feladatátvételt, és elrejti az osztott agy (split-brain) kockázatát."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Ellenőrizze a gossip kapcsolatot (ClusterSettings.GossipPort), a tűzfalszabályokat, és hogy minden alkalmazáscsomópont ugyanazt a ClusterName értéket használja-e. Üres ClusterName esetén is egyedül marad a csomópont: ilyenkor a szerver naplózza, hogy a magas rendelkezésreállás le lett tiltva."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "A magas rendelkezésreállás engedélyezve van, de a fürtben csak egy csomópont van"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "A fürt csomópontjai a következő verziókat jelentik: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "A csomópontok különböző verziókon futnak, és egyik verzió sem gyakoribb a többinél, ezért nem egyértelmű, mely csomópontok elavultak."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Ez a csomópont a(z) {{.version}} verziót futtatja, míg a legtöbb csomópont a(z) {{.majority}} verziót."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Hacsak nincs folyamatban frissítés, frissítse az összes csomópontot ugyanarra a verzióra, és győződjön meg róla, hogy a csomópontok tudnak kommunikálni a gossip protokollon keresztül."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Több Mattermost-verzió észlelhető a fürtben"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "A ComplianceSettings.Directory üres, ezért a megfelelőségi jelentések a szerver munkakönyvtárában lévő compliance mappába kerülnek. A szerver frissítésekor vagy a konténere újraépítésekor ezek elvesznek."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "A Rendszerkonzol > Megfelelőség > Megfelelőségi monitorozás oldalon állítsa a Megfelelőségi jelentés mappa (ComplianceSettings.Directory) értékét egy tartós, írható útvonalra."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "A megfelelőségi monitorozás engedélyezve van, de a Directory üres"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Minden csomópont legfeljebb MaxOpenConns kapcsolatból álló készletet tart fenn az elsődleges adatbázis felé. {{.nodes}} csomópont és MaxOpenConns={{.max_open}} esetén egy adatbázis-feladatátvétel akár {{.burst}} egyidejű kapcsolódási kísérletet is okozhat az újonnan előléptetett elsődleges adatbázis felé, és a DataSource gazdagépe nem tűnik kapcsolatkészlet-kezelőnek (connection pooler). Ha ez meghaladja az adatbázis max_connections értékét, az adatbázis elutasítja a kapcsolatokat ('sorry, too many clients already'), és a helyreállás tovább tart."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Minden réteget méretezzen erre a hirtelen terhelésre. A legtartósabb megoldás a SqlSettings.MaxOpenConns csökkentése csomópontonként és/vagy PgBouncer (tranzakciós módban) elhelyezése az adatbázis elé az újrakapcsolódási csúcsok elnyelésére, ahelyett, hogy csak a max_connections értékét emelné: minden kapcsolat adatbázis-memóriát fogyaszt, így egy magas felső korlát memóriahiány kockázatával jár. Ha emeli a max_connections értékét, hagyjon tartalékot a csúcs felett a replikáció, a monitorozás és az adminisztrátori munkamenetek számára. A csomópontok indításának időbeli széthúzása feladatátvételkor szintén a korlát alatt tartja a csúcsot."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Az adatbázis-feladatátvétel kapcsolódási vihart okozhat"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "A SqlSettings.MaxIdleConns ({{.max_idle}}) nagyobb a MaxOpenConns ({{.max_open}}) értékénél. A Go database/sql rétege csendben a MaxOpenConns értékére korlátozza a tétlen készletet, így a többlet tétlen kapacitásnak nincs hatása. Semmi sem hibás, de az érték félrevezető, és általában arra utal, hogy a készletet úgy hangolták, hogy nem tudták: a tétlen kapcsolatok száma soha nem haladhatja meg a nyitottakét."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Állítsa a MaxIdleConns értékét legfeljebb a MaxOpenConns értékére (gyakori irányelv a MaxOpenConns 25–50%-a)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "A MaxIdleConns nagyobb a MaxOpenConns értékénél"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "{{.users}} felhasználó és MaxOpenConns={{.max_open}} esetén hirtelen terhelésnél kérések sorakozhatnak fel az alkalmazás oldalán. A jelenlegi alapértelmezés 100 (MaxIdleConns 50, 2:1 arány)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Ha az alkalmazás oldalán kérések sorban állását tapasztalja, emelje a SqlSettings.MaxOpenConns értékét a megfigyelt igény alapján (a 100/50 alapértelmezés a kiindulópont). Az adatbázis valós felső korlátja MaxOpenConns × csomópontok × adatforrások, ezért emelés előtt győződjön meg róla, hogy az adatbázis max_connections értéke lefedi ezt az összeget."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "A MaxOpenConns alacsony lehet ehhez a felhasználói létszámhoz"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "A SqlSettings.DataSourceReplicas üres. {{.users}} felhasználó mellett minden olvasás az elsődleges adatbázist terheli. Nagyobb telepítésekhez olvasási replikák használata javasolt."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Fontolja meg egy olvasási replika létrehozását, és adja hozzá a SqlSettings.DataSourceReplicas beállításhoz."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Nincsenek olvasási replikák beállítva"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "{{.posts}} bejegyzés és adatbázis-alapú keresés mellett a teljes szöveges vizsgálatokat az elsődleges adatbázis és a replikák végzik. Ekkora méretben ez CPU-terhelést és keresési időtúllépéseket okoz."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "{{.posts}} bejegyzés és adatbázis-alapú keresés mellett a teljes szöveges vizsgálatokat az elsődleges adatbázis és a replikák végzik. Ekkora méretben ez CPU-terhelést és keresési időtúllépéseket okoz. Az Ön licence tartalmazza az Elasticsearch-öt, amely teljesen leveszi a keresést az adatbázisról."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Állítsa be a SqlSettings.DataSourceSearchReplicas értékét."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Nincs keresési replika, és az Elasticsearch keresés ki van kapcsolva"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "A(z) {{.max_open}} elsődleges adatbázis-kapcsolatból {{.in_use}} van használatban ({{.percent}}%), ami eléri vagy meghaladja a MaxOpenConns 90%-át. Az új lekérdezések sorba állnak, és nő a HTTP-késleltetés."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Emelje a SqlSettings.MaxOpenConns és az adatbázis max_connections értékét. Vizsgálja meg a hosszan futó lekérdezéseket is."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Az elsődleges adatbázis kapcsolatkészlete közel telített"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "A PostgreSQL {{.version}} régebbi a legalacsonyabb támogatott verziónál ({{.minimum}}). A Mattermost elindul rajta, de a nem támogatott verziók váratlan működéshez vezethetnek. Frissítsen PostgreSQL {{.minimum}} vagy újabb verzióra."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Tervezzen frissítést. Az újabb verziók jobb párhuzamos lekérdezési és JSONB-teljesítményt is nyújtanak."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "A PostgreSQL verziója régebbi a legalacsonyabb támogatottnál"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "A PostgreSQL éppen vacuum műveletet végez a Posts táblán. Várja meg, amíg ez befejeződik, mielőtt eldönti, szükség van-e újabb vacuumra."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "A Posts táblában becslés szerint {{.dead_tuples}} dead tuple van (a becsült {{.estimated_rows}} sor {{.dead_percent}}%-a), pedig a legutóbbi vacuum ekkor történt: {{.last_vacuum}}. A vacuum fut, de valószínűleg nem tudja eltávolítani őket, mert valami visszatartja a takarítást, például egy hosszan futó vagy idle-in-transaction állapotú munkamenet, egy inaktív replication slot vagy egy elhagyott prepared transaction. A tábla és az indexek felfúvódása ronthatja a lekérdezések teljesítményét, és növelheti a lemezhasználatot."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "A Posts táblában becslés szerint {{.dead_tuples}} dead tuple van (a becsült {{.estimated_rows}} sor {{.dead_percent}}%-a), és a PostgreSQL nem rögzített rajta vacuumot a statisztikák legutóbbi nullázása óta. Úgy tűnik, az autovacuum nem tud lépést tartani ezzel a táblával. A tábla és az indexek felfúvódása ronthatja a lekérdezések teljesítményét, és növelheti a lemezhasználatot."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "A Posts táblában becslés szerint {{.dead_tuples}} dead tuple van (a becsült {{.estimated_rows}} sor {{.dead_percent}}%-a), és a legutóbbi vacuum {{.age_days}} napja történt ({{.last_vacuum}}). Úgy tűnik, az autovacuum nem tud lépést tartani ezzel a táblával. A tábla és az indexek felfúvódása ronthatja a lekérdezések teljesítményét, és növelheti a lemezhasználatot."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Ha a pg_stat_progress_vacuum szerint vacuum fut a Posts táblán, várja meg a befejezését, mert egy kézi VACUUM indítása megszakítja. Ha a Posts táblán nemrég futott vacuum, keresse meg, mi tartja vissza a takarítást, és állítsa le vagy távolítsa el: hosszan futó vagy idle-in-transaction munkamenetek a pg_stat_activity nézetben, inaktív replication slotok a pg_replication_slots nézetben, és régi prepared transactionök a pg_prepared_xacts nézetben. Ezután a következő vacuum el tudja távolítani a dead tuple-öket. Ha a Posts táblán nemrég nem futott vacuum, ellenőrizze, hogy az autovacuum globálisan és a Posts táblára is engedélyezve van-e, és keresse a PostgreSQL naplóiban a megszakított autovacuum feladatokat. Ha az autovacuum nem tud lépést tartani, csökkentse az autovacuum_vacuum_scale_factor értékét a Posts táblára, és a kapacitás függvényében emelje az autovacuum_vacuum_cost_limit és az autovacuum_work_mem értékét, majd ütemezzen célzott VACUUM (ANALYZE) futtatást a Posts táblára alacsony forgalmú időszakra. A VACUUM FULL használatát kerülje, hacsak nem tervez a kizárólagos zárolásával és a többlet lemezterülettel; ha elérhető, a pg_repack kevesebb zárolással járó alternatíva."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "A Posts táblában sok dead tuple van"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "A QueryTimeout értéke {{.timeout}} másodperc. A hosszú időkorlát miatt az elszabadult lekérdezések a teljes időtartam alatt zárolásokat tarthatnak, blokkolva az autovacuumot, a sémamigrációkat és az ugyanarra a sorra váró írókat. Ez olvasási replikák nélküli, terhelt adatbázisokon tovább növeli a kockázatot."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Csökkentse a SqlSettings.QueryTimeout értékét 30-ra. Az egyes lassú lekérdezéseket külön vizsgálja meg, ahelyett hogy a globális felső korlátot emelné."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "A SqlSettings.QueryTimeout értéke magas (az alapértelmezés 30 mp)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "A DataSourceReplicas be van állítva, de egyik replika sem érhető el, ezért az olvasások az elsődleges adatbázisra esnek vissza."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Ellenőrizze a replika DSN-jét, a hálózati elérhetőséget és a hitelesítést. Keresse a szervernaplókban a replikakapcsolattal kapcsolatos figyelmeztetéseket."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Olvasási replikák be vannak állítva, de egyik sem érhető el"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Minden SQL-utasítás naplózásra kerül. Ez csak hibakeresésre szolgál: ha bekapcsolva marad, megtelik a lemez, és a lekérdezések tartalma a naplófájlokba kerül."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Állítsa a SqlSettings.Trace értékét false-ra, hacsak nem végez éppen hibakeresést."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "A SqlSettings.Trace engedélyezve van"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "A szerver a következő rendszeren fut: {{.os}}. A Mattermost éles használatra a Linuxot támogatja; más operációs rendszerek csak fejlesztésre alkalmasak."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Költöztesse a szervert egy támogatott Linux-disztribúcióra."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "A szerver nem Linuxon fut"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Minden új bejegyzés indexelése szinkron módon, külön kérésben történik. Terhelt szervereken ez túlterheli a keresőfürtöt, és késlelteti az indexelést."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Emelje a LiveIndexingBatchSize értékét 10 és 20 közé, és ezen a tartományon belül a megfigyelt bejegyzési ütem alapján hangolja."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Az Elasticsearch LiveIndexingBatchSize értéke 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "A LiveIndexingBatchSize értéke {{.size}}. A nagy _bulk kérések meghaladhatják a keresőfürt http.max_content_length értékét, és 413-as hibával meghiúsulhatnak, ami újrapróbálkozásokat és indexelési lemaradást okoz."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Csökkentse a LiveIndexingBatchSize értékét 10 és 20 közé, vagy ha a nagyon nagy kötegek szándékosak, emelje a keresőfürt http.max_content_length értékét."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Az Elasticsearch LiveIndexingBatchSize értéke 100 feletti"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "A ConnectionURL a(z) {{.host}} címre mutat, amelyet minden alkalmazáscsomópont saját magára old fel. A helyi keresőmotor nélküli csomópontok nem tudnak indexelni és keresni."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Állítsa a ConnectionURL értékét egy olyan gazdagépnévre vagy szolgáltatás-DNS-névre, amelyet minden alkalmazáscsomópont elér."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Az Elasticsearch ConnectionURL a localhostra mutat"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "A keresőfürt nem jelzi az analysis-icu bővítményt. A bejegyzések indexsablonja az ICU tokenizálót és normalizálót használja, így nélküle a bejegyzések indexelése meghiúsulhat."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "A bővítménylista nem lett begyűjtve, mert a szerver nem tudta kiolvasni a keresőfürt verzióját."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Telepítse az analysis-icu bővítményt minden keresőcsomópontra (elasticsearch-plugin install analysis-icu, vagy opensearch-plugin install analysis-icu), majd indítsa újra a csomópontokat. Nem csak a többnyelvű kereséshez, hanem a bejegyzések indexeléséhez is szükséges."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "A keresőmotorból hiányzik az analysis-icu bővítmény"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "A keresőmotor kapcsolattesztje sikertelen: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "A keresőmotor kapcsolattesztje sikertelen, és az adatbázis-alapú keresés ki van kapcsolva, ezért a keresés nem ad találatot: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "A keresőmotor kapcsolattesztje a következő csomópontokon sikertelen: {{.nodes}}, míg a többi csomópont eléri, ezért ezeken a csomópontokon a keresés és az indexelés meghiúsulhat. Ellenőrizze ezeken a csomópontokon a hálózati, tűzfal-, proxy- és DNS-beállításokat. Hiba: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Ellenőrizze az ElasticsearchSettings.ConnectionURL elérhetőségét, a TLS-t és a hitelesítő adatokat. Ellenőrizze a keresőfürt állapotát (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "A szerver Elasticsearch-fürthibát jelez"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "A SkipTLSVerification értéke true egy https kapcsolaton, ezért a szerver nem ellenőrzi a keresőmotor tanúsítványát. Ez megbízható belső hálózaton elfogadható, máshol viszont megszünteti a közbeékelődéses (man-in-the-middle) támadás elleni védelmet."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Ha a keresési végpont nem megbízható útvonalon érhető el, telepítse a hitelesítésszolgáltatójának (CA) tanúsítványát, hogy a tanúsítvány ellenőrizhető legyen, és állítsa a SkipTLSVerification értékét false-ra. Megbízható belső hálózaton győződjön meg róla, hogy a beállítás szándékos."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Az Elasticsearch-kapcsolat kihagyja a TLS-tanúsítvány ellenőrzését"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "A(z) {{.backend}} {{.version}} újabb a támogatott főverzióknál ({{.min}}–{{.max}}). Frissítse a Mattermostot egy ezt támogató kiadásra, vagy állítsa vissza a keresőfürtöt egy támogatott verzióra."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "A(z) {{.backend}} {{.version}} régebbi a támogatott főverzióknál ({{.min}}–{{.max}}). Frissítse a keresőfürtöt egy támogatott verzióra."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "A keresőfürt verziója nem lett begyűjtve, mert a szerver nem kapcsolódott a keresőfürthöz."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "A keresőmotor háttérrendszere vagy verziója nem ismerhető fel."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "A keresőfürtnek olyan főverzióját futtassa, amelyet a Mattermost ezen verziója támogat."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "A keresőmotor verziója nem támogatott"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "A GlobalRelaySettings.SMTPServerTimeout értéke {{.value}} másodperc. Ez korlátozza, hogy az exportálás mennyi ideig várjon a Global Relay SMTP-szerverhez való kapcsolódásra, és 30 másodperc alatt egy lassú kapcsolat miatt a kézbesítés meghiúsul."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Emelje a MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout értékét legalább 30 másodpercre. Az alapértelmezett érték 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "A Global Relay SMTPServerTimeout értéke 30 másodperc alatt van"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "A FileSettings.Directory könyvtárat tartalmazó köteten {{.total_gib}} GiB-ból {{.available_gib}} GiB ({{.percent}}%) szabad. A kötet megtelésekor a fájlfeltöltések és más fájlműveletek meghiúsulhatnak."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Azonnal bővítse a kötetet, vagy távolítsa el a nem odatartozó adatokat a fájlrendszeréről; a Mattermost által kezelt fájlokat ne törölje kézzel a FileSettings.Directory könyvtárból. Tartson szabadon legalább 10%-ot vagy 10 GiB-ot, de semmiképp se kevesebbet 1 GiB-nál."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "A fájltároló lemez majdnem megtelt"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "A FileSettings.Directory könyvtárat tartalmazó köteten {{.total_gib}} GiB-ból {{.available_gib}} GiB ({{.percent}}%) szabad."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Bővítse a kötetet, vagy távolítsa el a nem odatartozó adatokat a fájlrendszeréről; a Mattermost által kezelt fájlokat ne törölje kézzel a FileSettings.Directory könyvtárból. Tartson szabadon legalább 10%-ot vagy 10 GiB-ot, de semmiképp se kevesebbet 1 GiB-nál."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Kevés a szabad hely a fájltároló lemezen"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "A FileSettings.DriverName értéke local, a ClusterSettings.Enable be van kapcsolva, a FileSettings.Directory értéke pedig {{.directory}}. Fürtben ennek a könyvtárnak megosztott csatolásnak (NFS, EFS, GlusterFS, CephFS) kell lennie, amely minden csomóponton azonos módon van csatolva, különben az egyik csomópontra feltöltött fájlok nem láthatók a többin. A konfigurációból nem állapítható meg, hogy a könyvtár megosztott-e, és egy csomópont akkor is sikeresen teljesítheti a fájltárolási kapcsolattesztet, ha a saját helyi lemezére ír."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Minden alkalmazáscsomóponton futtassa a findmnt parancsot a FileSettings.Directory útvonalával. A relatív útvonal a Mattermost munkakönyvtárához képest értendő, amely általában az /opt/mattermost. Minden csomópontnak ugyanazt a távoli forrást kell mutatnia, és a Mattermost felhasználónak tudnia kell ott olvasni és írni. Ha a könyvtár nem megosztott csatolás, helyezze át egy megosztott csatolásra, vagy állítsa a FileSettings.DriverName értékét amazons3-ra."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Helyi fájltárolás magas rendelkezésreállású fürtben: ellenőrizze a megosztott csatolást"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "A FileSettings.AmazonS3Bucket üres, ezért a fájlfeltöltések meghiúsulnak."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Adja meg a FileSettings.AmazonS3Bucket értékét, a régióval és a végponttal együtt."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3 fájltárolás van kiválasztva, de a bucket neve üres"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "A FileSettings.AmazonS3SSL értéke false, ezért a fájlok titkosítatlanul jutnak el a szerver és az S3-végpont között."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Állítsa a FileSettings.AmazonS3SSL értékét true-ra, kivéve, ha a végpont csak titkosítatlan HTTP-t támogat."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Az Amazon S3 SSL le van tiltva"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "A szerver nem tudott kapcsolódni a fájltárolójához: {{.error}}. A fájlfeltöltések és -letöltések meghiúsulhatnak."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "A fájltárolási kapcsolatteszt sikertelen volt a következő csomópontokon: {{.nodes}}, míg a többi csomópont eléri a tárolót, így az ezeken a csomópontokon keresztüli fájlfeltöltések és -letöltések meghiúsulhatnak. Ellenőrizze ezeken a csomópontokon a hálózati, tűzfal-, proxy- és DNS-beállításokat. Helyi tárolás esetén azt is ellenőrizze, hogy a megosztott könyvtár csatolva van-e rajtuk. Hiba: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Ellenőrizze a fájltárolási beállításokat, majd használja a Kapcsolat tesztelése gombot a Rendszerkonzol > Környezet > Fájltárolás oldalon. Helyi tárolás esetén ellenőrizze, hogy a FileSettings.Directory létezik-e, és hogy a Mattermost felhasználó tud-e írni bele. Amazon S3 esetén ellenőrizze a bucketet, a végpontot és a hitelesítő adatokat."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "A fájltárolási kapcsolatteszt sikertelen"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "A(z) {{.job_type}} feladat legutóbb befejezett futása ({{.job_id}}) hibával zárult: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "A(z) {{.job_type}} feladat legutóbb befejezett futása ({{.job_id}}) hibával zárult, de nem rögzített hibaüzenetet."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Az ok megtalálásához tekintse át a feladat hibáját és a szervernaplókat a sikertelen futás kezdési időpontja körül. Gyakori kizárandó okok: adatbázis-terhelés, kapcsolatkészlet-korlátok, hálózati vagy feladatátvételi események és utasítás-időtúllépések. Szüntesse meg az okot, majd futtassa újra a feladatot, és ellenőrizze, hogy sikeresen befejeződik. Amíg egy futás nem sikeres, a feladat munkája (címtár-szinkronizálás, megfelelőségi export, adatmegőrzés vagy keresési indexelés) nem történik meg."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "A feladat legutóbbi futása sikertelen"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "A(z) {{.job_type}} típusú, {{.job_id}} azonosítójú feladat folyamatban van, de {{.hours}} órája nem rögzített tevékenységet. Ez általában azt jelenti, hogy a feldolgozó (worker) futás közben leállt, vagy az ütemező beragadt."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "A(z) {{.job_type}} típusú, {{.job_id}} azonosítójú feladat folyamatban van, de {{.days}} napja nem rögzített tevékenységet. Ez általában azt jelenti, hogy a feldolgozó (worker) futás közben leállt, vagy az ütemező beragadt."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Szakítsa meg az elakadt feladatot a Rendszerkonzol megfelelő oldalán, az mmctl job cancel paranccsal vagy az API-n keresztül. Ellenőrizze a szervernaplókat a feladat utolsó tevékenysége körüli időszakban, majd futtassa újra a feladatot."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "A feladat több mint 24 órája elakadt folyamatban lévő állapotban"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "A(z) {{.job_type}} típusú, {{.job_id}} azonosítójú feladat több mint egy órája nem jelzett előrehaladást, és nem rögzített tevékenységet. Ez általában azt jelenti, hogy a feldolgozó (worker) az első köteg előtt leállt, holtpontra jutott, vagy elvesztette az adatbázis-kapcsolatát."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Szakítsa meg a feladatot a Rendszerkonzol megfelelő oldalán, az mmctl job cancel paranccsal vagy az API-n keresztül. Keressen pánikokat vagy kapcsolódási hibákat a szervernaplókban a feladat kezdési időpontjától, majd futtassa újra a feladatot. Ha a hiba ismétlődik, készítsen goroutine-profilt a metrikaszerver /debug/pprof/goroutine végpontjáról, amíg a feladat elakadt állapotban van."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Folyamatban lévő feladat több mint egy órája előrehaladás és tevékenység nélkül"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "Az IdAttribute értéke {{.attribute}}. A Mattermost ezzel az attribútummal kapcsolja össze az egyes fiókokat a címtárbejegyzésükkel, így ha egy felhasználó e-mail-címe megváltozik (házasságkötés, cégátnevezés, osztályváltás), a kapcsolat megszakad, és a felhasználó nem fér hozzá a meglévő fiókjához."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Állítsa az IdAttribute értékét egy állandó attribútumra, például az objectGUID (AD) vagy az entryUUID (OpenLDAP) attribútumra, majd migrálja a meglévő fiókokat az mmctl ldap idmigrate paranccsal."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "Az LDAP IdAttribute egy e-mail-attribútum"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "A 636-os port a konvenció szerint implicit TLS-t (LDAPS) vár, de a ConnectionSecurity értéke None vagy STARTTLS. Ez a kombináció általában hibás konfigurációra utal, de egy TLS-t lezáró proxy mögött érvényes lehet. Ellenőrizze, hogy az LDAP-bejelentkezés és -szinkronizálás sikeres-e."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Ha az LDAP-bejelentkezés vagy -szinkronizálás sikertelen, állítsa a ConnectionSecurity értékét TLS-re a 636-os porthoz. Ha működnek, nincs szükség módosításra."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "Az LDAP 636-os port ConnectionSecurity=TLS nélkül van beállítva"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "A 389-es port a konvenció szerint titkosítatlan vagy STARTTLS kapcsolatot használ, míg az implicit TLS (LDAPS) a konvenció szerint a 636-os portot. Ez a kombináció általában hibás konfigurációra utal, de érvényes lehet egy TLS-t lezáró proxy vagy egy szándékosan átkonfigurált szerver mögött. Ellenőrizze, hogy az LDAP-bejelentkezés és -szinkronizálás sikeres-e."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Ha az LDAP-bejelentkezés vagy -szinkronizálás sikertelen, használja a 636-os portot a TLS-hez, vagy állítsa a ConnectionSecurity értékét STARTTLS-re a 389-es porthoz. Ha működnek, nincs szükség módosításra."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "Az LDAP 389-es port ConnectionSecurity=TLS beállítással van konfigurálva"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "Az LDAP-teszt (kapcsolódás, kötés és felhasználókeresés) sikertelen volt, ezért az LDAP-bejelentkezés és -szinkronizálás meghiúsulhat."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "Az LDAP-teszt (kapcsolódás, kötés és felhasználókeresés) sikertelen volt a következő csomópontokon: {{.nodes}}, míg a többi csomópont eléri az LDAP-szervert, ezért ezeken a csomópontokon az LDAP-bejelentkezés meghiúsulhat. Ellenőrizze ezeken a csomópontokon a hálózati, tűzfal-, proxy- és DNS-beállításokat."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Ellenőrizze a hiba részleteit, majd az LdapServer, LdapPort és ConnectionSecurity beállításokat és a kötési hitelesítő adatokat, valamint azt, hogy a Mattermost szerverek elérik-e az LDAP-szervert. Az újbóli ellenőrzéshez használja a Kapcsolat tesztelése gombot az AD/LDAP oldalon."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "Az LDAP-kapcsolatteszt sikertelen"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "A QueryTimeout értéke {{.timeout}} másodperc. A szűk időkorlátok lassú címtárak esetén indokolatlan LDAP-bejelentkezési és -szinkronizálási hibákat okoznak."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Emelje az LdapSettings.QueryTimeout értékét 60 másodpercre (ez az alapértelmezett)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "Az LDAP QueryTimeout értéke 10 másodperc alatt van"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} aktív felhasználói fiókot kezelnek manuálisan. A Mattermost 100 felhasználó feletti munkaterületeken egyszeri bejelentkezést javasol: ekkora méretben a manuális fiókkezelés elavult fiókokhoz, késedelmes bevezetéshez és elmaradó kiléptetésekhez vezet, amelyek mindegyike biztonsági és licencelési kockázatot jelent."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Csatlakoztassa a Mattermostot az identitásszolgáltatójához: AD/LDAP-t, ha címtárat üzemeltet, egyébként SAML-t vagy OpenID Connectet."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Több mint 100 felhasználó egyszeri bejelentkezés nélkül"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "A Mattermost nem ellenőrzi az LDAP-szerver TLS-tanúsítványát, így a címtárhoz irányuló kapcsolatok ki vannak téve közbeékelődéses (man-in-the-middle) támadásoknak. Ez csak fejlesztési és tesztelési célra elfogadható."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Telepítse az LDAP-szerver CA-láncát a Mattermost szerverekre, és állítsa a SkipCertificateVerification értékét false-ra."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "Az LDAP SkipCertificateVerification engedélyezve van"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "A SyncIntervalMinutes értéke {{.interval_minutes}}, és a legutóbbi LDAP-szinkronizálások átlagosan {{.avg_run_seconds}} másodpercig tartottak, ami az intervallum {{.duty_pct}}%-a. A rövid intervallumon futó hosszú szinkronizálások tartósan magasan tartják az adatbázis terhelését, és növelhetik a replikák késését."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Nem található mérhető időtartamú LDAP-szinkronizálási futás."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Szűkítse az LdapSettings.UserFilter és a BaseDN értékét a bejárt címtárrész korlátozásához, vagy növelje a SyncIntervalMinutes értékét. Törekedjen arra, hogy a szinkronizálási futások az intervallum kevesebb mint 25%-át vegyék igénybe."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "Az LDAP-szinkronizálás az intervallum nagy részében fut"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "Az LDAP-szinkronizálás a BaseDN-től kiindulva keres a címtárban, így ha ez üres, a szinkronizálás nem találja meg a frissítendő felhasználókat."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Állítsa az LdapSettings.BaseDN értékét a szinkronizálni kívánt címtár gyökerére."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "Az LDAP-szinkronizálás engedélyezve van, de a BaseDN üres"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "A licenc lejárt (lejárat dátuma: {{.expires_at}}). A szerver a lejárt licencet a lejárat után 10 nappal eltávolítja, és az Enterprise funkciók leállnak."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "A próbaidőszakos licenc lejárt (lejárat dátuma: {{.expires_at}}). A szerver a lejárt licencet a lejárat után 10 nappal eltávolítja, és az Enterprise funkciók leállnak."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Szerezzen be új licencet, és töltse fel a Rendszerkonzol > Névjegy > Kiadás és licence oldalon."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "A licenc lejárt"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "A licenc lejárati dátuma: {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "A próbaidőszakos licenc lejárati dátuma: {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Szerezzen be most új licencet, hogy a jelenlegi lejárta előtt feltölthesse a Rendszerkonzol > Névjegy > Kiadás és licence oldalon."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "A licenc 30 napon belül lejár"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "A LogSettings.FileLevel értéke {{.level}}. A debug szintű fájlnaplózás gyorsan növeli a naplófájlok méretét, és a többletrészletek a kérések tartalmát (payload) is magukban foglalhatják. Hibaelhárítás közben ez rendben van, de állandó éles beállításként nem ideális."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Ha éppen nem végez hibaelhárítást, a naplómennyiség csökkentéséhez állítsa a LogSettings.FileLevel értékét INFO-ra."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Fájlnaplózás debug vagy trace szinten"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "A LogSettings.EnableFile értéke false, ezért a szerver nem ír naplófájlt. Így a támogatási csomagok nem tartalmaznak szervernaplókat, még akkor sem, ha egy külső gyűjtő rögzíti az stdout vagy a journald kimenetét, és a hibaelhárítás a Mattermost támogatási csapatával tovább tart."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Állítsa a LogSettings.EnableFile értékét true-ra. Ez a konzolos naplózás mellett működik, így a meglévő naplógyűjtő továbbra is működni fog."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "A fájlnaplózás le van tiltva"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "A LogSettings.EnableWebhookDebugging értéke true, ezért a sikertelen bejövő webhook-kérések a tartalmukkal (payload) együtt naplózásra kerülnek, ami üzenetszöveget is tartalmazhat."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Állítsa a LogSettings.EnableWebhookDebugging értékét false-ra, hacsak nem egy webhook hibáját keresi éppen."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "A webhookok tartalma (payload) naplózásra kerül"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "A TeamSettings.MaxNotificationsPerChannel értéke {{.limit}}, így a @channel, @all és @here a több ezer tagú csatornákban is működik. Ott egyetlen, az egész csatornát érintő említés egyszerre több ezer értesítést küld ki, ami késleltetési csúcsokat okoz."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Csökkentse a TeamSettings.MaxNotificationsPerChannel értékét legfeljebb 5000-re (az alapértelmezett érték 1000). A @channel, @all és @here le van tiltva, amint egy csatorna eléri ezt a taglétszámot, ezért előbb egyeztessen azokkal a csapatokkal, amelyek nagy csatornákban használják őket."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Az egész csatornát érintő említések nagyon nagy csatornákban is engedélyezettek"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "A Mattermost nem rögzít teljesítménymetrikákat, például az adatbázis-kapcsolatokat, a kérések késleltetését és a szerver terhelését. Ezek nélkül nincs visszatekinthető előzmény, amikor a felhasználók lassúságot jeleznek, és nincs mit megosztani a Mattermost támogatási csapatával."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Kapcsolja be a Teljesítmény monitorozás (Performance Monitoring) beállítást a Rendszerkonzolon, és ellenőrizze, hogy a Metrics bővítmény engedélyezve van-e a Bővítmények > Bővítmény kezelés oldalon. A bővítmény 15 napnyi metrikát tárol a szerveren, Prometheus nélkül. Ha Prometheust futtat, irányítsa a metrikafigyelőre (alapértelmezés szerint a 8067-es port)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "A teljesítménymonitorozás ki van kapcsolva"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "A konténer memóriabeli munkakészlete (working set) {{.working_set}} MB a {{.limit}} MB-os korlátjából. Ha tovább növekszik, a kernel leállíthatja a szervert vagy egy bővítményfolyamatot."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Csökkentse a Mattermost és bővítményei memóriahasználatát, vagy emelje a konténer memóriakorlátját. Hagyjon elegendő tartalékot a bővítményfolyamatok, a Go futtatókörnyezet és a forgalmi csúcsok számára."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "A konténer memóriája majdnem elfogyott"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "A konténer az indulása óta {{.kills}} memóriahiány miatti leállítást (OOM kill) rögzített. A leállított folyamat lehetett egy bővítmény vagy egy másik gyermekfolyamat; tekintse át a bővítmények listáját és a konténer memóriakorlátját."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "A bővítményfolyamatok és a konténernaplók áttekintésével azonosítsa, mi lett leállítva, majd csökkentse annak memóriahasználatát, vagy emelje a konténer memóriakorlátját."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Egy konténerfolyamat memóriahiány miatt le lett állítva"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "A konténer {{.periods}} CPU-ütemezési periódusból {{.throttled}} alatt korlátozva volt (throttling). A tartós CPU-korlátozás akkor is lelassíthatja a Mattermostot, ha a gazdagép CPU-használata alacsonynak tűnik."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Emelje a konténer CPU-korlátját (CPU limit), vagy szüntesse meg a korlátot, és csak a CPU-igénylést (CPU request) tartsa meg."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Magas a konténer CPU-korlátozása (throttling)"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "A szerverfolyamatnak {{.max}} fájlleíróból {{.open}} van megnyitva. A korlát elérésekor az új kapcsolatok és a fájlműveletek meghiúsulnak."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Emelje a megnyitható fájlok korlátját: állítsa be a LimitNOFILE értéket a Mattermost systemd unitjában, vagy emelje a konténer nofile ulimit értékét, majd indítsa újra a szervert."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "A fájlleírók majdnem elfogytak"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "A Go memóriakorlátja {{.go_limit}} MB, a konténer korlátja viszont {{.container_limit}} MB. Előfordulhat, hogy a szemétgyűjtő nem kezd intenzívebben dolgozni, mielőtt a kernel leállítja a folyamatot."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Állítsa a GOMEMLIMIT értékét a konténer memóriakorlátjának körülbelül 80–90%-ára, így tartalék marad a Go heapen kívüli memória és a bővítményfolyamatok számára."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "A Go memóriakorlátja eléri vagy meghaladja a konténer korlátját"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "A GOMAXPROCS értéke {{.go_max_procs}}, ami meghaladja a konténer {{.cpu_limit}} CPU-s korlátját. A többlet futtatható szálak növelhetik a CPU-korlátozást (throttling)."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Szüntesse meg a GOMAXPROCS beállítását, hogy a Go futtatókörnyezet a konténer CPU-korlátjához igazítsa, majd indítsa újra a szervert."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "A GOMAXPROCS meghaladja a konténer CPU-korlátját"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "A gazdagép 15 perces átlagos terhelése {{.load}}, {{.cores}} CPU-mag mellett. A magonként tartósan kettő vagy több feladatnak megfelelő terhelés CPU- vagy I/O-túlterhelésre utalhat."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Ellenőrizze a csomópont CPU-kihasználtságát, lemez-I/O-ját és a futó folyamatokat, majd bővítse a kapacitást, vagy csökkentse a terhelést."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Magas a gazdagép terhelése"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "A gazdagépen {{.total}} MB-ból {{.available}} MB áll rendelkezésre. Ha a szabad memória tovább csökken, a Mattermost és más folyamatok leállíthatók vagy lelassulhatnak."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Keresse meg és korlátozza a legtöbb memóriát használó folyamatokat, vagy bővítse a gazdagép memóriáját. A szolgáltatások újraindítása előtt tekintse át a Mattermost és a bővítmények memóriahasználatát."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Kevés a gazdagép szabad memóriája"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Ez a csomópont nem küldte el a diagnosztikai adatait az állapot-ellenőrzéshez. Lehet, hogy leállt, túlterhelt, vagy el van vágva a többi csomóponttól. Amíg nem válaszol, a többi megállapítása az utolsó ismert állapotában marad."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Ellenőrizze, hogy a Mattermost fut-e ezen a csomóponton, tekintse át a naplóit, valamint a CPU- és memóriahasználatát, és győződjön meg róla, hogy eléri a többi csomópontot a gossip porton (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Egy fürtcsomópont nem válaszol"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Az OAuth/OIDC szolgáltató elérhetőségi próbája minden jelentést küldő Mattermost csomóponton sikertelen volt, így az ezen a szolgáltatón keresztüli bejelentkezés valószínűleg nem érhető el."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Az OAuth/OIDC szolgáltató elérhetőségi próbája sikertelen volt a következő csomópontokon: {{.nodes}}, míg a többi jelentést küldő csomópont eléri a szolgáltatót. Ezeken a csomópontokon az ezen a szolgáltatón keresztüli bejelentkezés meghiúsulhat."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Ellenőrizze a hiba részleteit, a szolgáltató felderítési (discovery) vagy token végpontját, valamint a kimenő hálózati, tűzfal-, proxy- és DNS-beállításokat. Ezután ellenőrizze a bejelentkezést a szolgáltatón keresztül."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Az OAuth/OIDC szolgáltató elérhetőségi próbája sikertelen"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "A nyílt szerver és az e-mailes regisztráció engedélyezve van, miközben az e-mail-ellenőrzés ki van kapcsolva, így bárki, aki eléri ezt a szervert, kitalált e-mail-címmel fiókot hozhat létre, és csatlakozhat a nyílt csapatokhoz. Ha a nyílt regisztráció szándékos, némítsa el ezt a megállapítást."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "A nyílt szerver és az e-mailes regisztráció engedélyezve van, miközben az e-mail-ellenőrzés ki van kapcsolva. A TeamSettings.RestrictCreationToDomains bizonyos tartományokra korlátozza a regisztrációt, de a Mattermost csak azt ellenőrzi, hogy a cím engedélyezett tartományra végződik-e, azt nem, hogy a cím valóban a regisztráló személyé-e. Bárki, aki eléri ezt a szervert, regisztrálhat egy engedélyezett tartomány alatt, és kollégának tűnhet. Ha a nyílt regisztráció szándékos, némítsa el ezt a megállapítást."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Állítsa az EmailSettings.RequireEmailVerification értékét true-ra. Előbb győződjön meg róla, hogy az SMTP működik: azoknak a meglévő felhasználóknak, akik soha nem erősítették meg az e-mail-címüket, a következő bejelentkezéskor meg kell erősíteniük. Ha nem szeretne nyílt regisztrációt, állítsa a TeamSettings.EnableOpenServer értékét false-ra; a felhasználók ekkor is csatlakozhatnak csapatmeghívó linkeken keresztül, ezért az e-mail-ellenőrzés továbbra is ajánlott. A regisztráció saját szervezetére korlátozásához állítsa be a TeamSettings.RestrictCreationToDomains értékét az e-mail-ellenőrzéssel együtt; ellenőrzés nélkül ez megkerülhető."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Bárki regisztrálhat nem ellenőrzött e-mail-címmel"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "A PluginSettings.EnableHealthCheck értéke false, ezért az összeomló bővítmények nem indulnak újra automatikusan."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Állítsa a PluginSettings.EnableHealthCheck értékét true-ra."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "A bővítmények állapot-ellenőrzése le van tiltva"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Ezek a bővítmények engedélyezve vannak, de nem futnak: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "A Rendszerkonzol > Bővítmények > Bővítmény kezelés oldalon ellenőrizze az egyes felsorolt bővítmények állapotát, és próbálja meg letiltani, majd újra engedélyezni őket. A szervernapló rögzíti, miért nem indult el egy bővítmény, vagy miért állította le a bővítmények állapot-ellenőrzése."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Engedélyezett bővítmények nem futnak"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "A PluginSettings.Enable értéke false, így egyetlen bővítmény sem fut. Ez egyes szigorúan lezárt telepítéseknél megfelelő, de gyakran nem szándékos."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Ha ez nem várt, állítsa a PluginSettings.Enable értékét true-ra."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "A bővítmények le vannak tiltva"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "A PushNotificationContents értéke full, így az üzenet szövege és küldője is bekerül a push értesítés tartalmába, amely a push proxyn, valamint az Apple és a Google push szolgáltatásain keresztül halad át."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "A push értesítések maximális adatvédelméhez állítsa az EmailSettings.PushNotificationContents értékét id_loaded értékre. Ekkor csak az üzenet azonosítója kerül elküldésre, és a mobilalkalmazás a szerverről tölti le az üzenet tartalmát. Ehhez a mobileszközöknek el kell érniük a szervert, amikor értesítés érkezik, így a csak VPN-en vagy belső hálózaton keresztül elérhető szervereken az értesítések nem tudják megjeleníteni az üzenet tartalmát. Ha a full érték tudatos választás, némítsa el ezt a megállapítást."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "A push értesítések tartalmazzák a teljes üzenetszöveget"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "A push értesítési szerverrel végzett kapcsolatteszt sikertelen: {{.error}}. Előfordulhat, hogy a mobilfelhasználók nem kapnak push értesítéseket."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "A push értesítési szerverrel végzett kapcsolatteszt sikertelen volt a következő csomópontokon: {{.nodes}}, míg a többi csomópont eléri a szervert. Az ezekről a csomópontokról küldött push értesítések meghiúsulhatnak. Ellenőrizze ezeken a csomópontokon a hálózati, tűzfal-, proxy- és DNS-beállításokat. Hiba: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Ellenőrizze a PushNotificationServer beállítást, a TLS-tanúsítványokat és a push proxy állapotát. Győződjön meg róla, hogy minden Mattermost alkalmazáscsomópont eléri a beállított gazdagépet HTTPS-en keresztül, majd ellenőrizze annak /version végpontját."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "A push értesítési szerver kapcsolattesztje sikertelen"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "A push-test.mattermost.com a Mattermost teszt push proxyja. Nincs hozzá SLA, korlátozott az áteresztőképessége, és nem éles használatra készült. A licenc tartalmazza a Mattermost Hosted Push Notification Service szolgáltatást: állítsa a PushNotificationServer értékét a https://global.push.mattermost.com címre."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "A RateLimitSettings.Enable értéke false, miközben {{.users}} regisztrált felhasználó van. A sebességkorlátozás védi a szervert a kérésáradatokkal és a visszaélő vagy hibásan működő kliensekkel szemben; ennyi felhasználó mellett, a webhookokkal és bot-integrációkkal együtt, egyetlen rosszul konfigurált kliens is telítheti az API-t. A Mattermost dokumentációja szerint a beépített sebességkorlátozó kisebb telepítésekhez (legfeljebb néhány száz felhasználóig) készült, ezért nagyobb méretben a kérések korlátozását gyakran jobb egy terheléselosztón vagy API-átjárón kezelni."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Gondoskodjon arról, hogy ehhez a mérethez illő kéréskorlátozás legyen érvényben, akár a Mattermost beépített sebességkorlátozásával (Rendszerkonzol > Környezet > Sebességkorlátozás), akár a terheléselosztón vagy az átjárón."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Az API-sebességkorlátozás le van tiltva egy nagy telepítésen"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "A RateLimitSettings.MemoryStoreSize értéke {{.size}}, de {{.users}} regisztrált felhasználó van. A sebességkorlátozó legfeljebb ennyi klienst követ; ha megtelik, a legrégebben látottat elveti, amelynek kéréskvótája ezután újraindul, így a kis tároló gyengíti a sebességkorlátozást."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Emelje a RateLimitSettings.MemoryStoreSize értékét legalább a regisztrált felhasználók számára."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "A sebességkorlátozás memóriatárolója kisebb a felhasználók számánál"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "A TimeBetweenBatchesMilliseconds értéke {{.value}}. Az adatmegőrzési feladat ennyi ideig vár a törlési kötegek között, hogy az adatbázisnak legyen ideje kiszolgálni az élő forgalmat. 100 ms alatt a nagy törlések mindenki számára lelassíthatják az adatbázist."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Emelje a konfigurációban a DataRetentionSettings.TimeBetweenBatchesMilliseconds értékét legalább 100-ra (ez az alapértelmezett)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "Az adatmegőrzés TimeBetweenBatchesMilliseconds értéke 100 alatt van"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Az állítások (assertion) titkosítatlanul haladnak a SAML rétegben. A kapcsolatot továbbra is TLS védi, így ez nem alapvető biztonsági hiba, de ha az IdP támogatja az állítások titkosítását, annak engedélyezése további védelmi réteget ad."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Ha az IdP támogatja az állítások titkosítását, engedélyezze a SamlSettings.Encrypt beállítást, és állítsa be a szolgáltató (service provider) privát kulcsát és nyilvános tanúsítványát."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "A SAML-állítások titkosítása le van tiltva"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "A Mattermost a SAML-fiókokat e-mail-cím alapján azonosítja, mert az IdAttribute vagy üres, vagy egy e-mail-attribútumot ad meg. Ha egy felhasználó e-mail-címe megváltozik az IdP-ben, a meglévő fiókjával való kapcsolat megszakad."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Állítsa be az IdP-t úgy, hogy állandó azonosítót küldjön (például objectGUID-t vagy egy nem módosítható azonosítót), majd állítsa a SamlSettings.IdAttribute értékét ennek az attribútumnak a nevére. A meglévő fiókok maguktól átállnak az új azonosítóra: minden felhasználó következő bejelentkezésekor a Mattermost e-mail-cím alapján megkeresi a fiókot, és eltárolja az új azonosítót."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "A SAML IdAttribute üres, vagy e-mail-attribútum"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "Az IdAttribute értéke {{.attribute}}. A felhasználóneveket, uid-ket és egyszerű felhasználóneveket (user principal name) gyakran újra kiosztják a munkatársak között, és ilyenkor a második személy megörökli az első személy Mattermost-fiókját."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Részesítse előnyben a soha újra ki nem osztott azonosítókat, például az objectGUID (AD) vagy egy nem módosítható azonosító (Microsoft Entra ID) használatát, és tekintse át az IdP azonosító-újrafelhasználási szabályzatát."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "A SAML IdAttribute értéke újra kiosztható az IdP-ben"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "Az IdP-tanúsítvány és az IdP URL SAML-ellenőrzése sikertelen volt, így a SAML-bejelentkezés valószínűleg nem működik."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "Az IdP-tanúsítvány és az IdP URL SAML-ellenőrzése sikertelen volt a következő csomópontokon: {{.nodes}}, míg a többi csomóponton sikeres, így ezeken a csomópontokon a SAML-bejelentkezés meghiúsulhat. Győződjön meg róla, hogy ezeken a csomópontokon ugyanaz az érvényes IdP-tanúsítvány van, mint a többin."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Ellenőrizze a hiba részleteit, majd javítsa ki az IdP-tanúsítványt (IdpCertificateFile) vagy az IdP URL-t (IdpURL) a SAML-beállításokban. Ha a tanúsítvány lejárt, töltse fel az IdP aktuális aláíró tanúsítványát."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "A SAML-konfiguráció ellenőrzése sikertelen"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "Az SSO az elavult SHA-1 aláírási algoritmust használja. Az SSO jelenleg működik, de egyes identitásszolgáltatók kezdik elutasítani a SHA-1-et, ezért ez egy ütemezendő kompatibilitási és biztonsági fejlesztés, különösen bármilyen IdP-módosítás vagy -frissítés előtt."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Amikor alkalmas, az IdP-vel egyeztetve állítsa a SamlSettings.SignatureAlgorithm értékét RSAwithSHA256-ra."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "A SAML SignatureAlgorithm értéke SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "A Mattermost az IdP aláírásának ellenőrzése nélkül fogadja el a SAML-válaszokat, így nem tudja megkülönböztetni a valódi hitelesítési választ a hamisítottól."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Állítsa a SamlSettings.Verify értékét true-ra, és győződjön meg róla, hogy az AssertionConsumerServiceURL be van állítva. Az IdP-vel egyeztetve engedélyezze, és tesztelje a bejelentkezést, mivel az ellenőrzéshez az IdP-tanúsítványnak helyesen kell beállítva lennie."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "A SAML-aláírás ellenőrzése le van tiltva"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "A munkaterületen {{.posts}} bejegyzés van, és a keresés az adatbázisban fut. 2 500 000 bejegyzés felett az Elasticsearch használata ajánlott, 5 000 000 felett pedig kötelező."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Tervezze meg az Elasticsearch telepítését a következő jelentős növekedési időszak előtt, vagy mielőtt eléri az 5 000 000 bejegyzést."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "A bejegyzések száma közelít az Elasticsearch küszöbértékéhez"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "A munkaterületen {{.posts}} bejegyzés van, és a keresés az adatbázisban fut. Ekkora méretben lassú keresésekre, időtúllépésekre és adatbázis-CPU-csúcsokra kell számítani."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Telepítsen Elasticsearch vagy OpenSearch rendszert, futtasson le egy teljes kezdeti indexelést, majd engedélyezze az EnableIndexing, EnableSearching és EnableAutocomplete beállításokat."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "5 000 000 bejegyzés felett az Elasticsearch kötelező"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Az adatbázis-keresés le van tiltva, és az Elasticsearch-keresés ki van kapcsolva. A keresések nem adnak vissza találatot. Az Elasticsearch vagy OpenSearch alapú keresés engedélyezése szintén helyreállítja a keresést."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Az adatbázis-keresés le van tiltva, és a licenc nem tartalmazza az Elasticsearch funkciót, így az Elasticsearch-beállításoknak nincs hatása. A keresések nem adnak vissza találatot."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Állítsa a SqlSettings.DisableDatabaseSearch értékét false-ra a config.json fájlban (vagy használja az MM_SQLSETTINGS_DISABLEDATABASESEARCH=false beállítást)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "A keresés le van tiltva"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} felhasználó számít bele a licenc {{.limit}} felhasználós korlátjába, így a korlát betelt. A szerver nem hoz létre és nem aktivál újra felhasználókat, amíg felhasználói helyek fel nem szabadulnak, vagy újakat nem vásárolnak."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Vásároljon további felhasználói helyeket, vagy a helyek felszabadításához deaktiválja azokat a felhasználókat, akiknek már nincs szükségük hozzáférésre."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "A licenc felhasználói korlátja betelt"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "A(z) {{.seats}} licencelt felhasználói helyből {{.used}} foglalt ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Ha több felhasználóra számít, tervezzen be további felhasználói helyeket, mielőtt a licenc betelik. A hozzáférést már nem igénylő felhasználók deaktiválása helyeket szabadít fel."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "A licencelt felhasználói helyek majdnem beteltek"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "A(z) {{.seats}} licencelt felhasználói helyből {{.used}} foglalt ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Vásároljon további felhasználói helyeket, vagy deaktiválja azokat a felhasználókat, akiknek már nincs szükségük hozzáférésre. A deaktivált felhasználók nem foglalnak helyet."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Több a felhasználó, mint a licencelt felhasználói hely"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "A munkamenetek a tevékenységtől függetlenül rögzített ütemezés szerint járnak le, így az aktív felhasználók is kijelentkeztetésre kerülnek. A legtöbb telepítésnek előnyös, ha az aktív felhasználók bejelentkezve maradnak."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Engedélyezze a ServiceSettings.ExtendSessionLengthWithActivity beállítást, hacsak a biztonsági szabályzata nem tiltja."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "Az ExtendSessionLengthWithActivity le van tiltva"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Az SMTP-szerverrel végzett kapcsolatteszt sikertelen: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Az SMTP-szerverrel végzett kapcsolatteszt sikertelen volt a következő csomópontokon: {{.nodes}}, míg a többi csomópont eléri a szervert. Ellenőrizze ezeken a csomópontokon a hálózati, tűzfal-, proxy- és DNS-beállításokat. Hiba: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Előfordulhat, hogy az e-mail-értesítések, a meghívók és a jelszó-visszaállító e-mailek nem kerülnek kézbesítésre. Ellenőrizze a Rendszerkonzolon az SMTP-szervert, a portot, a kapcsolat biztonságát és a hitelesítő adatokat, győződjön meg róla, hogy a Mattermost szerver eléri az SMTP-gazdagépet, majd az ellenőrzéshez használja a Kapcsolat tesztelése gombot."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Az SMTP-szerver kapcsolattesztje sikertelen"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "A legújabb kiadás ismeretlen: nem sikerült lekérni, vagy a csomag nem tartalmazza."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "A legfrissebb kiadás nincs ellenőrizve: a Biztonsági és kiadási frissítések keresése beállítás ki van kapcsolva, ezért a szerver nem kéri le."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Ez a verzió nem szerepel ennek a buildnek a kiadási táblázatában. Egy újabb szerverről származó támogatási csomag kiértékeléséhez használjon újabb mmctl-t."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "A szerver verziója ismeretlen vagy nem felismerhető."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "A futó verzió: {{.version}}. A legújabb: {{.latest}}, amely legalább két kiadással újabb."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Tervezze meg a frissítést a legújabb kiadásra, mielőtt ennek a kiadási sorozatnak a támogatása megszűnik, vagy térjen át egy kiterjesztett támogatású kiadásra a ritkább frissítési ütem érdekében."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Több kiadással elmarad a legújabb kiadástól"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "A futó verzió: {{.version}}. A legújabb: {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Tervezze meg a frissítést a legújabb kiadásra."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Újabb kiadás érhető el"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "A futó verzió: Mattermost {{.version}}. Ennek a kiadási sorozatnak a támogatása {{.eol_date}} dátummal megszűnt. Ehhez a kiadási sorozathoz nem jelennek meg biztonsági javítások."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "A futó verzió: Mattermost {{.version}}, egy régebbi kiadási sorozatból, amely már nem támogatott. Ehhez a kiadási sorozathoz nem jelennek meg biztonsági javítások."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "A futó verzió: Mattermost {{.version}}, egy régebbi kiadási sorozatból, amely már nem támogatott. Ehhez a kiadási sorozathoz nem jelennek meg biztonsági javítások. A legújabb támogatott kiterjesztett támogatású kiadás: {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "A futó verzió: Mattermost {{.version}}. Ennek a kiadási sorozatnak a támogatása {{.eol_date}} dátummal megszűnt. Ehhez a kiadási sorozathoz nem jelennek meg biztonsági javítások. Frissítsen a legújabb kiadásra."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "A futó verzió: Mattermost {{.version}}. Ennek a kiadási sorozatnak a támogatása {{.eol_date}} dátummal megszűnt. Ehhez a kiadási sorozathoz nem jelennek meg biztonsági javítások. A legújabb támogatott kiterjesztett támogatású kiadás: {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Tervezzen meg egy fokozatos frissítést egy támogatott kiterjesztett támogatású kiadásra vagy a legújabb kiadásra. A támogatott verziók listája: https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "A Mattermost verziójának támogatása megszűnt"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "A futó verzió: {{.version}}, a(z) {{.esr}} kiterjesztett támogatású kiadási sorozatból. A biztonsági javítások további fogadásához tervezze meg a frissítést {{.eol_date}} előtt."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Ütemezzen be egy frissítést a legújabb kiadásra vagy a következő kiterjesztett támogatású kiadásra."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "A kiterjesztett támogatású kiadás támogatása hamarosan megszűnik"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "A jogosultsági szabályzat csatornahozzáférési műveletei csak a Rendszerfelhasználó, Rendszervendég vagy Rendszergazda szerepkörre vonatkozhatnak."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Jogosultsági szabályzat csatornahozzáférési szabálya nem adhat meg saját szerepkört. A szabályzat szerepköre érvényes."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "A Csatorna kezelése művelet csak jogosultsági és csatornaszabályzatokon engedélyezett."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "A Csatorna olvasási hozzáférés művelet csak jogosultsági és csatornaszabályzatokon engedélyezett."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "A Csatorna írási hozzáférés művelet csak jogosultsági és csatornaszabályzatokon engedélyezett."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Belső hiba történt."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "A Redis gyorsítótár-előtag nem tartalmazhatja a következő karaktereket: ':', '*', '?', '[', ']' vagy '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "A RedisTLSClientCert és a RedisTLSClientKey beállítást együtt kell megadni."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "A további hatókörök csak szóközzel elválasztott OAuth hatókörnevek lehetnek, összesen legfeljebb {{.MaxLength}} karakter hosszan."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Érvénytelen mezőszűrő. A mezőnév legfeljebb {{.MaxLength}} karakter lehet, és nem lehet üres, \"level\" vagy \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Érvénytelen mezőszűrő. A mezőérték legfeljebb {{.MaxLength}} karakter lehet."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Érvénytelen mezőszűrő. Minden mezőnek 1 és {{.MaxValues}} közötti számú értékkel kell rendelkeznie."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Érvénytelen mezőszűrő. Legfeljebb {{.MaxKeys}} mezőre lehet szűrni."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Érvénytelen keresési szűrő. Legfeljebb {{.MaxLength}} karakter lehet."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Nem sikerült lekérni az üzenetszál követőit."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "A szerver nem támogatja a bővítménykulcsok beállításokkal történő listázását."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Nem sikerült beállításokkal listázni a bővítménykulcsokat."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Érvénytelen üzenetszál-azonosító."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Érvénytelen felhasználó azonosító."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "A bejegyzés egy válasz, nem pedig egy üzenetszál gyökérbejegyzése."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Érvénytelen fájllétrehozó."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "A bevezetéshez megadott Rendszer URL érvénytelen. Útvonal nélküli http vagy https URL-nek kell lennie, például https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Nem sikerült exportálni az állapotjelentést."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "A bejegyzés-attribútumokhoz Enterprise licenc szükséges."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Hiányoznak a csatornaattribútumok értékei a következő csatornákon:{{.ChannelList}}\n\nÖn ezeken a csatornákon csatorna admin. Nyissa meg a csatornát, és válassza az **Értékek hozzáadása** lehetőséget, vagy állítsa be az értékeket a **Csatornainformáció** panelen."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) – beállítandó: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "A bővítmény azonosítója ({{.ID}}) a központi szerver számára van fenntartva, ezért nem telepíthető és nem tölthető be."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Regisztrált felhasználók száma: {{.users}}. Ez a szerver egyetlen csomóponton fut, magas rendelkezésreállás nélkül. A Mattermost referenciaarchitektúrái 200 felhasználó felett magas rendelkezésreállást javasolnak, ezért tervezze meg, mielőtt egy csomópont meghibásodása vagy egy frissítés nem elérhetővé teszi a munkaterületet."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Futtasson legalább két alkalmazáscsomópontot egy terheléselosztó mögött, közös adatbázissal és közös fájltárolóval, majd engedélyezze a ClusterSettings.Enable beállítást minden csomóponton ugyanazzal a ClusterName értékkel."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Fontolja meg a magas rendelkezésreállás beállítását"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Regisztrált felhasználók száma: {{.users}}. Ez a szerver egyetlen csomóponton fut, magas rendelkezésreállás nélkül. Bármely csomópont meghibásodása, újraindítása vagy frissítése a teljes munkaterületet nem elérhetővé teszi. A Mattermost referenciaarchitektúrái ekkora méretnél megkövetelik a magas rendelkezésreállást."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Futtasson legalább két alkalmazáscsomópontot egy terheléselosztó mögött, közös adatbázissal és közös fájltárolóval, majd engedélyezze a ClusterSettings.Enable beállítást minden csomóponton ugyanazzal a ClusterName értékkel."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "A magas rendelkezésreállás nincs engedélyezve ekkora méretnél"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "A ServiceSettings.EnableDeveloper értéke true, ezért a részletes hibainformációk megjelennek a felhasználók és a kliensek számára. Ez a beállítás csak fejlesztési célra szolgál."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Állítsa a ServiceSettings.EnableDeveloper értékét false-ra."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "A ServiceSettings.EnableDeveloper engedélyezve van"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Az e-mail nincs beállítva, ezért az e-mailek, például a jelszó-visszaállítások és az értesítések, nem lesznek kézbesítve."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Az alapértelmezett localhost:10025 SMTP-címen egyetlen levelezőszerver sem válaszol a következő csomópontokon: {{.nodes}}. Ezért az ezen csomópontok által küldött e-mailek, például a jelszó-visszaállítások és az értesítések, nem lesznek kézbesítve. A többi csomópont elér ott egy levelezőszervert. Hiba: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Állítson be egy SMTP-szervert a rendszerkonzolban. Ha ennek a szervernek nem kell e-mailt küldenie, kapcsolja ki az e-mail-értesítéseket, az e-mail-meghívókat és az e-mail-ellenőrzést, majd némítsa el ezt a megállapítást. Az e-mail-címmel vagy felhasználónévvel történő bejelentkezést hagyja bekapcsolva: ezek nélkül azok a felhasználók, akik nem SSO-n keresztül jelentkeznek be, nem tudnak bejelentkezni."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Az SMTP-szerver nincs beállítva"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "A ServiceSettings.EnableTesting értéke true, ezért a tesztelési mód olyan tesztparancsokat és végpontokat tesz elérhetővé, amelyek csak fejlesztési célra szolgálnak."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Állítsa a ServiceSettings.EnableTesting értékét false-ra, majd indítsa újra a szervert. Egyes tesztvégpontok csak újraindításkor szűnnek meg."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "A ServiceSettings.EnableTesting engedélyezve van"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "A ServiceSettings.EnableInsecureOutgoingConnections értéke true, ezért a szerver nem ellenőrzi a TLS-tanúsítványokat a kimenő HTTPS-kapcsolatokon, például a kimenő webhookoknál, a perjel parancsoknál, az OAuth-tokencseréknél, a link-előnézeteknél és a bővítményletöltéseknél. A hálózati útvonalon bárki elolvashatja vagy módosíthatja ezt a forgalmat, beleértve az OAuth-tokeneket is."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Adja hozzá a belső CA-tanúsítványt a rendszer megbízható tanúsítványtárolójához minden Mattermost-szerveren, majd állítsa a ServiceSettings.EnableInsecureOutgoingConnections értékét false-ra."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "A TLS-tanúsítványok ellenőrzése ki van kapcsolva a kimenő kapcsolatoknál"
   }
 ]

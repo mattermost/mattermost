@@ -496,5 +496,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "ploča",
+    "note": "Feminine; plural 'ploče', genitive plural 'ploča' ('kanal ploče', 'atributi ploča'). The ordinary noun, unlike the product name Boards, which stays in English. One sidebar entry ships 'Atributi Boards' for Board Attributes; use 'Atributi ploča'."
+  },
+  "post attribute": {
+    "target": "atribut objave",
+    "note": "Masculine; plural 'atributi objave', genitive plural 'atributa objave'. Built from the catalog's 'atribut' and 'objava'; keep 'objave' to distinguish it from a profile attribute."
+  },
+  "holdings": {
+    "target": "vlastite vrijednosti",
+    "note": "No precedent in the catalog. Plural only; genitive 'vlastitih vrijednosti', instrumental 'vlastitim vrijednostima'. Do not use 'imovina' or 'posjed', which read as financial holdings."
+  },
+  "Manage Channel": {
+    "target": "Upravljanje kanalom",
+    "note": "No precedent for this policy action. A verbal noun, matching 'Pristup kanalu za čitanje' and 'Pristup kanalu za pisanje', rather than the imperative 'Upravljaj ...' that older permission names use. Croatian capitalizes only the first word, so the Title Case and sentence case English render the same. In running text keep it undeclined after a head noun: 'radnja Upravljanje kanalom'."
+  },
+  "Channel Read Access": {
+    "target": "Pristup kanalu za čitanje",
+    "note": "Follows the catalog's 'pristup za čitanje' for read access. Croatian capitalizes only the first word, so Title Case and sentence case render the same. Decline 'pristup' inside a sentence: 'pristupa kanalu za čitanje'."
+  },
+  "Channel Write Access": {
+    "target": "Pristup kanalu za pisanje",
+    "note": "Follows the catalog's 'pristup za pisanje' for write access. Croatian capitalizes only the first word, so Title Case and sentence case render the same. Decline 'pristup' inside a sentence: 'pristupa kanalu za pisanje'."
+  },
+  "Extended Support Release": {
+    "target": "izdanje s produljenom podrškom",
+    "note": "No precedent; built from the catalog's 'izdanje' for release and 'podrška' for support. Neuter; decline 'izdanje': 'izdanja s produljenom podrškom'. The abbreviation ESR stays as is."
+  },
+  "release line": {
+    "target": "linija izdanja",
+    "note": "No precedent; built from the catalog's 'izdanje' for release. Feminine; plural 'linije izdanja', genitive plural 'linija izdanja'."
   }
 }

@@ -928,10 +928,6 @@
     "translation": "不正な{{.Name}}パラメーターです。"
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "無効なセッショントークン={{.Token}}, err={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "リクエストURLの{{.Name}}が存在しないか不正です。"
   },
@@ -2478,10 +2474,6 @@
     "translation": "リアクションの作成日時には0を設定できません。"
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "リアクション絵文字名の設定値が許可された最大長を超えています。"
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "必須のリアクション設定値 EmojiName が存在しません。"
   },
@@ -2916,10 +2908,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "このサーバーでは {{.Backend}} による検索は無効です"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "検索結果の解析に失敗しました"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3547,7 +3535,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "チーム設定のチーム毎の最大チャンネル数が不正です。正の数を指定してください。"
+    "translation": "チーム設定のチーム毎の最大チャンネル数が不正です。0 (無制限) または正の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3559,7 +3547,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "チーム設定のチーム毎の最大ユーザー数が不正です。正の数を指定してください。"
+    "translation": "チーム設定のチーム毎の最大ユーザー数が不正です。0 (無制限) または正の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -4439,15 +4427,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 140+"
+    "translation": "バージョン 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 134+"
+    "translation": "バージョン 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 134+"
+    "translation": "バージョン 156+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5414,10 +5402,6 @@
     "translation": "監査ログを保存する際にエラーが発生しました。"
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "監査ログを削除する際にエラーが発生しました。"
-  },
-  {
     "id": "app.audit.get.limit.app_error",
     "translation": "ページングの限度を超えました。"
   },
@@ -5518,10 +5502,6 @@
     "translation": "アクセストークンを削除できませんでした。"
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "認証コードを削除できませんでした。"
-  },
-  {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "OAuth2アプリケーションを検索中にエラーが発生しました。"
   },
@@ -5544,10 +5524,6 @@
   {
     "id": "app.oauth.delete_app.app_error",
     "translation": "OAuth2アプリケーションを削除中にエラーが発生しました。"
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "トークンを削除できませんでした。"
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -5718,10 +5694,6 @@
     "translation": "設定を更新する際にエラーが発生しました。"
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "設定を削除する際にエラーが発生しました。"
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "設定を探す際にエラーが発生しました。"
   },
@@ -5762,15 +5734,7 @@
     "translation": "内向きのウェブフックを保存できませんでした。"
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "ウェブフックを削除できませんでした。"
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "ウェブフックを削除できませんでした。"
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "ウェブフックを削除できませんでした。"
   },
   {
@@ -5876,10 +5840,6 @@
   {
     "id": "app.post.save.app_error",
     "translation": "投稿を保存できませんでした。"
-  },
-  {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "ユーザーの削除すべき投稿を選択できませんでした。"
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -5988,10 +5948,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "ファイル情報を保存できませんでした。"
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "ユーザーの添付ファイルを削除できませんでした。"
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6278,10 +6234,6 @@
     "translation": "フラグの立てられた投稿を取得できませんでした。"
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "そのチームにはもうメンバーを追加できないため、デフォルトのチームメンバーシップは作成できません"
-  },
-  {
     "id": "app.import.import_user_teams.save_members.error",
     "translation": "チームメンバーシップをインポートできませんでした"
   },
@@ -6322,10 +6274,6 @@
     "translation": "チャンネルメンバーを削除できませんでした。"
   },
   {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "チャンネルメンバーを削除できませんでした。"
-  },
-  {
     "id": "app.channel.get_public_channels.get.app_error",
     "translation": "公開チャンネルを取得できませんでした。"
   },
@@ -6344,10 +6292,6 @@
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "システム管理者のみがハッシュ化されたパスワードを設定できます。"
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWSログインが見つかりませんでした。"
   },
   {
     "id": "api.user.login_by_cws.invalid_token.app_error",
@@ -6824,10 +6768,6 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "グループメンバーが既に存在します"
-  },
-  {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "UserID \"{{.UserId}}\"を持つグループメンバーを削除できませんでした。"
   },
   {
     "id": "app.group.no_rows",
@@ -7622,10 +7562,6 @@
     "translation": "安全な接続を取得できませんでした: {{.Error}}"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "招待を暗号化できませんでした: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.desc",
     "translation": "Mattermostインスタンス間のコミュニケーションのために、安全な接続を構築します。"
   },
@@ -8118,24 +8054,8 @@
     "translation": "デコーダーの並列数 {{.Value}} は不正です。正の数または-1であるべきです。"
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "ストレージ使用量の取得に失敗しました。"
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "チーム数を取得できませんでした"
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "チームの利用状況を取得できませんでした"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "チーム数の制限に達したため、チームを復元できませんでした"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "チーム数の制限に達したため、チームを作成できませんでした"
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -8220,14 +8140,6 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "グループ名は予約語として既に登録されています"
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "最後にアクセスしたファイルの取得エラー"
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "クラウドプランの制限を超えているため、ファイルを取得できません。"
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
@@ -8364,10 +8276,6 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "検証中のロール取得時にエラーが発生しました。"
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "セルフホスティングの利用登録では、ポータルは利用できません。"
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
@@ -8628,10 +8536,6 @@
   {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "インポートしたチャンネルをアーカイブできませんでした。"
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "ユーザーに対するリアクションを削除できませんでした。"
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
@@ -9766,10 +9670,6 @@
     }
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "ユーザーのスケジュール済みの投稿を削除できませんでした。"
-  },
-  {
     "id": "app.scheduled_post.private_channel",
     "translation": "非公開チャンネル"
   },
@@ -9972,10 +9872,6 @@
   {
     "id": "api.user.reset_password_failed_attempts.permissions.app_error",
     "translation": "このリソースを更新する権限がありません。"
-  },
-  {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "ユーザーの下書きを削除できません。"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
@@ -10384,10 +10280,6 @@
   {
     "id": "app.pap.get_policy_attributes.app_error",
     "translation": "ポリシーの属性を取得できませんでした。"
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "チャンネル共有サービスが有効ですが、アクティブではありません。"
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -14579,7 +14471,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "サイトヘルスにはEnterpriseライセンスが必要です。"
+    "translation": "サイトヘルスにはProfessional以上のライセンスが必要です。"
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14627,7 +14519,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "ログ設定に、ログのルートディレクトリ外にあるログファイルまたは監査ファイルのパスが含まれています。詳細はサーバーログを確認してください。"
+    "translation": "ログ設定に、ログのルートディレクトリ外、またはサーバーが管理するディレクトリ内にあるログファイルまたは監査ファイルのパスが含まれています。詳細はサーバーログを確認してください。"
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14695,7 +14587,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "https://push.mattermost.com (Enterpriseに含まれる本番用のHosted Push Notification Service) またはセルフホストのプッシュプロキシに切り替えてください。"
+    "translation": "PushNotificationServer に本番用のプッシュプロキシ (独自にビルドしたモバイルアプリ向けの、セルフホストのMattermost Push Proxy) を指定してください。"
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14728,5 +14620,1993 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "閲覧後消去メッセージは、繰り返しのスケジュール済みの投稿として送信できません。"
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "チャンネル権限アクション機能が有効になっていません。"
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "アップロードされた認証プロバイダーの証明書は、有効なPEM形式のX.509証明書ではありません。"
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "アップロードされたサービスプロバイダーの秘密鍵は、有効なPEM形式の秘密鍵ではありません。"
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "アップロードされたサービスプロバイダーの公開証明書は、有効なPEM形式のX.509証明書ではありません。"
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "アップロードされたファイルが、保存されているサービスプロバイダーの証明書または秘密鍵と一致しません。1つずつ置き換えるには、暗号化を無効にしてください。"
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "現在、このチャンネルを管理する権限がありません。"
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "現在、このチャンネルにアクセスできません。"
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "現在、このチャンネルに書き込む権限がありません。"
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "`{{.Near}}` 付近のシングルクォートが ` --` の前で閉じられていません。クォートを閉じるか、値に ` --` が含まれる場合はダブルクォートを使用してください。"
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "`{{.Near}}` 付近に予期しないテキストがあります。スペースを含む値はクォートで囲み、値にアポストロフィも含まれる場合はダブルクォートを使用してください。"
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "`{{.Near}}` 付近のクォートが閉じられていません。"
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "保存された設定を比較できませんでした。"
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "保存された設定を現在の設定と比較できませんでした。"
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "セッションが不正であるか、有効期限が切れています。"
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "この種別のジョブはキャンセルできません。"
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "public_keyフィールドには、プラグインの公開鍵ファイルを1つだけアップロードする必要があります。"
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "プラグインの公開鍵 {{.Name}} は設定されていません。"
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "アップロードされたプラグインの公開鍵を解析できませんでした。"
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "要求された投稿属性の値の1つ以上を設定する権限がありません。"
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "閲覧後消去メッセージには投稿属性を設定できません。"
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "このサーバーでは投稿属性が有効になっていません。"
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "1つ以上の投稿属性の値を適用できませんでした。"
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "作成時にフィールドの権限を設定できるのは、そのフィールドのチャンネル、チーム、またはシステムの管理者のみです。"
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "属性フィールドの作成時に権限を設定できるのはシステム管理者のみです。"
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "この属性は削除されています。"
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "このAPIでは、v1のプロパティフィールドのコンプライアンスデータを参照できません。"
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "このプロパティフィールドのコンプライアンスデータを閲覧する権限がありません。"
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "値が未設定のチャンネルの一覧表示や通知ができるのは、すべてのチームに適用される属性のみです。"
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "other": "最近チャンネル管理者にこの件について通知済みのため、通知は送信されませんでした。{{.Count}}分後に再度通知を送信できます。"
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "最近チャンネル管理者にこの件について通知済みのため、通知は送信されませんでした。しばらくしてからもう一度お試しください。"
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "プロパティフィールドの権限を、自分が編集できなくなるように変更することはできません。"
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "送信するrestrictionsオブジェクトでは、値の読み取り、値の書き込み、オプションの読み取り、オプションの書き込み、フィールドの書き込みの5つの権限レベルをすべて設定する必要があります。"
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "送信された権限オブジェクトが不正です。"
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "このプロパティグループでは、権限オブジェクトの送信はサポートされていません。"
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "権限オブジェクトではシステム管理者がフィールドを編集できるようにする必要があるため、フィールドの書き込みレベルをnoneにすることはできません。"
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "一部のアクティブなチャンネルにこの属性の値が設定されていないため、まだ必須にすることはできません。チャンネル管理者に通知してから、もう一度お試しください。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "招待の有効期限が切れています。リモートサイトに新しい招待を依頼してください。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "リモートサイトから不正な応答が返されました。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "招待に不正なサイトアドレスが含まれています: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "リモートサイトが招待を拒否しました。"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "{{.URL}} のリモートサイトに接続できませんでした。"
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "安全な接続からのアップロードでは、一部のみ受信済みのファイルを再開できません。"
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "1回のアクセス制御の評価に含まれるリソースが多すぎます。上限は {{.Max}} 件です。"
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "最新のMattermostリリースの確認は無効になっています。確認を許可するには、「セキュリティーとリリースの更新を確認する」を有効にしてください。"
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "チャンネル管理者を取得できませんでした。"
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "この属性の値が未設定のチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "この属性の値が未設定のチャンネル数をカウントできませんでした。"
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "この属性の値が未設定のすべてのチャンネル数をカウントできませんでした。"
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "この属性の値が未設定のローカルチャンネル数をカウントできませんでした。"
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "この属性の値が未設定のチャンネルを一覧表示できませんでした。"
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "この属性の値が未設定のリモートチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "この属性の影響を受けるチャンネル管理者とチャンネルの数をカウントできませんでした。"
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "この属性について通知するチャンネル管理者を取得できませんでした。"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _ほか {{.Count}} 件のチャンネル_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "あなたが管理している以下のチャンネルで **{{.AttributeName}}** の値を設定してください。この属性を必須にするには、システム管理者はすべてのチャンネルに値が設定されている必要があります。"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "other": "あなたがチャンネル管理者を務めるチャンネルで、必須のチャンネル属性が設定されていません。**{{.AttributeName}}** の値を設定してください。"
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "この属性の通知のクールダウンを確保できませんでした。"
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "保存された設定を取得できませんでした。"
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "このIDの保存された設定はありません。"
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "設定履歴は、設定がデータベースに保存されている場合にのみ利用できます。"
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "記述どおり: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "タイムスタンプ"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "ヘルスチェックの実行を開始できませんでした。"
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "ヘルスチェックの実行がすでに開始されています。しばらくしてからもう一度お試しください。"
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "投稿のインポートでエラーが発生しました。優先度を保存できませんでした。"
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "ユーザーのチームのインポートでエラーが発生しました。チームが見つかりません。"
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "このファイルはチーム {{.Team}} に {{.Adding}} 人のユーザーを追加し、メンバー数は {{.Total}} 人になりますが、TeamSettings.MaxUsersPerTeam は {{.Limit}} です。インポートする前に、上限を引き上げるか 0 (無制限) に設定してください。"
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "TeamSettings.MaxUsersPerTeam を確認するためのインポートファイルを読み込めませんでした。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Acknowledgement の AcknowledgedAt プロパティは必須で、投稿の CreateAt より前にすることはできません。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "必須の Acknowledgement プロパティ User が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "投稿の確認応答には、RequestedAck が true に設定された Priority が必要です。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "投稿の PersistentNotifications には、緊急の Priority が必要です。"
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "必須の Priority プロパティ Priority が存在しません。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction の EmojiName プロパティが不正です。1～64文字のASCII英数字、+、-、_ で指定する必要があります。"
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "高度なロジックを使用するメンバーシップルールを変更できるのはシステム管理者のみです。システムコンソールで編集してください。"
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "このメンバーシップルールには、メンバーシップ同期で評価できない式が使用されています。比較、&&、||、in、およびサポートされている属性関数のみを使用してルールを書き直してください。"
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "このメンバーシップルールには、メンバーシップ同期で評価できない {{.Function}} が使用されています。比較、&&、||、in、およびサポートされている属性関数のみを使用してルールを書き直してください。"
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "アクションに権限ポリシーがあるかどうかを判定できませんでした"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "リソースのアクセスポリシーがアクションを管理しているかどうかを判定できませんでした。"
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "{{.Name}} という名前の設定ファイルがすでに存在します。"
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "このファイルは有効なOpenPGP公開鍵ではありません。"
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "プラグインの公開鍵の名前 {{.Name}} が不正です。名前には英数字、'.'、'_'、'-' のみを使用できます。"
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "マスクされたテンプレートが各ユーザーの保有値をこのフィールドから読み取っているため、このフィールドを削除できません。先にテンプレートのマスクを変更または削除してください。"
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "リンクされたフィールドのoption.readレベル ({{.FieldTier}}) を、テンプレート ({{.TemplateID}}) のレベル ({{.TemplateTier}}) より緩くすることはできません。"
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "OpenID Connectの属性同期がオフの間は、属性をOpenID Connectのクレームにリンクできません。"
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "グローバル属性を検索できませんでした。"
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "このフィールドはマスクされたテンプレートの保有値の取得元であるため、値の書き込みレベルを '{{.ValueWrite}}' にすることはできません。そうしないと、テンプレートによってフィルタリングされるユーザーが自分の保有値を編集し、閲覧できる範囲を広げられてしまいます。"
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "OpenID Connectから同期される属性を、AD/LDAPやSAMLからも同期することはできません。"
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "このフィールドの権限はその形式では表現できないため、この方法ではオーナー、アクセスモード、保護、同期の設定を変更できません。代わりに権限を直接更新してください。"
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "このフィールドには呼び出し元が読み取れない可能性のあるデータが含まれているため、アクセスモードを変更できません。"
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "更新できません: リンクされたフィールド {{.DependentID}} のoption.readレベルは {{.DependentTier}} であり、新しいレベル {{.NewTier}} を超えてしまいます。"
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "1回の更新で、このフィールドの権限と、権限レベル、オーナー、アクセスモード、保護、同期の設定を同時に変更することはできません。どちらか一方の形式で変更を送信してください。"
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "更新できません: このマスクではリンクされたフィールド {{.DependentID}} が自身の保有値を提供することになりますが、その値の書き込みレベルは '{{.ValueWrite}}' です。先にそのフィールドの値の書き込みレベルをadmin以下に下げてください。"
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "マスクされたテンプレートが各ユーザーの保有値をこのフィールドから読み取っているため、このフィールドのリンクを解除できません。先にテンプレートのマスクを変更または削除してください。"
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "アカウントは無効化され、一部が削除されました。削除をもう一度実行しても安全で、削除が完了します。"
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "今回の実行で上限の {{.Max}} 件の投稿を削除しました。アカウントは無効化され、一部が削除されました。続行するには、削除をもう一度実行してください。"
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "{{.Count}} 人のユーザーの削除を完了できませんでした: {{.Usernames}}。続行するには、コマンドをもう一度実行してください。"
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "クラスターリクエストを送信できませんでした"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAMLが正しく設定されていません。システム管理者に連絡してください。"
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "直近の実行がまだキュー待ちか実行中、またはキャンセルされたため、それ以前の実行を確認できませんでした。"
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "認証"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "高可用"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "コンプライアンス"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "データベース"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "ジョブ"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "ライセンス"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "通知"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "プラットフォーム"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "検索"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "アップデート"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} ({{.Node}})"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "データ収集日時"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "不明"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "ライセンス供与先"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "最終評価"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "生成日時"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "ライセンス"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "まだ評価されていません"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "サーバーバージョン"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "サイトURL"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "評価が停止しているようです。"
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "システムコンソールでこの設定を開く"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "詳細"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "説明文書を読む"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "対処方法"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "概要"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "ミュート中"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "解決済み"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "評価できませんでした"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "重大"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "情報"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "警告"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "other": "重大 {{.Count}}件"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "other": "情報 {{.Count}}件"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "未解決の検出事項はありません。"
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "まだヘルスチェックは実行されていません。"
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "other": "評価不可 {{.Count}}件"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "other": "警告 {{.Count}}件"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "ヘルスレポート"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "有効な監査ログの出力先がなく、このワークスペースには {{.users}} 人の登録ユーザーがいます。管理操作、ログイン、設定変更が個別の監査証跡として残りません。これはコンプライアンスとフォレンジックの欠落であり、安定性のリスクではありません。"
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "組織に監査要件がある場合 (金融サービス、医療、防衛、規制対象の公共部門など)、システムコンソール > コンプライアンス > 監査ログ で監査ログを有効にするか、ExperimentalAuditSettings.AdvancedLoggingJSON に監査レベルの出力先を追加し、ローテーションを設定してください。それ以外の場合は無視してかまいません。"
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "監査ログが無効です"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress は1024未満のポート {{.port}} にバインドしています。Linuxでは、rootとして実行されていないMattermostサーバーがこのポートにバインドできるのは、バイナリに CAP_NET_BIND_SERVICE ファイルケーパビリティが付与されている場合のみです。パッケージのアップグレードでバイナリが置き換えられるとこのケーパビリティが消去されるため、次回のアップグレード後に「bind: permission denied」でサーバーの起動に失敗する可能性があります。ケーパビリティの付与方法は設定からは判断できないため、systemdユニットで付与した後もこの警告は表示されたままになります。"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "アップグレード後もケーパビリティが維持されるよう、Mattermostのsystemdユニットに AmbientCapabilities=CAP_NET_BIND_SERVICE を追加するか、アップグレードのたびに setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost を再実行してください。または、Mattermostの前段にリバースプロキシを配置し、Mattermostを8065などの大きい番号のポートにバインドしてください。"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "サーバーが特権ポートに直接バインドしています"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "リーダーは {{.address}} をアドバタイズしています。他のノードはこのアドレスでリーダーに到達できないため、ゴシップによって1ノードのみのクラスターが形成され、スプリットブレインが検出されなくなります。"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "ClusterSettings.AdvertiseAddress にノードの到達可能なIPアドレスまたはDNS名を設定するか、空のままにしてネットワークインターフェースのアドレスを使用してください。このチェックはリーダーの設定を読み取るため、すべてのノードで設定を確認してください。"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress に他のノードから到達できません"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "設定は各ノードのファイルに保存されており、システムコンソールから変更できます。変更は1つのノードで保存され、ベストエフォートで他のノードに配信されます。配信を受け取れなかったノードは自身のファイルを保持するため、ノード間で設定が食い違う可能性があります。"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "ClusterSettings.ReadOnlyConfig を true に設定し、すべてのノードで設定ファイルまたは環境変数を使って設定を管理するか、設定をデータベースに移行してください。"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ファイルベースの高可用クラスターで ClusterSettings.ReadOnlyConfig がオフになっています"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption が false のため、クラスターノード間の通信が暗号化されていません。"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "ゴシップの暗号化を有効にしてから、メンテナンス時間中にすべてのノードを同時に再起動してください。暗号化が有効なノードと無効なノードは互いに通信できないため、ローリングリスタートでは最後のノードが再起動するまでクラスターが分断されます。"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "高可用クラスターのゴシップ通信が暗号化されていません"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "高可用構成で {{.users}} 人の登録ユーザーがいる場合、デフォルトのインメモリLRUキャッシュでは各ノードが独自のコピーを保持し、無効化にゴシップを使用します。この規模でのキャッシュ無効化の通信量を減らすため、Mattermostはユーザー数が100,000人以上の場合にRedisを推奨しています。"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "CacheSettings.CacheType を redis に設定し、CacheSettings.RedisAddress を構成することを検討してください。Redisを使用するには、クラスター機能を含むライセンスが必要です。"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "大規模環境ではRedisキャッシュバックエンドを検討してください"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "想定されている高可用構成が実際には稼働していません。ノードが1つだけではフェイルオーバーができず、スプリットブレインのリスクも見えなくなります。"
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "ゴシップの接続性 (ClusterSettings.GossipPort)、ファイアウォールのルール、およびすべてのアプリケーションノードで同じ ClusterName が設定されていることを確認してください。ClusterName が空の場合もノードは単独のままになり、その際サーバーは高可用モードが無効化されたことをログに記録します。"
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "高可用モードが有効ですが、クラスター内のノードは1つだけです"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "クラスター内のノードは次のバージョンを報告しています: {{.versions}}。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "ノードが複数のバージョンに分かれており、他より多いバージョンがないため、どのノードが古いのか判断できません。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "このノードは {{.version}} を実行していますが、ほとんどのノードは {{.majority}} を実行しています。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "アップグレード中でない限り、すべてのノードを同じバージョンにアップグレードし、ノード同士がゴシップで通信できることを確認してください。"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "クラスター内で複数のMattermostバージョンが検出されました"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory が空のため、コンプライアンスレポートはサーバーの作業ディレクトリ配下のコンプライアンス用フォルダーに書き込まれます。サーバーのアップグレードやコンテナの再構築を行うと、これらのレポートは失われます。"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "システムコンソール > コンプライアンス > コンプライアンスモニタリング の「コンプライアンスリポートディレクトリー」(ComplianceSettings.Directory) に、永続的で書き込み可能なパスを設定してください。"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "コンプライアンスモニタリングが有効ですが、Directory が空です"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "各ノードはプライマリへの接続を最大 MaxOpenConns 個までプールします。ノード数が {{.nodes}} 個で MaxOpenConns={{.max_open}} の場合、データベースのフェイルオーバーにより、新たに昇格したプライマリへ最大 {{.burst}} 件の同時接続試行が発生する可能性があります。また、DataSource のホストはコネクションプーラーではないようです。これがデータベースの max_connections を超えると、接続が拒否され ('sorry, too many clients already')、復旧に時間がかかります。"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "各レイヤーをこのバースト量に合わせて設計してください。最も確実な対策は、max_connections を引き上げるだけでなく、ノードごとの SqlSettings.MaxOpenConns を下げる、またはデータベースの前段に PgBouncer (トランザクションモード) を配置して再接続のバーストを吸収することです。接続ごとにデータベースのメモリを消費するため、上限を高くするとメモリ不足のリスクがあります。max_connections を引き上げる場合は、レプリケーション、監視、管理用セッションのためにバースト量を上回る余裕を確保してください。フェイルオーバー時にノードの起動をずらすことでも、バーストを上限以下に抑えられます。"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "データベースのフェイルオーバーにより接続が殺到する可能性があります"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) が MaxOpenConns ({{.max_open}}) より大きく設定されています。Goの database/sql レイヤーはアイドルプールを暗黙的に MaxOpenConns に制限するため、超過分のアイドル容量は効果がありません。問題が発生しているわけではありませんが、この値は誤解を招くものであり、通常はアイドル接続数がオープン接続数を超えられないことを知らずにプールが調整されたことを示しています。"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "MaxIdleConns を MaxOpenConns 以下の値に設定してください (一般的な目安は MaxOpenConns の25～50%です)。"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns が MaxOpenConns を超えています"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "ユーザー数が {{.users}} 人で MaxOpenConns={{.max_open}} の場合、負荷が急増するとアプリケーション側でリクエストの待ち行列が発生する可能性があります。現在のデフォルトは100です (MaxIdleConns は50で、比率は2:1)。"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "アプリケーション側でリクエストの待ち行列が見られる場合は、監視で把握した必要量に基づいて SqlSettings.MaxOpenConns を引き上げてください (デフォルトの100/50が基準です)。実際のデータベース接続の上限は MaxOpenConns × ノード数 × データソース数となるため、引き上げる前にデータベースの max_connections がその合計を満たしていることを確認してください。"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "このユーザー規模では MaxOpenConns が低すぎる可能性があります"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas が空です。ユーザー数が {{.users}} 人の場合、すべての読み取りがプライマリに集中します。大規模な環境では読み取りレプリカを推奨します。"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "読み取りレプリカを用意し、SqlSettings.DataSourceReplicas に追加することを検討してください。"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "読み取りレプリカが設定されていません"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "投稿数が {{.posts}} 件でデータベース検索を使用しているため、プライマリとレプリカが全文検索のスキャンを負担しています。この規模では、CPU負荷の増大や検索のタイムアウトが発生します。"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "投稿数が {{.posts}} 件でデータベース検索を使用しているため、プライマリとレプリカが全文検索のスキャンを負担しています。この規模では、CPU負荷の増大や検索のタイムアウトが発生します。お使いのライセンスにはElasticsearchが含まれており、検索の負荷をデータベースから完全に切り離すことができます。"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "SqlSettings.DataSourceSearchReplicas を設定してください。"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "検索レプリカがなく、Elasticsearchによる検索も無効です"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "プライマリデータベースの接続 {{.max_open}} 個のうち {{.in_use}} 個が使用中 ({{.percent}}%) で、MaxOpenConns の90%以上に達しています。新しいクエリは待機状態になり、HTTPの応答遅延が増加します。"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "SqlSettings.MaxOpenConns とデータベースの max_connections を引き上げてください。また、長時間実行されているクエリを調査してください。"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "データベースのプライマリ接続プールが飽和状態に近づいています"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} は、サポートされている最小バージョン {{.minimum}} を下回っています。Mattermostはこのバージョンでも起動しますが、サポート対象外のバージョンでは予期しない動作が発生する可能性があります。PostgreSQL {{.minimum}} 以降にアップグレードしてください。"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "アップグレードを計画してください。新しいバージョンでは、並列クエリとJSONBのパフォーマンスも向上しています。"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQLのバージョンがサポートされている最小バージョンを下回っています"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQLは現在 Posts テーブルの vacuum を実行中です。別の vacuum が必要かどうかを判断する前に、この vacuum の完了を待ってください。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Posts テーブルには推定 {{.dead_tuples}} 件の dead tuples があります (推定 {{.estimated_rows}} 行の {{.dead_percent}}%)。最後に vacuum が実行されたのは {{.last_vacuum}} です。vacuum は実行されていますが、長時間実行中または idle-in-transaction のセッション、非アクティブな replication slot、放置された prepared transaction など、何かがクリーンアップを妨げているため、これらを削除できていない可能性が高いです。テーブルとインデックスの肥大化により、クエリのパフォーマンスが低下し、ディスク使用量が増加する可能性があります。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Posts テーブルには推定 {{.dead_tuples}} 件の dead tuples があり (推定 {{.estimated_rows}} 行の {{.dead_percent}}%)、統計情報が最後にリセットされて以降、このテーブルが vacuum された記録がPostgreSQLにありません。autovacuum がこのテーブルに追いついていないようです。テーブルとインデックスの肥大化により、クエリのパフォーマンスが低下し、ディスク使用量が増加する可能性があります。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Posts テーブルには推定 {{.dead_tuples}} 件の dead tuples があり (推定 {{.estimated_rows}} 行の {{.dead_percent}}%)、最後の vacuum は {{.age_days}} 日前の {{.last_vacuum}} です。autovacuum がこのテーブルに追いついていないようです。テーブルとインデックスの肥大化により、クエリのパフォーマンスが低下し、ディスク使用量が増加する可能性があります。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "pg_stat_progress_vacuum で Posts の vacuum が実行中であることが確認できる場合は、手動で VACUUM を開始するとその vacuum がキャンセルされるため、完了を待ってください。Posts が最近 vacuum されている場合は、クリーンアップを妨げているものを特定し、終了または削除してください。対象は、pg_stat_activity にある長時間実行中または idle-in-transaction のセッション、pg_replication_slots にある非アクティブな replication slot、pg_prepared_xacts にある古い prepared transaction です。これにより、次回の vacuum で dead tuples を削除できるようになります。Posts が最近 vacuum されていない場合は、autovacuum がグローバルおよび Posts に対して有効になっていることを確認し、PostgreSQLのログでキャンセルされた autovacuum ジョブがないか確認してください。autovacuum が追いつかない場合は、Posts の autovacuum_vacuum_scale_factor を下げ、容量の許す範囲で autovacuum_vacuum_cost_limit と autovacuum_work_mem を引き上げてから、トラフィックの少ない時間帯に Posts に対する VACUUM (ANALYZE) を実行するようスケジュールしてください。排他ロックと追加のディスク容量を計画していない限り、VACUUM FULL は避けてください。利用可能であれば、pg_repack がロックの少ない代替手段になります。"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Posts テーブルに多数の dead tuples があります"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout が {{.timeout}} 秒に設定されています。タイムアウトが長いと、暴走したクエリがその間ずっとロックを保持し、autovacuum、スキーマのマイグレーション、同じ行を待つ書き込み処理をブロックします。読み取りレプリカのない高負荷のデータベースでは、このリスクがさらに高まります。"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "SqlSettings.QueryTimeout を30に下げてください。全体の上限を引き上げるのではなく、特定の遅いクエリは個別に調査してください。"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout が高く設定されています (デフォルトは30秒)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas が設定されていますが、到達可能なレプリカがないため、読み取りはプライマリにフォールバックしています。"
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "レプリカのDSN、ネットワークの到達性、認証を確認してください。サーバーログにレプリカ接続の警告がないか確認してください。"
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "読み取りレプリカが設定されていますが、到達できるものがありません"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "すべてのSQL文がログに記録されます。これはデバッグ専用です。有効のままにすると、ディスクがいっぱいになり、クエリの内容がログファイルに書き込まれます。"
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "デバッグ中でない限り、SqlSettings.Trace を false に設定してください。"
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace が有効です"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "サーバーは {{.os}} 上で動作しています。Mattermostが本番環境でサポートしているのはLinuxであり、その他のオペレーティングシステムは開発用途にのみ適しています。"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "サーバーをサポートされているLinuxディストリビューションに移行してください。"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "サーバーがLinux上で動作していません"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "新しい投稿はそれぞれ個別のリクエストで同期的にインデックスされます。負荷の高いサーバーでは、検索クラスターに過負荷がかかり、インデックス作成が遅れます。"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "LiveIndexingBatchSize を10～20に引き上げ、実際の投稿頻度に応じてその範囲内で調整してください。"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch の LiveIndexingBatchSize が1です"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize は {{.size}} です。大きな _bulk リクエストは検索クラスターの http.max_content_length を超えて413エラーで失敗する可能性があり、再試行やインデックス作成の遅延の原因になります。"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "LiveIndexingBatchSize を10～20に下げるか、意図的に非常に大きなバッチを使用している場合は検索クラスターの http.max_content_length を引き上げてください。"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch の LiveIndexingBatchSize が100を超えています"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL は {{.host}} を指しており、各アプリケーションノードではノード自身に解決されます。ローカルに検索エンジンがないノードでは、インデックス作成や検索ができません。"
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "ConnectionURL に、すべてのアプリケーションノードから到達できるホスト名またはサービスのDNS名を設定してください。"
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch の ConnectionURL が localhost を指しています"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "検索クラスターから analysis-icu プラグインが報告されていません。投稿のインデックステンプレートはICUトークナイザーとノーマライザーを使用しているため、このプラグインがないと投稿のインデックス作成に失敗する可能性があります。"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "サーバーが検索クラスターのバージョンを読み取れなかったため、プラグイン一覧は収集されませんでした。"
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "すべての検索ノードに analysis-icu プラグインをインストールし (elasticsearch-plugin install analysis-icu または opensearch-plugin install analysis-icu)、ノードを再起動してください。このプラグインは多言語検索だけでなく、投稿のインデックス作成にも必要です。"
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "検索エンジンに analysis-icu プラグインがありません"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "検索エンジンへの接続テストに失敗しました: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "検索エンジンへの接続テストに失敗し、データベース検索も無効になっているため、検索結果が返されません: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "{{.nodes}} で検索エンジンへの接続テストに失敗しました。他のノードは接続できているため、これらのノードでは検索とインデックス作成が失敗する可能性があります。これらのノードのネットワーク、ファイアウォール、プロキシ、DNSの設定を確認してください。エラー: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "ElasticsearchSettings.ConnectionURL への到達性、TLS、認証情報を確認してください。検索クラスターの状態を確認してください (GET /_cluster/health)。"
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "サーバーが Elasticsearch クラスターのエラーを報告しています"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "https接続で SkipTLSVerification が true になっているため、サーバーは検索エンジンの証明書を検証しません。信頼できる内部ネットワークでは許容されますが、それ以外の環境では中間者攻撃に対する保護がなくなります。"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "検索エンドポイントへの経路が信頼できない場合は、証明書が検証されるようその CA をインストールし、SkipTLSVerification を false に設定してください。信頼できる内部ネットワークでは、この設定が意図的なものであることを確認してください。"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch の接続でTLS証明書の検証がスキップされています"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} は、サポートされているメジャーバージョン ({{.min}}～{{.max}}) より新しいバージョンです。このバージョンをサポートするリリースにMattermostをアップグレードするか、検索クラスターをサポートされているバージョンに戻してください。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} は、サポートされているメジャーバージョン ({{.min}}～{{.max}}) より古いバージョンです。検索クラスターをサポートされているバージョンにアップグレードしてください。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "サーバーが検索クラスターに接続していないため、検索クラスターのバージョンは収集されませんでした。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "検索エンジンのバックエンドまたはバージョンを認識できませんでした。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "このバージョンのMattermostがサポートしているメジャーバージョンの検索クラスターを実行してください。"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "検索エンジンのバージョンはサポートされていません"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout は {{.value}} 秒です。これはエクスポートがGlobal RelayのSMTPサーバーへの接続を待機する時間の上限であり、30秒未満では接続が遅い場合に配信が失敗します。"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout を30秒以上に引き上げてください。デフォルトは1800です。"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay の SMTPServerTimeout が30秒未満です"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "FileSettings.Directory を含むボリュームの空き容量は {{.total_gib}} GiB 中 {{.available_gib}} GiB ({{.percent}}%) です。ボリュームがいっぱいになると、ファイルのアップロードやその他のファイル操作が失敗する可能性があります。"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "直ちにボリュームを拡張するか、ファイルシステムから無関係なデータを削除してください。FileSettings.Directory からMattermostが管理するファイルを手動で削除しないでください。少なくとも10%または10 GiBの空き容量を確保し、1 GiBを下回らないようにしてください。"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "ファイルストレージのディスクがほぼいっぱいです"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "FileSettings.Directory を含むボリュームの空き容量は {{.total_gib}} GiB 中 {{.available_gib}} GiB ({{.percent}}%) です。"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "ボリュームを拡張するか、ファイルシステムから無関係なデータを削除してください。FileSettings.Directory からMattermostが管理するファイルを手動で削除しないでください。少なくとも10%または10 GiBの空き容量を確保し、1 GiBを下回らないようにしてください。"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "ファイルストレージのディスク容量が不足しています"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "ClusterSettings.Enable がオンの状態で FileSettings.DriverName が local になっており、FileSettings.Directory は {{.directory}} です。クラスターでは、このディレクトリはすべてのノードに同一の方法でマウントされた共有マウント (NFS、EFS、GlusterFS、CephFS) である必要があります。そうでない場合、あるノードにアップロードされたファイルは他のノードから参照できません。設定からはディレクトリが共有されているかどうかを判断できず、ノードが自身のローカルディスクに書き込んでいてもファイルストレージの接続テストに合格する場合があります。"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "すべてのアプリケーションノードで、FileSettings.Directory のパスを指定して findmnt を実行してください。相対パスはMattermostの作業ディレクトリ (通常は /opt/mattermost) を基準に解決されます。すべてのノードで同じリモートソースが表示され、かつMattermostのユーザーがそこで読み書きできる必要があります。ディレクトリが共有マウントでない場合は、共有マウントに移動するか、FileSettings.DriverName を amazons3 に切り替えてください。"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "高可用クラスターでのローカルファイルストレージ: 共有マウントを確認してください"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket が空のため、ファイルのアップロードが失敗します。"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "リージョンおよびエンドポイントとあわせて、FileSettings.AmazonS3Bucket を設定してください。"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3のファイルストレージが選択されていますが、バケットが空です"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL が false のため、サーバーとS3エンドポイントの間でファイルが暗号化されずに転送されます。"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "エンドポイントが平文のHTTPのみをサポートしている場合を除き、FileSettings.AmazonS3SSL を true に設定してください。"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3のSSLが無効です"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "サーバーがファイルストレージに接続できませんでした: {{.error}}。ファイルのアップロードとダウンロードが失敗する可能性があります。"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "{{.nodes}} でファイルストレージへの接続テストに失敗しました。他のノードは接続できているため、これらのノードを経由するファイルのアップロードとダウンロードが失敗する可能性があります。これらのノードのネットワーク、ファイアウォール、プロキシ、DNSの設定を確認してください。ローカルストレージの場合は、共有ディレクトリがこれらのノードにマウントされていることも確認してください。エラー: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "ファイルストレージの設定を確認してから、システムコンソール > 環境 > ファイルストレージ で「接続をテストする」を実行してください。ローカルストレージの場合は、FileSettings.Directory が存在し、Mattermostのユーザーが書き込めることを確認してください。Amazon S3の場合は、バケット、エンドポイント、認証情報を確認してください。"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "ファイルストレージの接続テストに失敗しました"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "最後に完了した {{.job_type}} の実行 ({{.job_id}}) はエラーで終了しました: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "最後に完了した {{.job_type}} の実行 ({{.job_id}}) は、エラーメッセージを記録せずにエラーで終了しました。"
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "原因を特定するため、ジョブのエラーと、失敗した実行の開始時刻のサーバーログを確認してください。除外すべき一般的な原因は、データベースの負荷、接続プールの上限、ネットワークやフェイルオーバーのイベント、ステートメントのタイムアウトです。原因を解決したら、ジョブを再実行し、完了することを確認してください。実行が成功するまで、そのジョブの処理 (ディレクトリ同期、コンプライアンスエクスポート、データ保持、検索インデックス作成) は行われません。"
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "最後のジョブ実行が失敗しました"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "{{.job_type}} ジョブ {{.job_id}} は実行中ですが、{{.hours}} 時間アクティビティが記録されていません。通常、これはワーカーが実行途中で停止したか、スケジューラーが動かなくなっていることを意味します。"
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "{{.job_type}} ジョブ {{.job_id}} は実行中ですが、{{.days}} 日間アクティビティが記録されていません。通常、これはワーカーが実行途中で停止したか、スケジューラーが動かなくなっていることを意味します。"
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "停止しているジョブを、システムコンソールの該当ページ、mmctl job cancel、またはAPIからキャンセルしてください。ジョブの最後のアクティビティ前後のサーバーログを確認してから、ジョブを再実行してください。"
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "ジョブが24時間以上実行中のまま停止しています"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "{{.job_type}} ジョブ {{.job_id}} は、1時間以上進捗を報告しておらず、アクティビティも記録していません。通常、これはワーカーが最初のバッチの前に停止した、デッドロックした、またはデータベース接続を失ったことを意味します。"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "ジョブを、システムコンソールの該当ページ、mmctl job cancel、またはAPIからキャンセルしてください。ジョブの開始時刻以降のサーバーログでパニックや接続エラーを確認してから、ジョブを再実行してください。再発する場合は、ジョブが停止している間にメトリクスサーバーの /debug/pprof/goroutine からゴルーチンプロファイルを取得してください。"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "ジョブが実行中のまま、1時間以上進捗もアクティビティもありません"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute は {{.attribute}} です。Mattermostはこの属性で各アカウントをディレクトリのエントリーに関連付けるため、ユーザーの電子メールアドレスが変わると (結婚、ブランド変更、部署異動など) 関連付けが切れ、ユーザーは既存のアカウントにアクセスできなくなります。"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "IdAttribute を objectGUID (AD) や entryUUID (OpenLDAP) などの変わらない属性に切り替えてから、mmctl ldap idmigrate で既存のアカウントを移行してください。"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAPの IdAttribute が電子メールアドレスの属性になっています"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "ポート636では通常、暗黙的TLS (LDAPS) が想定されますが、ConnectionSecurity が None または STARTTLS になっています。この組み合わせは通常は設定ミスですが、TLSを終端するプロキシの背後では有効な場合があります。LDAPのログインと同期が成功していることを確認してください。"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "LDAPのログインまたは同期が失敗している場合は、ポート636に対して ConnectionSecurity を TLS に設定してください。正常に動作している場合は、変更は不要です。"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAPポート636が ConnectionSecurity=TLS なしで設定されています"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "ポート389は通常、平文または STARTTLS で使用され、暗黙的TLS (LDAPS) では通常636が使用されます。この組み合わせは通常は設定ミスですが、TLSを終端するプロキシの背後や、意図的に設定を変更したサーバーでは有効な場合があります。LDAPのログインと同期が成功していることを確認してください。"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "LDAPのログインまたは同期が失敗している場合は、TLSにはポート636を使用するか、ポート389に対して ConnectionSecurity を STARTTLS に切り替えてください。正常に動作している場合は、変更は不要です。"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAPポート389が ConnectionSecurity=TLS で設定されています"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "LDAPのテスト (接続、バインド、ユーザー検索) に失敗したため、LDAPのログインと同期が失敗している可能性があります。"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "{{.nodes}} でLDAPのテスト (接続、バインド、ユーザー検索) に失敗しました。他のノードはLDAPサーバーに到達できているため、これらのノードではLDAPのログインが失敗する可能性があります。これらのノードのネットワーク、ファイアウォール、プロキシ、DNSの設定を確認してください。"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "エラーの詳細を確認してから、LdapServer、LdapPort、ConnectionSecurity、バインド用の認証情報、およびMattermostサーバーからLDAPサーバーに到達できることを確認してください。AD/LDAPのページの「テスト接続」で再度確認してください。"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAPの接続テストに失敗しました"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout は {{.timeout}} 秒です。タイムアウトが短すぎると、応答の遅いディレクトリでLDAPのログインや同期が不必要に失敗します。"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "LdapSettings.QueryTimeout を60秒 (デフォルト) に引き上げてください。"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAPの QueryTimeout が10秒未満です"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} 件のアクティブなユーザーアカウントが手動で管理されています。Mattermostは、ワークスペースのユーザーが100人を超えた場合にシングルサインオンを推奨しています。この規模での手動のアカウント管理は、放置されたアカウント、オンボーディングの遅れ、オフボーディングの漏れにつながり、いずれもセキュリティとライセンスのリスクになります。"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Mattermostを認証プロバイダーに接続してください。ディレクトリを運用している場合はAD/LDAP、それ以外の場合はSAMLまたはOpenID Connectを使用してください。"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "ユーザーが100人を超えていますが、シングルサインオンが使用されていません"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "MattermostはLDAPサーバーのTLS証明書を検証しないため、ディレクトリへの接続は中間者攻撃を受けるおそれがあります。これが許容されるのは開発およびテストの場合のみです。"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "MattermostサーバーにLDAPサーバーのCAチェーンをインストールし、SkipCertificateVerification を false に設定してください。"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAPの SkipCertificateVerification が有効です"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes は {{.interval_minutes}} で、最近のLDAP同期の実行時間は平均 {{.avg_run_seconds}} 秒と、間隔の {{.duty_pct}}% を占めています。短い間隔で長時間の実行が続くと、データベースの負荷が高い状態が続き、レプリカの遅延が増える可能性があります。"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "実行時間を測定できるLDAP同期の実行が見つかりませんでした。"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "LdapSettings.UserFilter と BaseDN を絞り込んでディレクトリの走査範囲を限定するか、SyncIntervalMinutes を長くしてください。同期の実行時間が間隔の25%未満になるようにしてください。"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP同期の実行時間が同期間隔の大部分を占めています"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP同期は BaseDN を起点にディレクトリを検索するため、これが空の場合、同期で更新すべきユーザーを見つけられません。"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "LdapSettings.BaseDN に、同期したいディレクトリのルートを設定してください。"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP同期が有効ですが、BaseDN が空です"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "ライセンスは {{.expires_at}} に期限切れになりました。サーバーは期限切れのライセンスを期限切れの10日後に削除し、Enterpriseの機能は動作しなくなります。"
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "トライアルライセンスは {{.expires_at}} に期限切れになりました。サーバーは期限切れのライセンスを期限切れの10日後に削除し、Enterpriseの機能は動作しなくなります。"
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "新しいライセンスを取得し、システムコンソール > このサーバーについて > Editionとライセンス でアップロードしてください。"
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "ライセンスの有効期限が切れています"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "ライセンスは {{.expires_at}} に期限切れになります。"
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "トライアルライセンスは {{.expires_at}} に期限切れになります。"
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "現在のライセンスの期限が切れる前に システムコンソール > このサーバーについて > Editionとライセンス でアップロードできるよう、今すぐ新しいライセンスを取得してください。"
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "ライセンスの有効期限が30日以内に切れます"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel は {{.level}} です。デバッグレベルのファイルログはログファイルを急速に肥大化させ、追加の詳細情報にはリクエストの内容が含まれる場合があります。トラブルシューティング中は問題ありませんが、本番環境の通常の設定としては適していません。"
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "トラブルシューティング中でない場合は、LogSettings.FileLevel を INFO に設定してログの量を減らしてください。"
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "ファイルログがデバッグまたはトレースレベルになっています"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile が false のため、サーバーはログファイルを書き込みません。その場合、外部のコレクターが stdout や journald を収集していても、サポートパケットにはサーバーログが含まれず、Mattermostサポートとのトラブルシューティングに時間がかかります。"
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "LogSettings.EnableFile を true に設定してください。この設定はコンソールへのログ出力と併用できるため、既存のログコレクターは引き続き動作します。"
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "ファイルログが無効です"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging が true のため、失敗した内向きのウェブフックのリクエストがその内容とともにログに記録されます。内容にはメッセージのテキストが含まれる場合があります。"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "ウェブフックのトラブルシューティング中でない限り、LogSettings.EnableWebhookDebugging を false に設定してください。"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "ウェブフックの内容がログに記録されています"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel が {{.limit}} のため、メンバーが数千人いるチャンネルでも @channel、@all、@here が機能します。そのようなチャンネルでチャンネル全体へのメンションを1回行うだけで数千件の通知が一斉に送信され、遅延の急増を引き起こします。"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "TeamSettings.MaxNotificationsPerChannel を5000以下に下げてください (デフォルトは1000)。チャンネルのメンバー数がこの値に達すると @channel、@all、@here は無効になるため、先に大規模なチャンネルでこれらを使用しているチームに確認してください。"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "非常に大規模なチャンネルでチャンネル全体へのメンションが許可されています"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermostは、データベース接続、リクエストの遅延、サーバー負荷などのパフォーマンスメトリクスを記録していません。メトリクスがないと、ユーザーから動作が遅いと報告されたときに振り返る履歴がなく、Mattermostサポートに共有できるものもありません。"
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "システムコンソールで「パフォーマンスモニタリング」をオンにし、プラグイン > プラグイン管理 で Metrics プラグインが有効になっていることを確認してください。このプラグインはサーバー上に15日分のメトリクスを保持するため、Prometheusは必要ありません。Prometheusを運用している場合は、メトリクスのリスナー (デフォルトはポート8067) を参照するよう設定してください。"
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "パフォーマンスモニタリングがオフになっています"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "コンテナのメモリワーキングセットは、上限 {{.limit}} MB のうち {{.working_set}} MB です。増加が続くと、カーネルがサーバーまたはプラグインのプロセスを強制終了する可能性があります。"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Mattermostとそのプラグインのメモリ使用量を減らすか、コンテナのメモリ上限を引き上げてください。プラグインのプロセス、Goランタイム、トラフィックの急増に備えて十分な余裕を確保してください。"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "コンテナのメモリがほぼ枯渇しています"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "コンテナは起動以降、メモリ不足による強制終了を {{.kills}} 回記録しています。強制終了されたのはプラグインまたは他の子プロセスである可能性があります。プラグインの一覧とコンテナのメモリ上限を確認してください。"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "プラグインのプロセスとコンテナのログを確認して何が強制終了されたかを特定し、そのメモリ使用量を減らすか、コンテナのメモリ上限を引き上げてください。"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "メモリ不足によりコンテナのプロセスが強制終了されました"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "コンテナは、{{.periods}} 回のCPUスケジューリング期間のうち {{.throttled}} 回でスロットリングされました。CPUのスロットリングが続くと、ホストのCPU使用率が低く見える場合でもMattermostの動作が遅くなる可能性があります。"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "コンテナのCPU上限 (limit) を引き上げるか、CPU要求 (request) を維持したまま上限を削除してください。"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "コンテナのCPUスロットリングが多発しています"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "サーバープロセスは、上限 {{.max}} 個のうち {{.open}} 個のファイルディスクリプターを開いています。上限に達すると、新しい接続やファイル操作が失敗します。"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "オープンファイル数の上限を引き上げてください。Mattermostのsystemdユニットで LimitNOFILE を設定するか、コンテナの nofile ulimit を引き上げてから、サーバーを再起動してください。"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "ファイルディスクリプターがほぼ枯渇しています"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Goのメモリ上限は {{.go_limit}} MB ですが、コンテナの上限は {{.container_limit}} MB です。カーネルがプロセスを強制終了する前に、ガベージコレクターが回収を強化しない可能性があります。"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "GOMEMLIMIT をコンテナのメモリ上限の約80～90%に設定し、Goヒープ外のメモリとプラグインのプロセスのための余裕を残してください。"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Goのメモリ上限がコンテナの上限以上になっています"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS は {{.go_max_procs}} で、コンテナのCPU上限 ({{.cpu_limit}} CPU) を上回っています。実行可能なスレッドが余分にあると、CPUのスロットリングが増加する可能性があります。"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "GOMAXPROCS の設定を解除してGoランタイムがコンテナのCPU上限に合わせて値を決めるようにしてから、サーバーを再起動してください。"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS がコンテナのCPU上限を超えています"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "{{.cores}} 個のCPUコアに対し、ホストの15分間のロードアベレージは {{.load}} です。コアあたり2つ以上のタスクの負荷が続く場合は、CPUまたはI/Oの逼迫を示している可能性があります。"
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "ノードのCPU使用率、ディスクI/O、実行中のプロセスを確認し、リソースを追加するか、ワークロードを減らしてください。"
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "ホストの負荷が高くなっています"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "ホストの空きメモリは {{.total}} MB のうち {{.available}} MB です。メモリがさらに減少すると、Mattermostやその他のプロセスが強制終了されたり、動作が遅くなったりする可能性があります。"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "メモリを最も多く使用しているプロセスを特定してメモリ使用量を減らすか、ホストにメモリを追加してください。サービスを再起動する前に、Mattermostとプラグインのメモリ使用量を確認してください。"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "ホストのメモリが不足しています"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "このノードはヘルスチェックの診断情報を返しませんでした。ダウンしているか、過負荷になっているか、他のノードから切り離されている可能性があります。応答するまで、このノードの他の検出事項は最後に確認された状態のままになります。"
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "このノードでMattermostが動作していることを確認し、ログとCPUおよびメモリの使用量を確認したうえで、ゴシップのポート (ClusterSettings.GossipPort) で他のノードに到達できることを確認してください。"
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "クラスターノードが応答していません"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "OAuth/OIDCプロバイダーへの接続確認が、報告しているすべてのMattermostノードで失敗したため、このプロバイダーを使ったログインは利用できない可能性があります。"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "{{.nodes}} でOAuth/OIDCプロバイダーへの接続確認に失敗しましたが、報告している他のノードはプロバイダーに到達できています。これらのノードでは、このプロバイダーを使ったログインが失敗する可能性があります。"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "エラーの詳細、プロバイダーのディスカバリーまたはトークンのエンドポイント、および送信方向のネットワーク、ファイアウォール、プロキシ、DNSの設定を確認してください。その後、プロバイダーを使ったログインを確認してください。"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDCプロバイダーへの接続確認に失敗しました"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "電子メールアドレスの確認がオフのまま、オープンサーバーと電子メールアドレスでのアカウント作成が有効になっています。そのため、このサーバーにアクセスできる人は誰でも架空の電子メールアドレスでアカウントを作成し、オープンなチームに参加できます。オープンなアカウント作成を意図している場合は、この検出事項をミュートしてください。"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "電子メールアドレスの確認がオフのまま、オープンサーバーと電子メールアドレスでのアカウント作成が有効になっています。TeamSettings.RestrictCreationToDomains によってアカウント作成は一部のドメインに制限されていますが、Mattermostはアドレスが許可されたドメインで終わっているかどうかだけを確認し、本人がそのアドレスを所有しているかどうかは確認しません。このサーバーにアクセスできる人は誰でも許可されたドメインでアカウントを作成し、同僚になりすますことができます。オープンなアカウント作成を意図している場合は、この検出事項をミュートしてください。"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "EmailSettings.RequireEmailVerification を true に設定してください。先にSMTPが動作することを確認してください。電子メールアドレスを一度も確認していない既存のユーザーは、次回のログイン時に確認が必要になります。オープンなアカウント作成を望まない場合は、TeamSettings.EnableOpenServer を false に設定してください。ユーザーはチームの招待リンクから引き続き参加できるため、電子メールアドレスの確認は引き続き推奨されます。アカウント作成を組織内に限定するには、TeamSettings.RestrictCreationToDomains を電子メールアドレスの確認とあわせて設定してください。確認がない場合、この制限は回避される可能性があります。"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "誰でも未確認の電子メールアドレスでアカウントを作成できます"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck が false のため、クラッシュしたプラグインは自動的に再起動されません。"
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "PluginSettings.EnableHealthCheck を true に設定してください。"
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "プラグインのヘルスチェックが無効です"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "次のプラグインは有効になっていますが、実行されていません: {{.plugins}}。"
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "システムコンソール > プラグイン > プラグイン管理 で、一覧の各プラグインのステータスを確認し、無効にしてから再度有効にしてみてください。プラグインが起動に失敗した理由や、プラグインのヘルスチェックによって停止された理由は、サーバーログに記録されています。"
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "有効なプラグインが実行されていません"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable が false のため、プラグインは実行されません。これは厳しく制限された環境には適していますが、意図しない設定であることも少なくありません。"
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "これが想定外の場合は、PluginSettings.Enable を true に設定してください。"
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "プラグインが無効です"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents が full に設定されているため、メッセージの本文と送信者がプッシュペイロードに含まれます。このペイロードは、プッシュプロキシ、およびAppleとGoogleのプッシュサービスを経由して送信されます。"
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "プッシュ通知のプライバシーを最大限に高めるには、EmailSettings.PushNotificationContents を id_loaded に設定してください。メッセージIDのみが送信され、モバイルアプリはサーバーからメッセージの内容を取得します。その場合、通知の受信時にモバイルデバイスがサーバーに到達できる必要があるため、VPNまたは内部ネットワーク経由でしか到達できないサーバーでは、通知にメッセージの内容を表示できません。full を意図的に選択している場合は、この検出事項をミュートしてください。"
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "プッシュ通知にメッセージの本文全体が含まれています"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "プッシュ通知サーバーへの接続テストに失敗しました: {{.error}}。モバイルユーザーがプッシュ通知を受信できない可能性があります。"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "{{.nodes}} でプッシュ通知サーバーへの接続テストに失敗しました。他のノードは接続できています。これらのノードから送信されるプッシュ通知は失敗する可能性があります。これらのノードのネットワーク、ファイアウォール、プロキシ、DNSの設定を確認してください。エラー: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "PushNotificationServer、TLS証明書、プッシュプロキシの状態を確認してください。すべてのMattermostアプリケーションノードが設定されたホストにHTTPSで到達できることを確認してから、その /version エンドポイントを確認してください。"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "プッシュ通知サーバーの接続テストに失敗しました"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com はMattermostのテスト用プッシュプロキシです。SLAはなく、スループットも限られており、本番環境での使用は想定されていません。ご利用のライセンスにはMattermost Hosted Push Notification Serviceが含まれているため、PushNotificationServer を https://global.push.mattermost.com に設定してください。"
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "登録ユーザーが {{.users}} 人いますが、RateLimitSettings.Enable が false です。レート制限は、大量のリクエストや、悪意のあるクライアントまたは誤動作しているクライアントからサーバーを保護します。これだけのユーザーに加えてウェブフックやBotの統合機能がある場合、設定を誤ったクライアントが1つあるだけでAPIが飽和する可能性があります。Mattermostは組み込みのレート制限機能を小規模な環境 (数百ユーザーまで) 向けとしているため、大規模な環境では、リクエストのスロットリングはロードバランサーやAPIゲートウェイで行う方が適している場合が多くあります。"
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "この規模に適したリクエストのスロットリングが行われていることを確認してください。Mattermostの組み込みのレート制限 (システムコンソール > 環境 > 投稿頻度制限)、またはロードバランサーやゲートウェイで設定できます。"
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "大規模なインスタンスでAPIのレート制限が無効です"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize は {{.size}} ですが、登録ユーザーは {{.users}} 人です。レート制限機能が追跡するクライアントはこの数までです。上限に達すると、最も長く確認されていないクライアントが破棄され、そのクライアントのリクエスト割り当てはリセットされます。そのため、ストアが小さいとレート制限の効果が弱まります。"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "RateLimitSettings.MemoryStoreSize を、少なくとも登録ユーザー数まで引き上げてください。"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "レート制限のメモリストアがユーザー数より小さくなっています"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds は {{.value}} です。データ保持ジョブは、データベースが通常のトラフィックを処理する時間を確保するため、削除バッチの間にこの時間だけ待機します。100ミリ秒未満では、大量の削除によってデータベースが遅くなり、すべてのユーザーに影響する可能性があります。"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "設定で DataRetentionSettings.TimeBetweenBatchesMilliseconds を100 (デフォルト) 以上に引き上げてください。"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "データ保持の TimeBetweenBatchesMilliseconds が100未満です"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "アサーションはSAMLのレイヤーで暗号化されずに送信されます。接続はTLSで保護されているため、基本的なセキュリティ上の欠陥ではありませんが、IdPがアサーションの暗号化をサポートしている場合は、有効にすることで多層防御になります。"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "IdPがアサーションの暗号化をサポートしている場合は、SamlSettings.Encrypt を有効にし、サービスプロバイダーの秘密鍵と公開証明書を設定してください。"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "SAMLアサーションの暗号化が無効です"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "IdAttribute が空であるか、電子メールアドレスの属性を指定しているため、MattermostはSAMLアカウントを電子メールアドレスで識別しています。IdPでユーザーの電子メールアドレスが変わると、既存のアカウントとの関連付けが切れます。"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "安定した識別子 (objectGUID や変更不可能なIDなど) を送信するようIdPを設定してから、SamlSettings.IdAttribute にその属性の名前を設定してください。既存のアカウントは自動的に新しい識別子に移行します。各ユーザーの次回のログイン時に、Mattermostが電子メールアドレスでアカウントを見つけ、新しいIDを保存します。"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAMLの IdAttribute が空か、電子メールアドレスの属性になっています"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute は {{.attribute}} です。ユーザー名、uid、ユーザープリンシパル名は従業員の間で再利用されることが多く、その場合、後の人が前の人のMattermostアカウントを引き継いでしまいます。"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "objectGUID (AD) や変更不可能なID (Microsoft Entra ID) など、再割り当てされない識別子を使用し、識別子の再利用に関するIdPのポリシーを確認してください。"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAMLの IdAttribute がIdPで再割り当てされる可能性があります"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "IdP証明書とIdP URLのSAMLチェックに失敗したため、SAMLのログインが機能していない可能性があります。"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "{{.nodes}} でIdP証明書とIdP URLのSAMLチェックに失敗しました。他のノードでは成功しているため、これらのノードではSAMLのログインが失敗する可能性があります。これらのノードに、他のノードと同じ有効なIdP証明書があることを確認してください。"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "エラーの詳細を確認してから、SAMLの設定でIdP証明書 (IdpCertificateFile) またはIdP URL (IdpURL) を修正してください。証明書の有効期限が切れている場合は、IdPの現在の署名証明書をアップロードしてください。"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "SAMLの設定チェックに失敗しました"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSOでは非推奨のSHA-1署名アルゴリズムが使用されています。現在SSOは動作していますが、SHA-1を拒否し始めているIDプロバイダーもあるため、互換性とセキュリティの向上のために、特にIdPの変更やアップグレードの前に計画的に対応してください。"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "都合の良いときに、IdPと調整のうえで SamlSettings.SignatureAlgorithm を RSAwithSHA256 に設定してください。"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAMLの SignatureAlgorithm がSHA-1です"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "MattermostはIdPの署名を検証せずにSAMLレスポンスを受け入れるため、本物の認証レスポンスと偽造されたレスポンスを区別できません。"
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "SamlSettings.Verify を true に設定し、AssertionConsumerServiceURL が設定されていることを確認してください。検証にはIdP証明書が正しく設定されている必要があるため、IdPと調整のうえで有効にし、ログインをテストしてください。"
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "SAMLの署名検証が無効です"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "ワークスペースには {{.posts}} 件の投稿があり、検索はデータベースに対して実行されています。投稿が2,500,000件を超える場合はElasticsearchが推奨され、5,000,000件を超える場合は必須です。"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "次の大きな成長期の前、または投稿が5,000,000件に達する前に、Elasticsearchの導入を計画してください。"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "投稿数がElasticsearchの基準に近づいています"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "ワークスペースには {{.posts}} 件の投稿があり、検索はデータベースに対して実行されています。この規模では、検索の遅延、タイムアウト、データベースのCPU使用率の急上昇が予想されます。"
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "ElasticsearchまたはOpenSearchを導入し、初回の完全なインデックス作成を実行してから、EnableIndexing、EnableSearching、EnableAutocomplete を有効にしてください。"
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "投稿が5,000,000件を超える場合はElasticsearchが必須です"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "データベース検索が無効で、Elasticsearchによる検索もオフになっています。検索しても結果は返されません。ElasticsearchまたはOpenSearchによる検索を有効にしても、検索を利用できるようになります。"
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "データベース検索が無効で、ライセンスにElasticsearchが含まれていないため、Elasticsearchの設定は効果がありません。検索しても結果は返されません。"
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "config.json で SqlSettings.DisableDatabaseSearch を false に設定してください (または MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)。"
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "検索が無効です"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "ライセンスの上限 {{.limit}} 人に対して {{.used}} 人のユーザーがカウントされており、上限に達しています。シートが解放されるか追加されるまで、サーバーはユーザーを作成または再有効化しません。"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "シートを追加購入するか、アクセスが不要になったユーザーを無効化してシートを解放してください。"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "ライセンスのユーザー数の上限に達しました"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "ライセンスの {{.seats}} シートに対して {{.used}} 人のユーザーがカウントされています ({{.percent}}%)。"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "ユーザーの増加が見込まれる場合は、ライセンスの上限に達する前にシートの追加を計画してください。アクセスが不要になったユーザーを無効化すると、シートが解放されます。"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "ライセンスのシートがほぼ上限に達しています"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "ライセンスの {{.seats}} シートに対して {{.used}} 人のユーザーがカウントされています ({{.percent}}%)。"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "シートを追加購入するか、アクセスが不要になったユーザーを無効化してください。無効化されたユーザーはシートを使用しません。"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "ユーザー数がライセンスのシート数を超えています"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "セッションはアクティビティに関係なく一定のスケジュールで期限切れになるため、アクティブなユーザーもログアウトされます。ほとんどの環境では、アクティブなユーザーのログイン状態を維持する方が適しています。"
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "セキュリティポリシーで禁止されていない限り、ServiceSettings.ExtendSessionLengthWithActivity を有効にしてください。"
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity が無効です"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "SMTPサーバーへの接続テストに失敗しました: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "{{.nodes}} でSMTPサーバーへの接続テストに失敗しました。他のノードは接続できています。これらのノードのネットワーク、ファイアウォール、プロキシ、DNSの設定を確認してください。エラー: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "電子メール通知、招待、パスワードリセットの電子メールが配信されない可能性があります。システムコンソールでSMTPサーバー、ポート、接続のセキュリティー、認証情報を確認し、MattermostサーバーがSMTPホストに到達できることを確認してから、「接続をテストする」で確認してください。"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTPサーバーの接続テストに失敗しました"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "最新リリースが不明です: 取得できなかったか、パケットに記録されていません。"
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "最新リリースは確認されていません: 「セキュリティーとリリースの更新を確認する」がオフのため、サーバーは最新リリースを取得しません。"
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "このバージョンは、このビルドのリリース表にありません。新しいサーバーのサポートパケットを評価するには、新しいバージョンのmmctlを使用してください。"
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "サーバーのバージョンが不明か、認識できません。"
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "{{.version}} を実行中です。最新は {{.latest}} で、2リリース以上新しくなっています。"
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "このリリース系列のサポートが終了する前に最新リリースへのアップグレードを計画するか、アップグレードの頻度を抑えるために延長サポートリリースに移行してください。"
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "最新リリースから複数リリース遅れています"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "{{.version}} を実行中です。最新は {{.latest}} です。"
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "最新リリースへのアップグレードを計画してください。"
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "新しいリリースが利用可能です"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Mattermost {{.version}} を実行中です。このリリース系列のサポートは {{.eol_date}} に終了しました。このリリース系列にはセキュリティパッチが提供されません。"
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Mattermost {{.version}} を実行中です。これはサポートが終了した古いリリース系列です。このリリース系列にはセキュリティパッチが提供されません。"
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Mattermost {{.version}} を実行中です。これはサポートが終了した古いリリース系列です。このリリース系列にはセキュリティパッチが提供されません。サポートされている最新の延長サポートリリースは {{.target}} です。"
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Mattermost {{.version}} を実行中です。このリリース系列のサポートは {{.eol_date}} に終了しました。このリリース系列にはセキュリティパッチが提供されません。最新リリースにアップグレードしてください。"
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Mattermost {{.version}} を実行中です。このリリース系列のサポートは {{.eol_date}} に終了しました。このリリース系列にはセキュリティパッチが提供されません。サポートされている最新の延長サポートリリースは {{.target}} です。"
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "サポートされている延長サポートリリースまたは最新リリースへの段階的なアップグレードを計画してください。サポートされているバージョンは https://docs.mattermost.com/product-overview/mattermost-server-releases.html に記載されています。"
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Mattermostのバージョンのサポートが終了しています"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "延長サポートリリース {{.esr}} の {{.version}} を実行中です。セキュリティパッチを引き続き受け取るには、{{.eol_date}} より前にアップグレードを計画してください。"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "最新リリースまたは次の延長サポートリリースへのアップグレードを計画してください。"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "延長サポートリリースのサポート終了が近づいています"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "権限ポリシーのチャンネルアクセスのアクションは、システムユーザー、システムゲスト、システム管理者のいずれかのロールにのみ適用できます。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "権限ポリシーのチャンネルアクセスのルールでは、独自のロールを指定できません。ポリシーのロールが適用されます。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "「チャンネルの管理」アクションは、権限ポリシーとチャンネルポリシーでのみ許可されています。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "「チャンネル読み取りアクセス」アクションは、権限ポリシーとチャンネルポリシーでのみ許可されています。"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "「チャンネル書き込みアクセス」アクションは、権限ポリシーとチャンネルポリシーでのみ許可されています。"
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "内部エラーが発生しました。"
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Redisのキャッシュプレフィックスに ':'、'*'、'?'、'['、']'、'\\' を含めることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert と RedisTLSClientKey は両方とも設定する必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "追加スコープは、スペースで区切られたOAuthスコープ名で、合計 {{.MaxLength}} 文字以内である必要があります。"
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "フィールドフィルターが不正です。フィールド名は {{.MaxLength}} 文字以内である必要があり、空、\"level\"、\"timestamp\" にすることはできません。"
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "フィールドフィルターが不正です。フィールドの値は {{.MaxLength}} 文字以内である必要があります。"
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "フィールドフィルターが不正です。各フィールドの値は1個以上 {{.MaxValues}} 個以下である必要があります。"
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "フィールドフィルターが不正です。フィルターに使用できるフィールドは最大 {{.MaxKeys}} 個です。"
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "検索フィルターが不正です。{{.MaxLength}} 文字以内である必要があります。"
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "スレッドのフォロワーを取得できませんでした。"
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "サーバーは、オプションを指定したプラグインキーの一覧取得をサポートしていません。"
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "オプションを指定してプラグインキーの一覧を取得できませんでした。"
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "不正なスレッドIDです。"
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "不正なユーザーIDです。"
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "この投稿は返信であり、スレッドのルート投稿ではありません。"
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "不正なファイル作成者です。"
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "オンボーディングで指定されたサイトURLが無効です。https://chat.example.com のような、パスを含まない http または https のURLである必要があります。"
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "ヘルスレポートをエクスポートできませんでした。"
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "投稿属性を使用するには、Enterpriseライセンスが必要です。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "次のチャンネルでチャンネル属性の値が設定されていません:{{.ChannelList}}\n\nあなたはこれらのチャンネルのチャンネル管理者です。チャンネルを開いて **値を追加** を選択するか、**チャンネル情報** で値を設定してください。"
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) 設定が必要な属性: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "プラグインID {{.ID}} はコアサーバー用に予約されているため、インストールまたは読み込みできません。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "このサーバーには {{.users}} 人の登録ユーザーがいますが、高可用構成ではなく単一ノードで動作しています。Mattermostのリファレンスアーキテクチャでは、200ユーザーを超える場合に高可用構成を推奨しています。ノードの障害やアップグレードでワークスペースがオフラインになる前に、導入を計画してください。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "ロードバランサーの背後で少なくとも2つのアプリケーションノードを実行し、データベースとファイルストレージを共有したうえで、すべてのノードで同じ ClusterName を設定して ClusterSettings.Enable を有効にしてください。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "高可用構成の導入を検討してください"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "このサーバーには {{.users}} 人の登録ユーザーがいますが、高可用構成ではなく単一ノードで動作しています。ノードの障害、再起動、アップグレードのいずれでも、ワークスペース全体がオフラインになります。Mattermostのリファレンスアーキテクチャでは、この規模では高可用構成が必須です。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "ロードバランサーの背後で少なくとも2つのアプリケーションノードを実行し、データベースとファイルストレージを共有したうえで、すべてのノードで同じ ClusterName を設定して ClusterSettings.Enable を有効にしてください。"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "この規模で高可用構成が有効になっていません"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper が true のため、詳細なエラー情報がユーザーとクライアントに表示されます。この設定は開発専用です。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "ServiceSettings.EnableDeveloper を false に設定してください。"
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper が有効です"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "メールが設定されていないため、パスワードのリセットや通知などのメールは配信されません。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "{{.nodes}} では既定のSMTPアドレス localhost:10025 で応答するメールサーバーがないため、これらのノードが送信するパスワードのリセットや通知などのメールは配信されません。他のノードはこのアドレスでメールサーバーに接続できます。エラー: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "システムコンソールでSMTPサーバーを設定してください。このサーバーからメールを送信しない場合は、メール通知、メールでの招待、メールアドレスの確認をオフにしてから、この検出事項をミュートしてください。メールアドレスまたはユーザー名でのログインはオンのままにしてください。オフにすると、SSOでログインしないユーザーはログインできなくなります。"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTPサーバーが設定されていません"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting が true のため、テストモードにより開発専用のテストコマンドとエンドポイントが公開されています。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "ServiceSettings.EnableTesting を false に設定してから、サーバーを再起動してください。一部のテストエンドポイントは再起動するまで削除されません。"
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting が有効です"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections が true のため、サーバーは外向きのウェブフック、スラッシュコマンド、OAuthトークンの交換、リンクプレビュー、プラグインのダウンロードなどの外向きのHTTPS接続でTLS証明書を検証しません。ネットワーク経路上の誰もが、OAuthトークンを含むその通信を読み取ったり改ざんしたりできます。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "すべてのMattermostサーバーのシステムトラストストアに内部CA証明書を追加してから、ServiceSettings.EnableInsecureOutgoingConnections を false に設定してください。"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "外向きの接続でTLS証明書の検証がオフになっています"
   }
 ]

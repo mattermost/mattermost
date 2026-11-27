@@ -449,5 +449,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "tablero",
+    "note": "Masculine; plural tableros. Most catalog strings say tablero (canales de tablero, marcadores de tablero, Atributos de Tablero); a few server strings leave board in English (canal del board) and the sidebar ships Atributos de Boards. Do not propagate those; Boards stays in English only as the product name."
+  },
+  "post attribute": {
+    "target": "atributo de mensaje",
+    "note": "Masculine; plural atributos de mensaje. Follows post -> mensaje and the catalog pattern atributo de tablero for board attribute. Keep distinct from plain atributo (user profile attribute)."
+  },
+  "holdings": {
+    "target": "valores propios",
+    "note": "No precedent in the catalogs. Masculine plural: tus valores propios, los valores propios del usuario. Avoid the financial calque tenencias."
+  },
+  "Manage Channel": {
+    "target": "Gestionar canal",
+    "note": "Name of a permission policy action; sentence case everywhere, matching Spanish UI capitalization. Gestionar is the catalog majority for Manage (66 vs 22 Administrar) in permission names. Quote it as a name: la acción Gestionar canal. Not the ordinary verb phrase in Gestionar la configuración del canal."
+  },
+  "Channel Read Access": {
+    "target": "Acceso de lectura al canal",
+    "note": "Name of a permission policy action; sentence case everywhere. Follows the catalog rendering acceso de lectura for read access. Masculine: el Acceso de lectura al canal."
+  },
+  "Channel Write Access": {
+    "target": "Acceso de escritura al canal",
+    "note": "Name of a permission policy action; sentence case everywhere. Follows the catalog rendering acceso de escritura for write access. Masculine: el Acceso de escritura al canal."
+  },
+  "Extended Support Release": {
+    "target": "versión de soporte extendido",
+    "note": "No precedent in the catalogs; release follows notas de la versión. Feminine: la versión de soporte extendido. Keep the acronym ESR untranslated: la versión ESR."
+  },
+  "release line": {
+    "target": "serie de versiones",
+    "note": "No precedent in the catalogs. Feminine: la serie de versiones 10.5, or simply la serie 10.5; plural series de versiones."
   }
 }

@@ -481,5 +481,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "board",
+    "note": "Kept in English, feminine and invariable, as the catalog already does: 'la board', 'le board', 'board aperta/privata', 'Attributi delle board'. The product name Boards stays 'Boards'."
+  },
+  "post attribute": {
+    "target": "attributo della pubblicazione",
+    "note": "No precedent; built from the glossary targets for attribute ('attributo') and post ('pubblicazione'). Masculine; plural 'attributi della pubblicazione'. Keep 'della pubblicazione' to distinguish it from user profile attributes (plain 'attributo')."
+  },
+  "holdings": {
+    "target": "valori posseduti",
+    "note": "No precedent. Masculine plural: 'i tuoi valori posseduti', 'i valori posseduti dall'utente'. Avoid financial words such as 'partecipazioni' or 'patrimonio'."
+  },
+  "Manage Channel": {
+    "target": "Gestisci canale",
+    "note": "Follows the catalog's permission names ('Gestisci membri del canale', 'Gestisci ruoli canale'): imperative 'Gestisci', sentence case. Use the same form for the Title Case and sentence case English."
+  },
+  "Channel Read Access": {
+    "target": "Accesso in lettura al canale",
+    "note": "Built from the catalog's 'accesso in lettura' and 'accesso al canale'. Masculine. Same form for Title Case and sentence case English; capitalize only the first word."
+  },
+  "Channel Write Access": {
+    "target": "Accesso in scrittura al canale",
+    "note": "Built from the catalog's 'accesso in scrittura' and 'accesso al canale'. Masculine. Same form for Title Case and sentence case English; capitalize only the first word."
+  },
+  "Extended Support Release": {
+    "target": "versione con supporto esteso",
+    "note": "No precedent; the catalog renders a release as 'versione'. Feminine: 'la versione con supporto esteso'. The acronym ESR stays as is: 'versione con supporto esteso (ESR)'."
+  },
+  "release line": {
+    "target": "serie di versioni",
+    "note": "No precedent; the catalog renders a release as 'versione'. Feminine, invariable: 'la serie di versioni 10.5', 'le serie di versioni'."
   }
 }

@@ -481,5 +481,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "дъска",
+    "note": "Plural: дъски; definite: дъската. The catalog is inconsistent: the board UI (create-board tooltip, tutorial tip, Board Attributes page) says дъска, but some server errors and the sidebar item say табло/табла. Use дъска; табло is ambiguous with dashboard. Boards, the product name, stays in English."
+  },
+  "post attribute": {
+    "target": "атрибут на публикация",
+    "note": "Plural: атрибути на публикации; definite: атрибутът на публикацията. Built from post = публикация and attribute = атрибут; keep it distinct from the user-profile attribute (потребителски атрибут)."
+  },
+  "holdings": {
+    "target": "притежавани стойности",
+    "note": "No precedent in the catalog. Plural only, like the English; refer to the user's own values (e.g. „стойностите, които притежавате“), echoing the server phrasing „не притежава необходимите атрибути“. Do not translate literally as активи or авоари."
+  },
+  "Manage Channel": {
+    "target": "Управление на канала",
+    "note": "Name of a permission action: a noun phrase, as in „Управление на роли в канал“ and „Управление на политиката за контрол на достъпа до канала“, never an imperative such as „Управлявай канала“. Same rendering for the Title Case and sentence-case English."
+  },
+  "Channel Read Access": {
+    "target": "Достъп за четене до канала",
+    "note": "Name of a permission action. Follows the catalog's „достъп за четене и/или писане до …“. Same rendering for the Title Case and sentence-case English; capitalize only the first word."
+  },
+  "Channel Write Access": {
+    "target": "Достъп за писане до канала",
+    "note": "Name of a permission action. The catalog renders write access both „достъп за … писане“ and „достъп за … запис“; use писане, the more common in that phrase, to pair with „Достъп за четене до канала“."
+  },
+  "Extended Support Release": {
+    "target": "издание с разширена поддръжка",
+    "note": "No precedent. Release = издание, as in „бележките за изданието“; support = поддръжка. The abbreviation ESR stays in English (e.g. „издание с разширена поддръжка (ESR)“). Capitalize the first word when it stands as a title."
+  },
+  "release line": {
+    "target": "серия издания",
+    "note": "No precedent. A major.minor series such as 10.5 and its patch releases; release = издание as elsewhere in the catalog. Plural: серии издания; definite: серията издания. Avoid the calque линия."
   }
 }

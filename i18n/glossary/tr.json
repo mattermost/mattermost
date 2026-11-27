@@ -464,5 +464,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "pano",
+    "note": "Established in Board Attributes strings ('Pano öznitelikleri', 'tüm panolardaki'). Plural 'panolar'; accusative 'panoyu', dative 'panoya', locative 'panoda', genitive 'panonun'. Follow the channel string a .board variant mirrors, swapping 'kanal' for 'pano'. The product name Boards stays in English. 'sistem panosu' (System Console) is a separate fixed term; do not shorten either to bare 'pano' where they could be confused."
+  },
+  "post attribute": {
+    "target": "ileti özniteliği",
+    "note": "No precedent; built from post = 'ileti' and attribute = 'öznitelik'. Plural 'ileti öznitelikleri' (Post attributes modal: 'İleti öznitelikleri'). Keep distinct from bare 'öznitelik', the user profile attribute."
+  },
+  "holdings": {
+    "target": "sahip olunan değerler",
+    "note": "No precedent. The reader's own values in the source property field; avoid financial words such as 'varlıklar' or 'portföy'. With a possessor: 'kullanıcının sahip olduğu değerler', 'sahip olduğunuz değerler'."
+  },
+  "Manage Channel": {
+    "target": "Kanal yönetimi",
+    "note": "No precedent for this action. Noun form, like other permission names rendered as '... yönetimi' ('Kanal erişim denetimi ilkesi yönetimi'). Turkish UI uses sentence case, so both the Title Case and sentence-case English become 'Kanal yönetimi'. Not the ordinary verb phrase in strings like Manage channel settings."
+  },
+  "Channel Read Access": {
+    "target": "Kanal okuma erişimi",
+    "note": "No precedent for this action; follows 'okuma ve/veya yazma erişimi' for read and/or write access. Sentence case everywhere. Do not use 'izin', which is permission."
+  },
+  "Channel Write Access": {
+    "target": "Kanal yazma erişimi",
+    "note": "Pairs with 'Kanal okuma erişimi'; follows 'okuma ve/veya yazma erişimi'. Sentence case everywhere."
+  },
+  "Extended Support Release": {
+    "target": "Genişletilmiş Destek Sürümü",
+    "note": "No precedent in the catalogs; release = 'sürüm' as in 'sürüm notları'. Capitalized as a proper name. The acronym ESR stays as is, e.g. 'Genişletilmiş Destek Sürümü (ESR)'. Inflect through the head noun: 'Genişletilmiş Destek Sürümünü', 'Genişletilmiş Destek Sürümüne'."
+  },
+  "release line": {
+    "target": "sürüm serisi",
+    "note": "No precedent. Plural 'sürüm serileri'; e.g. '10.5 sürüm serisi'. Do not use 'sürüm hattı'."
   }
 }

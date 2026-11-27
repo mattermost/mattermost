@@ -916,10 +916,6 @@
     "translation": "Неверный параметр {{.Name}}."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Неверный токен сессии={{.Token}}, err={{.Error}}"
-  },
-  {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Неверный или пропущенный параметр {{.Name}} в запросе URL."
   },
@@ -2448,10 +2444,6 @@
     "translation": "Значение CreateAt в Reaction должно быть не нулевым."
   },
   {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Значение EmojiName в Reaction длиннее максимально разрешенный длины."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Отсутствует необходимое значение для Reaction: EmojiName."
   },
@@ -2886,10 +2878,6 @@
   {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Поиск {{.Backend}} отключен на этом сервере"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Не удалось проанализировать совпадения результатов поиска"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3517,7 +3505,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Неверное максимальное количество пользователей на команду в настройках команд. Число должно быть положительным."
+    "translation": "Неверное максимальное количество каналов на команду в настройках команд. Значение должно быть равно 0 (без ограничений) или положительному числу."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -3529,7 +3517,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Неверное максимальное количество пользователей на команду в настройках команд. Число должно быть положительным."
+    "translation": "Неверное максимальное количество пользователей на команду в настройках команд. Значение должно быть равно 0 (без ограничений) или положительному числу."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -5321,15 +5309,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 132+"
+    "translation": "Версия 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 132+"
+    "translation": "Версия 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 119+"
+    "translation": "Версия 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5394,10 +5382,6 @@
   {
     "id": "app.audit.save.saving.app_error",
     "translation": "Мы столкнулись с ошибкой при сохранении аудитов."
-  },
-  {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Мы столкнулись с ошибкой при удалении аудитов."
   },
   {
     "id": "app.audit.get.limit.app_error",
@@ -5502,10 +5486,6 @@
   {
     "id": "app.oauth.remove_access_data.app_error",
     "translation": "Невозможно удалить токен доступа."
-  },
-  {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Невозможно удалить код авторизации."
   },
   {
     "id": "app.oauth.get_apps.find.app_error",
@@ -5620,10 +5600,6 @@
     "translation": "невозможно мигрировать."
   },
   {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Невозможно удалить пользователя."
-  },
-  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Невозможно удалить команду."
   },
@@ -5692,10 +5668,6 @@
     "translation": "Возникла ошибка при обновлении настроек."
   },
   {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Возникла ошибка при удалении настроек."
-  },
-  {
     "id": "app.preference.get_category.app_error",
     "translation": "Возникла ошибка при поиске настроек."
   },
@@ -5740,15 +5712,7 @@
     "translation": "Невозможно сохранить входящий вебхук."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Невозможно удалить вебхук."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Невозможно удалить вебхук."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Невозможно удалить вебхук."
   },
   {
@@ -5844,10 +5808,6 @@
     "translation": "Невозможно сохранить сообщение."
   },
   {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Не удалось выбрать для удаления посты пользователя."
-  },
-  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Невозможно удалить сообщения по каналу."
   },
@@ -5870,10 +5830,6 @@
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
     "translation": "Невозможно создать новое участие в команде"
-  },
-  {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Невозможно импортировать участие в команде, потому что в этой команде не разрешены дополнительные участники"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
@@ -6048,10 +6004,6 @@
     "translation": "Не удалось сохранить информацию о файле."
   },
   {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Невозможно удалить вложения пользователя."
-  },
-  {
     "id": "app.file_info.get_with_options.app_error",
     "translation": "Не удалось получить информацию о файле с настройками"
   },
@@ -6070,10 +6022,6 @@
   {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Невозможно подсчитать сообщения с указанной даты."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "Вход в CWS запрещен."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -6306,10 +6254,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Не удалось найти закрепленные сообщения."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Невозможно удалить участника канала."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
@@ -6924,10 +6868,6 @@
     "translation": "участник группы уже существует"
   },
   {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "app.group.no_rows",
     "translation": "не найдено подходящей группы"
   },
@@ -7402,10 +7342,6 @@
   {
     "id": "api.command_remote.fetch_status.error",
     "translation": "Не удалось получить безопасные соединения: {{.Error}}"
-  },
-  {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Не удалось зашифровать приглашение: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -8092,14 +8028,6 @@
     "translation": "Mattermost - это платформа с открытым исходным кодом для безопасного общения, сотрудничества и организации работы между командами с использованием различных инструментов.\nMattermost состоит из двух ключевых инструментов:\n\n**Channels** - Каналы - оставайтесь всегда на связи со своей командой посредством 1:1 и групповых чатов.\n**[Playbooks](/playbooks)** - Сценарии - создавайте и настраивайте повторяющиеся процессы для достижения конкретных и предсказуемых результатов.\n\n[Посмотреть документацию и руководства]({{.HelpLink}})"
   },
   {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Невозможно восстановить команду, потому что достигнут лимит команд"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Невозможно создать команду, потому что достигнут лимит команд"
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Администратор уже уведомлен"
   },
@@ -8128,16 +8056,8 @@
     "translation": "Мы не смогли получить количество бейджей для пользователя."
   },
   {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Не удалось получить данные об использовании хранилища."
-  },
-  {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Не удалось сгенерировать информацию о файле из загруженных данных."
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Невозможно получить количество команд"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -8168,16 +8088,8 @@
     "translation": "Ошибка при получении последнего доступного сообщения"
   },
   {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Ошибка при получении последнего доступного файла"
-  },
-  {
     "id": "app.job.error",
     "translation": "Ошибка во время выполнения задания."
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Невозможно получить файл, так как он превысил лимит облачного тарифного плана."
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
@@ -8322,10 +8234,6 @@
   {
     "id": "api.user.get_users.validation.app_error",
     "translation": "Ошибка при получении ролей во время проверки."
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Портал недоступен для самостоятельной регистрации."
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
@@ -8546,10 +8454,6 @@
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
     "translation": "Вы можете добавлять в этот канал других пользователей {{.FirstUser}} и {{.Others}}, если они являются членами команды **{{.Team}}**."
-  },
-  {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Невозможно удалить реакции для пользователя."
   },
   {
     "id": "humanize.list_join",
@@ -9660,10 +9564,6 @@
     "translation": "Пользователь не существует"
   },
   {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Невозможно удалить запланированные сообщения для пользователя."
-  },
-  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Неизвестный канал"
   },
@@ -9777,7 +9677,7 @@
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.enabled",
-    "translation": "@%s включил автоперевод для этого канала. Все новые сообщения будут появляться на выбранном тобой языке."
+    "translation": "@%s включил автоперевод для этого канала. Все новые сообщения будут появляться на выбранном вами языке."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
@@ -9808,16 +9708,12 @@
     "translation": "Нет разрешения на перемещение команды"
   },
   {
-    "id": "api.command_share.service_inactive",
-    "translation": "Служба \"Общие каналы\" включена, но не активна."
-  },
-  {
     "id": "api.context.session_cookie_not_allowed.app_error",
     "translation": "Аутентификация на основе кукисов не разрешена для этой конечной точки. Используй аутентификацию на основе заголовков."
   },
   {
     "id": "api.data_spillage.error.comment_required",
-    "translation": "Пожалуйста, добавь комментарий, объясняющий, почему ты помечаешь это сообщение."
+    "translation": "Пожалуйста, добавьте комментарий, объясняющий, почему вы помечаете это сообщение."
   },
   {
     "id": "api.data_spillage.error.comment_too_long",
@@ -9833,7 +9729,7 @@
   },
   {
     "id": "api.data_spillage.error.license",
-    "translation": "Твоя лицензия не поддерживает функцию обработки утечки данных."
+    "translation": "Ваша лицензия не поддерживает функцию обработки утечки данных."
   },
   {
     "id": "api.data_spillage.error.not_available_on_team",
@@ -9941,7 +9837,7 @@
   },
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
-    "translation": "У тебя нет разрешения на сожжение этого сообщения. Ты должен быть участником канала."
+    "translation": "У вас нет разрешения на сожжение этого сообщения. Вы должны быть участником канала."
   },
   {
     "id": "api.post.create_post.burn_on_read.app_error",
@@ -10001,7 +9897,7 @@
   },
   {
     "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
-    "translation": "Ты не можешь раскрыть собственное сообщение сгораемое при прочтении."
+    "translation": "Вы не можете раскрыть собственное сообщение сгораемое при прочтении."
   },
   {
     "id": "api.post.reveal_post.disabled.app_error",
@@ -10233,7 +10129,7 @@
   },
   {
     "id": "app.burn_post.not_revealed.app_error",
-    "translation": "Это сообщение о сожжении при прочтении еще не раскрыто. Ты должен раскрыть его, прежде чем сжечь."
+    "translation": "Это сообщение о сожжении при прочтении еще не раскрыто. Вы должны раскрыть его, прежде чем сжечь."
   },
   {
     "id": "app.burn_post.read_receipt.get.error",
@@ -11573,10 +11469,6 @@
   {
     "id": "app.draft.upsert.rejected_by_plugin",
     "translation": "Черновик отклонён плагином: {{.Reason}}"
-  },
-  {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Невозможно удалить черновики пользователя."
   },
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
@@ -14606,7 +14498,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Для функции «Состояние сайта» требуется лицензия Enterprise."
+    "translation": "Для функции «Состояние сайта» требуется лицензия Professional или выше."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
@@ -14654,7 +14546,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Конфигурация журналирования содержит путь к файлу журнала или аудита за пределами корневого каталога журналов. Подробности см. в журналах сервера."
+    "translation": "Конфигурация журналирования содержит путь к файлу журнала или аудита за пределами корневого каталога журналов или внутри каталога, которым управляет сервер. Подробности см. в журналах сервера."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14722,7 +14614,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Перейдите на https://push.mattermost.com (рабочая служба Hosted Push Notification Service, входящая в Enterprise) или на собственный push-прокси."
+    "translation": "Укажите в PushNotificationServer рабочий push-прокси: собственный экземпляр Mattermost Push Proxy, который обслуживает ваши собственные сборки мобильных приложений."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14755,5 +14647,2011 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
     "translation": "Сообщения, сгорающие после прочтения, нельзя отправлять как повторяющиеся запланированные сообщения."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Функция действий с разрешениями канала не включена."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Загруженный сертификат поставщика удостоверений не является допустимым сертификатом X.509 в кодировке PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Загруженный закрытый ключ поставщика услуг не является допустимым закрытым ключом в кодировке PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Загруженный открытый сертификат поставщика услуг не является допустимым сертификатом X.509 в кодировке PEM."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Загруженный файл не соответствует сохранённому сертификату или закрытому ключу поставщика услуг. Отключите шифрование, чтобы заменить их по одному."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "В настоящее время у вас нет разрешения на управление этим каналом."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "В настоящее время у вас нет доступа к этому каналу."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "В настоящее время у вас нет разрешения писать в этом канале."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Одинарная кавычка рядом с `{{.Near}}` не закрыта до ` --`. Закройте её или используйте двойные кавычки, если значение содержит ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Неожиданный текст рядом с `{{.Near}}`. Заключите значение, содержащее пробелы, в кавычки, а если значение также содержит апостроф, используйте двойные кавычки."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Кавычка рядом с `{{.Near}}` не закрыта."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Не удалось сравнить сохранённые конфигурации."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Не удалось сравнить сохранённую конфигурацию с текущей."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Недействительный или истёкший сеанс."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Задания этого типа нельзя отменить."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "В поле public_key необходимо загрузить ровно один файл открытого ключа плагина."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Открытый ключ плагина {{.Name}} не настроен."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Не удалось разобрать загруженный открытый ключ плагина."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "У вас нет разрешения на установку одного или нескольких запрошенных значений атрибутов сообщения."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "К сгорающим после прочтения сообщениям нельзя добавлять атрибуты сообщений."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Атрибуты сообщений не включены на этом сервере."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Не удалось применить одно или несколько значений атрибутов сообщения."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Только администратор канала, команды или системы, к которым относится поле, может задать его разрешения при создании."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Только системный администратор может задавать разрешения при создании поля атрибута."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Этот атрибут был удалён."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Невозможно получить данные о соответствии для поля свойства v1 через этот API."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "У вас нет разрешения на просмотр данных о соответствии для этого поля свойства."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Получить список каналов без значения или уведомить их можно только для атрибутов, которые применяются ко всем командам."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Уведомления не были отправлены, так как администраторы каналов недавно уже получали уведомление об этом. Вы сможете отправить новое уведомление через {{.Count}} минуту.",
+      "few": "Уведомления не были отправлены, так как администраторы каналов недавно уже получали уведомление об этом. Вы сможете отправить новое уведомление через {{.Count}} минуты.",
+      "many": "Уведомления не были отправлены, так как администраторы каналов недавно уже получали уведомление об этом. Вы сможете отправить новое уведомление через {{.Count}} минут.",
+      "other": "Уведомления не были отправлены, так как администраторы каналов недавно уже получали уведомление об этом. Вы сможете отправить новое уведомление через {{.Count}} минуты."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Уведомления не были отправлены, так как администраторы каналов недавно уже получали уведомление об этом. Повторите попытку позже."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Нельзя изменить разрешения поля свойства так, чтобы вы потеряли возможность его редактировать."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Переданный объект ограничений должен задавать все пять уровней разрешений: чтение значения, запись значения, чтение вариантов, запись вариантов и запись поля."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Переданный объект разрешений недействителен."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Эта группа свойств не поддерживает передачу объекта разрешений."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Объект разрешений должен позволять системным администраторам редактировать поле, поэтому запись поля не может быть запрещена для всех."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Этот атрибут пока нельзя сделать обязательным, так как у некоторых активных каналов нет его значения. Уведомите администраторов каналов и повторите попытку."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Срок действия приглашения истёк. Запросите новое приглашение у удалённого сайта."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Удалённый сайт вернул недопустимый ответ."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Приглашение содержит недопустимый адрес сайта: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Удалённый сайт отклонил приглашение."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Не удалось подключиться к удалённому сайту по адресу {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Загрузка через безопасное соединение не может возобновить частично полученный файл."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Слишком много ресурсов в одной проверке контроля доступа; ограничение — {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Проверка последнего выпуска Mattermost отключена. Чтобы разрешить её, включите параметр «Проверять обновления безопасности и новые выпуски»."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Не удалось найти администраторов каналов."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Не удалось найти каналы без значения этого атрибута."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Не удалось подсчитать каналы без значения этого атрибута."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Не удалось подсчитать все каналы без значения этого атрибута."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Не удалось подсчитать локальные каналы без значения этого атрибута."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Не удалось получить список каналов без значения этого атрибута."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Не удалось найти удалённые каналы без значения этого атрибута."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Не удалось подсчитать администраторов каналов и каналы, затронутые этим атрибутом."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Не удалось найти администраторов каналов для уведомления об этом атрибуте."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _другие каналы: {{.Count}}_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Пожалуйста, задайте значение атрибута **{{.AttributeName}}** для этих каналов, которыми вы управляете. Системному администратору нужно, чтобы значение было у каждого канала, прежде чем этот атрибут можно будет сделать обязательным."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Вы администратор канала, у которого отсутствует обязательный атрибут канала. Пожалуйста, задайте значение атрибута **{{.AttributeName}}**.",
+      "few": "Вы администратор каналов, у которых отсутствует обязательный атрибут канала. Пожалуйста, задайте значение атрибута **{{.AttributeName}}**.",
+      "many": "Вы администратор каналов, у которых отсутствует обязательный атрибут канала. Пожалуйста, задайте значение атрибута **{{.AttributeName}}**.",
+      "other": "Вы администратор каналов, у которых отсутствует обязательный атрибут канала. Пожалуйста, задайте значение атрибута **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Не удалось зарезервировать период ожидания уведомлений для этого атрибута."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Не удалось получить сохранённые конфигурации."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Сохранённая конфигурация с таким идентификатором не найдена."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "История конфигурации доступна, только если конфигурация хранится в базе данных."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "В исходном виде: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Отметка времени"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Не удалось запустить проверку состояния."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Проверка состояния уже запускается. Повторите попытку через несколько секунд."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Ошибка импорта сообщения. Не удалось сохранить приоритет."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Ошибка импорта команд пользователя. Команда не найдена."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Этот файл добавляет в команду {{.Team}} пользователей: {{.Adding}}; всего участников станет {{.Total}}, но значение TeamSettings.MaxUsersPerTeam — {{.Limit}}. Перед импортом увеличьте ограничение или установите его в 0 (без ограничения)."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Не удалось прочитать файл импорта для проверки TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Свойство AcknowledgedAt подтверждения должно быть задано и не может быть раньше CreateAt сообщения."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Отсутствует обязательное свойство Acknowledgement: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Для подтверждений сообщения требуется Priority, в котором RequestedAck имеет значение true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Для PersistentNotifications сообщения требуется срочный приоритет (Priority)."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Отсутствует обязательное свойство Priority: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Недопустимое значение свойства EmojiName в Reaction. Оно должно содержать от 1 до 64 символов: латинские буквы и цифры ASCII, +, - или _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Только системный администратор может изменять правила членства, использующие расширенную логику. Измените их в системной консоли."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Это правило членства использует выражение, которое синхронизация членства не может вычислить. Перепишите правило, используя только сравнения, &&, ||, in и поддерживаемые функции атрибутов."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Это правило членства использует {{.Function}}, а синхронизация членства не может это вычислить. Перепишите правило, используя только сравнения, &&, ||, in и поддерживаемые функции атрибутов."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Не удалось определить, есть ли у действия политика разрешений"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Не удалось определить, распространяется ли политика доступа ресурса на это действие."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Файл конфигурации с именем {{.Name}} уже существует."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Файл не является допустимым открытым ключом OpenPGP."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Недопустимое имя открытого ключа плагина {{.Name}}. Имена могут содержать только буквы, цифры, '.', '_' и '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Невозможно удалить это поле, так как маскированный шаблон берёт из него собственные значения каждого пользователя. Сначала измените или удалите маскирование шаблона."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Уровень option.read связанного поля ({{.FieldTier}}) не может давать больше доступа, чем уровень шаблона {{.TemplateID}} ({{.TemplateTier}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Атрибут нельзя связать с утверждением OpenID Connect, пока синхронизация атрибутов OpenID Connect отключена."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Не удалось выполнить поиск по глобальным атрибутам."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Это поле является источником собственных значений для своего маскированного шаблона, поэтому его уровень записи значений не может быть '{{.ValueWrite}}'. Иначе пользователи, которых фильтрует шаблон, смогли бы изменять свои собственные значения и расширять то, что им видно."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Атрибут, синхронизируемый из OpenID Connect, не может одновременно синхронизироваться из AD/LDAP или SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Невозможно изменить владельцев, режим доступа, параметры защиты или синхронизации этого поля таким способом, так как его разрешения невозможно выразить в этой форме. Вместо этого обновите его разрешения напрямую."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Невозможно изменить режим доступа этого поля, так как оно содержит данные, которые вызывающая сторона может не иметь права читать."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Невозможно обновить: связанное поле {{.DependentID}} имеет уровень option.read {{.DependentTier}}, который превысит новый уровень {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Нельзя в одном обновлении изменить объект разрешений поля и его уровни разрешений, владельцев, режим доступа, параметры защиты или синхронизации. Отправьте изменение в одной из этих форм."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Невозможно обновить: связанное поле {{.DependentID}} при таком маскировании будет предоставлять собственные значения, но его уровень записи значений — '{{.ValueWrite}}'. Сначала понизьте уровень записи значений этого поля до уровня администратора или ниже."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Невозможно отвязать это поле, так как маскированный шаблон берёт из него собственные значения каждого пользователя. Сначала измените или удалите маскирование шаблона."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Учётная запись деактивирована и частично удалена. Повторный запуск удаления безопасен и завершит его."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "За этот проход удалено максимальное количество сообщений: {{.Max}}. Учётная запись деактивирована и частично удалена. Запустите удаление ещё раз, чтобы продолжить."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Не удалось полностью удалить пользователей ({{.Count}}): {{.Usernames}}. Запустите команду ещё раз, чтобы продолжить."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Не удалось отправить запрос кластера"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML настроен неправильно. Пожалуйста, свяжитесь с системным администратором."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "Последние запуски ещё в очереди, выполняются или были отменены, поэтому более ранние запуски проверить не удалось."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Аутентификация"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Высокая доступность"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Комплаенс"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "База данных"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Задания"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Лицензирование"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Уведомления"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Платформа"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Поиск"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Обновления"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} на узле {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Данные собраны"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Неизвестно"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Лицензия выдана"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Последняя проверка"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Сформирован"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Лицензия"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Ещё не проверялось"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Версия сервера"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "URL сайта"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Похоже, проверки остановились."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Открыть эту настройку в системной консоли"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Подробности"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Читать документацию"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Как исправить"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Сводка"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Скрытые"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Устранённые"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Не удалось проверить"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Критический"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Информация"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Предупреждение"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} критическое",
+      "few": "{{.Count}} критических",
+      "many": "{{.Count}} критических",
+      "other": "{{.Count}} критического"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} информационное",
+      "few": "{{.Count}} информационных",
+      "many": "{{.Count}} информационных",
+      "other": "{{.Count}} информационного"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Открытых замечаний нет."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Проверка состояния ещё не выполнялась."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "Не удалось проверить: {{.Count}}",
+      "few": "Не удалось проверить: {{.Count}}",
+      "many": "Не удалось проверить: {{.Count}}",
+      "other": "Не удалось проверить: {{.Count}}"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} предупреждение",
+      "few": "{{.Count}} предупреждения",
+      "many": "{{.Count}} предупреждений",
+      "other": "{{.Count}} предупреждения"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Отчёт о состоянии"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Нет ни одного активного назначения для журнала аудита, а число зарегистрированных пользователей в этом рабочем пространстве — {{.users}}. Административные действия, входы в систему и изменения конфигурации не фиксируются в отдельном журнале аудита. Это пробел в комплаенсе и в возможностях расследования инцидентов, а не угроза стабильности."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Если в вашей организации действуют требования к аудиту (финансовые услуги, здравоохранение, оборона, регулируемый государственный сектор), включите ведение журнала аудита в разделе Системная консоль > Комплаенс > Ведение журнала аудита или добавьте назначение для уровней аудита в ExperimentalAuditSettings.AdvancedLoggingJSON и настройте ротацию. В противном случае это замечание можно игнорировать."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Ведение журнала аудита отключено"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "В ServiceSettings.ListenAddress указан порт {{.port}}, номер которого меньше 1024. В Linux сервер Mattermost, запущенный не от имени root, может занять такой порт только благодаря файловой возможности CAP_NET_BIND_SERVICE у своего исполняемого файла. Обновление пакета заменяет исполняемый файл и сбрасывает эту возможность, поэтому после следующего обновления сервер может не запуститься с ошибкой «bind: permission denied». По конфигурации нельзя определить, как предоставлена эта возможность, поэтому предупреждение остаётся, даже если вы предоставили её через юнит-файл systemd."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Добавьте AmbientCapabilities=CAP_NET_BIND_SERVICE в юнит-файл systemd для Mattermost, чтобы возможность сохранялась после обновлений, или выполняйте setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost после каждого обновления. Кроме того, можно поставить перед Mattermost обратный прокси и привязать Mattermost к порту с большим номером, например 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Сервер напрямую занимает привилегированный порт"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Ведущий узел объявляет адрес {{.address}}. Другие узлы не могут связаться с ним по этому адресу, поэтому gossip формирует кластер из одного узла, а расщепление кластера остаётся незамеченным."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Укажите в ClusterSettings.AdvertiseAddress доступный IP-адрес или DNS-имя узла либо оставьте значение пустым, чтобы использовался адрес сетевого интерфейса. Эта проверка читает конфигурацию ведущего узла, поэтому проверьте настройку на каждом узле."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress недоступен с других узлов"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Конфигурация хранится в файле на каждом узле и может изменяться в системной консоли. Изменение сохраняется на одном узле и рассылается остальным без гарантии доставки; узел, не получивший изменение, сохраняет собственный файл, поэтому конфигурации узлов могут со временем расходиться."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Установите для ClusterSettings.ReadOnlyConfig значение true и управляйте конфигурацией через файл конфигурации или переменные окружения на каждом узле либо перенесите конфигурацию в базу данных."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig выключен в HA-кластере с файловой конфигурацией"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption имеет значение false, поэтому трафик между узлами кластера не шифруется."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Включите шифрование gossip, затем перезапустите все узлы одновременно в окно обслуживания. Узлы с шифрованием и без него не могут обмениваться данными, поэтому при поочерёдном перезапуске кластер будет разделён, пока не перезапустится последний узел."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Gossip-трафик HA-кластера не шифруется"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "Число зарегистрированных пользователей — {{.users}}, и в режиме HA используется стандартный кэш LRU в памяти: каждый узел хранит собственную копию и использует gossip для инвалидации. Mattermost рекомендует Redis начиная со 100 000 пользователей, чтобы снизить трафик инвалидации кэша при таком масштабе."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Рассмотрите возможность установить для CacheSettings.CacheType значение redis и настроить CacheSettings.RedisAddress. Для Redis нужна лицензия с функцией Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "При таком масштабе рассмотрите кэш на базе Redis"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Запланированная топология HA фактически не работает. Один узел не обеспечивает отказоустойчивость и скрывает риск расщепления кластера."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Проверьте связность gossip (ClusterSettings.GossipPort), правила межсетевого экрана и то, что у всех узлов приложения одинаковое значение ClusterName. Пустое значение ClusterName тоже оставляет узел в одиночестве: в этом случае сервер записывает в журнал, что высокая доступность отключена."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Высокая доступность включена, но в кластере только один узел"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Узлы кластера сообщают следующие версии: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Узлы разделились между версиями, и ни одна версия не встречается чаще остальных, поэтому неясно, какие узлы устарели."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "На этом узле работает версия {{.version}}, а на большинстве узлов — {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Если обновление не выполняется прямо сейчас, обновите все узлы до одной версии и убедитесь, что узлы могут обмениваться данными по gossip."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "В кластере обнаружено несколько версий Mattermost"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory не задан, поэтому комплаенс-отчёты записываются в папку compliance в рабочем каталоге сервера. Они будут потеряны при обновлении сервера или пересборке его контейнера."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Укажите в параметре «Каталог комплаенс-отчетов» в разделе Системная консоль > Комплаенс > Мониторинг комплаенса (ComplianceSettings.Directory) постоянный путь, доступный для записи."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Мониторинг комплаенса включён, но каталог не задан"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Каждый узел держит пул до MaxOpenConns соединений с основной базой данных. При числе узлов {{.nodes}} и MaxOpenConns={{.max_open}} переключение базы данных на резервный сервер может вызвать до {{.burst}} одновременных попыток подключения к новой основной базе, а хост в DataSource не похож на пул соединений. Если это превысит max_connections базы данных, она начнёт отклонять подключения («sorry, too many clients already»), и восстановление займёт больше времени."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Рассчитайте каждый уровень с учётом этого всплеска. Самое надёжное решение — уменьшить SqlSettings.MaxOpenConns на каждом узле и/или поставить перед базой данных PgBouncer (в режиме транзакций), чтобы он поглощал всплески переподключений, а не только повышать max_connections: каждое соединение расходует память базы данных, поэтому высокий предел грозит её нехваткой. Если вы повышаете max_connections, оставьте запас сверх всплеска для репликации, мониторинга и административных сеансов. Поэтапный запуск узлов во время переключения также удерживает всплеск ниже предела."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Переключение базы данных может вызвать лавину подключений"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) больше, чем MaxOpenConns ({{.max_open}}). Уровень database/sql в Go без предупреждения ограничивает пул простаивающих соединений значением MaxOpenConns, поэтому лишний запас простаивающих соединений ни на что не влияет. Ничего не сломано, но значение вводит в заблуждение и обычно говорит о том, что пул настраивали, не зная, что простаивающих соединений не может быть больше открытых."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Установите для MaxIdleConns значение, не превышающее MaxOpenConns (обычно рекомендуется 25–50% от MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns больше MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "При числе пользователей {{.users}} и MaxOpenConns={{.max_open}} во время пиковой нагрузки запросы могут выстраиваться в очередь на стороне приложения. Текущее значение по умолчанию — 100 (MaxIdleConns — 50, соотношение 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Если на стороне приложения наблюдается очередь запросов, повысьте SqlSettings.MaxOpenConns с учётом данных мониторинга (базовыми считаются значения по умолчанию 100/50). Фактический предел для базы данных равен MaxOpenConns × число узлов × число источников данных, поэтому прежде чем повышать значение, убедитесь, что max_connections базы данных покрывает это общее количество."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns может быть мало для такого числа пользователей"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas не задан. При числе пользователей {{.users}} все операции чтения идут в основную базу данных. Для крупных развёртываний рекомендуются реплики для чтения."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Рассмотрите возможность развернуть реплику для чтения и добавить её в SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Реплики для чтения не настроены"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "При числе сообщений {{.posts}} и поиске средствами базы данных основная база и реплики выполняют полнотекстовое сканирование. При таком масштабе это создаёт нагрузку на процессор и приводит к превышению времени ожидания поиска."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "При числе сообщений {{.posts}} и поиске средствами базы данных основная база и реплики выполняют полнотекстовое сканирование. При таком масштабе это создаёт нагрузку на процессор и приводит к превышению времени ожидания поиска. Ваша лицензия включает Elasticsearch, который полностью снимает нагрузку поиска с базы данных."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Настройте SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Нет реплики для поиска, и поиск через Elasticsearch отключён"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "Используется {{.in_use}} из {{.max_open}} соединений с основной базой данных ({{.percent}}%), что составляет не менее 90% от MaxOpenConns. Новые запросы будут ждать в очереди, а задержка HTTP вырастет."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Повысьте SqlSettings.MaxOpenConns и max_connections базы данных. Также выясните, какие запросы выполняются слишком долго."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Пул соединений с основной базой данных почти исчерпан"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} ниже минимальной поддерживаемой версии {{.minimum}}. Mattermost по-прежнему запускается на ней, но неподдерживаемые версии могут приводить к непредсказуемому поведению. Обновитесь до PostgreSQL {{.minimum}} или более поздней версии."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Запланируйте обновление. В новых версиях также улучшена производительность параллельных запросов и JSONB."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "Версия PostgreSQL ниже минимальной поддерживаемой"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL сейчас выполняет vacuum таблицы Posts. Дождитесь его завершения, прежде чем оценивать, нужен ли ещё один vacuum."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "В таблице Posts, по оценке, {{.dead_tuples}} dead tuples ({{.dead_percent}}% от примерно {{.estimated_rows}} строк), хотя последний vacuum выполнялся {{.last_vacuum}}. Vacuum работает, но, скорее всего, не может их удалить, потому что очистку что-то задерживает: например, долго выполняющийся сеанс или сеанс в состоянии idle-in-transaction, неактивный replication slot или брошенная prepared transaction. Разрастание таблицы и индексов может снижать производительность запросов и увеличивать расход дискового пространства."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "В таблице Posts, по оценке, {{.dead_tuples}} dead tuples ({{.dead_percent}}% от примерно {{.estimated_rows}} строк), и у PostgreSQL нет записей о vacuum этой таблицы с момента последнего сброса статистики. Похоже, Autovacuum не успевает обрабатывать эту таблицу. Разрастание таблицы и индексов может снижать производительность запросов и увеличивать расход дискового пространства."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "В таблице Posts, по оценке, {{.dead_tuples}} dead tuples ({{.dead_percent}}% от примерно {{.estimated_rows}} строк), а последний vacuum выполнялся {{.last_vacuum}} (дней назад: {{.age_days}}). Похоже, Autovacuum не успевает обрабатывать эту таблицу. Разрастание таблицы и индексов может снижать производительность запросов и увеличивать расход дискового пространства."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Если pg_stat_progress_vacuum показывает, что для Posts выполняется vacuum, дождитесь его завершения, поскольку запуск VACUUM вручную его отменит. Если vacuum для Posts выполнялся недавно, найдите, что задерживает очистку, и завершите или удалите это: долго выполняющиеся сеансы или сеансы в состоянии idle-in-transaction в pg_stat_activity, неактивные replication slots в pg_replication_slots и старые prepared transactions в pg_prepared_xacts. После этого следующий vacuum сможет удалить dead tuples. Если vacuum для Posts давно не выполнялся, убедитесь, что autovacuum включён глобально и для Posts, и проверьте журналы PostgreSQL на наличие отменённых заданий autovacuum. Если autovacuum не справляется, уменьшите autovacuum_vacuum_scale_factor для Posts и, насколько позволяют ресурсы, увеличьте autovacuum_vacuum_cost_limit и autovacuum_work_mem, а затем запланируйте целевой VACUUM (ANALYZE) для Posts в период низкой нагрузки. Избегайте VACUUM FULL, если не готовы к его эксклюзивной блокировке и дополнительному расходу дискового пространства; если доступен pg_repack, он требует менее жёстких блокировок."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "В таблице Posts много dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "Для QueryTimeout задано {{.timeout}} с. При больших тайм-аутах вышедшие из-под контроля запросы удерживают блокировки всё это время, блокируя autovacuum, миграции схемы и операции записи, ожидающие ту же строку. На нагруженных базах данных без реплик для чтения риск возрастает."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Уменьшите SqlSettings.QueryTimeout до 30. Отдельно разберитесь с конкретными медленными запросами, вместо того чтобы повышать общий предел."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "Значение SqlSettings.QueryTimeout слишком велико (по умолчанию 30 с)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas задан, но ни одна реплика недоступна, поэтому операции чтения выполняются в основной базе данных."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Проверьте DSN реплики, её доступность по сети и аутентификацию. Найдите в журналах сервера предупреждения о подключении к репликам."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Реплики для чтения настроены, но ни одна не доступна"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Записывается в журнал каждая SQL-инструкция. Это предназначено только для отладки: если оставить параметр включённым, диск заполнится, а данные запросов попадут в файлы журналов."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Установите для SqlSettings.Trace значение false, если вы не занимаетесь отладкой прямо сейчас."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace включён"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Сервер работает под управлением {{.os}}. Для рабочей среды Mattermost поддерживает Linux; другие операционные системы подходят только для разработки."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Перенесите сервер на поддерживаемый дистрибутив Linux."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Сервер работает не под управлением Linux"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Каждое новое сообщение индексируется синхронно отдельным запросом. На нагруженных серверах это перегружает поисковый кластер и задерживает индексирование."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Увеличьте LiveIndexingBatchSize до значения от 10 до 20 и подберите его в этом диапазоне с учётом наблюдаемой частоты сообщений."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize равен 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize равен {{.size}}. Большие запросы _bulk могут превысить http.max_content_length поискового кластера и завершиться ошибкой 413, что приводит к повторным попыткам и отставанию индексирования."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Уменьшите LiveIndexingBatchSize до значения от 10 до 20 или повысьте http.max_content_length в поисковом кластере, если очень большие пакеты используются намеренно."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize больше 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL указывает на {{.host}}, а это имя каждый узел приложения разрешает в самого себя. Узлы без локальной поисковой системы не могут индексировать данные и выполнять поиск."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Укажите в ConnectionURL имя хоста или DNS-имя службы, доступное с каждого узла приложения."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch ConnectionURL указывает на localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Поисковый кластер не сообщает о наличии плагина analysis-icu. Шаблон индекса сообщений использует токенизатор и нормализатор ICU, поэтому без этого плагина индексирование сообщений может завершаться ошибкой."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Список плагинов не получен, потому что серверу не удалось определить версию поискового кластера."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Установите плагин analysis-icu на каждый узел поиска (elasticsearch-plugin install analysis-icu или opensearch-plugin install analysis-icu), затем перезапустите узлы. Он нужен для индексирования сообщений, а не только для многоязычного поиска."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "В поисковой системе нет плагина analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Не удалось проверить подключение к поисковой системе: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Не удалось проверить подключение к поисковой системе, а поиск средствами базы данных отключён, поэтому поиск не возвращает результатов: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Проверка подключения к поисковой системе не прошла на узлах {{.nodes}}, хотя остальные узлы к ней подключаются, поэтому поиск и индексирование на этих узлах могут не работать. Проверьте настройки сети, межсетевого экрана, прокси и DNS на этих узлах. Ошибка: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Проверьте доступность ElasticsearchSettings.ConnectionURL, настройки TLS и учётные данные. Проверьте состояние поискового кластера (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Сервер сообщает об ошибке кластера Elasticsearch"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification имеет значение true при подключении по HTTPS, поэтому сервер не проверяет сертификат поисковой системы. Это допустимо в доверенной внутренней сети, но в остальных случаях лишает защиты от атак «человек посередине»."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Если путь до поисковой системы проходит через недоверенную сеть, установите её корневой сертификат (CA), чтобы сертификат проходил проверку, и задайте для SkipTLSVerification значение false. В доверенной внутренней сети убедитесь, что этот параметр включён намеренно."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Подключение к Elasticsearch не проверяет TLS-сертификат"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} новее поддерживаемых основных версий (от {{.min}} до {{.max}}). Обновите Mattermost до выпуска, который её поддерживает, или верните поисковый кластер на поддерживаемую версию."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} старее поддерживаемых основных версий (от {{.min}} до {{.max}}). Обновите поисковый кластер до поддерживаемой версии."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Версия поискового кластера не получена, потому что сервер не подключился к поисковому кластеру."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Не удалось распознать тип или версию поисковой системы."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Используйте основную версию поискового кластера, которую поддерживает эта версия Mattermost."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Версия поисковой системы не поддерживается"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout равен {{.value}} с. Этот параметр ограничивает время, в течение которого экспорт ждёт подключения к SMTP-серверу Global Relay, и при значении меньше 30 секунд медленное подключение приводит к сбою доставки."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Увеличьте MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout как минимум до 30 секунд. Значение по умолчанию — 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout меньше 30 секунд"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "На томе, где находится FileSettings.Directory, доступно {{.available_gib}} GiB ({{.percent}}%) из {{.total_gib}} GiB. Когда том заполнится, загрузка файлов и другие файловые операции могут завершаться ошибкой."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Немедленно расширьте том или удалите из его файловой системы посторонние данные; не удаляйте вручную файлы, которыми управляет Mattermost, из FileSettings.Directory. Оставляйте свободными не менее 10% или 10 GiB и ни в коем случае не меньше 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Диск файлового хранилища почти заполнен"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "На томе, где находится FileSettings.Directory, доступно {{.available_gib}} GiB ({{.percent}}%) из {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Расширьте том или удалите из его файловой системы посторонние данные; не удаляйте вручную файлы, которыми управляет Mattermost, из FileSettings.Directory. Оставляйте свободными не менее 10% или 10 GiB и ни в коем случае не меньше 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "На диске файлового хранилища мало места"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName имеет значение local при включённом ClusterSettings.Enable, а FileSettings.Directory — {{.directory}}. В кластере этот каталог должен быть общим сетевым ресурсом (NFS, EFS, GlusterFS, CephFS), одинаково смонтированным на каждом узле, иначе файлы, загруженные на один узел, не видны на остальных. По конфигурации нельзя определить, является ли каталог общим, а узел может пройти проверку подключения к файловому хранилищу, записывая данные на собственный локальный диск."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "На каждом узле приложения выполните findmnt, указав путь из FileSettings.Directory. Относительный путь отсчитывается от рабочего каталога Mattermost, обычно /opt/mattermost. На всех узлах должен отображаться один и тот же удалённый источник, а у пользователя Mattermost должны быть права на чтение и запись. Если каталог не является общим сетевым ресурсом, перенесите его на такой ресурс или переключите FileSettings.DriverName на amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Локальное файловое хранилище в кластере высокой доступности: убедитесь, что каталог общий"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket не задан, поэтому загрузка файлов завершается ошибкой."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Задайте FileSettings.AmazonS3Bucket, а также регион и конечную точку."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Выбрано файловое хранилище Amazon S3, но бакет не указан"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL имеет значение false, поэтому файлы передаются между сервером и конечной точкой S3 без шифрования."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Установите для FileSettings.AmazonS3SSL значение true, если только конечная точка не поддерживает исключительно обычный HTTP."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL для Amazon S3 отключён"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Серверу не удалось подключиться к файловому хранилищу: {{.error}}. Загрузка и скачивание файлов могут завершаться ошибкой."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Проверка подключения к файловому хранилищу не прошла на узлах {{.nodes}}, хотя остальные узлы к нему подключаются, поэтому загрузка и скачивание файлов через эти узлы могут не работать. Проверьте настройки сети, межсетевого экрана, прокси и DNS на этих узлах. Для локального хранилища также убедитесь, что на них смонтирован общий каталог. Ошибка: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Проверьте настройки файлового хранилища, затем нажмите «Проверка подключения» в разделе Системная консоль > Окружение > Файловое хранилище. Для локального хранилища убедитесь, что FileSettings.Directory существует и пользователь Mattermost может в него записывать. Для Amazon S3 проверьте бакет, конечную точку и учётные данные."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Проверка подключения к файловому хранилищу не пройдена"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Последний завершённый запуск {{.job_type}} ({{.job_id}}) закончился ошибкой: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Последний завершённый запуск {{.job_type}} ({{.job_id}}) закончился ошибкой, но сообщение об ошибке не было записано."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Изучите ошибку задания и журналы сервера за время начала неудачного запуска, чтобы найти причину. Типичные причины, которые стоит исключить: нагрузка на базу данных, ограничения пула соединений, сбои сети или переключение на резервный сервер, а также тайм-ауты выполнения запросов. Устраните проблему, затем снова запустите задание и убедитесь, что оно завершилось. Пока запуск не пройдёт успешно, работа задания (синхронизация каталога, экспорт комплаенса, хранение данных или индексирование для поиска) не выполняется."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Последний запуск задания завершился ошибкой"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "Задание {{.job_type}} {{.job_id}} выполняется, но не проявляло активности уже {{.hours}} ч. Обычно это означает, что обработчик аварийно завершился во время запуска или планировщик завис."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "Задание {{.job_type}} {{.job_id}} выполняется, но не проявляло активности уже {{.days}} дн. Обычно это означает, что обработчик аварийно завершился во время запуска или планировщик завис."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Отмените зависшее задание на его странице в системной консоли, командой mmctl job cancel или через API. Проверьте журналы сервера за время последней активности задания, затем запустите его снова."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Задание выполняется более 24 часов без изменений"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "Задание {{.job_type}} {{.job_id}} не сообщало о ходе выполнения и не проявляло активности больше часа. Обычно это означает, что обработчик аварийно завершился, попал во взаимоблокировку или потерял соединение с базой данных до обработки первого пакета."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Отмените задание на его странице в системной консоли, командой mmctl job cancel или через API. Проверьте журналы сервера с момента запуска задания на наличие паник или ошибок подключения, затем запустите его снова. Если проблема повторится, снимите профиль горутин с /debug/pprof/goroutine на сервере метрик, пока задание зависло."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Задание выполняется больше часа без прогресса и активности"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute имеет значение {{.attribute}}. Mattermost связывает каждую учётную запись с записью в каталоге по этому атрибуту, поэтому при смене адреса электронной почты пользователя (замужество, ребрендинг, переход в другой отдел) связь разрывается и пользователь теряет доступ к своей учётной записи."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Переключите IdAttribute на неизменяемый атрибут, например objectGUID (AD) или entryUUID (OpenLDAP), затем перенесите существующие учётные записи командой mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute — атрибут адреса электронной почты"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Порт 636 обычно предполагает неявный TLS (LDAPS), но для ConnectionSecurity выбрано None или STARTTLS. Обычно такое сочетание — ошибка настройки, но оно допустимо за прокси, завершающим TLS. Убедитесь, что вход через LDAP и синхронизация проходят успешно."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Если вход через LDAP или синхронизация не работают, установите для ConnectionSecurity значение TLS для порта 636. Если они работают, ничего менять не нужно."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "Для порта LDAP 636 не задано ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Порт 389 обычно используется без шифрования или со STARTTLS, а неявный TLS (LDAPS) обычно использует порт 636. Обычно такое сочетание — ошибка настройки, но оно допустимо за прокси, завершающим TLS, или при намеренно перенастроенном сервере. Убедитесь, что вход через LDAP и синхронизация проходят успешно."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Если вход через LDAP или синхронизация не работают, используйте для TLS порт 636 или переключите ConnectionSecurity на STARTTLS для порта 389. Если они работают, ничего менять не нужно."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "Для порта LDAP 389 задано ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "Проверка LDAP (подключение, привязка и поиск пользователя) не пройдена, поэтому вход через LDAP и синхронизация могут не работать."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "Проверка LDAP (подключение, привязка и поиск пользователя) не прошла на узлах {{.nodes}}, хотя остальные узлы подключаются к серверу LDAP, поэтому вход через LDAP на этих узлах может не работать. Проверьте настройки сети, межсетевого экрана, прокси и DNS на этих узлах."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Изучите подробности ошибки, затем проверьте LdapServer, LdapPort, ConnectionSecurity и учётные данные для привязки, а также то, что серверы Mattermost могут подключиться к серверу LDAP. Чтобы проверить снова, нажмите «Проверка подключения» на странице AD/LDAP."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "Проверка подключения к LDAP не пройдена"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout равен {{.timeout}} с. Слишком короткие тайм-ауты вызывают ложные сбои входа через LDAP и синхронизации при медленных каталогах."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Увеличьте LdapSettings.QueryTimeout до 60 секунд (значение по умолчанию)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout меньше 10 секунд"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "Активные учётные записи пользователей ({{.users}}) управляются вручную. Mattermost рекомендует единый вход (SSO), если в рабочем пространстве больше 100 пользователей: ручное управление учётными записями при таком масштабе приводит к появлению устаревших учётных записей, задержкам при адаптации новых сотрудников и несвоевременному отключению ушедших, а каждое из этих последствий — риск для безопасности и лицензирования."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Подключите Mattermost к вашему поставщику удостоверений: к AD/LDAP, если вы используете каталог, иначе к SAML или OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Больше 100 пользователей без единого входа"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost не проверяет TLS-сертификат сервера LDAP, поэтому подключения к каталогу уязвимы для атак «человек посередине». Это допустимо только при разработке и тестировании."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Установите цепочку сертификатов CA сервера LDAP на серверы Mattermost и задайте для SkipCertificateVerification значение false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification включён"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes равен {{.interval_minutes}}, а недавние синхронизации LDAP длились в среднем {{.avg_run_seconds}} с, то есть {{.duty_pct}}% интервала. Долгие синхронизации при коротком интервале держат нагрузку на базу данных повышенной и могут увеличить отставание реплик."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Не найдено ни одной синхронизации LDAP с измеримой длительностью."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Сузьте LdapSettings.UserFilter и BaseDN, чтобы ограничить обход каталога, или увеличьте SyncIntervalMinutes. Добивайтесь того, чтобы синхронизация занимала меньше 25% интервала."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "Синхронизация LDAP занимает большую часть интервала"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "Синхронизация LDAP ищет в каталоге начиная с BaseDN, поэтому, пока он пуст, синхронизация не может найти пользователей, которых нужно обновить."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Укажите в LdapSettings.BaseDN корень каталога, который нужно синхронизировать."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "Синхронизация LDAP включена, но BaseDN пуст"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Срок действия лицензии истёк {{.expires_at}}. Сервер удаляет истёкшую лицензию через 10 дней после окончания срока её действия, и функции Enterprise перестают работать."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Срок действия пробной лицензии истёк {{.expires_at}}. Сервер удаляет истёкшую лицензию через 10 дней после окончания срока её действия, и функции Enterprise перестают работать."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Получите новую лицензию и загрузите её в разделе Системная консоль > О системе > Редакция и лицензия."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Срок действия лицензии истёк"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Срок действия лицензии истекает {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Срок действия пробной лицензии истекает {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Получите новую лицензию сейчас, чтобы загрузить её в разделе Системная консоль > О системе > Редакция и лицензия до истечения срока действия текущей."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Срок действия лицензии истекает в течение 30 дней"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel имеет значение {{.level}}. При записи в файл на уровне отладки файлы журналов быстро растут, а дополнительные подробности могут включать содержимое запросов. Это допустимо на время диагностики, но не подходит как постоянная настройка рабочей среды."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Если вы сейчас не занимаетесь диагностикой, установите для LogSettings.FileLevel значение INFO, чтобы уменьшить объём журналов."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Журнал в файл пишется на уровне debug или trace"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile имеет значение false, поэтому сервер не записывает файл журнала. В этом случае пакеты поддержки не содержат журналов сервера, даже если внешний сборщик перехватывает stdout или journald, и диагностика вместе со службой поддержки Mattermost занимает больше времени."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Установите для LogSettings.EnableFile значение true. Это работает вместе с выводом журнала в консоль, поэтому существующий сборщик журналов продолжит работать."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Запись журнала в файл отключена"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging имеет значение true, поэтому неудачные запросы входящих вебхуков записываются в журнал вместе с содержимым, которое может включать текст сообщений."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Установите для LogSettings.EnableWebhookDebugging значение false, если вы не диагностируете проблему с вебхуком."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Содержимое вебхуков записывается в журнал"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel равен {{.limit}}, поэтому @channel, @all и @here продолжают работать в каналах с тысячами участников. Одно упоминание всего канала там рассылает тысячи уведомлений одновременно, что вызывает скачки задержки."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Уменьшите TeamSettings.MaxNotificationsPerChannel до 5000 или меньше (по умолчанию 1000). @channel, @all и @here отключаются, как только в канале становится столько участников, поэтому сначала согласуйте это с командами, которые используют их в больших каналах."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Упоминания всего канала разрешены в очень больших каналах"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost не записывает метрики производительности, например число соединений с базой данных, задержку запросов и нагрузку на сервер. Без них нет истории, к которой можно обратиться, когда пользователи жалуются на медленную работу, и нечего передать в службу поддержки Mattermost."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Включите мониторинг производительности в системной консоли и убедитесь, что плагин Metrics включён в разделе Плагины > Управление плагинами. Плагин хранит метрики за 15 дней на сервере, Prometheus для этого не нужен. Если вы используете Prometheus, направьте его на обработчик метрик (по умолчанию порт 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Мониторинг производительности отключён"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Рабочий набор памяти контейнера составляет {{.working_set}} МБ при ограничении {{.limit}} МБ. Если он продолжит расти, ядро может завершить процесс сервера или плагина."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Сократите потребление памяти Mattermost и его плагинами или увеличьте ограничение памяти контейнера. Оставляйте достаточный запас для процессов плагинов, среды выполнения Go и пиков трафика."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Память контейнера почти исчерпана"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "С момента запуска контейнера из-за нехватки памяти были принудительно завершены процессы: {{.kills}}. Это мог быть плагин или другой дочерний процесс; проверьте список плагинов и ограничение памяти контейнера."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Изучите процессы плагинов и журналы контейнера, чтобы определить, какой процесс был завершён, затем сократите его потребление памяти или увеличьте ограничение памяти контейнера."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Процесс в контейнере завершён из-за нехватки памяти"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Контейнер был ограничен в {{.throttled}} из {{.periods}} периодов планирования процессора. Постоянное ограничение процессора может замедлять Mattermost, даже когда загрузка процессора на хосте выглядит низкой."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Увеличьте лимит процессора для контейнера или снимите лимит, сохранив запрос ресурсов процессора."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Высокий уровень ограничения процессора контейнера"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "У процесса сервера открыто {{.open}} из {{.max}} файловых дескрипторов. Когда будет достигнут предел, новые подключения и файловые операции начнут завершаться ошибкой."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Увеличьте ограничение на число открытых файлов: задайте LimitNOFILE в юнит-файле systemd для Mattermost или увеличьте ulimit nofile контейнера, затем перезапустите сервер."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Файловые дескрипторы почти исчерпаны"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Ограничение памяти Go составляет {{.go_limit}} МБ, а ограничение контейнера — {{.container_limit}} МБ. Сборщик мусора может не успеть начать работать интенсивнее, прежде чем ядро завершит процесс."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Установите GOMEMLIMIT примерно на 80–90% от ограничения памяти контейнера, оставив запас для памяти вне кучи Go и для процессов плагинов."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Ограничение памяти Go не меньше ограничения контейнера"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS равен {{.go_max_procs}}, что превышает лимит процессора контейнера ({{.cpu_limit}} CPU). Лишние готовые к выполнению потоки могут усиливать ограничение процессора."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Удалите значение GOMAXPROCS, чтобы среда выполнения Go подобрала его по лимиту процессора контейнера, затем перезапустите сервер."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS превышает лимит процессора контейнера"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Средняя загрузка хоста за 15 минут составляет {{.load}} при {{.cores}} ядрах процессора. Постоянная нагрузка в две и более задачи на ядро может указывать на нехватку ресурсов процессора или ввода-вывода."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Проверьте загрузку процессора, дисковый ввод-вывод и запущенные процессы на узле, затем добавьте ресурсы или снизьте нагрузку."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Высокая нагрузка на хост"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "На хосте доступно {{.available}} МБ из {{.total}} МБ. Если свободной памяти станет ещё меньше, Mattermost и другие процессы могут быть принудительно завершены или начать работать медленно."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Найдите процессы, потребляющие больше всего памяти, и сократите их потребление или добавьте хосту памяти. Прежде чем перезапускать службы, проверьте потребление памяти Mattermost и плагинами."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "На хосте заканчивается память"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Этот узел не вернул диагностические данные для проверки состояния. Возможно, он не работает, перегружен или отрезан от других узлов. Пока он не ответит, остальные замечания по нему сохраняют последнее известное состояние."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Убедитесь, что на этом узле запущен Mattermost, изучите его журналы и потребление процессора и памяти, а также проверьте, что он может связаться с другими узлами через порт межузлового взаимодействия (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Узел кластера не отвечает"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Проверка связи с поставщиком OAuth/OIDC не прошла ни на одном из отчитавшихся узлов Mattermost, поэтому вход через этого поставщика, скорее всего, недоступен."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Проверка связи с поставщиком OAuth/OIDC не прошла на узлах {{.nodes}}, хотя остальные отчитавшиеся узлы могут связаться с поставщиком. Вход через этого поставщика на этих узлах может не работать."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Изучите подробности ошибки, конечную точку обнаружения или токенов поставщика, а также настройки исходящей сети, межсетевого экрана, прокси и DNS. Затем убедитесь, что вход через поставщика работает."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Проверка связи с поставщиком OAuth/OIDC не пройдена"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Открытый сервер и регистрация по электронной почте включены, а подтверждение адреса электронной почты отключено, поэтому любой, кто может подключиться к этому серверу, может создать учётную запись с выдуманным адресом и присоединиться к открытым командам. Если открытая регистрация предусмотрена намеренно, скройте это замечание."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Открытый сервер и регистрация по электронной почте включены, а подтверждение адреса электронной почты отключено. TeamSettings.RestrictCreationToDomains ограничивает регистрацию некоторыми доменами, но Mattermost проверяет только то, что адрес заканчивается разрешённым доменом, а не то, что он принадлежит этому человеку. Любой, кто может подключиться к этому серверу, может зарегистрироваться с адресом в разрешённом домене и выдать себя за коллегу. Если открытая регистрация предусмотрена намеренно, скройте это замечание."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Установите для EmailSettings.RequireEmailVerification значение true. Сначала убедитесь, что SMTP работает: существующие пользователи, которые так и не подтвердили адрес электронной почты, должны будут подтвердить его при следующем входе. Если открытая регистрация не нужна, установите для TeamSettings.EnableOpenServer значение false; пользователи по-прежнему смогут присоединиться по ссылкам-приглашениям в команду, поэтому подтверждение адреса электронной почты всё равно рекомендуется. Чтобы ограничить регистрацию вашей организацией, задайте TeamSettings.RestrictCreationToDomains вместе с подтверждением адреса электронной почты; без подтверждения это ограничение можно обойти."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Кто угодно может зарегистрироваться с неподтверждённым адресом электронной почты"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck имеет значение false, поэтому аварийно завершившийся плагин не перезапускается автоматически."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Установите для PluginSettings.EnableHealthCheck значение true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Проверка работоспособности плагинов отключена"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Эти плагины включены, но не запущены: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "В разделе Системная консоль > Плагины > Управление плагинами проверьте состояние каждого из перечисленных плагинов и попробуйте отключить и снова включить его. В журнале сервера записано, почему плагин не запустился или был остановлен проверкой работоспособности плагинов."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Включённые плагины не запущены"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable имеет значение false, поэтому плагины не запускаются. Это подходит для некоторых развёртываний с жёсткими ограничениями, но часто оказывается непреднамеренным."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Если это неожиданно, установите для PluginSettings.Enable значение true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Плагины отключены"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "Для PushNotificationContents задано значение full, поэтому текст сообщения и отправитель включаются в данные push-уведомления, которые проходят через push-прокси и службы push-уведомлений Apple и Google."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Для максимальной конфиденциальности push-уведомлений установите для EmailSettings.PushNotificationContents значение id_loaded. Тогда отправляется только идентификатор сообщения, а мобильное приложение получает содержимое сообщения с сервера. При этом мобильные устройства должны иметь доступ к серверу в момент получения уведомления, поэтому на серверах, доступных только через VPN или внутреннюю сеть, уведомления не смогут показывать содержимое сообщений. Если значение full выбрано намеренно, скройте это замечание."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Push-уведомления содержат полный текст сообщения"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Не удалось проверить подключение к серверу push-уведомлений: {{.error}}. Пользователи мобильных приложений могут не получать push-уведомления."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Проверка подключения к серверу push-уведомлений не прошла на узлах {{.nodes}}, хотя остальные узлы к нему подключаются. Push-уведомления, отправляемые этими узлами, могут не доставляться. Проверьте настройки сети, межсетевого экрана, прокси и DNS на этих узлах. Ошибка: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Проверьте PushNotificationServer, сертификаты TLS и работоспособность push-прокси. Убедитесь, что каждый узел приложения Mattermost может подключиться к указанному хосту по HTTPS, затем проверьте его конечную точку /version."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Проверка подключения к серверу push-уведомлений не пройдена"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com — тестовый push-прокси Mattermost. У него нет SLA и ограничена пропускная способность, и он не предназначен для рабочей среды. Ваша лицензия включает службу Mattermost Hosted Push Notification Service: укажите в PushNotificationServer адрес https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable имеет значение false, а число зарегистрированных пользователей — {{.users}}. Ограничение скорости защищает сервер от лавины запросов и от злонамеренных или неправильно работающих клиентов; при таком числе пользователей, а также вебхуках и интеграциях с ботами один неправильно настроенный клиент может перегрузить API. Согласно документации Mattermost, встроенный ограничитель скорости предназначен для небольших развёртываний (до нескольких сотен пользователей), поэтому при большем масштабе ограничение запросов часто лучше выполнять на балансировщике нагрузки или API-шлюзе."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Убедитесь, что используется ограничение запросов, подходящее для такого масштаба: либо встроенное ограничение скорости Mattermost (Системная консоль > Окружение > Ограничение скорости), либо на балансировщике нагрузки или шлюзе."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Ограничение скорости API отключено на крупном экземпляре"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize равен {{.size}}, а число зарегистрированных пользователей — {{.users}}. Ограничитель скорости отслеживает не больше указанного числа клиентов; когда хранилище заполнено, он удаляет клиента, который обращался давнее всех, и его квота запросов начинается заново, поэтому маленькое хранилище ослабляет ограничение скорости."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Увеличьте RateLimitSettings.MemoryStoreSize как минимум до числа зарегистрированных пользователей."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Хранилище ограничителя скорости меньше числа пользователей"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds равен {{.value}}. Задание хранения данных делает такую паузу между пакетами удаления, чтобы база данных успевала обслуживать текущую нагрузку. При значении меньше 100 мс массовое удаление может замедлить базу данных для всех."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Увеличьте DataRetentionSettings.TimeBetweenBatchesMilliseconds в конфигурации как минимум до 100 (значение по умолчанию)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "Хранение данных: TimeBetweenBatchesMilliseconds меньше 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Утверждения передаются на уровне SAML без шифрования. Соединение по-прежнему защищено TLS, поэтому это не нарушение базовых требований безопасности, но если ваш IdP поддерживает шифрование утверждений, его включение добавит ещё один уровень защиты."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Если ваш IdP поддерживает шифрование утверждений, включите SamlSettings.Encrypt и настройте закрытый ключ и открытый сертификат поставщика услуг."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Шифрование утверждений SAML отключено"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost идентифицирует учётные записи SAML по адресу электронной почты, потому что IdAttribute не задан или указывает на атрибут адреса электронной почты. Когда адрес электронной почты пользователя меняется в IdP, связь с его существующей учётной записью разрывается."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Настройте IdP так, чтобы он передавал постоянный идентификатор (например, objectGUID или неизменяемый ID), затем укажите имя этого атрибута в SamlSettings.IdAttribute. Существующие учётные записи перейдут на новый идентификатор сами: при следующем входе каждого пользователя Mattermost найдёт учётную запись по адресу электронной почты и сохранит новый ID."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute не задан или указывает на атрибут адреса электронной почты"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute имеет значение {{.attribute}}. Имена пользователей, uid и имена участников-пользователей (UPN) часто переходят от одного сотрудника к другому, и тогда второй человек получает учётную запись Mattermost первого."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Используйте идентификатор, который никогда не назначается повторно, например objectGUID (AD) или неизменяемый ID (Microsoft Entra ID), и проверьте политику IdP в отношении повторного использования идентификаторов."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute может быть назначен повторно в IdP"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "Проверка сертификата и URL IdP в настройках SAML не пройдена, поэтому вход через SAML, скорее всего, не работает."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "Проверка сертификата и URL IdP в настройках SAML не прошла на узлах {{.nodes}}, хотя на остальных узлах она проходит, поэтому вход через SAML на этих узлах может не работать. Убедитесь, что на этих узлах тот же действительный сертификат IdP, что и на остальных."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Изучите подробности ошибки, затем исправьте сертификат IdP (IdpCertificateFile) или URL IdP (IdpURL) в настройках SAML. Если срок действия сертификата истёк, загрузите текущий сертификат подписи IdP."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Проверка конфигурации SAML не пройдена"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "Для SSO используется алгоритм подписи SHA-1, который считается устаревшим. Сейчас SSO работает, но некоторые поставщики удостоверений начинают отклонять SHA-1, поэтому стоит запланировать это улучшение совместимости и безопасности, особенно перед сменой или обновлением IdP."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Когда будет удобно, по согласованию с вашим IdP установите для SamlSettings.SignatureAlgorithm значение RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm — SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost принимает ответы SAML, не проверяя подпись вашего IdP, поэтому не может отличить подлинный ответ аутентификации от поддельного."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Установите для SamlSettings.Verify значение true и убедитесь, что задан AssertionConsumerServiceURL. Включайте проверку по согласованию с вашим IdP и проверьте вход, поскольку для проверки подписи сертификат IdP должен быть настроен правильно."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Проверка подписи SAML отключена"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Число сообщений в рабочем пространстве — {{.posts}}, а поиск выполняется средствами базы данных. Elasticsearch рекомендуется при числе сообщений больше 2 500 000 и обязателен при числе больше 5 000 000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Запланируйте развёртывание Elasticsearch до следующего периода значительного роста или до того, как число сообщений достигнет 5 000 000."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Число сообщений приближается к порогу для Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Число сообщений в рабочем пространстве — {{.posts}}, а поиск выполняется средствами базы данных. При таком масштабе ожидайте медленного поиска, превышения времени ожидания и скачков нагрузки на процессор базы данных."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Разверните Elasticsearch или OpenSearch, выполните полную начальную индексацию, затем включите EnableIndexing, EnableSearching и EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Elasticsearch обязателен при числе сообщений больше 5 000 000"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Поиск средствами базы данных отключён, и поиск через Elasticsearch тоже выключен. Поиск не возвращает результатов. Поиск также можно восстановить, включив поиск через Elasticsearch или OpenSearch."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Поиск средствами базы данных отключён, а лицензия не включает Elasticsearch, поэтому настройки Elasticsearch не действуют. Поиск не возвращает результатов."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Установите для SqlSettings.DisableDatabaseSearch значение false в config.json (или MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Поиск отключён"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "Пользователей, занимающих места по лицензии: {{.used}}; лимит лицензии ({{.limit}}) достигнут. Сервер не создаёт и не активирует повторно пользователей, пока места не будут освобождены или добавлены."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Приобретите дополнительные места или деактивируйте пользователей, которым больше не нужен доступ, чтобы освободить места."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Достигнут лимит пользователей по лицензии"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "Пользователей, занимающих места: {{.used}} из {{.seats}} мест по лицензии ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Если ожидается больше пользователей, заранее запланируйте приобретение дополнительных мест, пока лицензия не заполнена. Деактивация пользователей, которым больше не нужен доступ, освобождает места."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Места по лицензии почти заняты"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "Пользователей, занимающих места: {{.used}} из {{.seats}} мест по лицензии ({{.percent}}%)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Приобретите дополнительные места или деактивируйте пользователей, которым больше не нужен доступ. Деактивированные пользователи не занимают места."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Пользователей больше, чем мест по лицензии"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Сеансы истекают по фиксированному расписанию независимо от активности, поэтому из системы выходят даже активные пользователи. Для большинства развёртываний лучше, чтобы активные пользователи оставались в системе."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Включите ServiceSettings.ExtendSessionLengthWithActivity, если это не запрещено вашей политикой безопасности."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity отключён"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Не удалось проверить подключение к SMTP-серверу: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Проверка подключения к SMTP-серверу не прошла на узлах {{.nodes}}, хотя остальные узлы к нему подключаются. Проверьте настройки сети, межсетевого экрана, прокси и DNS на этих узлах. Ошибка: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Уведомления по электронной почте, приглашения и письма для сброса пароля могут не доставляться. Проверьте сервер SMTP, порт, защиту соединения и учётные данные в системной консоли, убедитесь, что сервер Mattermost может подключиться к хосту SMTP, затем проверьте настройки кнопкой «Проверить соединение»."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Проверка подключения к SMTP-серверу не пройдена"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Последний выпуск неизвестен: его не удалось получить, или он не записан в пакете."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Последний выпуск не проверен: параметр «Проверять обновления безопасности и новые выпуски» отключён, поэтому сервер не получает эти сведения."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Этой версии нет в таблице выпусков данной сборки. Чтобы проверить пакет поддержки с более нового сервера, используйте более новую версию mmctl."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Версия сервера неизвестна или не распознана."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Используется {{.version}}. Последний выпуск — {{.latest}}, он новее на два выпуска или больше."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Запланируйте обновление до последнего выпуска до окончания поддержки этой ветки выпусков или перейдите на выпуск с расширенной поддержкой (ESR), чтобы обновляться реже."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Отставание от последнего выпуска на несколько выпусков"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Используется {{.version}}. Последний выпуск — {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Запланируйте обновление до последнего выпуска."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Доступен более новый выпуск"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Используется Mattermost {{.version}}. Поддержка этой ветки выпусков закончилась {{.eol_date}}. Исправления безопасности для этой ветки выпусков больше не выпускаются."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Используется Mattermost {{.version}} — старая ветка выпусков, которая больше не поддерживается. Исправления безопасности для этой ветки выпусков больше не выпускаются."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Используется Mattermost {{.version}} — устаревшая ветка выпусков, которая больше не поддерживается. Исправления безопасности для этой ветки выпусков больше не выходят. Новейший поддерживаемый выпуск с расширенной поддержкой — {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Используется Mattermost {{.version}}. Поддержка этой ветки выпусков закончилась {{.eol_date}}. Исправления безопасности для этой ветки выпусков больше не выходят. Обновитесь до последнего выпуска."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Используется Mattermost {{.version}}. Поддержка этой ветки выпусков закончилась {{.eol_date}}. Исправления безопасности для этой ветки выпусков больше не выходят. Новейший поддерживаемый выпуск с расширенной поддержкой — {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Запланируйте поэтапное обновление до поддерживаемого выпуска с расширенной поддержкой или до последнего выпуска. Список поддерживаемых версий приведён на странице https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Срок поддержки версии Mattermost истёк"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Используется версия {{.version}} выпуска с расширенной поддержкой {{.esr}}. Запланируйте обновление до {{.eol_date}}, чтобы и дальше получать исправления безопасности."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Запланируйте обновление до последнего выпуска или до следующего выпуска с расширенной поддержкой."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Выпуск с расширенной поддержкой скоро перестанет поддерживаться"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Действия доступа к каналу в политике разрешений могут применяться только к роли «Системный пользователь», «Системный гость» или «Системный администратор»."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Правило доступа к каналу в политике разрешений не может задавать собственную роль. Применяется роль политики."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Действие «Управление каналом» допускается только в политиках разрешений и политиках каналов."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Действие «Доступ на чтение канала» допускается только в политиках разрешений и политиках каналов."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Действие «Доступ на запись в канал» допускается только в политиках разрешений и политиках каналов."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Произошла внутренняя ошибка."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Префикс кэша Redis не должен содержать символы ':', '*', '?', '[', ']' или '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert и RedisTLSClientKey должны быть заданы вместе."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Дополнительные области доступа должны быть именами областей доступа OAuth, разделёнными пробелами, общей длиной не более {{.MaxLength}} символов."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Недопустимый фильтр по полю. Имя поля должно содержать не более {{.MaxLength}} символов и не может быть пустым, \"level\" или \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Недопустимый фильтр по полю. Значение поля должно содержать не более {{.MaxLength}} символов."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Недопустимый фильтр по полю. У каждого поля должно быть от 1 до {{.MaxValues}} значений."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Недопустимый фильтр по полю. Количество полей для фильтрации не должно превышать {{.MaxKeys}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Недопустимый фильтр поиска. Он должен содержать не более {{.MaxLength}} символов."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Не удалось получить подписчиков обсуждения."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Сервер не поддерживает получение списка ключей плагина с параметрами."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Не удалось получить список ключей плагина с параметрами."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Неверный идентификатор обсуждения."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Неверный идентификатор пользователя."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Сообщение является ответом, а не корневым сообщением обсуждения."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Недопустимый создатель файла."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL сайта, указанный при адаптации, недопустим. Это должен быть URL http или https без пути, например https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Не удалось экспортировать отчёт о состоянии."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Для атрибутов сообщений требуется лицензия Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Не заданы значения атрибутов в каналах:{{.ChannelList}}\n\nВы администратор этих каналов. Откройте канал и нажмите **Добавить значения** или задайте их в разделе **Информация о канале**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}), требуется: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "Идентификатор плагина {{.ID}} зарезервирован для ядра сервера, поэтому такой плагин нельзя установить или загрузить."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "Зарегистрированных пользователей: {{.users}}, а сервер работает на одном узле без высокой доступности. Эталонные архитектуры Mattermost рекомендуют высокую доступность при числе пользователей более 200, поэтому запланируйте её, пока сбой узла или обновление не сделали рабочее пространство недоступным."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Запустите не менее двух узлов приложения за балансировщиком нагрузки с общей базой данных и общим файловым хранилищем, затем включите ClusterSettings.Enable с одинаковым ClusterName на каждом узле."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Рассмотрите возможность настройки высокой доступности"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "Зарегистрированных пользователей: {{.users}}, а сервер работает на одном узле без высокой доступности. Любой сбой, перезапуск или обновление узла делает всё рабочее пространство недоступным. При таком масштабе эталонные архитектуры Mattermost требуют высокой доступности."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Запустите не менее двух узлов приложения за балансировщиком нагрузки с общей базой данных и общим файловым хранилищем, затем включите ClusterSettings.Enable с одинаковым ClusterName на каждом узле."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Высокая доступность не включена при таком масштабе"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper имеет значение true, поэтому пользователям и клиентам показываются подробные сведения об ошибках. Этот параметр предназначен только для разработки."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Установите для ServiceSettings.EnableDeveloper значение false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper включён"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "Электронная почта не настроена, поэтому письма, например для сброса пароля и уведомления, не будут доставляться."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "По адресу SMTP по умолчанию localhost:10025 не отвечает почтовый сервер на узлах {{.nodes}}, поэтому письма, которые отправляют эти узлы, например для сброса пароля и уведомления, не будут доставлены. Остальные узлы подключаются к почтовому серверу по этому адресу. Ошибка: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Настройте SMTP-сервер в системной консоли. Если этот сервер не должен отправлять электронную почту, отключите уведомления по электронной почте, приглашения по электронной почте и подтверждение адреса электронной почты, затем скройте это замечание. Оставьте включённым вход по электронной почте или имени пользователя: без них пользователи, которые не входят через SSO, не смогут войти."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "SMTP-сервер не настроен"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting имеет значение true, поэтому режим тестирования открывает доступ к тестовым командам и конечным точкам, предназначенным только для разработки."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Установите для ServiceSettings.EnableTesting значение false, затем перезапустите сервер. Некоторые тестовые конечные точки удаляются только при перезапуске."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting включён"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections имеет значение true, поэтому сервер не проверяет сертификаты TLS при исходящих HTTPS-подключениях, таких как исходящие вебхуки, быстрые команды, обмен токенами OAuth, предпросмотр ссылок и загрузка плагинов. Любой, кто находится на сетевом пути, может прочитать или изменить этот трафик, включая токены OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Добавьте сертификат внутреннего центра сертификации в системное хранилище доверенных сертификатов на каждом сервере Mattermost, затем установите для ServiceSettings.EnableInsecureOutgoingConnections значение false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Проверка сертификатов TLS для исходящих подключений отключена"
   }
 ]

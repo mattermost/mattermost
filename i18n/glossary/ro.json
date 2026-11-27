@@ -493,5 +493,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "panou",
+    "note": "Plural: 'panouri'; articulated 'panoul'. Most strings say 'panou' ('canal de tip panou'); a few server strings leave 'board' in English ('canalul de board') and should not be copied. The product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "atribut de postare",
+    "note": "No precedent; built from this glossary's 'atribut' and 'postare'. Plural 'atribute de postare', articulated 'atributul de postare'. Keep it distinct from user profile attributes ('atribute de utilizator')."
+  },
+  "holdings": {
+    "target": "valori deținute",
+    "note": "No precedent. Always plural; with the owner: 'valorile deținute de utilizator' or 'valorile pe care le deține'. The field is 'câmp de proprietate', as in the server catalog."
+  },
+  "Manage Channel": {
+    "target": "Gestionare canal",
+    "note": "Name of a policy action, so a noun, not the imperative 'Gestionați ...' of ordinary permission names. Same rendering for Title Case and sentence case. The verb phrase 'Manage channel settings' stays 'Gestionați setările canalului'."
+  },
+  "Channel Read Access": {
+    "target": "Acces de citire la canal",
+    "note": "'acces de citire' follows the catalog's 'acces de citire și/sau de scriere'. Same rendering in the System Console, Channel Settings and server errors; quote it as „Acces de citire la canal”."
+  },
+  "Channel Write Access": {
+    "target": "Acces de scriere la canal",
+    "note": "Parallel to 'Acces de citire la canal'; the catalog mostly uses 'acces de scriere' (avoid 'acces la scriere', seen in some upgrade errors)."
+  },
+  "Extended Support Release": {
+    "target": "Versiune cu suport extins",
+    "note": "No precedent; 'release' is 'versiune' in the catalog ('o versiune viitoare'). Articulated 'versiunea cu suport extins'. The acronym ESR stays as is."
+  },
+  "release line": {
+    "target": "serie de versiuni",
+    "note": "No precedent. Plural 'serii de versiuni', articulated 'seria de versiuni' (e.g. 'seria de versiuni 10.5')."
   }
 }

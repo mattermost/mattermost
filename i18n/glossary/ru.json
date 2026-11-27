@@ -480,5 +480,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "доска",
+    "note": "Consistent in existing translations: \"атрибут доски\", \"канал доски\", \"на всех досках\". Plural \"доски\". The product name Boards stays in English."
+  },
+  "post attribute": {
+    "target": "атрибут сообщения",
+    "note": "Built from the existing targets for post (\"сообщение\") and attribute (\"атрибут\"); no precedent for the compound. Plural \"атрибуты сообщений\"; never \"атрибут поста\". Keep it distinct from user attributes (\"атрибуты пользователей\")."
+  },
+  "holdings": {
+    "target": "собственные значения",
+    "note": "No precedent in the catalogs. Render as the user's own values of the field (\"ваши собственные значения\", \"собственные значения пользователя\"); do not use financial words such as \"активы\" or \"владения\"."
+  },
+  "Manage Channel": {
+    "target": "Управление каналом",
+    "note": "Follows the permission naming pattern \"Управление ...\" (\"Управление участниками канала\", \"Управление баннером канала\"). The same words already title the Channel Management panel in the System Console; that is acceptable. Use the same rendering for the Title Case and sentence-case English. Quote it as a name in running text: «Управление каналом»."
+  },
+  "Channel Read Access": {
+    "target": "Доступ на чтение канала",
+    "note": "No precedent for the action name; \"доступ на чтение\" follows existing strings (\"доступ на чтение и/или запись\"). Use the same rendering for the Title Case and sentence-case English, and quote it as a name in running text: «Доступ на чтение канала»."
+  },
+  "Channel Write Access": {
+    "target": "Доступ на запись в канал",
+    "note": "No precedent for the action name; \"доступ на запись\" follows existing strings and pairs with «Доступ на чтение канала». Use the same rendering for the Title Case and sentence-case English, and quote it as a name in running text."
+  },
+  "Extended Support Release": {
+    "target": "выпуск с расширенной поддержкой",
+    "note": "No precedent. Use \"выпуск\", as the catalog does for release notes (\"заметки о выпуске\"), not \"релиз\". The acronym ESR stays as is: \"выпуск с расширенной поддержкой (ESR)\"."
+  },
+  "release line": {
+    "target": "ветка выпусков",
+    "note": "No precedent. \"ветка выпусков 10.5\"; plural \"ветки выпусков\". Use \"выпуск\", not \"релиз\", consistent with Extended Support Release."
   }
 }

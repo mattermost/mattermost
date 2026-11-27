@@ -479,5 +479,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "Board",
+    "note": "Neuter: das Board, Plural Boards. Compounds hyphenate as the catalog does: Board-Kanal, Board-Lesezeichen, Board-Attribut. Translated as the ordinary noun, not the product name Boards."
+  },
+  "post attribute": {
+    "target": "Nachrichtenattribut",
+    "note": "Neuter: das Nachrichtenattribut, Plural Nachrichtenattribute. Follows post = Nachricht and attribute = Attribut; no precedent in the catalogs. Do not use Beitragsattribut."
+  },
+  "holdings": {
+    "target": "eigene Werte",
+    "note": "Plural noun phrase, inflect the adjective: die eigenen Werte, ihre eigenen Werte. No precedent in the catalogs; avoid Bestände and Eigenwerte, which mean stock and eigenvalues."
+  },
+  "Manage Channel": {
+    "target": "Kanal verwalten",
+    "note": "Follows the catalog pattern for permission names (Kanalrollen verwalten, Kanalbanner verwalten). Quote it as a name in running text: die Aktion „Kanal verwalten“."
+  },
+  "Channel Read Access": {
+    "target": "Kanal-Lesezugriff",
+    "note": "Masculine: der Kanal-Lesezugriff. Built on the catalog rendering Lesezugriff; no precedent for the action name. Quote it as a name in running text: die Aktion „Kanal-Lesezugriff“."
+  },
+  "Channel Write Access": {
+    "target": "Kanal-Schreibzugriff",
+    "note": "Masculine: der Kanal-Schreibzugriff. Built on the catalog rendering Schreibzugriff; no precedent for the action name. Quote it as a name in running text: die Aktion „Kanal-Schreibzugriff“."
+  },
+  "Extended Support Release": {
+    "target": "Extended Support Release",
+    "note": "Neuter: das Extended Support Release, Plural Extended Support Releases; abbreviation ESR. No precedent in the catalogs; kept in English as the established name of the Mattermost release type, as the catalogs keep Release Notes."
+  },
+  "release line": {
+    "target": "Versionsreihe",
+    "note": "Feminine: die Versionsreihe, Plural Versionsreihen. No precedent in the catalogs."
   }
 }

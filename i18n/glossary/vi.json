@@ -459,5 +459,37 @@
   },
   "PushNotificationServer": {
     "target": "PushNotificationServer"
+  },
+  "board": {
+    "target": "bảng",
+    "note": "The server catalog says \"kênh bảng\" for board channel and \"bảng\" alone for a board; use the same. Boards, the product name, stays in English (\"tính năng Boards\"); one tutorial string renders the Boards icon as \"Bảng\", do not copy that for the product name."
+  },
+  "post attribute": {
+    "target": "thuộc tính bài đăng",
+    "note": "No precedent; built from post = \"bài đăng\" and attribute = \"thuộc tính\". Keep it distinct from \"thuộc tính người dùng\" (user attribute). Post attributes modal: \"Thuộc tính bài đăng\"."
+  },
+  "holdings": {
+    "target": "giá trị nắm giữ",
+    "note": "No precedent. Means the user's own values in the field a masked field reads; \"giá trị nắm giữ của bạn\" for your holdings. Do not use \"tài sản\" (financial holdings)."
+  },
+  "Manage Channel": {
+    "target": "Quản lý kênh",
+    "note": "Matches \"Quản lý kênh\" on the channel detail page and the sentence-case style of permission names (\"Quản lý cài đặt kênh\"). Use the same form for the Title Case and sentence-case English."
+  },
+  "Channel Read Access": {
+    "target": "Quyền đọc kênh",
+    "note": "No precedent for the action name; the catalog says \"quyền truy cập đọc\" for read access in running text. Use \"Quyền đọc kênh\" as the name everywhere, Title Case or sentence case in the English, capitalizing only the first word as other permission names do."
+  },
+  "Channel Write Access": {
+    "target": "Quyền ghi kênh",
+    "note": "No precedent for the action name; pairs with \"Quyền đọc kênh\". The catalog says \"quyền ghi\" for write access. Same form for Title Case and sentence-case English."
+  },
+  "Extended Support Release": {
+    "target": "Bản phát hành hỗ trợ mở rộng",
+    "note": "No precedent; release = \"bản phát hành\" as in existing strings. The acronym ESR stays as is: \"Bản phát hành hỗ trợ mở rộng (ESR)\"."
+  },
+  "release line": {
+    "target": "dòng phát hành",
+    "note": "No precedent; built on release = \"bản phát hành\". Put the version after it: \"dòng phát hành 10.5\"."
   }
 }

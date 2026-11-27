@@ -92,10 +92,6 @@
     "translation": "Došlo k chybě při ukládání auditních záznamů."
   },
   {
-    "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Došlo k chybě při mazání auditních záznamů."
-  },
-  {
     "id": "app.audit.get.finding.app_error",
     "translation": "Došlo k chybě při hledání audit záznamů."
   },
@@ -740,10 +736,6 @@
     "translation": "Vyhledávání se nezdařilo"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Nepodařilo se přečíst výsledky hledání"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} vyhledávání je na tomto serveru zakázáno"
   },
@@ -1378,10 +1370,6 @@
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Chybí požadovaná vlastnost odpovědi: EmojiName."
-  },
-  {
-    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Položka EmojiName v odpovědi je delší než je maximální povolená délka."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
@@ -3175,7 +3163,7 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Neplatné hodnota nastavení maximálního počtu uživatelů v týmu. Musí být kladné číslo."
+    "translation": "Neplatná hodnota nastavení maximálního počtu uživatelů v týmu. Musí být 0 (bez omezení) nebo kladné číslo."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -3187,7 +3175,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Neplatné hodnota nastavení maximálního počtu kanálů pro týmy. Musí být kladné číslo."
+    "translation": "Neplatná hodnota nastavení maximálního počtu kanálů pro týmy. Musí být 0 (bez omezení) nebo kladné číslo."
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
@@ -3693,10 +3681,6 @@
   {
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Neplatný nebo chybějící parametr {{.Name}} v URL požadavku."
-  },
-  {
-    "id": "api.context.invalid_token.error",
-    "translation": "Neplatný token relace={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -5058,15 +5042,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verze 128+"
+    "translation": "Verze 153+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 138+"
+    "translation": "Verze 156+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 138+"
+    "translation": "Verze 156+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -5121,15 +5105,7 @@
     "translation": "Nepodařilo se získat webhook."
   },
   {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Nepodařilo se smazat webhook."
-  },
-  {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Nepodařilo se smazat webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Nepodařilo se smazat webhook."
   },
   {
@@ -5327,10 +5303,6 @@
   {
     "id": "store.sql_command.get.missing.app_error",
     "translation": "Příkaz neexistuje."
-  },
-  {
-    "id": "app.user.permanentdeleteuser.internal_error",
-    "translation": "Nemohu smazat uživatele."
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -5619,10 +5591,6 @@
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "Pouze správci mohou nastavovat hash hesel."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS přihlášení není povoleno."
   },
   {
     "id": "api.user.login_by_cws.invalid_token.app_error",
@@ -5917,10 +5885,6 @@
     "translation": "člen skupiny již existuje"
   },
   {
-    "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "Nelze odstranit člena skupiny s UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "app.group.no_rows",
     "translation": "nebyla nalezena žádná opdovídající skupina"
   },
@@ -5985,10 +5949,6 @@
     "translation": "Nelze odstranit přístupový token."
   },
   {
-    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Nelze odstranit autorizační kód."
-  },
-  {
     "id": "app.oauth.get_apps.find.app_error",
     "translation": "Chyba při hledání OAuth2 aplikací."
   },
@@ -6049,10 +6009,6 @@
     "translation": "Položka Props v požadavku je delší než je maximální povolená délka."
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Nepodařilo se naimportovat členství v týmu, protože nelze přidat dalšího člena do daného týmu"
-  },
-  {
     "id": "app.import.import_user_teams.save_members.error",
     "translation": "Nepodařilo se naimportovat členství v týmu"
   },
@@ -6067,10 +6023,6 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Nelze uložit soubor s informacemi."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Nelze smazat přílohy daného uživatele."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6175,10 +6127,6 @@
   {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Nepodařilo se najít připnuté příspěvky."
-  },
-  {
-    "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Nepodařilo se odebrat člena kanálu."
   },
   {
     "id": "app.channel.get_all_channels_count.app_error",
@@ -6513,10 +6461,6 @@
     "translation": "Nepodařilo se načíst zabezpečená připojení: {{.Error}}"
   },
   {
-    "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Pozvánku se nepodařilo zašifrovat: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "Název pro zobrazení zabezpečeného připojení"
   },
@@ -6539,14 +6483,6 @@
   {
     "id": "api.command_marketplace.desc",
     "translation": "Otevřít obchod"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Tým nelze obnovit, protože bylo dosaženo limitu týmů"
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Tým nelze vytvořit, protože bylo dosaženo limitu týmů"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
@@ -6771,10 +6707,6 @@
   {
     "id": "app.post.move_thread_command.error",
     "translation": "Vlákno nelze odebrat"
-  },
-  {
-    "id": "app.post.permanent_delete_by_user.app_error",
-    "translation": "Nelze vybrat zprávy pro smazání u tohoto uživatele."
   },
   {
     "id": "app.post.save.app_error",
@@ -7829,10 +7761,6 @@
     "translation": "Parametry Před a Po pro getThreadsForUser jsou vzájemně neslučitelné"
   },
   {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portál není k dispozici pro registraci na self-hosted verzi."
-  },
-  {
     "id": "api.post.delete_post.not_enabled.app_error",
     "translation": "Nelze smazat příspěvek, ServiceSettings.EnableAPIPostDeletion není povoleno."
   },
@@ -7915,10 +7843,6 @@
   {
     "id": "app.channel.update_member.app_error",
     "translation": "Nepodařilo se aktualizovat člena kanálu."
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Nelze načíst soubor, protože překročil limit cloudového plánu."
   },
   {
     "id": "app.post.delete_post.get_team.app_error",
@@ -8201,10 +8125,6 @@
     "translation": "Neplatná autentizační služba: {{.AuthService}}"
   },
   {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Chyba při načítání posledního přístupného souboru"
-  },
-  {
     "id": "app.last_accessible_post.app_error",
     "translation": "Chyba při načítání posledního přístupného příspěvku"
   },
@@ -8413,10 +8333,6 @@
     "translation": "Export dávkového reportu je dostupný pouze pro verze Pro a Enterprise."
   },
   {
-    "id": "app.reaction.permanent_delete_by_user.app_error",
-    "translation": "Nelze odstranit reakce uživatele."
-  },
-  {
     "id": "app.report.send_report_to_user.missing_user_id",
     "translation": "Chybí ID uživatele pro odeslání reportu"
   },
@@ -8459,10 +8375,6 @@
   {
     "id": "app.report.date_range.last_6_months",
     "translation": "posledních 6 měsíců"
-  },
-  {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Narazili jsme na chybu při mazání předvoleb."
   },
   {
     "id": "app.prepackaged-plugin.invalid_version.app_error",
@@ -8544,10 +8456,6 @@
   {
     "id": "app.scheduled_post.error_reason.user_deleted",
     "translation": "Uživatelský účet je smazán"
-  },
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Nepodařilo se smazat naplánované příspěvky pro uživatele."
   },
   {
     "id": "app.scheduled_post.failed_messages",
@@ -8657,10 +8565,6 @@
   {
     "id": "app.team.update.find.app_error",
     "translation": "Nepodařilo se najít existující tým k aktualizaci."
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Nelze získat počet týmů"
   },
   {
     "id": "app.scheme.permanent_delete_all.app_error",
@@ -9105,10 +9009,6 @@
   {
     "id": "app.upload.upload_data.save.app_error",
     "translation": "Nepodařilo se uložit informace o souboru."
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Nepodařilo se získat využití úložiště."
   },
   {
     "id": "app.user.get_thread_membership_for_user.not_found",
@@ -9999,10 +9899,6 @@
     "translation": "Neplatný maximální počet pokusů o přihlášení pro nastavení ldap. Musí být kladné číslo."
   },
   {
-    "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": "Koncepty pro uživatele nelze smazat."
-  },
-  {
     "id": "app.user.reset_password_failed_attempts.app_error",
     "translation": "Nepodařilo se zresetovat pokusy o přihlášení uživatele."
   },
@@ -10149,10 +10045,6 @@
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Neplatná aktualizace člena kanálu: Člen kanálu vždy musí mít uživatelský plán."
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Služba sdílených kanálů je zapnuta, ale neaktivní."
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
@@ -14614,7 +14506,7 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "Funkce Stav webu vyžaduje licenci Enterprise."
+    "translation": "Funkce Stav webu vyžaduje licenci Professional nebo vyšší."
   },
   {
     "id": "api.team.set_team_icon.seek.app_error",
@@ -14658,7 +14550,7 @@
   },
   {
     "id": "app.save_config.log_path_outside_root.app_error",
-    "translation": "Konfigurace protokolování obsahuje cestu k souboru protokolu nebo auditu mimo kořenový adresář protokolů. Podrobnosti najdete v protokolech serveru."
+    "translation": "Konfigurace protokolování obsahuje cestu k souboru protokolu nebo auditu mimo kořenový adresář protokolů nebo uvnitř adresáře, který spravuje server. Podrobnosti najdete v protokolech serveru."
   },
   {
     "id": "health.reason.collected_at_unknown",
@@ -14726,7 +14618,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "Přejděte na https://push.mattermost.com (produkční službu Hosted Push Notification Service, která je součástí Enterprise) nebo na vlastní hostovanou push proxy."
+    "translation": "Nasměrujte PushNotificationServer na produkční push proxy: vlastní hostovanou Mattermost Push Proxy, která obsluhuje vaše vlastní sestavení mobilních aplikací."
   },
   {
     "id": "health.rule.push_test_proxy.title",
@@ -14755,5 +14647,2011 @@
   {
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL používá http:// (ne https://)"
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Funkce akcí oprávnění kanálu není povolena."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "Nahraný certifikát poskytovatele identit není platný certifikát X.509 ve formátu PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "Nahraný soukromý klíč poskytovatele služeb není platný soukromý klíč ve formátu PEM."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "Nahraný veřejný certifikát poskytovatele služeb není platný certifikát X.509 ve formátu PEM."
+  },
+  {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "Nahraný soubor neodpovídá uloženému certifikátu nebo soukromému klíči poskytovatele služeb. Chcete-li je nahradit postupně jeden po druhém, vypněte šifrování."
+  },
+  {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "Momentálně nemáte oprávnění spravovat tento kanál."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "Momentálně nemáte přístup k tomuto kanálu."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "Momentálně nemáte oprávnění psát do tohoto kanálu."
+  },
+  {
+    "id": "api.command.named_args.single_quoted_flag",
+    "translation": "Jednoduchá uvozovka poblíž `{{.Near}}` není uzavřena před ` --`. Uzavřete ji, nebo použijte dvojité uvozovky, pokud hodnota obsahuje ` --`."
+  },
+  {
+    "id": "api.command.named_args.unexpected_value",
+    "translation": "Neočekávaný text poblíž `{{.Near}}`. Hodnotu obsahující mezery uzavřete do uvozovek, a pokud obsahuje i apostrof, použijte dvojité uvozovky."
+  },
+  {
+    "id": "api.command.named_args.unterminated_quote",
+    "translation": "Uvozovka poblíž `{{.Near}}` není nikde uzavřena."
+  },
+  {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Nepodařilo se porovnat uložené konfigurace."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Nepodařilo se porovnat uloženou konfiguraci s aktuální."
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "Neplatná nebo vypršená relace."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Úlohy tohoto typu nelze zrušit."
+  },
+  {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "V poli public_key musí být nahrán právě jeden soubor s veřejným klíčem pluginu."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Veřejný klíč pluginu {{.Name}} není nakonfigurován."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Nahraný veřejný klíč pluginu nelze zpracovat."
+  },
+  {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "Nemáte oprávnění nastavit jednu nebo více požadovaných hodnot atributů příspěvku."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Příspěvky zničené po přečtení nemohou mít atributy příspěvku."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Atributy příspěvků nejsou na tomto serveru povoleny."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "Jednu nebo více hodnot atributů příspěvku nebylo možné použít."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Oprávnění pole může při jeho vytváření nastavit pouze správce kanálu, týmu nebo systému, ke kterému pole patří."
+  },
+  {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Oprávnění při vytváření pole atributu může nastavit pouze správce systému."
+  },
+  {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "Tento atribut byl smazán."
+  },
+  {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "U pole vlastnosti verze v1 nelze přes toto API zjistit údaje o souladu."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "Nemáte oprávnění zobrazit údaje o souladu tohoto pole vlastnosti."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Vypsat kanály s chybějící hodnotou nebo je upozornit lze pouze u atributů, které platí pro všechny týmy."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": {
+      "one": "Oznámení nebyla odeslána, protože správci kanálů o tom byli nedávno upozorněni. Další oznámení můžete odeslat za {{.Count}} minutu.",
+      "few": "Oznámení nebyla odeslána, protože správci kanálů o tom byli nedávno upozorněni. Další oznámení můžete odeslat za {{.Count}} minuty.",
+      "many": "Oznámení nebyla odeslána, protože správci kanálů o tom byli nedávno upozorněni. Další oznámení můžete odeslat za {{.Count}} minuty.",
+      "other": "Oznámení nebyla odeslána, protože správci kanálů o tom byli nedávno upozorněni. Další oznámení můžete odeslat za {{.Count}} minut."
+    }
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "Oznámení nebyla odeslána, protože správci kanálů o tom byli nedávno upozorněni. Zkuste to prosím později."
+  },
+  {
+    "id": "api.property_field.patch.caller_cannot_edit.app_error",
+    "translation": "Oprávnění pole vlastnosti nemůžete změnit tak, aby vám znemožnila jeho úpravu."
+  },
+  {
+    "id": "api.property_field.patch.incomplete_restrictions.app_error",
+    "translation": "Odeslaný objekt omezení musí nastavit všech pět úrovní oprávnění: čtení hodnoty, zápis hodnoty, čtení možností, zápis možností a zápis pole."
+  },
+  {
+    "id": "api.property_field.patch.invalid_permissions.app_error",
+    "translation": "Odeslaný objekt oprávnění je neplatný."
+  },
+  {
+    "id": "api.property_field.patch.permissions_not_supported.app_error",
+    "translation": "Tato skupina vlastností nepodporuje odeslání objektu oprávnění."
+  },
+  {
+    "id": "api.property_field.permissions.field_write_none.app_error",
+    "translation": "Objekt oprávnění musí správcům systému umožnit pole upravovat, proto jeho úroveň zápisu pole nemůže být none."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "Tento atribut zatím nelze označit jako povinný, protože některé aktivní kanály pro něj nemají hodnotu. Upozorněte správce kanálů a zkuste to znovu."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.expired.app_error",
+    "translation": "Platnost pozvánky vypršela. Požádejte vzdálený server o novou pozvánku."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_response.app_error",
+    "translation": "Vzdálený server vrátil neplatnou odpověď."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.invalid_url.app_error",
+    "translation": "Pozvánka obsahuje neplatnou adresu serveru: {{.URL}}"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.rejected.app_error",
+    "translation": "Vzdálený server pozvánku odmítl."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation.unreachable.app_error",
+    "translation": "Nepodařilo se spojit se vzdáleným serverem na adrese {{.URL}}."
+  },
+  {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Nahrávání ze zabezpečeného připojení nemůže navázat na částečně přijatý soubor."
+  },
+  {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Příliš mnoho prostředků v jednom vyhodnocení řízení přístupu; limit je {{.Max}}."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Kontrola nejnovějšího vydání Mattermost je vypnutá. Chcete-li ji povolit, zapněte nastavení Kontrolovat bezpečnostní aktualizace a nové verze."
+  },
+  {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Nelze vyhledat správce kanálů."
+  },
+  {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Nelze vyhledat kanály, kterým chybí hodnota tohoto atributu."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Nelze spočítat kanály, kterým chybí hodnota tohoto atributu."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Nelze spočítat všechny kanály, kterým chybí hodnota tohoto atributu."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Nelze spočítat místní kanály, kterým chybí hodnota tohoto atributu."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Nelze vypsat kanály, kterým chybí hodnota tohoto atributu."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Nelze vyhledat vzdálené kanály, kterým chybí hodnota tohoto atributu."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Nelze spočítat správce kanálů a kanály, kterých se tento atribut týká."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Nelze vyhledat správce kanálů, kteří mají být o tomto atributu upozorněni."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _a další kanály (celkem {{.Count}})_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Nastavte prosím hodnotu **{{.AttributeName}}** u těchto kanálů, které spravujete. Správce systému potřebuje, aby každý kanál měl hodnotu, než bude možné tento atribut nastavit jako povinný."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "Jste správcem kanálu, kterému chybí povinný atribut kanálu. Nastavte prosím hodnotu **{{.AttributeName}}**.",
+      "few": "Jste správcem kanálů, kterým chybí povinný atribut kanálu. Nastavte prosím hodnotu **{{.AttributeName}}**.",
+      "many": "Jste správcem kanálů, kterým chybí povinný atribut kanálu. Nastavte prosím hodnotu **{{.AttributeName}}**.",
+      "other": "Jste správcem kanálů, kterým chybí povinný atribut kanálu. Nastavte prosím hodnotu **{{.AttributeName}}**."
+    }
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Nelze vyhradit časový odstup oznámení pro tento atribut."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Nelze získat uložené konfigurace."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "Žádná uložená konfigurace nemá toto ID."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Historie konfigurace je k dispozici pouze tehdy, když je konfigurace uložena v databázi."
+  },
+  {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "Původní zápis: {{.Value}}"
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Časové razítko"
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}"
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Nelze spustit kontrolu stavu."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "Kontrola stavu se již spouští. Zkuste to za chvíli znovu."
+  },
+  {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Při importu příspěvku došlo k chybě. Nepodařilo se uložit prioritu."
+  },
+  {
+    "id": "app.import.import_user_teams.team_not_found.error",
+    "translation": "Při importu týmů uživatele došlo k chybě. Tým nebyl nalezen."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "Tento soubor přidává do týmu {{.Team}} uživatele (počet: {{.Adding}}), čímž celkový počet jeho členů dosáhne {{.Total}}, ale TeamSettings.MaxUsersPerTeam je {{.Limit}}. Před importem limit zvyšte nebo jej nastavte na 0 (bez limitu)."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Nelze přečíst soubor importu pro kontrolu TeamSettings.MaxUsersPerTeam."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Vlastnost AcknowledgedAt potvrzení musí být nastavena a nesmí být dřívější než CreateAt příspěvku."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Chybí povinná vlastnost Acknowledgement: User."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Potvrzení příspěvku vyžadují Priority s RequestedAck nastaveným na true."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Vlastnost PersistentNotifications příspěvku vyžaduje naléhavou prioritu (Priority)."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Chybí povinná vlastnost Priority: Priority."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Vlastnost EmojiName položky Reaction je neplatná. Musí obsahovat 1 až 64 písmen a číslic ASCII, +, - nebo _."
+  },
+  {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Pravidla členství, která používají pokročilou logiku, může měnit pouze správce systému. Upravte je v Systémové konzoli."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "Toto pravidlo členství používá výraz, který synchronizace členství nedokáže vyhodnotit. Přepište pravidlo tak, aby používalo pouze porovnání, &&, ||, in a podporované funkce atributů."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "Toto pravidlo členství používá {{.Function}}, což synchronizace členství nedokáže vyhodnotit. Přepište pravidlo tak, aby používalo pouze porovnání, &&, ||, in a podporované funkce atributů."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Nepodařilo se zjistit, zda se na akci vztahuje zásada oprávnění"
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Nepodařilo se zjistit, zda zásada přístupu daného prostředku řídí tuto akci."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "Konfigurační soubor s názvem {{.Name}} již existuje."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "Soubor není platný veřejný klíč OpenPGP."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Neplatný název veřejného klíče pluginu {{.Name}}. Názvy mohou obsahovat pouze písmena, číslice, '.', '_' a '-'."
+  },
+  {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Toto pole nelze smazat, protože z něj maskovaná šablona čte vlastní hodnoty jednotlivých uživatelů. Nejprve změňte nebo odeberte maskování šablony."
+  },
+  {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "Úroveň option.read propojeného pole ({{.FieldTier}}) nesmí být méně omezující než úroveň ({{.TemplateTier}}) jeho šablony ({{.TemplateID}})."
+  },
+  {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "Atribut nelze propojit s deklarací OpenID Connect, dokud je synchronizace atributů OpenID Connect vypnutá."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Nelze prohledat globální atributy."
+  },
+  {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "Toto pole je zdrojem vlastních hodnot pro svou maskovanou šablonu, a proto jeho úroveň zápisu hodnot nemůže být '{{.ValueWrite}}'. Uživatelé filtrovaní šablonou by jinak mohli upravovat své vlastní hodnoty a rozšířit si tak, co mohou vidět."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "Atribut synchronizovaný z OpenID Connect nemůže být zároveň synchronizován z AD/LDAP nebo SAML."
+  },
+  {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Tímto způsobem nelze změnit vlastníky, režim přístupu ani nastavení ochrany či synchronizace tohoto pole, protože jeho oprávnění nelze v této podobě vyjádřit. Místo toho aktualizujte přímo jeho oprávnění."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Režim přístupu tohoto pole nelze změnit, protože obsahuje data, která volající nesmí číst."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Aktualizace není možná: propojené pole {{.DependentID}} má úroveň option.read {{.DependentTier}}, která by překročila novou úroveň {{.NewTier}}."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "V jedné aktualizaci nelze současně změnit oprávnění tohoto pole a jeho úrovně oprávnění, vlastníky, režim přístupu nebo nastavení ochrany či synchronizace. Odešlete změnu pouze v jedné z obou podob."
+  },
+  {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Aktualizace není možná: propojené pole {{.DependentID}} by při tomto maskování poskytovalo své vlastní hodnoty, ale jeho úroveň zápisu hodnot je '{{.ValueWrite}}'. Nejprve snižte úroveň zápisu hodnot tohoto pole na admin nebo nižší."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Toto pole nelze odpojit, protože z něj maskovaná šablona čte vlastní hodnoty jednotlivých uživatelů. Nejprve změňte nebo odeberte maskování šablony."
+  },
+  {
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "Účet byl deaktivován a částečně smazán. Opětovné spuštění mazání je bezpečné a mazání dokončí."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "Tento průchod smazal maximální počet příspěvků ({{.Max}}). Účet byl deaktivován a částečně smazán. Pokračujte opětovným spuštěním mazání."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Nepodařilo se dokončit mazání uživatelů (počet: {{.Count}}): {{.Usernames}}. Pokračujte opětovným spuštěním příkazu."
+  },
+  {
+    "id": "ent.cluster.send.error",
+    "translation": "Odeslání požadavku v clusteru se nezdařilo"
+  },
+  {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML není správně nakonfigurováno. Obraťte se na správce systému."
+  },
+  {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "Nejnovější běhy jsou stále ve frontě, probíhají nebo byly zrušeny, takže starší běhy nebylo možné zkontrolovat."
+  },
+  {
+    "id": "health.report.area.auth",
+    "translation": "Ověřování"
+  },
+  {
+    "id": "health.report.area.cluster",
+    "translation": "Vysoká dostupnost"
+  },
+  {
+    "id": "health.report.area.compliance",
+    "translation": "Soulad s předpisy"
+  },
+  {
+    "id": "health.report.area.database",
+    "translation": "Databáze"
+  },
+  {
+    "id": "health.report.area.jobs",
+    "translation": "Úlohy"
+  },
+  {
+    "id": "health.report.area.license",
+    "translation": "Licencování"
+  },
+  {
+    "id": "health.report.area.notifications",
+    "translation": "Oznámení"
+  },
+  {
+    "id": "health.report.area.platform",
+    "translation": "Platforma"
+  },
+  {
+    "id": "health.report.area.search",
+    "translation": "Vyhledávání"
+  },
+  {
+    "id": "health.report.area.version",
+    "translation": "Aktualizace"
+  },
+  {
+    "id": "health.report.finding.title_on_node",
+    "translation": "{{.Title}} na uzlu {{.Node}}"
+  },
+  {
+    "id": "health.report.header.collected_at",
+    "translation": "Čas sběru dat"
+  },
+  {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Neznámý"
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licencováno pro"
+  },
+  {
+    "id": "health.report.header.evaluated_at",
+    "translation": "Naposledy vyhodnoceno"
+  },
+  {
+    "id": "health.report.header.generated_at",
+    "translation": "Vygenerováno"
+  },
+  {
+    "id": "health.report.header.license",
+    "translation": "Licence"
+  },
+  {
+    "id": "health.report.header.not_evaluated",
+    "translation": "Zatím nevyhodnoceno"
+  },
+  {
+    "id": "health.report.header.server_version",
+    "translation": "Verze serveru"
+  },
+  {
+    "id": "health.report.header.site_url",
+    "translation": "URL stránky"
+  },
+  {
+    "id": "health.report.header.stale",
+    "translation": "Zdá se, že se vyhodnocování zastavilo."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Otevřít toto nastavení v Systémové konzoli"
+  },
+  {
+    "id": "health.report.label.details",
+    "translation": "Podrobnosti"
+  },
+  {
+    "id": "health.report.label.documentation",
+    "translation": "Přečíst dokumentaci"
+  },
+  {
+    "id": "health.report.label.remediation",
+    "translation": "Jak to opravit"
+  },
+  {
+    "id": "health.report.label.summary",
+    "translation": "Shrnutí"
+  },
+  {
+    "id": "health.report.section.muted",
+    "translation": "Ztlumené"
+  },
+  {
+    "id": "health.report.section.resolved",
+    "translation": "Vyřešené"
+  },
+  {
+    "id": "health.report.section.unknown",
+    "translation": "Nebylo možné vyhodnotit"
+  },
+  {
+    "id": "health.report.severity.critical",
+    "translation": "Kritické"
+  },
+  {
+    "id": "health.report.severity.info",
+    "translation": "Informace"
+  },
+  {
+    "id": "health.report.severity.warning",
+    "translation": "Varování"
+  },
+  {
+    "id": "health.report.summary.critical",
+    "translation": {
+      "one": "{{.Count}} kritické",
+      "few": "{{.Count}} kritická",
+      "many": "{{.Count}} kritického",
+      "other": "{{.Count}} kritických"
+    }
+  },
+  {
+    "id": "health.report.summary.info",
+    "translation": {
+      "one": "{{.Count}} informativní",
+      "few": "{{.Count}} informativní",
+      "many": "{{.Count}} informativního",
+      "other": "{{.Count}} informativních"
+    }
+  },
+  {
+    "id": "health.report.summary.none",
+    "translation": "Žádná otevřená zjištění."
+  },
+  {
+    "id": "health.report.summary.not_evaluated",
+    "translation": "Zatím neproběhla žádná kontrola stavu."
+  },
+  {
+    "id": "health.report.summary.unknown",
+    "translation": {
+      "one": "{{.Count}} nebylo možné vyhodnotit",
+      "few": "{{.Count}} nebylo možné vyhodnotit",
+      "many": "{{.Count}} nebylo možné vyhodnotit",
+      "other": "{{.Count}} nebylo možné vyhodnotit"
+    }
+  },
+  {
+    "id": "health.report.summary.warning",
+    "translation": {
+      "one": "{{.Count}} varování",
+      "few": "{{.Count}} varování",
+      "many": "{{.Count}} varování",
+      "other": "{{.Count}} varování"
+    }
+  },
+  {
+    "id": "health.report.title",
+    "translation": "Zpráva o stavu"
+  },
+  {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "Není aktivní žádný cíl protokolu auditu a tento pracovní prostor má {{.users}} registrovaných uživatelů. Administrativní akce, přihlášení a změny konfigurace nezanechávají žádnou samostatnou auditní stopu. Jde o mezeru z hlediska souladu s předpisy a forenzní analýzy, nikoli o riziko pro stabilitu."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "Pokud má vaše organizace požadavky na audit (finanční služby, zdravotnictví, obrana, regulovaný veřejný sektor), zapněte protokolování auditu v části Systémová konzole > Shody > Záznamy Auditu, nebo přidejte cíl pro úrovně auditu do ExperimentalAuditSettings.AdvancedLoggingJSON, a nastavte rotaci. Jinak lze toto zjištění ignorovat."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Protokolování auditu je vypnuté"
+  },
+  {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress naslouchá na portu {{.port}}, který je nižší než 1024. Na Linuxu může server Mattermost, který neběží jako root, tento port použít pouze díky souborové capability CAP_NET_BIND_SERVICE na svém binárním souboru. Aktualizace balíčku binární soubor nahradí a tuto capability odstraní, takže se server po příští aktualizaci nemusí spustit s chybou \"bind: permission denied\". Z konfigurace nelze zjistit, jak je capability udělena, proto toto varování zůstane, i když ji udělíte prostřednictvím jednotky systemd."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Přidejte AmbientCapabilities=CAP_NET_BIND_SERVICE do jednotky systemd pro Mattermost, aby capability přetrvala aktualizace, nebo po každé aktualizaci znovu spusťte setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost. Případně umístěte před Mattermost reverzní proxy a nechte Mattermost naslouchat na vysokém portu, například 8065."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Server naslouchá přímo na privilegovaném portu"
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "Vedoucí uzel inzeruje adresu {{.address}}. Ostatní uzly ho na této adrese nemohou kontaktovat, takže protokol gossip vytvoří cluster s jediným uzlem a rozdělení clusteru (split brain) zůstane skryté."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Nastavte ClusterSettings.AdvertiseAddress na dosažitelnou IP adresu nebo název DNS uzlu, nebo ponechte hodnotu prázdnou, aby se použila adresa síťového rozhraní. Tato kontrola čte konfiguraci vedoucího uzlu, proto nastavení zkontrolujte na každém uzlu."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress není z ostatních uzlů dosažitelná"
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "Konfigurace je uložena v souboru na každém uzlu a lze ji měnit v Systémové konzoli. Změna se uloží na jednom uzlu a na ostatní se rozešle bez záruky doručení; uzel, kterému rozeslání unikne, si ponechá vlastní soubor, takže se konfigurace uzlů mohou rozejít."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Nastavte ClusterSettings.ReadOnlyConfig na true a spravujte konfiguraci prostřednictvím konfiguračního souboru nebo proměnných prostředí na každém uzlu, nebo konfiguraci přesuňte do databáze."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig je vypnuté v clusteru HA s konfigurací v souboru"
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption má hodnotu false, takže provoz mezi uzly clusteru není šifrovaný."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Zapněte šifrování protokolu gossip a poté v rámci údržbového okna restartujte všechny uzly najednou. Uzly se šifrováním a bez něj spolu nemohou komunikovat, takže postupný restart rozdělí cluster, dokud se nerestartuje poslední uzel."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "Komunikace gossip v clusteru HA není šifrovaná"
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "S {{.users}} registrovanými uživateli v režimu HA znamená výchozí paměťová mezipaměť LRU, že každý uzel udržuje vlastní kopii a k invalidaci používá protokol gossip. Mattermost doporučuje od 100 000 uživatelů výše Redis, aby se při tomto rozsahu snížil provoz spojený s invalidací mezipaměti."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Zvažte nastavení CacheSettings.CacheType na redis s nakonfigurovaným CacheSettings.RedisAddress. Redis vyžaduje licenci s funkcí Cluster."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "Při tomto rozsahu zvažte mezipaměť Redis"
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "Zamýšlená topologie HA ve skutečnosti neběží. Jediný uzel neposkytuje žádné převzetí služeb při selhání a skrývá riziko rozdělení clusteru (split brain)."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Zkontrolujte konektivitu protokolu gossip (ClusterSettings.GossipPort), pravidla firewallu a to, zda všechny aplikační uzly sdílejí stejný ClusterName. Prázdný ClusterName také ponechá uzel samotný: server pak zaznamená do protokolu, že vysoká dostupnost byla vypnuta."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "Vysoká dostupnost je zapnutá, ale v clusteru je pouze jeden uzel"
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Uzly v clusteru hlásí tyto verze: {{.versions}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "Uzly jsou rozděleny mezi verze a žádná verze není častější než ostatní, takže není jasné, které uzly jsou zastaralé."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "Tento uzel používá verzi {{.version}}, zatímco většina uzlů používá verzi {{.majority}}."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Pokud neprobíhá aktualizace, aktualizujte všechny uzly na stejnou verzi a ujistěte se, že spolu uzly mohou komunikovat prostřednictvím protokolu gossip."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "V clusteru bylo zjištěno více verzí Mattermost"
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory je prázdné, takže se zprávy o shodě zapisují do složky compliance v pracovním adresáři serveru. Při aktualizaci serveru nebo novém sestavení jeho kontejneru budou ztraceny."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Nastavte Adresář zpráv o shodě v části Systémová konzole > Shody > Sledování Dohledu (ComplianceSettings.Directory) na trvalou cestu s možností zápisu."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Sledování shody je zapnuté, ale adresář je prázdný"
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Každý uzel udržuje fond až MaxOpenConns připojení k primární databázi. S {{.nodes}} uzly a MaxOpenConns={{.max_open}} může převzetí služeb databáze při selhání vyvolat až {{.burst}} současných pokusů o připojení k nově povýšené primární databázi a hostitel v DataSource nevypadá jako fond připojení (connection pooler). Pokud to překročí max_connections databáze, bude připojení odmítat ('sorry, too many clients already') a obnova potrvá déle."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Dimenzujte každou vrstvu na tuto nárazovou zátěž. Nejtrvalejším řešením je snížit SqlSettings.MaxOpenConns na uzel a/nebo umístit před databázi PgBouncer (v režimu transakcí), který nárazy opětovného připojování pohltí, místo pouhého zvyšování max_connections: každé připojení spotřebovává paměť databáze, takže vysoký strop hrozí jejím vyčerpáním. Pokud max_connections zvýšíte, ponechte nad nárazovou zátěží rezervu pro replikaci, monitorování a administrátorské relace. Nárazovou zátěž pod stropem udrží také postupné spouštění uzlů během převzetí služeb při selhání."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Převzetí služeb databáze při selhání může vyvolat lavinu připojení"
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) je nastaveno výše než MaxOpenConns ({{.max_open}}). Vrstva database/sql jazyka Go tiše omezí fond nečinných připojení na MaxOpenConns, takže nadbytečná kapacita nemá žádný účinek. Nic není rozbité, ale hodnota je zavádějící a obvykle naznačuje, že fond byl laděn bez vědomí, že počet nečinných připojení nikdy nemůže překročit počet otevřených."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Nastavte MaxIdleConns na hodnotu rovnou nebo nižší než MaxOpenConns (běžným doporučením je 25–50 % MaxOpenConns)."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns překračuje MaxOpenConns"
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "S počtem uživatelů {{.users}} a MaxOpenConns={{.max_open}} může při nárazové zátěži docházet k řazení požadavků do fronty na straně aplikace. Aktuální výchozí hodnota je 100 (MaxIdleConns 50, poměr 2:1)."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "Pokud pozorujete řazení požadavků do fronty na straně aplikace, zvyšte SqlSettings.MaxOpenConns podle sledované potřeby (výchozí hodnoty 100/50 jsou základem). Skutečný strop databáze je MaxOpenConns x uzly x zdroje dat, proto před zvýšením ověřte, že max_connections databáze tento součet pokrývá."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns může být pro tento počet uživatelů nízké"
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas je prázdné. S počtem uživatelů {{.users}} jdou všechna čtení na primární databázi. Pro větší nasazení se doporučují repliky pro čtení."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Zvažte zřízení repliky pro čtení a její přidání do SqlSettings.DataSourceReplicas."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "Nejsou nakonfigurovány žádné repliky pro čtení"
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "S počtem příspěvků {{.posts}} a vyhledáváním v databázi nesou primární databáze a repliky zátěž fulltextového prohledávání. Při tomto rozsahu to způsobuje zatížení CPU a vypršení časového limitu vyhledávání."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message.elasticsearch",
+    "translation": "S počtem příspěvků {{.posts}} a vyhledáváním v databázi nesou primární databáze a repliky zátěž fulltextového prohledávání. Při tomto rozsahu to způsobuje zatížení CPU a vypršení časového limitu vyhledávání. Vaše licence zahrnuje Elasticsearch, který vyhledávání z databáze zcela přebírá."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Nakonfigurujte SqlSettings.DataSourceSearchReplicas."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "Chybí replika pro vyhledávání a vyhledávání přes Elasticsearch je vypnuté"
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "Používá se {{.in_use}} z {{.max_open}} připojení k primární databázi ({{.percent}} %), což je 90 % MaxOpenConns nebo více. Nové dotazy budou čekat ve frontě a latence HTTP roste."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Zvyšte SqlSettings.MaxOpenConns a max_connections databáze. Prověřte také dlouho běžící dotazy."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Fond připojení k primární databázi je téměř vyčerpán"
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} je pod minimální podporovanou verzí {{.minimum}}. Mattermost se na ní stále spustí, ale nepodporované verze mohou vést k neočekávanému chování. Aktualizujte na PostgreSQL {{.minimum}} nebo novější."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Naplánujte aktualizaci. Novější verze navíc přinášejí lepší výkon paralelních dotazů a JSONB."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "Verze PostgreSQL je nižší než minimální podporovaná"
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL právě provádí vacuum tabulky Posts. Než budete vyhodnocovat, zda je potřeba další vacuum, nechte tento dokončit."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "Tabulka Posts má odhadem {{.dead_tuples}} dead tuples ({{.dead_percent}} % z odhadovaných {{.estimated_rows}} řádků), přestože na ní naposledy proběhl vacuum v {{.last_vacuum}}. Vacuum běží, ale nejspíš je nemůže odstranit, protože úklid něco blokuje, například dlouho běžící relace nebo relace ve stavu idle-in-transaction, neaktivní replication slot nebo opuštěná prepared transaction. Nabobtnání tabulky a indexů může zhoršit výkon dotazů a zvýšit využití disku."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "Tabulka Posts má odhadem {{.dead_tuples}} dead tuples ({{.dead_percent}} % z odhadovaných {{.estimated_rows}} řádků) a PostgreSQL od posledního resetu statistik nemá záznam o tom, že by na ní proběhl vacuum. Zdá se, že Autovacuum s touto tabulkou nestíhá. Nabobtnání tabulky a indexů může zhoršit výkon dotazů a zvýšit využití disku."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "Tabulka Posts má odhadem {{.dead_tuples}} dead tuples ({{.dead_percent}} % z odhadovaných {{.estimated_rows}} řádků) a její poslední vacuum proběhl před {{.age_days}} dny, v {{.last_vacuum}}. Zdá se, že Autovacuum s touto tabulkou nestíhá. Nabobtnání tabulky a indexů může zhoršit výkon dotazů a zvýšit využití disku."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "Pokud pg_stat_progress_vacuum ukazuje vacuum běžící na Posts, nechte jej dokončit, protože spuštění ručního VACUUM jej zruší. Pokud na Posts nedávno proběhl vacuum, zjistěte, co blokuje úklid, a ukončete nebo odstraňte to: dlouho běžící relace nebo relace ve stavu idle-in-transaction v pg_stat_activity, neaktivní replication slots v pg_replication_slots a staré prepared transactions v pg_prepared_xacts. Další vacuum pak dead tuples odstraní. Pokud na Posts nedávno vacuum neproběhl, ověřte, že je autovacuum zapnutý globálně i pro Posts, a zkontrolujte protokoly PostgreSQL kvůli zrušeným úlohám autovacuum. Pokud autovacuum nestíhá, snižte autovacuum_vacuum_scale_factor pro Posts a podle dostupné kapacity zvyšte autovacuum_vacuum_cost_limit a autovacuum_work_mem, poté naplánujte cílený VACUUM (ANALYZE) na Posts v době nízkého provozu. Vyhněte se VACUUM FULL, pokud nepočítáte s jeho exkluzivním zámkem a dodatečným místem na disku; je-li k dispozici, je alternativou s menším zamykáním pg_repack."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Tabulka Posts má mnoho dead tuples"
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout je nastaveno na {{.timeout}} s. Dlouhé časové limity umožňují nekontrolovaně běžícím dotazům držet zámky po celou dobu a blokovat tak autovacuum, migrace schématu i zapisovatele čekající na stejný řádek. Na vytížených databázích bez replik pro čtení to riziko dále zvyšuje."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Snižte SqlSettings.QueryTimeout na 30. Konkrétní pomalé dotazy prověřte samostatně, místo abyste zvyšovali globální strop."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout je vysoké (výchozí hodnota je 30 s)"
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas je nastaveno, ale žádná replika není dosažitelná, takže čtení se vrací na primární databázi."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Ověřte DSN repliky, dosažitelnost v síti a ověřování. Zkontrolujte protokoly serveru, zda neobsahují varování o připojení k replice."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Repliky pro čtení jsou nakonfigurovány, ale žádná není dosažitelná"
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Každý příkaz SQL se zaznamenává do protokolu. Je to určeno pouze pro ladění: ponechání zapnutého zaplní disk a zapisuje obsah dotazů do souborů protokolu."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Nastavte SqlSettings.Trace na false, pokud aktivně neladíte."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace je zapnuté"
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "Server běží na systému {{.os}}. Mattermost podporuje pro produkční provoz Linux; ostatní operační systémy jsou vhodné pouze pro vývoj."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Přesuňte server na podporovanou distribuci Linuxu."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Server neběží na Linuxu"
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Každý nový příspěvek se indexuje synchronně vlastním požadavkem. Na vytížených serverech to přetěžuje vyhledávací cluster a zpožďuje indexování."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Zvyšte LiveIndexingBatchSize na hodnotu mezi 10 a 20 a v tomto rozsahu ji dolaďte podle pozorované četnosti příspěvků."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize je 1"
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize je {{.size}}. Velké požadavky _bulk mohou překročit http.max_content_length vyhledávacího clusteru a selhat s chybou 413, což způsobí opakované pokusy a zpoždění indexování."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Snižte LiveIndexingBatchSize na hodnotu mezi 10 a 20, nebo zvyšte http.max_content_length na vyhledávacím clusteru, pokud jsou velmi velké dávky záměrné."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize je vyšší než 100"
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL odkazuje na {{.host}}, což každý aplikační uzel přeloží sám na sebe. Uzly bez místního vyhledávače nemohou indexovat ani vyhledávat."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Nastavte ConnectionURL na název hostitele nebo název DNS služby, který je dosažitelný ze všech aplikačních uzlů."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch ConnectionURL odkazuje na localhost"
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "Vyhledávací cluster nehlásí plugin analysis-icu. Šablona indexu příspěvků používá tokenizér a normalizátor ICU, takže bez něj může indexování příspěvků selhat."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "Seznam pluginů nebyl shromážděn, protože server nemohl zjistit verzi vyhledávacího clusteru."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Nainstalujte plugin analysis-icu na každý vyhledávací uzel (elasticsearch-plugin install analysis-icu nebo opensearch-plugin install analysis-icu) a poté uzly restartujte. Vyžaduje jej indexování příspěvků, nejen vícejazyčné vyhledávání."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Vyhledávači chybí plugin analysis-icu"
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "Test připojení k vyhledávači selhal: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.no_fallback",
+    "translation": "Test připojení k vyhledávači selhal a vyhledávání v databázi je vypnuté, takže vyhledávání nevrací žádné výsledky: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "Test připojení k vyhledávači selhal na uzlech {{.nodes}}, zatímco ostatní uzly se k němu připojí, takže vyhledávání a indexování na těchto uzlech může selhávat. Zkontrolujte nastavení sítě, firewallu, proxy a DNS na těchto uzlech. Chyba: {{.error}}"
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Ověřte dosažitelnost ElasticsearchSettings.ConnectionURL, TLS a přihlašovací údaje. Zkontrolujte stav vyhledávacího clusteru (GET /_cluster/health)."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Server hlásí chybu clusteru Elasticsearch"
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification má u připojení https hodnotu true, takže server neověřuje certifikát vyhledávače. Na důvěryhodné interní síti je to přijatelné, jinde to však odstraňuje ochranu proti útoku man-in-the-middle."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "Pokud vede cesta k vyhledávacímu koncovému bodu přes nedůvěryhodnou síť, nainstalujte jeho CA, aby certifikát prošel ověřením, a nastavte SkipTLSVerification na false. Na důvěryhodné interní síti ověřte, že je nastavení záměrné."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Připojení k Elasticsearch přeskakuje ověření certifikátu TLS"
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_new",
+    "translation": "{{.backend}} {{.version}} je novější než podporované hlavní verze ({{.min}} až {{.max}}). Aktualizujte Mattermost na vydání, které ji podporuje, nebo vraťte vyhledávací cluster na podporovanou verzi."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.too_old",
+    "translation": "{{.backend}} {{.version}} je starší než podporované hlavní verze ({{.min}} až {{.max}}). Aktualizujte vyhledávací cluster na podporovanou verzi."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "Verze vyhledávacího clusteru nebyla zjištěna, protože se server k vyhledávacímu clusteru nepřipojil."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "Backend nebo verzi vyhledávače nebylo možné rozpoznat."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Používejte hlavní verzi vyhledávacího clusteru, kterou tato verze Mattermost podporuje."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Verze vyhledávače není podporována"
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout je {{.value}} s. Omezuje, jak dlouho export čeká na připojení k serveru SMTP služby Global Relay, a pod 30 sekund pomalé připojení způsobí selhání doručení."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Zvyšte MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout alespoň na 30 sekund. Výchozí hodnota je 1800."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout je kratší než 30 sekund"
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "Na svazku obsahujícím FileSettings.Directory je k dispozici {{.available_gib}} GiB ({{.percent}} %) z {{.total_gib}} GiB. Po zaplnění svazku může nahrávání souborů a další operace se soubory selhávat."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Okamžitě zvětšete svazek nebo odstraňte nesouvisející data z jeho souborového systému; nemažte ručně soubory spravované Mattermost z FileSettings.Directory. Udržujte volných alespoň 10 % nebo 10 GiB a nikdy méně než 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "Disk úložiště souborů je téměř plný"
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "Na svazku obsahujícím FileSettings.Directory je k dispozici {{.available_gib}} GiB ({{.percent}} %) z {{.total_gib}} GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Zvětšete svazek nebo odstraňte nesouvisející data z jeho souborového systému; nemažte ručně soubory spravované Mattermost z FileSettings.Directory. Udržujte volných alespoň 10 % nebo 10 GiB a nikdy méně než 1 GiB."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "Na disku úložiště souborů dochází místo"
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName je local se zapnutým ClusterSettings.Enable a FileSettings.Directory je {{.directory}}. V clusteru musí být tento adresář sdíleným připojením (NFS, EFS, GlusterFS, CephFS), připojeným na každém uzlu stejně, jinak soubory nahrané na jeden uzel nejsou viditelné na ostatních. Z konfigurace nelze zjistit, zda je adresář sdílený, a uzel může projít testem připojení k úložišti souborů, i když zapisuje na vlastní místní disk."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Na každém aplikačním uzlu spusťte findmnt s cestou FileSettings.Directory. Relativní cesta se vyhodnocuje vůči pracovnímu adresáři Mattermost, obvykle /opt/mattermost. Každý uzel musí ukazovat stejný vzdálený zdroj a uživatel, pod kterým Mattermost běží, tam musí mít oprávnění ke čtení i zápisu. Pokud adresář není sdíleným připojením, přesuňte jej na sdílené připojení nebo přepněte FileSettings.DriverName na amazons3."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Místní úložiště souborů v clusteru s vysokou dostupností: ověřte sdílené připojení"
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket je prázdné, takže nahrávání souborů selhává."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Nastavte FileSettings.AmazonS3Bucket spolu s oblastí a koncovým bodem."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Je vybráno úložiště souborů Amazon S3, ale bucket není vyplněn"
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL má hodnotu false, takže se soubory mezi serverem a koncovým bodem S3 přenášejí nešifrovaně."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Nastavte FileSettings.AmazonS3SSL na true, pokud koncový bod nepodporuje pouze prosté HTTP."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "SSL pro Amazon S3 je vypnuté"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "Server se nemohl připojit ke svému úložišti souborů: {{.error}}. Nahrávání a stahování souborů může selhávat."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "Test připojení k úložišti souborů selhal na uzlech {{.nodes}}, zatímco ostatní uzly se k němu připojí, takže nahrávání a stahování souborů přes tyto uzly může selhávat. Zkontrolujte nastavení sítě, firewallu, proxy a DNS na těchto uzlech. U místního úložiště také ověřte, že je na nich připojen sdílený adresář. Chyba: {{.error}}"
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Zkontrolujte nastavení úložiště souborů a poté použijte Otestovat připojení v části Systémová konzole > Prostředí > Skladování Souborů. U místního úložiště ověřte, že FileSettings.Directory existuje a uživatel, pod kterým Mattermost běží, do něj může zapisovat. U Amazon S3 zkontrolujte bucket, koncový bod a přihlašovací údaje."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "Test připojení k úložišti souborů selhal"
+  },
+  {
+    "id": "health.rule.job_failed.message",
+    "translation": "Poslední dokončený běh úlohy {{.job_type}} ({{.job_id}}) skončil chybou: {{.error}}"
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "Poslední dokončený běh úlohy {{.job_type}} ({{.job_id}}) skončil chybou, aniž by zaznamenal chybovou zprávu."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Příčinu zjistěte z chyby úlohy a z protokolů serveru v době začátku neúspěšného běhu. Běžné příčiny, které je třeba vyloučit: zatížení databáze, limity fondu připojení, síťové události nebo převzetí služeb při selhání a vypršení časového limitu příkazů. Problém odstraňte, poté úlohu spusťte znovu a ověřte, že se dokončí. Dokud některý běh neuspěje, práce úlohy (synchronizace adresáře, export souladu s předpisy, uchovávání dat nebo indexování pro vyhledávání) se neprovádí."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Poslední běh úlohy selhal"
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "Úloha {{.job_type}} {{.job_id}} probíhá, ale již {{.hours}} h nezaznamenala žádnou aktivitu. Obvykle to znamená, že pracovní proces během běhu skončil nebo se plánovač zasekl."
+  },
+  {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "Úloha {{.job_type}} {{.job_id}} probíhá, ale již {{.days}} d nezaznamenala žádnou aktivitu. Obvykle to znamená, že pracovní proces během běhu skončil nebo se plánovač zasekl."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Zrušte zaseknutou úlohu na její stránce v Systémové konzoli, příkazem mmctl job cancel nebo přes API. Zkontrolujte protokoly serveru z doby poslední aktivity úlohy a poté ji spusťte znovu."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Úloha se zasekla ve stavu probíhá na více než 24 hodin"
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "Úloha {{.job_type}} {{.job_id}} déle než hodinu nehlásí žádný postup a nezaznamenala žádnou aktivitu. Obvykle to znamená, že pracovní proces skončil, uvázl ve vzájemném zablokování nebo ztratil připojení k databázi před první dávkou."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Zrušte úlohu na její stránce v Systémové konzoli, příkazem mmctl job cancel nebo přes API. Zkontrolujte protokoly serveru od začátku úlohy, zda neobsahují pády (panic) nebo chyby připojení, a poté ji spusťte znovu. Pokud se problém opakuje, pořiďte během zaseknutí úlohy profil goroutin z /debug/pprof/goroutine na serveru metrik."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Úloha probíhá déle než hodinu bez postupu i aktivity"
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute je {{.attribute}}. Mattermost propojuje každý účet s jeho záznamem v adresáři podle tohoto atributu, takže když se uživateli změní e-mail (sňatek, změna značky, přesun do jiného oddělení), propojení se přeruší a uživatel se ke svému stávajícímu účtu již nedostane."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Přepněte IdAttribute na stabilní atribut, například objectGUID (AD) nebo entryUUID (OpenLDAP), a poté stávající účty migrujte pomocí mmctl ldap idmigrate."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute je e-mailový atribut"
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Port 636 podle konvence očekává implicitní TLS (LDAPS), ale ConnectionSecurity je None nebo STARTTLS. Tato kombinace obvykle znamená chybnou konfiguraci, ale za proxy ukončující TLS může být platná. Ověřte, že přihlašování a synchronizace LDAP fungují."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "Pokud přihlašování nebo synchronizace LDAP selhává, nastavte pro port 636 ConnectionSecurity na TLS. Pokud fungují, není potřeba nic měnit."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "Port LDAP 636 je nakonfigurován bez ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Port 389 se podle konvence používá pro nešifrovaný provoz nebo STARTTLS, zatímco implicitní TLS (LDAPS) podle konvence používá port 636. Tato kombinace obvykle znamená chybnou konfiguraci, ale za proxy ukončující TLS nebo u záměrně překonfigurovaného serveru může být platná. Ověřte, že přihlašování a synchronizace LDAP fungují."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "Pokud přihlašování nebo synchronizace LDAP selhává, použijte pro TLS port 636 nebo pro port 389 přepněte ConnectionSecurity na STARTTLS. Pokud fungují, není potřeba nic měnit."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "Port LDAP 389 je nakonfigurován s ConnectionSecurity=TLS"
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "Test LDAP (připojení, bind a vyhledání uživatele) selhal, takže přihlašování a synchronizace LDAP mohou selhávat."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "Test LDAP (připojení, bind a vyhledání uživatele) selhal na uzlech {{.nodes}}, zatímco ostatní uzly se k serveru LDAP připojí, takže přihlašování přes LDAP může na těchto uzlech selhávat. Zkontrolujte nastavení sítě, firewallu, proxy a DNS na těchto uzlech."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Zkontrolujte podrobnosti chyby, poté ověřte LdapServer, LdapPort, ConnectionSecurity a přihlašovací údaje pro bind a to, že se servery Mattermost mohou připojit k serveru LDAP. K opětovné kontrole použijte Otestovat připojení na stránce AD/LDAP."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "Test připojení k LDAP selhal"
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout je {{.timeout}} s. Krátké časové limity způsobují u pomalých adresářů nahodilá selhání přihlašování a synchronizace LDAP."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Zvyšte LdapSettings.QueryTimeout na 60 sekund (výchozí hodnota)."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout je kratší než 10 sekund"
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "Počet ručně spravovaných aktivních uživatelských účtů: {{.users}}. Mattermost doporučuje jednotné přihlašování, jakmile má pracovní prostor více než 100 uživatelů: ruční správa účtů v tomto rozsahu vede k zastaralým účtům, zpožděnému onboardingu a nedůsledné deaktivaci odcházejících uživatelů, což jsou bezpečnostní i licenční rizika."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "Připojte Mattermost ke svému poskytovateli identit: AD/LDAP, pokud provozujete adresářovou službu, jinak SAML nebo OpenID Connect."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Více než 100 uživatelů bez jednotného přihlašování"
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost neověřuje certifikát TLS serveru LDAP, takže připojení k adresáři jsou zranitelná útoky man-in-the-middle. To je přijatelné pouze pro vývoj a testování."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Nainstalujte řetězec certifikátů CA serveru LDAP na servery Mattermost a nastavte SkipCertificateVerification na false."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification je zapnuté"
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes je {{.interval_minutes}} a nedávné běhy synchronizace LDAP trvaly v průměru {{.avg_run_seconds}} s, což je {{.duty_pct}} % intervalu. Dlouhé běhy v krátkém intervalu udržují zvýšenou zátěž databáze a mohou zvětšit zpoždění replik."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "Nebyl nalezen žádný běh synchronizace LDAP s měřitelnou dobou trvání."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Zužte LdapSettings.UserFilter a BaseDN, abyste omezili procházení adresáře, nebo prodlužte SyncIntervalMinutes. Usilujte o to, aby běhy synchronizace trvaly méně než 25 % intervalu."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "Synchronizace LDAP běží velkou část svého intervalu"
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "Synchronizace LDAP prohledává adresář od BaseDN, takže když je prázdné, nemůže najít uživatele, které má aktualizovat."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Nastavte LdapSettings.BaseDN na kořen adresáře, který chcete synchronizovat."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "Synchronizace LDAP je zapnutá, ale BaseDN je prázdné"
+  },
+  {
+    "id": "health.rule.license_expired.message",
+    "translation": "Platnost licence vypršela {{.expires_at}}. Server vypršelou licenci odebere 10 dní po vypršení platnosti a funkce Enterprise přestanou fungovat."
+  },
+  {
+    "id": "health.rule.license_expired.message.trial",
+    "translation": "Platnost zkušební licence vypršela {{.expires_at}}. Server vypršelou licenci odebere 10 dní po vypršení platnosti a funkce Enterprise přestanou fungovat."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Získejte novou licenci a nahrajte ji v části Systémová konzole > O aplikaci > Edice a licence."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "Platnost licence vypršela"
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "Platnost licence vyprší {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.message.trial",
+    "translation": "Platnost zkušební licence vyprší {{.expires_at}}."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Získejte novou licenci už nyní, aby ji bylo možné nahrát v části Systémová konzole > O aplikaci > Edice a licence ještě před vypršením platnosti té současné."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "Platnost licence vyprší do 30 dní"
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel je {{.level}}. Protokolování do souboru na úrovni debug rychle zvětšuje soubory protokolu a podrobnější údaje mohou obsahovat obsah požadavků. Při řešení problémů je to v pořádku, ale jako trvalé produkční nastavení to není ideální."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "Pokud právě aktivně neřešíte problém, nastavte LogSettings.FileLevel na INFO, abyste snížili objem protokolů."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "Protokolování do souboru na úrovni debug nebo trace"
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile má hodnotu false, takže server nezapisuje žádný soubor protokolu. Balíčky podpory (Support Packet) pak neobsahují žádné protokoly serveru, i když externí kolektor zachytává stdout nebo journald, a řešení problémů s podporou Mattermost trvá déle."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Nastavte LogSettings.EnableFile na true. Funguje to souběžně s protokolováním do konzole, takže stávající kolektor protokolů bude dál fungovat."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "Protokolování do souboru je vypnuté"
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging má hodnotu true, takže neúspěšné požadavky příchozích webhooků se zaznamenávají do protokolu i s obsahem, který může obsahovat text zpráv."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Nastavte LogSettings.EnableWebhookDebugging na false, pokud neřešíte problém s webhookem."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Obsah webhooků se zaznamenává do protokolu"
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "TeamSettings.MaxNotificationsPerChannel je {{.limit}}, takže @channel, @all a @here fungují i v kanálech s tisíci členy. Jediná zmínka celého kanálu tam najednou rozešle tisíce oznámení, což způsobuje výkyvy latence."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Snižte TeamSettings.MaxNotificationsPerChannel na 5000 nebo méně (výchozí hodnota je 1000). Jakmile kanál dosáhne tohoto počtu členů, @channel, @all a @here se vypnou, proto se nejprve domluvte s týmy, které je ve velkých kanálech používají."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "Zmínky celého kanálu jsou povoleny ve velmi velkých kanálech"
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "Mattermost nezaznamenává metriky výkonu, jako jsou připojení k databázi, latence požadavků a zatížení serveru. Bez nich nemáte žádnou historii, do které byste se mohli podívat, když uživatelé hlásí zpomalení, a nic, co byste mohli sdílet s podporou Mattermost."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "Zapněte Monitorování výkonu v Systémové konzoli a ověřte, že je plugin Metrics zapnutý v části Zásuvné moduly > Správa pluginů. Plugin uchovává metriky za 15 dní na serveru, bez potřeby Prometheus. Pokud provozujete Prometheus, nasměrujte jej na naslouchací port metrik (výchozí je 8067)."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Monitorování výkonu je vypnuté"
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "Pracovní sada paměti kontejneru je {{.working_set}} MB z limitu {{.limit}} MB. Pokud bude dál růst, jádro může ukončit server nebo proces pluginu."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Snižte využití paměti Mattermost a jeho pluginů, nebo zvyšte limit paměti kontejneru. Ponechte dostatečnou rezervu pro procesy pluginů, běhové prostředí Go a špičky provozu."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Paměť kontejneru je téměř vyčerpána"
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "Počet procesů ukončených kvůli nedostatku paměti od spuštění kontejneru: {{.kills}}. Ukončeným procesem mohl být plugin nebo jiný podřízený proces; zkontrolujte seznam pluginů a limit paměti kontejneru."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Zkontrolujte procesy pluginů a protokoly kontejneru, abyste zjistili, co bylo ukončeno, a poté snižte jeho využití paměti nebo zvyšte limit paměti kontejneru."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "Proces v kontejneru byl ukončen kvůli nedostatku paměti"
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "Kontejner byl omezován během {{.throttled}} z {{.periods}} plánovacích období CPU. Trvalé omezování CPU může Mattermost zpomalit, i když využití CPU hostitele vypadá nízké."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Zvyšte limit CPU kontejneru (CPU limit), nebo limit odstraňte a ponechte požadavek na CPU (CPU request)."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Omezování CPU kontejneru je vysoké"
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "Proces serveru má otevřeno {{.open}} z {{.max}} popisovačů souborů. Jakmile dosáhne limitu, nová připojení a operace se soubory selžou."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Zvyšte limit otevřených souborů: nastavte LimitNOFILE v jednotce systemd pro Mattermost nebo zvyšte ulimit nofile kontejneru a poté restartujte server."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "Popisovače souborů jsou téměř vyčerpány"
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "Limit paměti Go je {{.go_limit}} MB, ale limit kontejneru je {{.container_limit}} MB. Garbage collector nemusí začít pracovat intenzivněji dříve, než jádro proces ukončí."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Nastavte GOMEMLIMIT přibližně na 80–90 % limitu paměti kontejneru a ponechte rezervu pro paměť mimo haldu Go a pro procesy pluginů."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Limit paměti Go je roven limitu kontejneru nebo vyšší"
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS je {{.go_max_procs}}, což překračuje limit CPU kontejneru {{.cpu_limit}} CPU. Nadbytečná spustitelná vlákna mohou zvýšit omezování CPU."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Zrušte nastavení GOMAXPROCS, aby jej běhové prostředí Go nastavilo podle limitu CPU kontejneru, a poté restartujte server."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS překračuje limit CPU kontejneru"
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "Průměrné zatížení hostitele za 15 minut je {{.load}} při počtu jader CPU {{.cores}}. Trvalé zatížení dvěma a více úlohami na jádro může naznačovat přetížení CPU nebo vstupně-výstupních operací."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Zkontrolujte využití CPU, diskové vstupně-výstupní operace a běžící procesy na uzlu, a poté přidejte kapacitu nebo snižte zátěž."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Zatížení hostitele je vysoké"
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "Hostitel má k dispozici {{.available}} MB z {{.total}} MB. Pokud bude volné paměti dál ubývat, Mattermost a další procesy mohou být ukončeny nebo se zpomalit."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Najděte procesy, které využívají nejvíce paměti, a omezte je, nebo hostiteli přidejte paměť. Před restartováním služeb zkontrolujte využití paměti Mattermost a pluginů."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Hostiteli dochází paměť"
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "Tento uzel nevrátil svou diagnostiku pro kontrolu stavu. Může být mimo provoz, přetížený nebo odříznutý od ostatních uzlů. Dokud neodpoví, jeho ostatní zjištění si ponechají poslední známý stav."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Ověřte, že na tomto uzlu běží Mattermost, zkontrolujte jeho protokoly a využití CPU a paměti a ověřte, že se může připojit k ostatním uzlům na portu protokolu gossip (ClusterSettings.GossipPort)."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "Uzel clusteru neodpovídá"
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "Test připojení k poskytovateli OAuth/OIDC selhal ze všech hlásících uzlů Mattermost, takže přihlášení přes tohoto poskytovatele je pravděpodobně nedostupné."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "Test připojení k poskytovateli OAuth/OIDC selhal na uzlech {{.nodes}}, zatímco ostatní hlásící uzly se k poskytovateli připojí. Přihlášení přes tohoto poskytovatele může na těchto uzlech selhávat."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Zkontrolujte podrobnosti chyby, koncový bod discovery nebo token poskytovatele a nastavení odchozí sítě, firewallu, proxy a DNS. Poté ověřte přihlášení přes poskytovatele."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "Test připojení k poskytovateli OAuth/OIDC selhal"
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Otevřený server a registrace e-mailem jsou zapnuté, zatímco ověřování e-mailu je vypnuté, takže kdokoli, kdo se k tomuto serveru dostane, si může vytvořit účet s vymyšlenou e-mailovou adresou a připojit se k otevřeným týmům. Pokud je otevřená registrace záměrná, toto zjištění ztlumte."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Otevřený server a registrace e-mailem jsou zapnuté, zatímco ověřování e-mailu je vypnuté. TeamSettings.RestrictCreationToDomains omezuje registraci na některé domény, ale Mattermost kontroluje pouze to, že adresa končí povolenou doménou, nikoli to, že ji daná osoba vlastní. Kdokoli, kdo se k tomuto serveru dostane, se může zaregistrovat pod povolenou doménou a vydávat se za kolegu. Pokud je otevřená registrace záměrná, toto zjištění ztlumte."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Nastavte EmailSettings.RequireEmailVerification na true. Nejprve ověřte, že SMTP funguje: stávající uživatelé, kteří svou e-mailovou adresu nikdy neověřili, ji budou muset ověřit při příštím přihlášení. Pokud otevřenou registraci nechcete, nastavte TeamSettings.EnableOpenServer na false; uživatelé se stále mohou připojit pomocí odkazů s pozvánkou do týmu, takže ověřování e-mailu je i tak doporučeno. Chcete-li registraci omezit na svou organizaci, nastavte TeamSettings.RestrictCreationToDomains společně s ověřováním e-mailu; bez ověřování jej lze obejít."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Kdokoli se může zaregistrovat s neověřenou e-mailovou adresou"
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck má hodnotu false, takže plugin, který spadne, se automaticky nerestartuje."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Nastavte PluginSettings.EnableHealthCheck na true."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Kontrola stavu pluginů je vypnutá"
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "Tyto pluginy jsou zapnuté, ale neběží: {{.plugins}}."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "V části Systémová konzole > Zásuvné moduly > Správa pluginů zkontrolujte stav každého uvedeného pluginu a zkuste jej vypnout a znovu zapnout. Protokol serveru zaznamenává, proč se plugin nepodařilo spustit nebo proč jej zastavila kontrola stavu pluginů."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Zapnuté pluginy neběží"
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable má hodnotu false, takže neběží žádné pluginy. To vyhovuje některým uzamčeným nasazením, ale často to není záměrné."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "Pokud je to neočekávané, nastavte PluginSettings.Enable na true."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Pluginy jsou vypnuté"
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents je nastaveno na full, takže text zprávy a odesílatel jsou součástí obsahu oznámení push, který prochází přes push proxy a služby oznámení push společností Apple a Google."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "Pro maximální soukromí oznámení push nastavte EmailSettings.PushNotificationContents na id_loaded. Odesílá se pouze ID zprávy a mobilní aplikace si obsah zprávy načte ze serveru. Mobilní zařízení pak musí mít při doručení oznámení přístup k serveru, takže u serverů dostupných pouze přes VPN nebo interní síť oznámení nemohou zobrazit obsah zprávy. Pokud je full záměrná volba, toto zjištění ztlumte."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Oznámení push obsahují celý text zprávy"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "Test připojení k serveru oznámení push selhal: {{.error}}. Mobilní uživatelé nemusí dostávat oznámení push."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "Test připojení k serveru oznámení push selhal na uzlech {{.nodes}}, zatímco ostatní uzly se k němu připojí. Oznámení push odesílaná těmito uzly mohou selhávat. Zkontrolujte nastavení sítě, firewallu, proxy a DNS na těchto uzlech. Chyba: {{.error}}"
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Zkontrolujte PushNotificationServer, certifikáty TLS a stav push proxy. Ověřte, že se každý aplikační uzel Mattermost může k nakonfigurovanému hostiteli připojit přes HTTPS, a poté ověřte jeho koncový bod /version."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Test připojení k serveru oznámení push selhal"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message.hosted",
+    "translation": "push-test.mattermost.com je testovací push proxy Mattermost. Nemá žádnou smlouvu o úrovni služeb (SLA), má omezenou propustnost a není určena pro produkční provoz. Vaše licence zahrnuje službu Mattermost Hosted Push Notification Service: nastavte PushNotificationServer na https://global.push.mattermost.com."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable má hodnotu false při {{.users}} registrovaných uživatelích. Omezení rychlosti chrání server před záplavou požadavků a před zneužívajícími nebo chybně fungujícími klienty; při tomto počtu uživatelů a navíc s webhooky a integracemi botů může jediný špatně nakonfigurovaný klient zahltit API. Mattermost ve své dokumentaci uvádí, že vestavěný omezovač rychlosti je určen pro menší nasazení (do několika set uživatelů), takže ve větším měřítku je omezování požadavků často lepší řešit na nástroji pro vyrovnávání zátěže nebo na bráně API."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Zajistěte, aby bylo zavedeno omezování požadavků odpovídající tomuto měřítku, buď vestavěným omezením rychlosti Mattermost (Systémová konzole > Prostředí > Omezení rychlosti), nebo na vašem nástroji pro vyrovnávání zátěže či bráně."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "Omezení rychlosti API je na velké instanci vypnuté"
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize je {{.size}}, ale registrovaných uživatelů je {{.users}}. Omezovač rychlosti sleduje nejvýše tento počet klientů; když je úložiště plné, vyřadí klienta, který byl viděn nejdéle, a jeho kvóta požadavků začne znovu od začátku, takže malé úložiště oslabuje omezení rychlosti."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Zvyšte RateLimitSettings.MemoryStoreSize alespoň na počet registrovaných uživatelů."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Paměťové úložiště omezení rychlosti je menší než počet uživatelů"
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds je {{.value}}. Úloha uchovávání dat mezi dávkami mazání čeká tuto dobu, aby databáze měla čas obsluhovat živý provoz. Při hodnotě pod 100 ms mohou rozsáhlá mazání zpomalit databázi všem."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Zvyšte v konfiguraci DataRetentionSettings.TimeBetweenBatchesMilliseconds alespoň na 100 (výchozí hodnota)."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "TimeBetweenBatchesMilliseconds uchovávání dat je menší než 100"
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Aserce se na vrstvě SAML přenášejí nešifrovaně. Připojení stále chrání TLS, takže nejde o selhání základního zabezpečení, ale pokud váš IdP šifrování asercí podporuje, jeho zapnutí přidá další vrstvu ochrany."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "Pokud váš IdP podporuje šifrování asercí, zapněte SamlSettings.Encrypt a nakonfigurujte soukromý klíč a veřejný certifikát poskytovatele služeb."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "Šifrování asercí SAML je vypnuté"
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost identifikuje účty SAML podle e-mailové adresy, buď protože je IdAttribute prázdné, nebo protože uvádí e-mailový atribut. Když se uživateli změní e-mail u IdP, propojení s jeho stávajícím účtem se přeruší."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Nakonfigurujte IdP tak, aby odesílal stabilní identifikátor (například objectGUID nebo neměnné ID), a poté nastavte SamlSettings.IdAttribute na název tohoto atributu. Stávající účty přejdou na nový identifikátor samy: při příštím přihlášení každého uživatele Mattermost najde účet podle e-mailu a uloží nové ID."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute je prázdné nebo je to e-mailový atribut"
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute je {{.attribute}}. Uživatelská jména, uid a hlavní názvy uživatelů (UPN) se mezi zaměstnanci často recyklují, a když k tomu dojde, druhá osoba zdědí účet Mattermost té první."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Upřednostněte identifikátor, který se nikdy znovu nepřiděluje, například objectGUID (AD) nebo neměnné ID (Microsoft Entra ID), a zkontrolujte zásady IdP pro opětovné použití identifikátorů."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute může být u IdP znovu přidělen"
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message",
+    "translation": "Kontrola certifikátu IdP a adresy URL IdP pro SAML selhala, takže přihlašování přes SAML je pravděpodobně nefunkční."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "Kontrola certifikátu IdP a adresy URL IdP pro SAML selhala na uzlech {{.nodes}}, zatímco na ostatních uzlech prochází, takže přihlašování přes SAML může na těchto uzlech selhávat. Zajistěte, aby tyto uzly měly stejný platný certifikát IdP jako ostatní uzly."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.remediation",
+    "translation": "Zkontrolujte podrobnosti chyby a poté v nastavení SAML opravte certifikát IdP (IdpCertificateFile) nebo adresu URL IdP (IdpURL). Pokud platnost certifikátu vypršela, nahrajte aktuální podpisový certifikát IdP."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.title",
+    "translation": "Kontrola konfigurace SAML selhala"
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO používá podpisový algoritmus SHA-1, který je zastaralý. SSO dnes funguje, ale někteří poskytovatelé identit začínají SHA-1 odmítat, takže jde o vylepšení kompatibility a zabezpečení, které je vhodné naplánovat, zejména před jakoukoli změnou nebo aktualizací IdP."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "Až to bude vhodné, a po dohodě s vaším IdP, nastavte SamlSettings.SignatureAlgorithm na RSAwithSHA256."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm je SHA-1"
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost přijímá odpovědi SAML bez ověření podpisu vašeho IdP, takže nedokáže rozlišit pravou odpověď na ověření od podvržené."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Nastavte SamlSettings.Verify na true a ujistěte se, že je nastavena hodnota AssertionConsumerServiceURL. Zapněte jej po dohodě s vaším IdP a otestujte přihlášení, protože ověřování vyžaduje správně nakonfigurovaný certifikát IdP."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "Ověřování podpisu SAML je vypnuté"
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "Pracovní prostor má {{.posts}} příspěvků a vyhledávání probíhá v databázi. Elasticsearch se doporučuje nad 2 500 000 příspěvků a nad 5 000 000 je vyžadován."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Naplánujte nasazení Elasticsearch před příštím obdobím výrazného růstu nebo před dosažením 5 000 000 příspěvků."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Počet příspěvků se blíží prahu pro Elasticsearch"
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "Pracovní prostor má {{.posts}} příspěvků a vyhledávání probíhá v databázi. Při tomto rozsahu počítejte s pomalým vyhledáváním, vypršením časových limitů a špičkami využití CPU databáze."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Nasaďte Elasticsearch nebo OpenSearch, spusťte úplné počáteční indexování a poté zapněte EnableIndexing, EnableSearching a EnableAutocomplete."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Nad 5 000 000 příspěvků je vyžadován Elasticsearch"
+  },
+  {
+    "id": "health.rule.search_unavailable.message",
+    "translation": "Vyhledávání v databázi je vypnuté a vyhledávání pomocí Elasticsearch je také vypnuté. Vyhledávání nevrací žádné výsledky. Vyhledávání obnoví také zapnutí vyhledávání pomocí Elasticsearch nebo OpenSearch."
+  },
+  {
+    "id": "health.rule.search_unavailable.message.unlicensed",
+    "translation": "Vyhledávání v databázi je vypnuté a licence nezahrnuje Elasticsearch, takže nastavení Elasticsearch nemají žádný účinek. Vyhledávání nevrací žádné výsledky."
+  },
+  {
+    "id": "health.rule.search_unavailable.remediation",
+    "translation": "Nastavte SqlSettings.DisableDatabaseSearch na false v config.json (nebo MM_SQLSETTINGS_DISABLEDATABASESEARCH=false)."
+  },
+  {
+    "id": "health.rule.search_unavailable.title",
+    "translation": "Vyhledávání je vypnuté"
+  },
+  {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "Počet uživatelů započítaných do licenčního limitu: {{.used}} z {{.limit}}. Limit je nyní dosažen. Server nevytvoří ani znovu neaktivuje žádné uživatele, dokud se místa neuvolní nebo nepřidají."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Zakupte další místa, nebo deaktivujte uživatele, kteří již přístup nepotřebují, abyste místa uvolnili."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Byl dosažen licenční limit uživatelů"
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "Počet uživatelů započítaných do {{.seats}} licencovaných míst: {{.used}} ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "Pokud očekáváte více uživatelů, naplánujte další místa dříve, než se licence zaplní. Místa uvolníte deaktivací uživatelů, kteří již přístup nepotřebují."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Licencovaná místa jsou téměř zaplněná"
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "Počet uživatelů započítaných do {{.seats}} licencovaných míst: {{.used}} ({{.percent}} %)."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Zakupte další místa, nebo deaktivujte uživatele, kteří již přístup nepotřebují. Deaktivovaní uživatelé místo nezabírají."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "Více uživatelů než licencovaných míst"
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Relace vyprší podle pevného plánu bez ohledu na aktivitu, takže aktivní uživatelé jsou odhlašováni. Většině nasazení prospívá, když aktivní uživatelé zůstávají přihlášeni."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Zapněte ServiceSettings.ExtendSessionLengthWithActivity, pokud to vaše bezpečnostní zásady nezakazují."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity je vypnuté"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "Test připojení k serveru SMTP selhal: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "Test připojení k serveru SMTP selhal na uzlech {{.nodes}}, zatímco ostatní uzly se k němu připojí. Zkontrolujte nastavení sítě, firewallu, proxy a DNS na těchto uzlech. Chyba: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "E-mailová oznámení, pozvánky a e-maily pro obnovení hesla nemusí být doručeny. Zkontrolujte server SMTP, port, zabezpečení připojení a přihlašovací údaje v Systémové konzoli, ověřte, že se server Mattermost může připojit k hostiteli SMTP, a poté to ověřte pomocí tlačítka Otestovat připojení."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "Test připojení k serveru SMTP selhal"
+  },
+  {
+    "id": "health.rule.version.unknown.latest",
+    "translation": "Nejnovější vydání není známo: nepodařilo se jej načíst, nebo jej balíček nezaznamenává."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Nejnovější vydání nebylo zkontrolováno: nastavení Kontrolovat bezpečnostní aktualizace a nové verze je vypnuté, takže ho server nenačítá."
+  },
+  {
+    "id": "health.rule.version.unknown.line",
+    "translation": "Tato verze není v tabulce vydání tohoto sestavení. Chcete-li vyhodnotit balíček podpory z novějšího serveru, použijte novější mmctl."
+  },
+  {
+    "id": "health.rule.version.unknown.version",
+    "translation": "Verze serveru je neznámá nebo nebyla rozpoznána."
+  },
+  {
+    "id": "health.rule.version_behind.message",
+    "translation": "Běží verze {{.version}}. Nejnovější je {{.latest}}, o dvě nebo více vydání novější."
+  },
+  {
+    "id": "health.rule.version_behind.remediation",
+    "translation": "Naplánujte aktualizaci na nejnovější vydání dříve, než skončí podpora této řady vydání, nebo přejděte na vydání s rozšířenou podporou (Extended Support Release) s pomalejším tempem aktualizací."
+  },
+  {
+    "id": "health.rule.version_behind.title",
+    "translation": "Několik vydání za nejnovějším vydáním"
+  },
+  {
+    "id": "health.rule.version_behind_one.message",
+    "translation": "Běží verze {{.version}}. Nejnovější je {{.latest}}."
+  },
+  {
+    "id": "health.rule.version_behind_one.remediation",
+    "translation": "Naplánujte aktualizaci na nejnovější vydání."
+  },
+  {
+    "id": "health.rule.version_behind_one.title",
+    "translation": "Je k dispozici novější vydání"
+  },
+  {
+    "id": "health.rule.version_eol.message",
+    "translation": "Běží Mattermost {{.version}}. Podpora této řady vydání skončila {{.eol_date}}. Pro tuto řadu vydání již nevycházejí žádné bezpečnostní opravy."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor",
+    "translation": "Běží Mattermost {{.version}}, starší řada vydání, která již není podporována. Pro tuto řadu vydání již nevycházejí žádné bezpečnostní opravy."
+  },
+  {
+    "id": "health.rule.version_eol.message.below_floor_target",
+    "translation": "Běží Mattermost {{.version}}, starší řada vydání, která již není podporována. Pro tuto řadu vydání již nevycházejí žádné bezpečnostní opravy. Nejnovější podporované vydání s rozšířenou podporou je {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.message.latest",
+    "translation": "Běží Mattermost {{.version}}. Podpora této řady vydání skončila {{.eol_date}}. Pro tuto řadu vydání již nevycházejí žádné bezpečnostní opravy. Aktualizujte na nejnovější vydání."
+  },
+  {
+    "id": "health.rule.version_eol.message.target",
+    "translation": "Běží Mattermost {{.version}}. Podpora této řady vydání skončila {{.eol_date}}. Pro tuto řadu vydání již nevycházejí žádné bezpečnostní opravy. Nejnovější podporované vydání s rozšířenou podporou je {{.target}}."
+  },
+  {
+    "id": "health.rule.version_eol.remediation",
+    "translation": "Naplánujte postupnou aktualizaci na podporované vydání s rozšířenou podporou nebo na nejnovější vydání. Podporované verze jsou uvedeny na https://docs.mattermost.com/product-overview/mattermost-server-releases.html."
+  },
+  {
+    "id": "health.rule.version_eol.title",
+    "translation": "Verze Mattermost je po skončení životnosti"
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.message",
+    "translation": "Běží verze {{.version}} ve vydání s rozšířenou podporou {{.esr}}. Naplánujte aktualizaci před {{.eol_date}}, abyste nadále dostávali bezpečnostní opravy."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.remediation",
+    "translation": "Naplánujte aktualizaci na nejnovější vydání nebo na příští vydání s rozšířenou podporou."
+  },
+  {
+    "id": "health.rule.version_esr_near_eol.title",
+    "translation": "Vydání s rozšířenou podporou se blíží konci životnosti"
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Akce přístupu ke kanálu v zásadě oprávnění se mohou vztahovat pouze na roli Systémový uživatel, Systémový host nebo Správce systému."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "Pravidlo přístupu ke kanálu v zásadě oprávnění nemůže určovat vlastní roli. Platí role zásady."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "Akce Spravovat kanál je povolena pouze u zásad oprávnění a zásad kanálů."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "Akce Přístup pro čtení kanálu je povolena pouze u zásad oprávnění a zásad kanálů."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "Akce Přístup pro zápis do kanálu je povolena pouze u zásad oprávnění a zásad kanálů."
+  },
+  {
+    "id": "model.app_error.internal_error",
+    "translation": "Došlo k interní chybě."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_cache_prefix.app_error",
+    "translation": "Předpona mezipaměti Redis nesmí obsahovat ':', '*', '?', '[', ']' ani '\\'."
+  },
+  {
+    "id": "model.config.is_valid.redis_tls_client_cert_key.app_error",
+    "translation": "RedisTLSClientCert a RedisTLSClientKey musí být nastaveny společně."
+  },
+  {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Další rozsahy musí být názvy rozsahů OAuth oddělené mezerami, celkem nejvýše {{.MaxLength}} znaků."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Neplatný filtr pole. Název pole může mít nejvýše {{.MaxLength}} znaků a nesmí být prázdný, \"level\" ani \"timestamp\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Neplatný filtr pole. Hodnota pole může mít nejvýše {{.MaxLength}} znaků."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Neplatný filtr pole. Počet hodnot každého pole musí být od 1 do {{.MaxValues}}."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Neplatný filtr pole. Filtrovat lze nejvýše podle {{.MaxKeys}} polí."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Neplatný filtr vyhledávání. Může mít nejvýše {{.MaxLength}} znaků."
+  },
+  {
+    "id": "plugin.api.get_thread_followers.app_error",
+    "translation": "Nepodařilo se získat sledující vlákna."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "Server nepodporuje výpis klíčů pluginu s možnostmi."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Nepodařilo se vypsat klíče pluginu s možnostmi."
+  },
+  {
+    "id": "plugin.api.thread.invalid_thread_id.app_error",
+    "translation": "Neplatné id vlákna."
+  },
+  {
+    "id": "plugin.api.thread.invalid_user_id.app_error",
+    "translation": "Neplatné uživatelské id."
+  },
+  {
+    "id": "plugin.api.thread.not_root_post.app_error",
+    "translation": "Příspěvek je odpověď, nikoli kořenový příspěvek vlákna."
+  },
+  {
+    "id": "plugin.api.update_post_with_options.invalid_file_creator.app_error",
+    "translation": "Neplatný tvůrce souboru."
+  },
+  {
+    "id": "api.error_invalid_site_url_provided_for_onboarding",
+    "translation": "URL stránky zadaná pro onboarding je neplatná. Musí to být adresa URL http nebo https bez cesty, například https://chat.example.com."
+  },
+  {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Zprávu o stavu se nepodařilo exportovat."
+  },
+  {
+    "id": "api.property.post_attributes.license.app_error",
+    "translation": "Atributy příspěvku vyžadují licenci Enterprise."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Chybí hodnoty atributů kanálu v těchto kanálech:{{.ChannelList}}\n\nV těchto kanálech jste správcem kanálu. Otevřete kanál a vyberte **Přidat hodnoty**, nebo hodnoty nastavte v panelu **Informace o kanálu**."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) vyžaduje: {{.AttributeNames}}"
+  },
+  {
+    "id": "app.plugin.reserved_id.app_error",
+    "translation": "ID pluginu {{.ID}} je vyhrazeno pro jádro serveru a nelze jej nainstalovat ani načíst."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.message",
+    "translation": "S {{.users}} registrovanými uživateli běží tento server na jediném uzlu bez vysoké dostupnosti. Referenční architektury Mattermost doporučují vysokou dostupnost od 200 uživatelů, proto ji naplánujte dříve, než selhání uzlu nebo upgrade vyřadí pracovní prostor z provozu."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.remediation",
+    "translation": "Provozujte alespoň dva aplikační uzly za nástrojem pro vyrovnávání zátěže se sdílenou databází a sdíleným úložištěm souborů a poté na každém uzlu zapněte ClusterSettings.Enable se stejným ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled.title",
+    "translation": "Zvažte nastavení vysoké dostupnosti"
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.message",
+    "translation": "S {{.users}} registrovanými uživateli běží tento server na jediném uzlu bez vysoké dostupnosti. Jakékoli selhání uzlu, restart nebo upgrade vyřadí z provozu celý pracovní prostor. Referenční architektury Mattermost při tomto rozsahu vysokou dostupnost vyžadují."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.remediation",
+    "translation": "Provozujte alespoň dva aplikační uzly za nástrojem pro vyrovnávání zátěže se sdílenou databází a sdíleným úložištěm souborů a poté na každém uzlu zapněte ClusterSettings.Enable se stejným ClusterName."
+  },
+  {
+    "id": "health.rule.cluster_not_enabled_at_scale.title",
+    "translation": "Při tomto rozsahu není zapnutá vysoká dostupnost"
+  },
+  {
+    "id": "health.rule.developer_mode_on.message",
+    "translation": "ServiceSettings.EnableDeveloper má hodnotu true, takže se uživatelům a klientům zobrazují podrobné informace o chybách. Toto nastavení je určeno pouze pro vývoj."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Nastavte ServiceSettings.EnableDeveloper na false."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "ServiceSettings.EnableDeveloper je zapnuté"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message",
+    "translation": "E-mail není nastaven, takže e-maily, jako je obnovení hesla a oznámení, nebudou doručovány."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.message.partial",
+    "translation": "Na výchozí adrese SMTP localhost:10025 neodpovídá na uzlech {{.nodes}} žádný poštovní server, takže e-maily odesílané těmito uzly, jako je obnovení hesla a oznámení, nebudou doručeny. Ostatní uzly se k poštovnímu serveru na této adrese připojí. Chyba: {{.error}}"
+  },
+  {
+    "id": "health.rule.smtp_not_configured.remediation",
+    "translation": "Nastavte server SMTP v Systémové konzoli. Pokud tento server nemá odesílat e-maily, vypněte e-mailová oznámení, e-mailové pozvánky a ověřování e-mailu a poté toto zjištění ztlumte. Přihlašování e-mailem nebo uživatelským jménem ponechte zapnuté: bez něj se uživatelé, kteří se nepřihlašují přes SSO, nebudou moci přihlásit."
+  },
+  {
+    "id": "health.rule.smtp_not_configured.title",
+    "translation": "Server SMTP není nastaven"
+  },
+  {
+    "id": "health.rule.testing_mode_on.message",
+    "translation": "ServiceSettings.EnableTesting má hodnotu true, takže testovací režim zpřístupňuje testovací příkazy a koncové body určené pouze pro vývoj."
+  },
+  {
+    "id": "health.rule.testing_mode_on.remediation",
+    "translation": "Nastavte ServiceSettings.EnableTesting na false a poté restartujte server. Některé testovací koncové body se odstraní až po restartu."
+  },
+  {
+    "id": "health.rule.testing_mode_on.title",
+    "translation": "ServiceSettings.EnableTesting je zapnuté"
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections má hodnotu true, takže server neověřuje certifikáty TLS u odchozích připojení HTTPS, jako jsou odchozí webhooky, lomítkové příkazy, výměny tokenů OAuth, náhledy odkazů a stahování pluginů. Kdokoli na síťové trase může tento provoz číst nebo měnit, včetně tokenů OAuth."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Přidejte certifikát interní certifikační autority (CA) do systémového úložiště důvěryhodných certifikátů na každém serveru Mattermost a poté nastavte ServiceSettings.EnableInsecureOutgoingConnections na false."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "Ověřování certifikátů TLS je u odchozích připojení vypnuté"
   }
 ]
