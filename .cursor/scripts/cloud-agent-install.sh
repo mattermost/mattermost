@@ -300,7 +300,7 @@ hydrate_playwright_dependencies() {
 }
 
 # Prints the plugin repo slugs to clone. CLOUD_AGENT_PLUGINS takes a comma- or
-# space-separated list of names (boards, mattermost-plugin-boards), "all", or "none";
+# space-separated list of names (playbooks, mattermost-plugin-playbooks), "all", or "none";
 # CLOUD_AGENT_SUPER_ENV=true alone means "all".
 requested_plugin_slugs() {
   local requested="${CLOUD_AGENT_PLUGINS:-}"

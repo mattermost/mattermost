@@ -295,7 +295,11 @@ clone_sibling_checkout() {
     return 0
   fi
 
-  log "Failed to clone $slug. Add github.com/$slug to repositoryDependencies in .cursor/environment.json so the GitHub token can access it."
+  if grep -q "\"github.com/$slug\"" "$ROOT/.cursor/environment.json" 2>/dev/null; then
+    log "Failed to clone $slug. It is already in repositoryDependencies; check that the repo exists and that the Cursor GitHub app can read it."
+  else
+    log "Failed to clone $slug. Add github.com/$slug to repositoryDependencies in .cursor/environment.json so the GitHub token can access it."
+  fi
   return 1
 }
 

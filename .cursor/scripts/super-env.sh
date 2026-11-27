@@ -16,7 +16,7 @@ usage() {
 Usage: .cursor/scripts/super-env.sh <command> [args]
 
 Works across the mattermost checkout and the mattermost-plugin-* checkouts next to it.
-<plugin> is a short name (boards), a repo name (mattermost-plugin-boards), or a path.
+<plugin> is a short name (playbooks), a repo name (mattermost-plugin-playbooks), or a path.
 
 Commands:
   list                       Show plugin checkouts, branches, Node pins, and link state.

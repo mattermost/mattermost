@@ -32,7 +32,7 @@ When no usable Enterprise checkout is present (single-repo runs and git-triggere
 
 ### Plugins
 
-The core plugin list is the set of `github.com/mattermost/mattermost-plugin-*` entries in `repositoryDependencies`: the plugins `server/Makefile` prepackages, minus `mattermost-plugin-dataminr`, which the Cloud Agent token cannot read. Listing them there grants the git token access, and the install hook reads the same list, so there is a single place to add or remove a plugin.
+The core plugin list is the set of `github.com/mattermost/mattermost-plugin-*` entries in `repositoryDependencies`: mostly the plugins `server/Makefile` prepackages, with Boards v2 in place of Boards, plus Weave. `mattermost-plugin-dataminr` is left out because the Cloud Agent token cannot read it. Listing them there grants the git token access, and the install hook reads the same list, so there is a single place to add or remove a plugin.
 
 The install hook:
 
@@ -47,7 +47,7 @@ The plugins' own `.cursor/` setups are not run. They target a standalone prebuil
 Cursor resolves the environment in this order: a personal saved environment, a team saved environment, then `.cursor/environment.json` (single-repo runs only). A saved environment reads this file only when its environment.json location points at it. Either setup below works:
 
 - **Multi-repo saved environment (recommended)**: in the [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents), create an environment with `mattermost/mattermost`, `mattermost/enterprise`, and the plugin repos you want. Set its environment.json location to `mattermost/mattermost`'s `.cursor/environment.json`. Cursor clones every repo as a sibling and the install hook hydrates the plugins it finds. Optionally add `CLOUD_AGENT_SUPER_ENV=true` as an environment-scoped secret so any core plugin you did not select is cloned too.
-- **Single repo plus flag**: use an environment that points at this file and add `CLOUD_AGENT_SUPER_ENV=true` (or `CLOUD_AGENT_PLUGINS=boards,agents,...`) as an environment-scoped secret. The install hook clones the plugins using the token scope from `repositoryDependencies`.
+- **Single repo plus flag**: use an environment that points at this file and add `CLOUD_AGENT_SUPER_ENV=true` (or `CLOUD_AGENT_PLUGINS=playbooks,agents,...`) as an environment-scoped secret. The install hook clones the plugins using the token scope from `repositoryDependencies`.
 
 Keep the standard environment free of those variables; without them it does no plugin work.
 
@@ -67,7 +67,7 @@ Set these environment variables to `true` to shorten startup for narrow tasks:
 Super environment options:
 
 - `CLOUD_AGENT_SUPER_ENV=true`: clone every core plugin.
-- `CLOUD_AGENT_PLUGINS`: comma- or space-separated plugin names (`boards`, `mattermost-plugin-agents`), `all`, or `none`. Overrides `CLOUD_AGENT_SUPER_ENV`.
+- `CLOUD_AGENT_PLUGINS`: comma- or space-separated plugin names (`playbooks`, `boards-v2`, `mattermost-plugin-agents`), `all`, or `none`. Overrides `CLOUD_AGENT_SUPER_ENV`.
 - `CLOUD_AGENT_PLUGIN_BRANCH`: branch to try first for every plugin clone.
 
 ## Expected Secrets

@@ -54,7 +54,7 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
   ENABLED_DOCKER_SERVICES='postgres redis' make run-server
   ```
 
-- `MM_SERVICESETTINGS_ENABLELOCALMODE=true` opens the local mode socket (`/var/tmp/mattermost_local.socket`) that `mmctl --local` and plugin deploys use; it is off by default. `MM_PLUGINSETTINGS_ENABLEUPLOADS=true` lets `make deploy` upload plugin bundles. `MM_FILESETTINGS_MAXFILESIZE=524288000` raises the 100 MB upload cap, which multi-platform bundles such as Boards exceed. Plugins such as Agents refuse to start without `MM_SERVICESETTINGS_SITEURL`.
+- `MM_SERVICESETTINGS_ENABLELOCALMODE=true` opens the local mode socket (`/var/tmp/mattermost_local.socket`) that `mmctl --local` and plugin deploys use; it is off by default. `MM_PLUGINSETTINGS_ENABLEUPLOADS=true` lets `make deploy` upload plugin bundles. `MM_FILESETTINGS_MAXFILESIZE=524288000` raises the 100 MB upload cap, which multi-platform bundles can exceed. Plugins such as Agents refuse to start without `MM_SERVICESETTINGS_SITEURL`.
 
   and then:
 
@@ -86,7 +86,7 @@ This repository is the base of a pseudo-monorepo: the same image and hooks can a
 
 - Plugin checkouts live next to this one as `../mattermost-plugin-<name>` (falling back to `$HOME/mattermost-plugin-<name>`). Run `.cursor/scripts/super-env.sh list` to see which are present, their branch, and their Node pin.
 - The install hook hydrates every `mattermost-plugin-*` checkout it finds (`go mod download` plus `make webapp/node_modules`, each with the plugin's own `.nvmrc` Node through nvm; the default Node stays on this repo's `.nvmrc`).
-- With `CLOUD_AGENT_SUPER_ENV=true`, the install hook also clones every core plugin listed in `repositoryDependencies` that is missing. `CLOUD_AGENT_PLUGINS=boards,agents` clones only those. Clones prefer a branch with the same name as this checkout's branch (or `CLOUD_AGENT_PLUGIN_BRANCH`) and fall back to the plugin's default branch.
+- With `CLOUD_AGENT_SUPER_ENV=true`, the install hook also clones every core plugin listed in `repositoryDependencies` that is missing. `CLOUD_AGENT_PLUGINS=playbooks,agents` clones only those. Clones prefer a branch with the same name as this checkout's branch (or `CLOUD_AGENT_PLUGIN_BRANCH`) and fall back to the plugin's default branch.
 - To add a plugin mid-run: `CLOUD_AGENT_PLUGINS=<name> CLOUD_AGENT_SKIP_GO_DEPS=true CLOUD_AGENT_SKIP_WEBAPP_DEPS=true CLOUD_AGENT_SKIP_PLAYWRIGHT_DEPS=true bash .cursor/scripts/cloud-agent-install.sh`.
 - Clones made by the hook are shallow and single-branch. Run `git fetch --unshallow` or `git remote set-branches origin '*'` in that plugin before work that needs history or other branches. `super-env.sh sync` fast-forwards clean, hook-made clones.
 
@@ -97,8 +97,8 @@ Working in a plugin:
 3. Run plugin commands through the helper so the right Node is on `PATH`:
 
    ```bash
-   .cursor/scripts/super-env.sh exec boards -- make test
-   .cursor/scripts/super-env.sh deploy boards agents   # or: deploy all
+   .cursor/scripts/super-env.sh exec playbooks -- make test
+   .cursor/scripts/super-env.sh deploy playbooks agents   # or: deploy all
    ```
 
    `deploy` runs the plugin's `make deploy` over the local mode socket with `MM_SERVICESETTINGS_ENABLEDEVELOPER=true`, so only the current platform's binary is built. Set `MM_ADMIN_TOKEN` or `MM_ADMIN_USERNAME`/`MM_ADMIN_PASSWORD` to deploy over HTTP instead.
@@ -106,9 +106,9 @@ Working in a plugin:
 4. For changes that span the plugin API (`server/public`) and a plugin, link the plugin to this checkout:
 
    ```bash
-   .cursor/scripts/super-env.sh link boards     # also links server/v8 if the plugin requires it
-   .cursor/scripts/super-env.sh deploy boards   # builds against the local server/public
-   .cursor/scripts/super-env.sh unlink boards
+   .cursor/scripts/super-env.sh link playbooks  # also links server/v8 if the plugin requires it
+   .cursor/scripts/super-env.sh deploy playbooks  # builds against the local server/public
+   .cursor/scripts/super-env.sh unlink playbooks
    ```
 
    The link is an out-of-tree `go.work` under `~/.cache/mattermost-super-env/`; nothing is written to the plugin repo, so it can never be committed by accident. Don't change a plugin's `go.mod` to point at the local server. Plugin webapps still use published `@mattermost/*` npm packages.
