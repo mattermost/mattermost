@@ -25,17 +25,19 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/healthchecktest"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t, LatestVersionURL(latestVersionServer(t).URL))
 
 	err := th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
-	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	snapshot, buildErr := th.App.BuildHealthSnapshot(th.Context)
 	require.NoError(t, buildErr)
 	require.NotNil(t, snapshot)
 
@@ -79,13 +81,13 @@ func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotMarksNodesThatDidNotReply(t *testing.T) {
 	cluster := &threeNodeCluster{}
-	th := SetupWithClusterMock(t, cluster)
+	th := SetupWithClusterMock(t, cluster, LatestVersionURL(latestVersionServer(t).URL))
 
 	err := th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
 	start := time.Now()
-	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	snapshot, buildErr := th.App.BuildHealthSnapshot(th.Context)
 	require.NoError(t, buildErr)
 	require.NotNil(t, snapshot)
 
@@ -114,7 +116,7 @@ func TestBuildHealthSnapshotMarksNodesThatDidNotReply(t *testing.T) {
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t, LatestVersionURL(latestVersionServer(t).URL))
 
 	err := th.App.clearLatestVersionCache()
 	require.NoError(t, err)
@@ -147,7 +149,7 @@ func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T
 
 	th.App.Srv().SetStore(&storeMock)
 
-	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	snapshot, buildErr := th.App.BuildHealthSnapshot(th.Context)
 	require.NoError(t, buildErr)
 	require.NotNil(t, snapshot)
 
@@ -175,21 +177,20 @@ func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
-	th := Setup(t)
-
-	err := th.App.clearLatestVersionCache()
-	require.NoError(t, err)
-
 	stalled := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		<-r.Context().Done()
 	}))
 	t.Cleanup(stalled.Close)
+	th := Setup(t, LatestVersionURL(stalled.URL))
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(th.Context.Context(), 150*time.Millisecond)
 	t.Cleanup(cancel)
 
 	start := time.Now()
-	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context.WithContext(ctx), stalled.URL)
+	snapshot, buildErr := th.App.BuildHealthSnapshot(th.Context.WithContext(ctx))
 	elapsed := time.Since(start)
 
 	require.NoError(t, buildErr)
@@ -204,11 +205,6 @@ func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotLatestVersionDropsTagPrefix(t *testing.T) {
-	th := Setup(t)
-
-	err := th.App.clearLatestVersionCache()
-	require.NoError(t, err)
-
 	body, err := json.Marshal(&model.GithubReleaseInfo{Id: 1, TagName: "v11.11.1", Name: "v11.11.1", Url: "https://github.com/mattermost/mattermost/releases/tag/v11.11.1"})
 	require.NoError(t, err)
 	release := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -216,28 +212,31 @@ func TestBuildHealthSnapshotLatestVersionDropsTagPrefix(t *testing.T) {
 		assert.NoError(t, writeErr)
 	}))
 	t.Cleanup(release.Close)
+	th := Setup(t, LatestVersionURL(release.URL))
 
-	snapshot, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, release.URL)
+	err = th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	snapshot, err := th.App.BuildHealthSnapshot(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, "11.11.1", snapshot.Version.Latest)
 }
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotSkipsLatestVersionWithSecurityAlertsOff(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false)
-	})
-
-	err := th.App.clearLatestVersionCache()
-	require.NoError(t, err)
-
 	var requests atomic.Int32
 	release := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requests.Add(1)
 	}))
 	t.Cleanup(release.Close)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false)
+	}, LatestVersionURL(release.URL))
 
-	snapshot, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, release.URL)
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	snapshot, err := th.App.BuildHealthSnapshot(th.Context)
 	require.NoError(t, err)
 	assert.Zero(t, requests.Load())
 	assert.Empty(t, snapshot.Version.Latest)
@@ -254,7 +253,7 @@ func TestBuildHealthSnapshotSkipsLatestVersionWithSecurityAlertsOff(t *testing.T
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t, LatestVersionURL(latestVersionServer(t).URL)).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
@@ -305,7 +304,11 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	err = th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
-	live, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	live, err := th.App.BuildHealthSnapshot(th.Context)
+	require.NoError(t, err)
+
+	// What mmctl fills in, since packets don't record the latest release.
+	latestRelease, err := releases.FetchLatest(th.Context.Context(), th.App.Srv().LatestVersionURL())
 	require.NoError(t, err)
 
 	var noCPUProfile time.Duration
@@ -318,12 +321,11 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
 		require.NoError(t, readErr)
 		assert.Empty(t, p.Warnings)
+		p.Snapshot.Version.Latest = releases.Version(latestRelease)
 		return p
 	}
 	offline := readPacket(t, files)
-
-	// Offline has no feed; align it so only the rules are compared.
-	offline.Snapshot.Version.Latest = live.Version.Latest
+	require.NotEmpty(t, live.Version.Latest)
 
 	evaluatedAt := time.Now()
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
@@ -334,16 +336,13 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		t.Helper()
 
 		evaluations := engine.Evaluate(snapshot)
-		// Independently sampled values can differ between the live and packet collections.
 		for i := range evaluations {
 			switch evaluations[i].Code {
 			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL":
-				require.NotNil(t, evaluations[i].Result.Value)
-				evaluations[i].Result.Value = nil
-				evaluations[i].Result.Details = nil
-			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED",
-				"DB_POSTS_DEAD_TUPLES", "DB_POOL_SATURATED":
-				// These set a value only when they have the numbers to compare, so none is required.
+				// The test server always has these measurements, so both sides must report one.
+				require.NotNil(t, evaluations[i].Result.Value, evaluations[i].Code)
+			}
+			if slices.Contains(healthchecktest.SampledCodes, evaluations[i].Code) {
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
 			}
@@ -397,7 +396,6 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 
 		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
 		older := readPacket(t, olderFiles)
-		older.Snapshot.Version.Latest = live.Version.Latest
 		olderEvaluations := evaluate(t, older.Snapshot)
 		require.Len(t, olderEvaluations, len(liveEvaluations))
 		for i, evaluation := range olderEvaluations {

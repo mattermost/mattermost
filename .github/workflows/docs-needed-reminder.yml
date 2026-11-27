@@ -1,0 +1,53 @@
+name: Docs Needed Reminder
+
+# Before each release, nudge authors of merged PRs that still carry Docs/Needed:
+# submit and merge the docs, or swap the label for Docs/Done if that already happened.
+# One comment per PR per run date; re-running the same day posts nothing new.
+
+on:
+  schedule:
+    # 8th and 12th of each month, 09:00 UTC.
+    - cron: "0 9 8,12 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Log the reminders without posting them
+        type: boolean
+        default: true
+      lookback_days:
+        description: Only PRs merged within this many days
+        type: string
+        default: "45"
+
+permissions: {}
+
+concurrency:
+  group: docs-needed-reminder
+  cancel-in-progress: false
+
+jobs:
+  remind:
+    name: Remind authors
+    if: github.repository == 'mattermost/mattermost'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Post reminders
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
+          LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+        run: node .github/scripts/docs-ai/reminder/remind.mjs

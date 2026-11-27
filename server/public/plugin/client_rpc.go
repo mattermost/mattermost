@@ -102,7 +102,7 @@ type hooksRPCClient struct {
 // Mattermost APIs.
 type hooksRPCServer struct {
 	impl         any
-	muxBroker    *plugin.MuxBroker
+	muxBroker    rpcMuxBroker
 	apiRPCClient *apiRPCClient
 }
 

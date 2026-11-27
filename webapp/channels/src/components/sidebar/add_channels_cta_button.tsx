@@ -3,7 +3,7 @@
 
 import type {ReactNode, JSX} from 'react';
 import React, {useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GlobeIcon, PlusIcon} from '@mattermost/compass-icons/components';
@@ -16,31 +16,36 @@ import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
-import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
-import {getBoardPluginIds} from 'selectors/views/product_rail';
+import {getBoardCreateMenuItems} from 'selectors/views/product_rail';
 
 import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
 import {useProductRailKind} from 'hooks/useProductRailKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 
 // Left-align the menu with the icon in the LHS
 const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
 const transformOrigin = {vertical: 'top', horizontal: -20} as const;
+
+/* eslint-disable formatjs/enforce-placeholders -- no placeholders */
+const browseMessages: KindMessages = {
+    channel: defineMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'}),
+    board: defineMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels.board', defaultMessage: 'Browse boards'}),
+};
+/* eslint-enable formatjs/enforce-placeholders */
 
 const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
     const productRailKind = useProductRailKind();
-    const boardPluginIds = useSelector(getBoardPluginIds);
-    const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents) as SidebarBrowseOrAddChannelMenuAction[] | undefined;
+    const boardMenuItems = useSelector(getBoardCreateMenuItems);
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
@@ -50,11 +55,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const currentUserId = useSelector(getCurrentUserId);
 
     // On the Boards item, the menu creates boards through the board plugin's own "Create new board"
-    // item. Its placement only says where it sits, so the item is a board action when the plugin that
-    // registered it is the one that registered the board kind. Without one (or without permission to
-    // create), there's no way to make a board from here, so it keeps the channel wording rather than
-    // promise one.
-    const boardMenuItems = (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel' && boardPluginIds.includes(item.pluginId));
+    // item. Without one (or without permission to create), there's no way to make a board from here,
+    // so it keeps the channel wording rather than promise one.
     const showBoardMenu = productRailKind === 'board' && canCreateChannel && boardMenuItems.length > 0;
     const railKind = showBoardMenu ? 'board' : 'channel';
 
@@ -64,10 +66,12 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
         buttonClass += ' SidebarChannelNavigator__addChannelsCtaLhsButton--untouched';
     }
 
+    // On the Boards item, browsing lists boards.
     const showMoreChannelsModal = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
+            dialogProps: {kind: productRailKind},
         }));
     };
 
@@ -87,12 +91,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
                     leadingElement={<GlobeIcon size={18}/>}
-                    labels={
-                        <FormattedMessage
-                            id='sidebar_left.add_channel_dropdown.browseChannels'
-                            defaultMessage='Browse channels'
-                        />
-                    }
+                    labels={<FormattedMessage {...browseMessages[productRailKind]}/>}
                 />,
             );
         }

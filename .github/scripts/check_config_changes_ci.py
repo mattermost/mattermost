@@ -13,50 +13,46 @@ Checkers
 4. Dockerfile.buildenv — Go (base-image) version changes
  
 All inputs come from environment variables set by the GitHub Actions workflow:
-  GITHUB_TOKEN     — built-in Actions token  (pull-requests: write scope)
-  PR_NUMBER        — pull request number
-  BASE_SHA         — base commit SHA
-  HEAD_SHA         — head commit SHA
-  REPO             — owner/repo  (e.g. mattermost/mattermost)
-  DEFAULT_BRANCH   — repository default branch (e.g. master); used to ignore
-                     commits the PR head inherited from trunk when the GitHub
-                     base was retargeted onto an older line of history
+  GITHUB_TOKEN  — built-in Actions token  (pull-requests: write scope)
+  PR_NUMBER     — pull request number
+  BASE_SHA      — base commit SHA
+  BASE_REF      — the PR's base branch name (e.g. master or release-12.0)
+  HEAD_SHA      — head commit SHA
+  DEFAULT_BRANCH — repository default branch (defaults to master)
+  REPO          — owner/repo  (e.g. mattermost/mattermost)
 """
  
+import base64
+import binascii
+import json
 import os
 import re
 import sys
 import subprocess
+import requests
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Optional
-
-try:
-    import requests
-except ImportError:  # pragma: no cover - GitHub API helpers unused in unit tests
-    requests = None
  
 # ── Environment ────────────────────────────────────────────────────────────────
  
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
-PR_NUMBER    = int(os.environ["PR_NUMBER"]) if "PR_NUMBER" in os.environ else 0
-BASE_SHA     = os.environ.get("BASE_SHA", "")
-BASE_REF     = os.environ.get("BASE_REF", "")  # the PR's own base branch, e.g. master or release-12.0
-HEAD_SHA     = os.environ.get("HEAD_SHA", "")
-REPO         = os.environ.get("REPO", "mattermost/mattermost")
-DEFAULT_BRANCH = os.environ.get("DEFAULT_BRANCH", "master")
- 
+# Workflow inputs are loaded by main(), keeping imports free of CI side effects.
+GITHUB_TOKEN = ""
+PR_NUMBER = 0
+BASE_SHA = ""
+BASE_REF = ""  # the PR's own base branch, e.g. master or release-12.0
+HEAD_SHA = ""
+REPO = "mattermost/mattermost"
+DEFAULT_BRANCH = "master"
+
 BASE_URL = "https://api.github.com"
-HEADERS  = {
-    "Authorization": f"token {GITHUB_TOKEN}",
-    "Accept":        "application/vnd.github.v3+json",
-}
- 
+HEADERS = {}
+
 # Timeout for all GitHub API requests: (connect seconds, read seconds).
 # Prevents the workflow from hanging indefinitely on a slow/unresponsive API.
 _TIMEOUT = (5, 30)
  
-# Paths watched by this script (must align with `paths:` in the workflow YAML)
+# Paths watched by this script, independently of workflow event filters.
 WATCHED_PATHS = [
     "server/public/model/config.go",
     "server/channels/api4/",
@@ -91,80 +87,46 @@ class CheckResult:
  
 # ── Diff helpers ───────────────────────────────────────────────────────────────
 
-def _git(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def reset_git_caches() -> None:
+    """Clear cached git lookups. Tests call this after pointing at a new repo."""
+    base_tip_ref.cache_clear()
+    _comparison_base.cache_clear()
+
+
+def _git_output(*args: str) -> str:
     return subprocess.run(
-        ["git", *args],
-        capture_output=True,
-        text=True,
-        check=check,
-    )
-
-
-def default_branch_sha() -> str:
-    """Tip of the repository default branch, if present in this clone."""
-    for ref in (f"origin/{DEFAULT_BRANCH}", DEFAULT_BRANCH):
-        result = _git(["rev-parse", "--verify", ref], check=False)
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip()
-    return ""
+        ["git", *args], capture_output=True, text=True, check=True,
+    ).stdout.strip()
 
 
 @lru_cache(maxsize=1)
-def unique_commits() -> tuple[str, ...]:
-    """Commits on HEAD that are not on the PR base and not on the default branch.
+def _comparison_base() -> str:
+    """Exclude inherited trunk history while retaining distinct cherry-picks.
 
-    `git diff BASE...HEAD` (and GitHub's PR file list) follow the GitHub base
-    ref. If that base is retargeted onto an older branch, every default-branch
-    commit the head already contains shows up as a change of this PR — including
-    watched API/config files this PR never touched.
-
-    Subtracting the default branch leaves only commits this PR actually added.
-    Cherry-picks onto a release branch keep a distinct SHA, so they still appear.
+    Advance the PR merge-base to its common ancestor with the default branch
+    only when that ancestor includes the original merge-base. This compares
+    coherent snapshots, including when upstream and PR edits share a file.
     """
-    cmd = ["rev-list", "--no-merges", f"{BASE_SHA}..{HEAD_SHA}"]
-    default = default_branch_sha()
-    if default:
-        cmd += ["--not", default]
-    return tuple(c for c in _git(cmd).stdout.split() if c)
-
-
-@lru_cache(maxsize=None)
-def _commit_files(sha: str) -> frozenset[str]:
-    result = _git(["diff-tree", "--no-commit-id", "--name-only", "-r", sha])
-    return frozenset(line for line in result.stdout.splitlines() if line)
-
-
-def _is_watched(path: str) -> bool:
-    for watched in WATCHED_PATHS:
-        if watched.endswith("/"):
-            if path.startswith(watched):
-                return True
-        elif path == watched:
-            return True
-    return False
+    base = _compute_merge_base()
+    for ref in (f"origin/{DEFAULT_BRANCH}", DEFAULT_BRANCH):
+        try:
+            trunk_base = _git_output("merge-base", HEAD_SHA, ref)
+        except subprocess.CalledProcessError:
+            continue
+        if subprocess.run(
+            ["git", "merge-base", "--is-ancestor", base, trunk_base],
+            capture_output=True, check=False,
+        ).returncode == 0:
+            return trunk_base
+        break
+    return base
 
 
 def files_changed_in_unique_commits() -> list[str]:
-    files: set[str] = set()
-    for sha in unique_commits():
-        files.update(_commit_files(sha))
-    return sorted(path for path in files if _is_watched(path))
-
-
-@lru_cache(maxsize=1)
-def default_merge_base() -> str:
-    """Merge base of HEAD and the current default branch, or "" if there is none.
-
-    This is the state of the repository the PR started from, as far as master is
-    concerned. It is newer than the parent of the PR's oldest commit when the head
-    carries older work that master has since taken in some other way, such as the
-    first commits of a stacked PR that were later merged separately.
-    """
-    default = default_branch_sha()
-    if not default:
-        return ""
-    result = _git(["merge-base", default, HEAD_SHA], check=False)
-    return result.stdout.strip() if result.returncode == 0 else ""
+    """Watched files changed beyond the relevant shared branch history."""
+    return _git_output(
+        "diff", "--name-only", _comparison_base(), HEAD_SHA, "--", *WATCHED_PATHS,
+    ).splitlines()
 
 
 @lru_cache(maxsize=1)
@@ -176,9 +138,11 @@ def base_tip_ref() -> str:
     """
     if BASE_REF:
         for ref in (f"origin/{BASE_REF}", BASE_REF):
-            result = _git(["rev-parse", "--verify", ref], check=False)
-            if result.returncode == 0 and result.stdout.strip():
-                return result.stdout.strip()
+            try:
+                if sha := _git_output("rev-parse", "--verify", ref):
+                    return sha
+            except subprocess.CalledProcessError:
+                continue
     return BASE_SHA
 
 
@@ -189,12 +153,12 @@ def file_at_base_tip(path: str) -> Optional[str]:
 
 
 def net_changes(before: set, head: set, tip: Optional[set]) -> tuple[set, set]:
-    """What this PR adds and removes, given the sets at its merge base, its head and the base branch's tip.
+    """What this PR adds and removes, given the sets at its comparison base, its head and the base branch's tip.
 
-    Added: in the head, not in the merge base, and not on the base branch's tip (already
+    Added: in the head, not in the comparison base, and not on the base branch's tip (already
     there by another route, such as the first PR of a stack that was squash-merged).
-    Removed: in the merge base, not in the head, and still on the tip (otherwise the base
-    branch removed it already). With no tip (``None``) the head and merge base decide alone.
+    Removed: in the comparison base, not in the head, and still on the tip (otherwise the base
+    branch removed it already). With no tip (``None``) the head and comparison base decide alone.
     """
     added = head - before
     removed = before - head
@@ -204,57 +168,14 @@ def net_changes(before: set, head: set, tip: Optional[set]) -> tuple[set, set]:
     return added, removed
 
 
-@lru_cache(maxsize=1)
-def release_merge_base() -> str:
-    """Merge base of HEAD and the base branch's tip when the PR targets a release branch
-    (``release-X.Y``), or "".
-
-    A release line has files and routes master never had at the cut (later cherry-picks),
-    so the merge base with master is too old for it: a route the line added and this PR
-    removes would not count as removed, and a file the line added would look new.
-    """
-    if not re.fullmatch(r"release-\d+\.\d+", BASE_REF or ""):
-        return ""
-    tip = base_tip_ref()
-    if not tip:
-        return ""
-    result = _git(["merge-base", tip, HEAD_SHA], check=False)
-    return result.stdout.strip() if result.returncode == 0 else ""
-
-
-def before_ref_for(path: str) -> str:
-    """The state of `path` before this PR: the merge base with its release branch when it
-    targets one, otherwise with the current default branch.
-
-    The default branch works when GitHub's base ref is not an ancestor of the work
-    (retarget), where MERGE_BASE would be too old, and it does not count work master
-    already has as this PR's. Without either in the clone, falls back to the parent of
-    the oldest unique commit that touches `path`.
-    """
-    merge_base = release_merge_base() or default_merge_base()
-    if merge_base:
-        return merge_base
-    oldest = None
-    for sha in unique_commits():  # newest first; last match is oldest
-        if path in _commit_files(sha):
-            oldest = sha
-    if oldest:
-        return _git(["rev-parse", f"{oldest}^"]).stdout.strip()
-    return _compute_merge_base()
-
-
 def get_full_patch() -> str:
-    """Unified diff of watched paths this PR's own commits actually changed."""
-    files = files_changed_in_unique_commits()
-    if not files:
-        return ""
-    patches: list[str] = []
-    for path in files:
-        result = _git(["diff", before_ref_for(path), HEAD_SHA, "--", path])
-        patches.append(result.stdout)
-    return "".join(patches)
- 
- 
+    """Return changes beyond shared base/default-branch history."""
+    return subprocess.run(
+        ["git", "diff", "--find-renames", _comparison_base(), HEAD_SHA, "--", *WATCHED_PATHS],
+        capture_output=True, text=True, check=True,
+    ).stdout
+
+
 def split_patch_by_file(full_patch: str) -> dict[str, str]:
     """
     Split a multi-file unified diff into {filename: patch} mapping.
@@ -283,32 +204,24 @@ def split_patch_by_file(full_patch: str) -> dict[str, str]:
  
 def file_at(ref: str, path: str) -> str:
     """Return the full contents of `path` at git ref `ref`, or '' if absent."""
-    result = _git(["show", f"{ref}:{path}"], check=False)
-    return result.stdout if result.returncode == 0 else ""
-
-
-def file_before(path: str) -> str:
-    """File contents before this PR: at the merge base with the default branch (see ``before_ref_for``)."""
-    return file_at(before_ref_for(path), path)
+    try:
+        return subprocess.run(
+            ["git", "show", f"{ref}:{path}"],
+            capture_output=True, text=True, check=True,
+        ).stdout
+    except subprocess.CalledProcessError:
+        return ""
 
 
 def _compute_merge_base() -> str:
-    """Resolve the merge-base of BASE_SHA and HEAD_SHA.
-
-    Fallback when a path has no unique-commit parent. BASE_SHA is the tip of
-    the GitHub target branch at PR-event time; merge-base is the last shared
-    commit with HEAD.
-    """
-    return _git(["merge-base", BASE_SHA, HEAD_SHA]).stdout.strip()
+    """Resolve the common ancestor of the PR base and head."""
+    return subprocess.run(
+        ["git", "merge-base", BASE_SHA, HEAD_SHA],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
 
 
-def reset_git_caches() -> None:
-    """Clear cached git walks. Tests call this after pointing at a new repo."""
-    unique_commits.cache_clear()
-    _commit_files.cache_clear()
-    default_merge_base.cache_clear()
-    release_merge_base.cache_clear()
-    base_tip_ref.cache_clear()
+
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
@@ -361,15 +274,15 @@ def check_config(patches: dict[str, str]) -> CheckResult:
     """
     Detect exported Go struct field additions/removals in config.go.
  
-    Compares full-file snapshots before this PR's unique commits and at
-    HEAD_SHA so that fields are always attributed to the correct struct
-    regardless of which diff hunks are present.
+    Compares full-file snapshots at the comparison base and HEAD_SHA so that fields
+    are always attributed to the correct struct regardless of which diff
+    hunks are present.
     """
     result = CheckResult(label="`config.json` Field Changes")
     if _CONFIG_PATH not in patches:
         return result
  
-    base_fields = _scan_struct_fields(file_before(_CONFIG_PATH))
+    base_fields = _scan_struct_fields(file_at(_comparison_base(), _CONFIG_PATH))
     head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
     tip_src = file_at_base_tip(_CONFIG_PATH)
 
@@ -524,16 +437,18 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     """
     Detect API endpoint additions/removals in the api4/ directory.
  
-    Compares full-file snapshots before this PR's unique commits and at
-    HEAD_SHA via set arithmetic, so multi-line and multi-method
-    registrations are handled correctly.
+    Compares full-file snapshots at the comparison base and HEAD_SHA via set arithmetic,
+    so multi-line and multi-method registrations are handled correctly.
     """
     result = CheckResult(label="API Changes (`api4`)")
 
+    # Test files never register real routes, so they are excluded entirely.
     api4_patches = {
         fname: patch
         for fname, patch in patches.items()
-        if fname.startswith("server/channels/api4/") and fname.endswith(".go")
+        if fname.startswith("server/channels/api4/")
+        and fname.endswith(".go")
+        and not fname.endswith("_test.go")
     }
     if not api4_patches:
         return result
@@ -542,21 +457,32 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: set[tuple[str, str, str]] = set()
 
     for fname, patch in api4_patches.items():
-        base_eps = _parse_endpoints(file_before(fname), _route_prefixes(file_before(_API_ROUTES_PATH)))
-        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname), _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
+        rename = re.search(r"^rename from (.+)$", patch, re.MULTILINE)
+        source = rename.group(1) if rename else fname
+        base = _comparison_base()
+        base_eps = _parse_endpoints(file_at(base, source), _route_prefixes(file_at(base, _API_ROUTES_PATH)))
+        head_src = file_at(HEAD_SHA, fname)
+        head_eps = _parse_endpoints(head_src, _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
         tip_src = file_at_base_tip(fname)
-        tip_eps = None if tip_src is None else _parse_endpoints(
-            tip_src, _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or ""))
+        tip_eps = None
+        if tip_src is not None:
+            tip_prefixes = _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or "")
+            tip_eps = _parse_endpoints(tip_src, tip_prefixes)
+            # A renamed file can still exist on the tip under its old name only.
+            if source != fname:
+                tip_eps |= _parse_endpoints(file_at_base_tip(source) or "", tip_prefixes)
         added, removed = net_changes(base_eps, head_eps, tip_eps)
         added_eps   |= added
         removed_eps |= removed
  
-        # Anchor the check to avoid false positives from unrelated source text
         if fname.endswith("_test.go"):
             continue
-        if re.search(r"^new file mode \d+", patch, re.MULTILINE):
+        # Only report a new/deleted file when it actually registers endpoints;
+        # helper files with no Handle() calls are not release-note worthy.
+        # Anchor the check to avoid false positives from unrelated source text.
+        if (head_eps or re.search(r"\.Handle\s*\(", head_src)) and re.search(r"^new file mode \d+", patch, re.MULTILINE):
             result.changes.append(f"🆕 New API file: `{fname.split('/')[-1]}`")
-        if re.search(r"^deleted file mode \d+", patch, re.MULTILINE):
+        if base_eps and re.search(r"^deleted file mode \d+", patch, re.MULTILINE):
             result.changes.append(f"🗑️  Removed API file: `{fname.split('/')[-1]}`")
  
     result.additions = sorted(_format_endpoint(p, h, m) for p, h, m in added_eps)
@@ -578,15 +504,14 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     """
     Detect AuditEvent* constant additions/removals.
  
-    Uses full-file snapshots before this PR's unique commits and at HEAD_SHA
-    so reorderings and cross-constant name collisions don't produce false
-    results.
+    Uses full-file snapshots at the comparison base/HEAD_SHA so reorderings and
+    cross-constant name collisions don't produce false results.
     """
     result = CheckResult(label="Audit Log Event Changes")
     if _AUDIT_EVENT_PATH not in patches:
         return result
 
-    base_events = _parse_audit_events(file_before(_AUDIT_EVENT_PATH))
+    base_events = _parse_audit_events(file_at(_comparison_base(), _AUDIT_EVENT_PATH))
     head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
     tip_src = file_at_base_tip(_AUDIT_EVENT_PATH)
@@ -625,7 +550,7 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
     if _DOCKERFILE_PATH not in patches:
         return result
  
-    old_ver = _parse_go_version(file_before(_DOCKERFILE_PATH))
+    old_ver = _parse_go_version(file_at(_comparison_base(), _DOCKERFILE_PATH))
     new_ver = _parse_go_version(file_at(HEAD_SHA, _DOCKERFILE_PATH))
  
     if old_ver and new_ver and old_ver != new_ver:
@@ -636,22 +561,31 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
  
  
 # ── PR description helpers ─────────────────────────────────────────────────────
- 
-# Matches lines that were auto-generated by this script so they can be stripped
-# before re-injecting a fresh set on subsequent commits.
-# Handles both single-backtick (older runs) and double-backtick (current) format.
-_AUTO_LINE_RE = re.compile(
-    r"^(Added|Removed) `{1,2}[^`]+`{1,2}.*(configuration setting|API endpoint|audit log event)\."
-    r"|^Go runtime updated from \S+ to \S+\."
-    r"|^Go runtime set to `{1,2}[^`]+`{1,2}\."
-    r"|^🆕 New API file:"
-    r"|^🗑️  Removed API file:"
+
+# The checker's lines go inside the release-note fence, where an HTML comment
+# would render as text and end up in the changelog. Instead, a hidden ledger
+# comment after the fence records which lines the checker wrote and what the
+# fence held before, so a later run removes exactly those lines and leaves
+# human-written notes alone.
+_LEDGER_PREFIX = "<!-- config-change-checker: "
+_LEDGER_RE = re.compile(r"\n?" + re.escape(_LEDGER_PREFIX) + r"([A-Za-z0-9+/=]*) -->")
+
+# Blocks written by the first marker-based version of this script, which put
+# the markers inside the fence. Still removed so open PRs don't get duplicates.
+_LEGACY_START = "<!-- config-change-checker:start -->"
+_LEGACY_END = "<!-- config-change-checker:end -->"
+_LEGACY_BLOCK_RE = re.compile(
+    re.escape(_LEGACY_START) + r"\n.*?" + re.escape(_LEGACY_END) + r"\n?",
+    re.DOTALL,
 )
- 
+
+_FENCE_RE = re.compile(r"(```release-note)(.*?)(```)", re.DOTALL | re.IGNORECASE)
+_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
+
 # Matches placeholder content inside a release-note fence that means "nothing
 # to report yet" (e.g. NONE, N/A, ---).  When detected, we replace the
 # placeholder rather than appending alongside it.
-_PLACEHOLDER_RE = re.compile(r"^\s*(?:NONE|N/?A|-+)\s*$", re.IGNORECASE)
+_PLACEHOLDER_RE = re.compile(r"^\s*(?:NONE|N/?A|-+)?\s*$", re.IGNORECASE)
  
  
 def _format_lines(result: CheckResult) -> list[str]:
@@ -701,88 +635,102 @@ def build_pr_note(results: list[CheckResult]) -> str:
     return "\n".join(lines)
  
  
+def _release_note_fence(body: str) -> Optional[re.Match]:
+    """The first release-note fence outside an HTML comment.
+
+    The PR template keeps its example fences inside a comment, ahead of the real one.
+    """
+    comments = [m.span() for m in _COMMENT_RE.finditer(body)]
+    for m in _FENCE_RE.finditer(body):
+        if not any(s <= m.start() < e for s, e in comments):
+            return m
+    return None
+
+
+def _ledger(lines: list[str], placeholder: str) -> str:
+    """Hidden record of a run's lines and the fence content to restore once they are removed."""
+    data = json.dumps({"lines": lines, "placeholder": placeholder})
+    return f"{_LEDGER_PREFIX}{base64.b64encode(data.encode()).decode()} -->"
+
+
+def _read_ledger(encoded: str) -> dict:
+    try:
+        return json.loads(base64.b64decode(encoded, validate=True))
+    except (ValueError, binascii.Error):
+        return {"lines": [], "placeholder": "\nNONE\n"}
+
+
 def strip_old_note(body: str) -> str:
+    """Remove the lines an earlier run wrote, restoring what the fence held before.
+
+    A description with no ledger or legacy block is returned unchanged apart from
+    line endings, so a PR without findings is never edited.
     """
-    Remove previously auto-generated lines from the PR description.
- 
-    Primary path  — lines inside the ```release-note ... ``` fence.
-    Fallback path — auto-generated lines that were appended outside any fence
-                    (e.g. via the ## Release Notes section on earlier runs).
- 
-    Lines are identified by pattern rather than visible markers, so the PR
-    description stays clean for human readers.
-    """
-    def _clean_fence(m: re.Match) -> str:
-        open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
-        cleaned_lines = [
-            line for line in content.split("\n")
-            if not _AUTO_LINE_RE.match(line.strip())
-        ]
-        return open_tag + "\n".join(cleaned_lines) + close_tag
- 
-    cleaned = re.sub(
-        r"(```release-note)(.*?)(```)",
-        _clean_fence,
-        body or "",
-        flags=re.DOTALL | re.IGNORECASE,
-    )
- 
-    # Fallback: strip any auto-generated lines that appear outside a fence
-    # (written by an older version of this script or via the header-inject path).
-    cleaned_lines = [
-        line for line in cleaned.splitlines()
-        if not _AUTO_LINE_RE.match(line.strip())
-    ]
-    return "\n".join(cleaned_lines).rstrip()
+    body = (body or "").replace("\r\n", "\n")
+    ledger = _LEDGER_RE.search(body)
+    if not ledger and not _LEGACY_BLOCK_RE.search(body):
+        return body
+
+    # The legacy version restored NONE when its block was the fence's only content.
+    record = {"lines": [], "placeholder": "\nNONE\n"}
+    if ledger:
+        record = _read_ledger(ledger.group(1))
+        body = body[:ledger.start()] + body[ledger.end():]
+    body = _LEGACY_BLOCK_RE.sub("", body)
+
+    fence = _release_note_fence(body)
+    if fence is None:
+        return body
+
+    generated = list(record.get("lines") or [])
+    kept = []
+    for line in fence.group(2).split("\n"):
+        if line.strip() in generated:
+            generated.remove(line.strip())
+        else:
+            kept.append(line)
+    content = "\n".join(kept)
+
+    if not content.strip():
+        content = record.get("placeholder") or "\nNONE\n"
+
+    return body[:fence.start()] + fence.group(1) + content + fence.group(3) + body[fence.end():]
  
  
 def inject_note(body: str, note: str) -> str:
     """
-    Insert `note` using this priority order:
- 
-    1. INSIDE the ```release-note block, before its closing ```
-       (Mattermost convention — keeps everything in one place for reviewers)
-    2. After a recognised release-notes section header (## Release Notes, etc.)
-    3. Fallback: append a new ## Release Notes section at the end
+    Replace this checker's earlier lines in the PR description with `note`.
+
+    The lines go INSIDE the first release-note fence outside an HTML comment,
+    replacing a placeholder (NONE, empty) or after the author's own lines. A line
+    the fence already has, such as one written by hand, is not added again. A
+    description with no fence is left alone. A ledger comment after the fence
+    records what was written so the next run can undo it.
     """
     body = strip_old_note(body)
     if not note:
         return body
- 
-    # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence.
-    #    If the fence currently contains only a placeholder (NONE / N/A / ---),
-    #    replace the placeholder rather than appending alongside it.
-    release_note_block = re.search(
-        r"(```release-note)(.*?)(```)",
-        body,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
-    if release_note_block:
-        open_tag   = release_note_block.group(1)
-        content    = release_note_block.group(2)   # everything between the fences
-        close_tag  = release_note_block.group(3)
-        block_start = release_note_block.start()
-        block_end   = release_note_block.end()
- 
-        # Strip leading/trailing newlines inside the fence for comparison
-        inner = content.strip()
-        if _PLACEHOLDER_RE.match(inner):
-            # Replace the entire fence with a fresh one
-            new_block = f"{open_tag}\n{note}\n{close_tag}"
-        else:
-            # Append before the closing fence
-            new_block = open_tag + content + note + "\n" + close_tag
- 
-        return body[:block_start] + new_block + body[block_end:]
- 
-    # 2. Markdown section headers
-    for header in ["## Release Notes", "## Changelog", "## What Changed", "## What's Changed"]:
-        if header.lower() in body.lower():
-            idx = body.lower().index(header.lower()) + len(header)
-            return body[:idx] + "\n\n" + note + body[idx:]
- 
-    # 3. Fallback — append
-    return body + "\n\n## Release Notes\n\n" + note
+
+    fence = _release_note_fence(body)
+    if fence is None:
+        return body
+
+    content = fence.group(2)
+    existing = {line.strip() for line in content.split("\n")}
+    lines = [line for line in note.split("\n") if line.strip() not in existing]
+    if not lines:
+        return body
+
+    if _PLACEHOLDER_RE.match(content):
+        # An emptied fence gets NONE back rather than staying blank: changelog
+        # tooling reports a blank fence as a missing release note.
+        new_content = "\n" + "\n".join(lines) + "\n"
+        placeholder = content if content.strip() else "\nNONE\n"
+    else:
+        new_content, placeholder = content.rstrip("\n") + "\n" + "\n".join(lines) + "\n", "\nNONE\n"
+
+    return (body[:fence.start()] + fence.group(1) + new_content + fence.group(3)
+            + "\n" + _ledger(lines, placeholder) + body[fence.end():])
  
  
 # ── GitHub API ─────────────────────────────────────────────────────────────────
@@ -809,32 +757,24 @@ def update_pr_body(new_body: str) -> None:
  
 # ── Main ───────────────────────────────────────────────────────────────────────
  
-def load_env() -> None:
-    """Read workflow env vars. Called from main so tests can import the module."""
-    global GITHUB_TOKEN, PR_NUMBER, BASE_SHA, HEAD_SHA, REPO, DEFAULT_BRANCH
+def main():
+    global GITHUB_TOKEN, PR_NUMBER, BASE_SHA, BASE_REF, HEAD_SHA, REPO, DEFAULT_BRANCH, HEADERS
     GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
     PR_NUMBER = int(os.environ["PR_NUMBER"])
     BASE_SHA = os.environ["BASE_SHA"]
+    BASE_REF = os.environ.get("BASE_REF", "")
     HEAD_SHA = os.environ["HEAD_SHA"]
     REPO = os.environ.get("REPO", "mattermost/mattermost")
     DEFAULT_BRANCH = os.environ.get("DEFAULT_BRANCH", "master")
-    HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
-    reset_git_caches()
-
-
-def main():
-    load_env()
+    HEADERS = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+    }
     print(f"📋 PR #{PR_NUMBER} | base {BASE_SHA[:8]} → head {HEAD_SHA[:8]}")
-    unique = unique_commits()
-    print(f"   {len(unique)} unique commit(s) vs {DEFAULT_BRANCH} (excluding the GitHub base)")
     print("🔍 Collecting diffs …")
 
     full_patch = get_full_patch()
-    if not full_patch.strip():
-        print("ℹ️  No changes in watched paths from this PR's own commits. Nothing to do.")
-        return
- 
-    patches = split_patch_by_file(full_patch)
+    patches = split_patch_by_file(full_patch) if full_patch.strip() else {}
     print(f"   {len(patches)} file(s) changed in watched paths.\n")
  
     # Run all checkers
@@ -860,14 +800,17 @@ def main():
  
     note = build_pr_note(results)
     if not note:
-        print("\nℹ️  No notable changes found across all checkers.")
-        return
+        # Still continue: entries written by an earlier run (e.g. before the
+        # base branch moved or the PR was retargeted) must be cleaned up.
+        print("\nℹ️  No notable changes found — removing any stale auto-generated lines.")
  
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
     new_body = inject_note(body, note)
  
-    if new_body == body:
+    # Compare with normalized line endings so a CRLF-authored description
+    # isn't rewritten when nothing actually changed.
+    if new_body.replace("\r\n", "\n").rstrip() == body.replace("\r\n", "\n").rstrip():
         print("ℹ️  PR description already up to date — no changes needed.")
         return
  
@@ -881,9 +824,9 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError as e:
         print(f"❌ git diff failed:\n{e.stderr}", file=sys.stderr)
         sys.exit(1)
-    except Exception as e:
-        if requests is not None and isinstance(e, requests.HTTPError):
-            reason = e.response.reason or "unknown"
-            print(f"❌ GitHub API error: {e.response.status_code} {reason}", file=sys.stderr)
-            sys.exit(1)
-        raise
+    except requests.HTTPError as e:
+        # Avoid dumping the full response body (can be large / noisy).
+        # status + reason gives enough context for debugging (e.g. "403 Forbidden").
+        reason = e.response.reason or "unknown"
+        print(f"❌ GitHub API error: {e.response.status_code} {reason}", file=sys.stderr)
+        sys.exit(1)

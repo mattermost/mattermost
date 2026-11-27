@@ -2054,9 +2054,9 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// should reveal the post
 	// if it's already revealed, it should be a no-op if the post is not expired yet
 	// if it's expired, it should return an error
-	revealedPost, err := c.App.RevealPost(c.AppContext, post, userId, connectionID)
-	if err != nil {
-		c.Err = err
+	revealedPost, revealErr := c.App.RevealPost(c.AppContext, post, userId, connectionID)
+	if revealErr != nil {
+		c.SetError(revealErr)
 		return
 	}
 

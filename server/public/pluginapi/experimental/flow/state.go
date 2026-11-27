@@ -11,46 +11,29 @@ var errStateNotFound = errors.New("flow state not found")
 // State is the "app"'s state
 type State map[string]any
 
+// Get returns the value to a given key as a T.
+// If the key is not found or isn't a T, the zero value of T is returned.
+func (s State) Get[T any](key string) T {
+	v, _ := s[key].(T)
+	return v
+}
+
 // GetString return the value to a given key as a string.
 // If the key is not found or isn't a string, an empty string is returned.
 func (s State) GetString(key string) string {
-	vRaw, ok := s[key]
-	if ok {
-		v, ok := vRaw.(string)
-		if ok {
-			return v
-		}
-	}
-
-	return ""
+	return s.Get[string](key)
 }
 
 // GetInt return the value to a given key as a int.
 // If the key is not found or isn't an int, zero is returned.
 func (s State) GetInt(key string) int {
-	vRaw, ok := s[key]
-	if ok {
-		v, ok := vRaw.(int)
-		if ok {
-			return v
-		}
-	}
-
-	return 0
+	return s.Get[int](key)
 }
 
 // GetBool return the value to a given key as a bool.
 // If the key is not found or isn't a bool, false is returned.
 func (s State) GetBool(key string) bool {
-	vRaw, ok := s[key]
-	if ok {
-		v, ok := vRaw.(bool)
-		if ok {
-			return v
-		}
-	}
-
-	return false
+	return s.Get[bool](key)
 }
 
 // JSON-serializable flow state.

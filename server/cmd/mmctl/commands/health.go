@@ -335,7 +335,7 @@ func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) stri
 		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
 	}
 
-	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	snapshot.Version.Latest = releases.Version(release)
 	return ""
 }
 
