@@ -788,7 +788,8 @@ func TestEmailSettingsIsSMTPConfigured(t *testing.T) {
 		{name: "localhost relay on port 25", server: NewPointer("localhost"), port: NewPointer("25"), configured: true},
 		{name: "loopback address on the default port", server: NewPointer("127.0.0.1"), port: NewPointer("10025"), configured: true},
 		{name: "remote server", server: NewPointer("smtp.example.com"), port: NewPointer("587"), configured: true},
-		{name: "remote server without port", server: NewPointer("smtp.example.com"), configured: true},
+		{name: "remote server, port unset", server: NewPointer("smtp.example.com"), configured: false},
+		{name: "remote server, empty port", server: NewPointer("smtp.example.com"), port: NewPointer(""), configured: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			settings := &EmailSettings{SMTPServer: tc.server, SMTPPort: tc.port}

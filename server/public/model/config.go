@@ -2430,14 +2430,14 @@ const (
 	oldDefaultSMTPPort   = "10025"
 )
 
-// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
-// old default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server or port, or one still at exactly
+// the old default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
 func (s *EmailSettings) IsSMTPConfigured() bool {
-	server := SafeDereference(s.SMTPServer)
-	if server == "" {
+	server, port := SafeDereference(s.SMTPServer), SafeDereference(s.SMTPPort)
+	if server == "" || port == "" {
 		return false
 	}
-	return server != oldDefaultSMTPServer || SafeDereference(s.SMTPPort) != oldDefaultSMTPPort
+	return server != oldDefaultSMTPServer || port != oldDefaultSMTPPort
 }
 
 type RateLimitSettings struct {

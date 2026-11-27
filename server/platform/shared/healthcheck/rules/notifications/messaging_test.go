@@ -259,6 +259,12 @@ func TestSMTPNotConfigured(t *testing.T) {
 			snapshot: smtpSnapshot(true, new(""), new(""), leaderWithEmail(model.StatusDisabled, "")),
 			want:     firing,
 		},
+		{
+			// The Support Packet probe fails on an empty port; that must not read as an unreachable server.
+			name:     "server set, port empty",
+			snapshot: smtpSnapshot(true, new("127.0.0.1"), new(""), leaderWithEmail(model.StatusFail, "SMTP server or port is not configured")),
+			want:     firing,
+		},
 		{name: "server unset", snapshot: smtpSnapshot(true, nil, new("10025")), want: configUnknownWant},
 		{
 			name:     "localhost relay on port 25",
@@ -321,7 +327,7 @@ func TestSMTPNotConfiguredAndUnreachableNeverFireTogether(t *testing.T) {
 			name:   "server without a port",
 			server: "smtp.example.com", port: "",
 			probe:         leaderWithEmail(model.StatusFail, "unable to connect: SMTP server or port is not configured"),
-			notConfigured: healthcheck.StateResolved, unreachable: healthcheck.StateFiring,
+			notConfigured: healthcheck.StateFiring, unreachable: healthcheck.StateResolved,
 		},
 		{
 			name:   "configured server that fails",
