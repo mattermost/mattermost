@@ -126,6 +126,7 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, co
 		// The cost of invalidating when nothing was affected is one matview
 		// refresh.
 		a.invalidateAllUserAttributeCaches()
+		a.MarkAttributeViewsDirty(attributeViewObjectTypes...)
 		return
 	}
 
@@ -141,6 +142,8 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, co
 	if current.ObjectType == model.PropertyFieldObjectTypeUser || anyUserObjectType(dependents) {
 		a.invalidateAllUserAttributeCaches()
 	}
+	a.markAttributeViewsForFields(current)
+	a.markAttributeViewsForFields(dependents...)
 
 	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, current, connectionID)
 	for _, dependent := range dependents {

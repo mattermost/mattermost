@@ -692,7 +692,6 @@
         "EnforceDeviceIDConsistency": null,
         "EnableAccessControlAuditLogging": null,
         "SyncJobIntervalSeconds": null,
-        "AttributeRefreshIntervalSeconds": null,
         "DecisionCacheMaxAgeSeconds": null,
         "DecisionCacheSize": null,
         "EnableDecisionCache": null

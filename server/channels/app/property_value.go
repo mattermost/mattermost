@@ -37,14 +37,22 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 	}
 }
 
-// invalidateUserPropertyValuesEpochs marks the AttributeView stale and drops the cached CPA epoch
-// for every distinct user the values target. It keys off each value's own TargetType/TargetID
+// invalidateUserPropertyValuesEpochs marks the attribute views of the values' target types stale
+// and drops the cached CPA epoch for every distinct user the values target. It keys off each value's own TargetType/TargetID
 // rather than a caller-supplied object type, to stay correct for plugin callers that pass none.
 //
 // Both halves must move together: the epoch alone forces a refetch that renders from a stale view
 // and then caches that under the new ETag, and the view alone leaves the client 304ing on content
 // sanitized under the old attributes.
 func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) {
+	targetTypes := make([]string, 0, len(values))
+	for _, v := range values {
+		if v != nil {
+			targetTypes = append(targetTypes, v.TargetType)
+		}
+	}
+	a.MarkAttributeViewsDirty(targetTypes...)
+
 	seen := make(map[string]bool, len(values))
 	var channelIDs []string
 	seenChannels := map[string]bool{}
@@ -91,6 +99,8 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 // invalidateUserPropertyValuesEpoch is the single-target form, for delete paths that have a target
 // ID rather than a set of values. Same split gate as above.
 func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
+	a.MarkAttributeViewsDirty(targetType)
+
 	if targetType == model.PropertyFieldObjectTypeChannel {
 		a.invalidateAccessDecisionsForResources([]string{targetID})
 		return
@@ -520,6 +530,8 @@ func (a *App) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID st
 	// A field delete can drop values for many users at once, so clear the whole epoch cache
 	// rather than trying to enumerate the affected users.
 	a.invalidateAllUserAttributeCaches()
+	// The field's object type isn't known here, so both views are marked.
+	a.MarkAttributeViewsDirty(attributeViewObjectTypes...)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
 	message.Add("field_id", fieldID)

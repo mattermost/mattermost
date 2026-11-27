@@ -870,6 +870,22 @@ func (s *TimerLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
 	}
 }
 
+func (s *TimerLayerAttributesStore) GetAttributeRefreshToken(rctx request.CTX) (time.Time, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetAttributeRefreshToken(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetAttributeRefreshToken", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	start := time.Now()
 
@@ -978,6 +994,22 @@ func (s *TimerLayerAttributesStore) RefreshAttributes(objectTypes ...string) err
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.RefreshAttributes", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerAttributesStore) RefreshAttributesIfStale(rctx request.CTX, objectType string, token time.Time, minGap time.Duration) (store.AttributeViewRefreshResult, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.RefreshAttributesIfStale(rctx, objectType, token, minGap)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.RefreshAttributesIfStale", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {

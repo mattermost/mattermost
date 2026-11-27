@@ -83,6 +83,11 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 	_m.Called()
 }
 
+// IncrementAttributeViewRefresh provides a mock function with given fields: view, result
+func (_m *MetricsInterface) IncrementAttributeViewRefresh(view string, result string) {
+	_m.Called(view, result)
+}
+
 // IncrementAutoTranslateNormHash provides a mock function with given fields: result
 func (_m *MetricsInterface) IncrementAutoTranslateNormHash(result string) {
 	_m.Called(result)
@@ -611,6 +616,11 @@ func (_m *MetricsInterface) RegisterDBCollector(db *sql.DB, name string) {
 // SetAccessControlDecisionCacheEnabled provides a mock function with given fields: enabled
 func (_m *MetricsInterface) SetAccessControlDecisionCacheEnabled(enabled bool) {
 	_m.Called(enabled)
+}
+
+// SetAttributeViewStaleness provides a mock function with given fields: view, seconds
+func (_m *MetricsInterface) SetAttributeViewStaleness(view string, seconds float64) {
+	_m.Called(view, seconds)
 }
 
 // SetAutoTranslateQueueDepth provides a mock function with given fields: depth

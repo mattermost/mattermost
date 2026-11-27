@@ -419,9 +419,6 @@ func TestAccessControlSettingsIsValid(t *testing.T) {
 		"sync_job_interval_just below minimum":  {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(59)}, ExpectError: true},
 		"sync_job_interval_minimum":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(60)}, ExpectError: false},
 		"sync_job_interval_default":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: nil}, ExpectError: false}, // Test will set default
-		"attribute_refresh_interval_zero":       {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(0)}, ExpectError: false},
-		"attribute_refresh_interval_negative":   {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(-1)}, ExpectError: true},
-		"attribute_refresh_interval_default":    {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: nil}, ExpectError: false}, // Test will set default
 		"decision_cache_max_age_default":        {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: nil}, ExpectError: false},
 		"decision_cache_max_age_minimum":        {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: new(1)}, ExpectError: false},
 		"decision_cache_max_age_zero":           {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: new(0)}, ExpectError: true},

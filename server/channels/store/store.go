@@ -1388,6 +1388,15 @@ type AttributesStore interface {
 	// (model.PropertyFieldObjectType*), or all of them when called with none. An unknown type
 	// is an error and refreshes nothing.
 	RefreshAttributes(objectTypes ...string) error
+	// GetAttributeRefreshToken returns the master database's current time, at microsecond
+	// precision. Every write committed before the call is in a refresh that starts at or after it.
+	GetAttributeRefreshToken(rctx request.CTX) (time.Time, error)
+	// RefreshAttributesIfStale refreshes one object type's attribute materialized view, in one
+	// transaction coordinated across nodes through the database: busy if another refresh of the
+	// view holds its lock, covered if one that started at or after token already ran, gap if the
+	// last one started less than max(minGap, its duration) ago (minGap 0 skips this check), and
+	// refreshed otherwise.
+	RefreshAttributesIfStale(rctx request.CTX, objectType string, token time.Time, minGap time.Duration) (AttributeViewRefreshResult, error)
 	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
@@ -1579,6 +1588,29 @@ type ThreadMembershipOpts struct {
 
 // PostReminderMetadata contains some info needed to send
 // the reminder message to the user.
+// AttributeViewRefreshOutcome is what AttributesStore.RefreshAttributesIfStale did.
+type AttributeViewRefreshOutcome string
+
+const (
+	// AttributeViewRefreshRefreshed: this call refreshed the view.
+	AttributeViewRefreshRefreshed AttributeViewRefreshOutcome = "refreshed"
+	// AttributeViewRefreshCovered: a refresh that started at or after the token already ran.
+	AttributeViewRefreshCovered AttributeViewRefreshOutcome = "covered"
+	// AttributeViewRefreshBusy: another session holds the view's refresh lock.
+	AttributeViewRefreshBusy AttributeViewRefreshOutcome = "busy"
+	// AttributeViewRefreshGap: the view was refreshed less than the minimum gap ago.
+	AttributeViewRefreshGap AttributeViewRefreshOutcome = "gap"
+)
+
+// AttributeViewRefreshResult is the result of AttributesStore.RefreshAttributesIfStale.
+type AttributeViewRefreshResult struct {
+	Outcome AttributeViewRefreshOutcome
+	// RetryAfter is set with AttributeViewRefreshGap: the time left until the gap has passed.
+	RetryAfter time.Duration
+	// Duration is set with AttributeViewRefreshRefreshed: how long the refresh took.
+	Duration time.Duration
+}
+
 type PostReminderMetadata struct {
 	ChannelID  string
 	TeamName   string
