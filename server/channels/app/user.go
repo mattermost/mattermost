@@ -3210,8 +3210,11 @@ func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, option
 
 	// The store reads a zero PageSize as its own default; FetchUntil would read it as
 	// "no results", so the two have to agree.
-	want := cmp.Or(int(options.PageSize), defaultThreadsPageSize)
-	threads, truncated, err := putils.FetchUntil(options, want, fetch,
+	want := int(options.PageSize)
+	if want == 0 {
+		want = defaultThreadsPageSize
+	}
+	threads, _, truncated, err := putils.FetchUntil(options, want, fetch,
 		func(thread *model.ThreadResponse) bool {
 			return thread.Post != nil && a.HasChannelReadAccessByID(rctx, userID, thread.Post.ChannelId)
 		},

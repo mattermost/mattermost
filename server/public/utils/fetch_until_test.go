@@ -43,7 +43,7 @@ func TestFetchUntil(t *testing.T) {
 
 	t.Run("returns a full page when nothing is filtered", func(t *testing.T) {
 		src := &pagedSource{items: seq(100)}
-		got, truncated, err := FetchUntil(0, 10, src.fetch(10), keepAll, advanceBy(0))
+		got, _, truncated, err := FetchUntil(0, 10, src.fetch(10), keepAll, advanceBy(0))
 		require.NoError(t, err)
 		require.False(t, truncated)
 		require.Equal(t, seq(10), got)
@@ -52,7 +52,7 @@ func TestFetchUntil(t *testing.T) {
 
 	t.Run("re-reads to fill a page whose items were filtered out", func(t *testing.T) {
 		src := &pagedSource{items: seq(100)}
-		got, truncated, err := FetchUntil(0, 10, src.fetch(10), keepEven, func(page []int) int {
+		got, _, truncated, err := FetchUntil(0, 10, src.fetch(10), keepEven, func(page []int) int {
 			return page[len(page)-1] + 1
 		})
 		require.NoError(t, err)
@@ -62,9 +62,25 @@ func TestFetchUntil(t *testing.T) {
 		require.Equal(t, 2, src.reads)
 	})
 
+	t.Run("returns the unexamined rest of a raw page it filled partway through", func(t *testing.T) {
+		src := &pagedSource{items: seq(100)}
+		got, rest, truncated, err := FetchUntil(0, 3, src.fetch(10), keepAll, advanceBy(0))
+		require.NoError(t, err)
+		require.False(t, truncated)
+		require.Equal(t, []int{0, 1, 2}, got)
+		require.Equal(t, []int{3, 4, 5, 6, 7, 8, 9}, rest)
+	})
+
+	t.Run("has no rest when the page fills on the last item of a raw page", func(t *testing.T) {
+		src := &pagedSource{items: seq(100)}
+		_, rest, _, err := FetchUntil(0, 10, src.fetch(10), keepAll, advanceBy(0))
+		require.NoError(t, err)
+		require.Empty(t, rest)
+	})
+
 	t.Run("stops at a short page rather than looping", func(t *testing.T) {
 		src := &pagedSource{items: seq(4)}
-		got, truncated, err := FetchUntil(0, 10, src.fetch(10), keepEven, advanceBy(0))
+		got, _, truncated, err := FetchUntil(0, 10, src.fetch(10), keepEven, advanceBy(0))
 		require.NoError(t, err)
 		require.False(t, truncated, "an exhausted source is a genuine end of results")
 		require.Equal(t, []int{0, 2}, got)
@@ -73,7 +89,7 @@ func TestFetchUntil(t *testing.T) {
 
 	t.Run("reports truncation when the cap is hit with the page unfilled", func(t *testing.T) {
 		src := &pagedSource{items: seq(10000)}
-		got, truncated, err := FetchUntil(0, 10, src.fetch(10), func(int) bool { return false }, advanceBy(0))
+		got, _, truncated, err := FetchUntil(0, 10, src.fetch(10), func(int) bool { return false }, advanceBy(0))
 		require.NoError(t, err)
 		require.True(t, truncated, "the caller must be able to tell this apart from the end of results")
 		require.Empty(t, got)
@@ -82,7 +98,7 @@ func TestFetchUntil(t *testing.T) {
 
 	t.Run("surfaces a fetch error with whatever was kept", func(t *testing.T) {
 		boom := errors.New("boom")
-		got, truncated, err := FetchUntil(0, 10, func(int) ([]int, error) { return nil, boom }, keepAll, advanceBy(0))
+		got, _, truncated, err := FetchUntil(0, 10, func(int) ([]int, error) { return nil, boom }, keepAll, advanceBy(0))
 		require.ErrorIs(t, err, boom)
 		require.False(t, truncated)
 		require.Empty(t, got)
@@ -90,7 +106,7 @@ func TestFetchUntil(t *testing.T) {
 
 	t.Run("a non-positive page size reads nothing", func(t *testing.T) {
 		src := &pagedSource{items: seq(100)}
-		got, truncated, err := FetchUntil(0, 0, src.fetch(10), keepAll, advanceBy(0))
+		got, _, truncated, err := FetchUntil(0, 0, src.fetch(10), keepAll, advanceBy(0))
 		require.NoError(t, err)
 		require.False(t, truncated)
 		require.Empty(t, got)

@@ -1946,7 +1946,7 @@ func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit
 		return fetch(offset, limit)
 	}
 
-	kept, truncated, err := putils.FetchUntil(offset, limit,
+	kept, _, truncated, err := putils.FetchUntil(offset, limit,
 		func(from int) ([]*model.Post, error) {
 			page, fetchErr := fetch(from, limit)
 			if fetchErr != nil {
