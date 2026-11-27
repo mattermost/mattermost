@@ -681,6 +681,10 @@
             }
         }
 
+        .post-preview__header .col__name:has(.post__img) {
+            display: none;
+        }
+
         .post__link {
             padding-top: 3px;
             margin: 0;
@@ -1042,6 +1046,10 @@
 
                     .col__name {
                         display: flex;
+                    }
+
+                    &.post--compact .post-preview__header .col__name:has(.post__img) {
+                        display: none;
                     }
 
                     .post__permalink {
