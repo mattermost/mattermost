@@ -44,6 +44,9 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
+#### Compatibility
+ - Reduced the client configuration returned by ``GET /api/v4/config/client`` to users who are not logged in. It no longer includes settings that are only needed after login, such as build details, logging settings, websocket settings, support settings, and feature flags. These settings are still returned to logged-in users. Plugin and integration developers whose code reads any of these settings before the user logs in should update their code accordingly.
+
 #### Important Upgrade Notes
  - Config validation now rejects a ``CacheSettings.RedisCachePrefix`` value that contains ``:``, ``*``, ``?``, ``[``, ``]``, or ``\`` when the Redis cache is enabled. A server already configured with such a prefix will fail config validation after upgrading and must change the prefix before restarting.
  - Allowed 0 (no limit) for ``TeamSettings.MaxUsersPerTeam`` and ``TeamSettings.MaxChannelsPerTeam``, and made 0 the default for new installations. Existing deployments keep their saved values. A server with either setting at 0 fails to start if downgraded to an earlier version that does not support 0.
@@ -93,6 +96,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Updated how inline links and character references are parsed in posts. Link destinations nested more than 32 parentheses deep, and parenthesized link titles containing an unescaped "(", are no longer parsed as links.
  - Updated search popout team handling when a search link is opened.
  - Updated how file image mini-previews are recorded when reading file information.
+ - Updated guest magic link invitation handling.
 
 #### Plugins/Integrations
  - Added the [``KVListWithOptions``](https://docs.mattermost.com/developers/integrate/plugins/components/server/best-practices#how-should-plugins-list-key-value-store-keys-with-a-prefix) plugin API method, which filters plugin key-value store keys by prefix in the database. ``pluginapi`` ``ListKeys`` with ``WithPrefix`` now uses it, and page and count apply to the matching keys.
@@ -231,6 +235,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-2-is-now-availab
  - Updated burn-on-read post field handling.
  - Updated WebSocket connection registration.
  - Updated WebSocket reconnect handling.
+ - Fixed an issue where recurring tasks such as scheduled post delivery were running concurrently on multiple nodes in High Availability clusters when nodes disagreed about the cluster leader.
+ - Fixed an issue where rotated server log backups could be deleted if the logger was reconfigured while a backup was being compressed, such as during server startup.
 
 ### API Changes
  - Added ``POST /api/v4/properties/groups/access_control/attributes/search`` (``searchGlobalAttributeListing``) API endpoint. The Global Attributes page now loads with a single request.
