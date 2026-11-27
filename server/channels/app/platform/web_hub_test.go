@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
+	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -1409,4 +1410,41 @@ func TestCloseAndRemoveConnClosesOnce(t *testing.T) {
 	assert.False(t, connIndex.Has(wc))
 	_, open := <-wc.send
 	assert.False(t, open)
+}
+
+func TestInvalidateCacheForChannel(t *testing.T) {
+	t.Run("uses empty team ID for DM and GM channels", func(t *testing.T) {
+		mockStore := &smocks.Store{}
+		mockChannelStore := &smocks.ChannelStore{}
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockChannelStore.On("InvalidateChannel", "dm-channel-id").Once()
+		mockChannelStore.On("InvalidateChannelByName", "", "user1__user2").Once()
+
+		ps := &PlatformService{Store: mockStore}
+		ps.InvalidateCacheForChannel(&model.Channel{
+			Id:   "dm-channel-id",
+			Name: "user1__user2",
+			Type: model.ChannelTypeDirect,
+		})
+
+		mockChannelStore.AssertExpectations(t)
+	})
+
+	t.Run("preserves team ID for team channels", func(t *testing.T) {
+		mockStore := &smocks.Store{}
+		mockChannelStore := &smocks.ChannelStore{}
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockChannelStore.On("InvalidateChannel", "team-channel-id").Once()
+		mockChannelStore.On("InvalidateChannelByName", "team-1", "town-square").Once()
+
+		ps := &PlatformService{Store: mockStore}
+		ps.InvalidateCacheForChannel(&model.Channel{
+			Id:     "team-channel-id",
+			TeamId: "team-1",
+			Name:   "town-square",
+			Type:   model.ChannelTypeOpen,
+		})
+
+		mockChannelStore.AssertExpectations(t)
+	})
 }
