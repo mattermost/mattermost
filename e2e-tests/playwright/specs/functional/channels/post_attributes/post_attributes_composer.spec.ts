@@ -31,6 +31,7 @@ import {
     setPostValues,
     stageField,
     waitForCreatePost,
+    waitForCreateScheduledPost,
     skipIfNoPostAttributesLicense,
 } from './support';
 
@@ -970,6 +971,82 @@ test('blocks scheduling while a value is staged', {tag: '@post_attributes'}, asy
 
         // * Verify Send still works, and carries the value
         expect(sentValues(await request)).toEqual([{field_id: note.id, value: 'sent'}]);
+    } finally {
+        await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {ScheduledPosts: scheduledPosts}});
+    }
+});
+
+/**
+ * @objective Verify adding attributes is blocked, with its reason on show, while a send time
+ * is being chosen: the custom time modal leaves the composer reachable by keyboard, so the `+`
+ * is disabled until the modal closes, whether it is cancelled or the message is scheduled.
+ *
+ * @precondition The PostAttributes feature flag is enabled and scheduled posts are on.
+ */
+test('blocks adding attributes while a send time is being chosen', {tag: '@post_attributes'}, async ({pw}) => {
+    await skipIfNoPostAttributesLicense();
+    await pw.ensureFeatureFlag('PostAttributes', true);
+
+    const {adminClient, user, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+    const scheduledPosts = (await adminClient.getConfig()).ServiceSettings.ScheduledPosts;
+
+    try {
+        await purgeFields(adminClient);
+        await adminClient.patchConfig({ServiceSettings: {ScheduledPosts: true}});
+
+        const note = await createField(adminClient, fieldName('note', suffix), {type: 'text'});
+        created.push(note);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const composer = channelsPage.centerView.postCreate;
+        const scope = composer.container;
+        const plus = composerPlus(scope);
+        const modal = page.getByRole('dialog', {name: 'Schedule message'});
+
+        // # Write a message and open the custom time modal
+        await composer.writeMessage(`schedule ${suffix}`);
+        await expect(plus).toBeEnabled();
+        await scope.locator('#button_send_post_options').click();
+        await page.getByText('Choose a custom time').click();
+        await expect(modal).toBeVisible();
+
+        // * Verify the `+` is disabled, and its wrapper says why
+        await expect(plus).toBeDisabled();
+        // A keyboard press first, so the focus counts as keyboard focus and shows the tooltip
+        await page.keyboard.press('Shift');
+        await scope.getByTestId('post-attributes-composer-add-blocked').focus();
+
+        // The open modal hides the rest of the page from the accessibility tree, so the tooltip is found by its role attribute
+        await expect(
+            page.locator('[role="tooltip"]', {hasText: /Scheduled messages can.t have attributes/}),
+        ).toBeVisible();
+
+        // # Cancel the modal
+        await modal.getByRole('button', {name: 'Cancel'}).click();
+        await expect(modal).not.toBeVisible();
+
+        // * Verify adding attributes is available again
+        await expect(plus).toBeEnabled();
+
+        // # Open the modal again and schedule
+        await scope.locator('#button_send_post_options').click();
+        await page.getByText('Choose a custom time').click();
+        await expect(plus).toBeDisabled();
+
+        const request = waitForCreateScheduledPost(page);
+        await modal.getByRole('button', {name: 'Schedule'}).click();
+
+        // * Verify the message is scheduled, and the `+` is enabled once the modal closes
+        await request;
+        await expect(modal).not.toBeVisible();
+        await expect(plus).toBeEnabled();
+        await expect(composerChips(scope)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
         await adminClient.patchConfig({ServiceSettings: {ScheduledPosts: scheduledPosts}});

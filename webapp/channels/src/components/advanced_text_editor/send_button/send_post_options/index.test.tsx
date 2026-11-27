@@ -225,6 +225,41 @@ describe('SendPostOptions', () => {
             expect(onSelect).toHaveBeenCalledTimes(1);
             expect(screen.queryByRole('heading', {name: 'Schedule message'})).not.toBeInTheDocument();
         });
+
+        it.each([
+            ['cancelled', 'Cancel'],
+            ['confirmed', 'Schedule'],
+        ])('reports being open until it is %s', async (_name, buttonName) => {
+            onSelect.mockResolvedValue({});
+            const onCustomTimeModalToggle = jest.fn();
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW), {onCustomTimeModalToggle});
+
+            openMenu();
+            fireEvent.click(screen.getByText('Choose a custom time'));
+            runPendingTimers();
+
+            expect(onCustomTimeModalToggle.mock.calls).toEqual([[true]]);
+
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', {name: buttonName}));
+            });
+            runPendingTimers();
+
+            expect(screen.queryByRole('heading', {name: 'Schedule message'})).not.toBeInTheDocument();
+            expect(onCustomTimeModalToggle.mock.calls).toEqual([[true], [false]]);
+        });
+
+        it('still reports being open when scheduling fails and the modal stays up', async () => {
+            onSelect.mockResolvedValue({error: 'Invalid scheduled at time.'});
+            const onCustomTimeModalToggle = jest.fn();
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW), {onCustomTimeModalToggle});
+
+            await scheduleFromCustomTimeModal();
+            runPendingTimers();
+
+            expect(screen.getByText('Invalid scheduled at time.')).toBeVisible();
+            expect(onCustomTimeModalToggle.mock.calls).toEqual([[true]]);
+        });
     });
 
     it('reopens the menu in mobile view after a message has been scheduled', () => {

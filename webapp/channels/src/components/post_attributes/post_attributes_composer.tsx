@@ -35,6 +35,9 @@ type Props = {
     onAdd: (fieldId: string) => void;
     onChange: (fieldId: string, next: unknown) => void;
     onRemove: (fieldId: string) => void;
+
+    // Why no attribute can be added right now; disables the add control.
+    addDisabledReason?: string;
 };
 
 /**
@@ -45,7 +48,7 @@ type Props = {
  * Fully controlled by `useStagedPostAttributes`, which the editor owns so it can
  * clear the staged state after a send and on a channel or thread switch.
  */
-export default function PostAttributesComposer({chips, addable, justAdded, onAdd, onChange, onRemove}: Props) {
+export default function PostAttributesComposer({chips, addable, justAdded, onAdd, onChange, onRemove, addDisabledReason}: Props) {
     const {formatMessage} = useIntl();
 
     // Each composer mounted at once (centre channel, thread sidebar) needs its
@@ -84,6 +87,7 @@ export default function PostAttributesComposer({chips, addable, justAdded, onAdd
                     compact={true}
                     fields={addable}
                     onSelect={onAdd}
+                    disabledReason={addDisabledReason}
                 />
             )}
         </div>

@@ -17,6 +17,7 @@ import type {OnSubmitOptions} from 'actions/views/create_comment';
 import {quoteTextInDraft, removeDraft, updateDraft} from 'actions/views/drafts';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
+import ModalController from 'components/modal_controller';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
@@ -2172,6 +2173,55 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
                 await waitFor(() => expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled());
                 expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+            });
+
+            it('disables adding attributes while a send time is being chosen, says why, and enables it again when the picker closes', async () => {
+                const textField = makeField({id: 'f_reference', name: 'reference', type: 'text', attrs: {display_name: 'Reference', visibility: 'when_set'}});
+                renderWithContext(
+                    <>
+                        <AdvancedTextEditor
+                            {...baseProps}
+                        />
+                        <ModalController/>
+                    </>,
+                    mergeObjects(withScheduling, {
+                        entities: {
+                            properties: {
+                                fields: {
+                                    byId: {[textField.id]: textField},
+                                    byObjectType: {post: {[groupId]: {[textField.id]: textField}}},
+                                },
+                            },
+                        },
+                    }),
+                );
+
+                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message to schedule'}});
+
+                // An empty text chip leaves scheduling available and shows the inline add control.
+                await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+                await userEvent.click(screen.getByTestId('post-attribute-add-reference'));
+                expect(await screen.findByTestId('post-attribute-chip-reference')).toBeInTheDocument();
+                expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled();
+
+                await userEvent.click(screen.getByRole('button', {name: 'Schedule message'}));
+                await userEvent.click(await screen.findByText('Choose a custom time'));
+                expect(await screen.findByRole('heading', {name: 'Schedule message'})).toBeVisible();
+
+                expect(screen.getByTestId('post-attributes-composer-add')).toBeDisabled();
+                expect(screen.getByTestId('post-attributes-add')).toBeDisabled();
+
+                fireEvent.focus(screen.getByTestId('post-attributes-composer-add-blocked'));
+                expect((await screen.findByText('Scheduled messages can’t have attributes')).closest('[role="tooltip"]')).not.toBeNull();
+
+                fireEvent.click(screen.getByTestId('post-attributes-composer-add'));
+                expect(screen.queryByTestId('post-attribute-add-classification')).not.toBeInTheDocument();
+
+                await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+                await waitFor(() => expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled());
+                expect(screen.getByTestId('post-attributes-add')).toBeEnabled();
+                expect(screen.queryByTestId('post-attributes-composer-add-blocked')).not.toBeInTheDocument();
             });
         });
 
