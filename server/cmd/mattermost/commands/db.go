@@ -63,7 +63,9 @@ var DowngradeCmd = &cobra.Command{
 	Use:   "downgrade",
 	Short: "Downgrade the database with the given plan or migration numbers",
 	Long: "Downgrade the database with the given plan or migration numbers. " +
-		"The plan will be read from filestore hence the path should be relative to file store root.",
+		"The plan will be read from filestore hence the path should be relative to file store root. " +
+		"A plan is only accepted if its migrations match the ones shipped with this binary, so use " +
+		"the same Mattermost version that saved it, or pass migration numbers instead.",
 	RunE: downgradeCmdF,
 	Args: cobra.ExactArgs(1),
 }
@@ -190,7 +192,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if savePlan || recoverFlag {
-		backend, err2 := filestore.NewFileBackend(ConfigToFileBackendSettings(&config.FileSettings, false, true))
+		backend, err2 := filestore.NewFileBackend(fileBackendSettingsFromConfig(config))
 		if err2 != nil {
 			return fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -246,7 +248,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	dryRun, _ := command.Flags().GetBool("dry-run")
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 
-	backend, err2 := filestore.NewFileBackend(ConfigToFileBackendSettings(&config.FileSettings, false, true))
+	backend, err2 := filestore.NewFileBackend(fileBackendSettingsFromConfig(config))
 	if err2 != nil {
 		return fmt.Errorf("failed to initialize filebackend: %w", err2)
 	}
@@ -287,6 +289,10 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	plan.Auto = recoverFlag
 
 	err = migrator.MigrateWithPlan(&plan, dryRun)
+	if errors.Is(err, sqlstore.ErrUntrustedMigrationPlan) {
+		return fmt.Errorf("%w. A plan can only be used with the Mattermost version that saved it; "+
+			"run \"mattermost db downgrade <versions>\" to downgrade with this binary's own migrations", err)
+	}
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate with the plan")
 	}
@@ -328,41 +334,11 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature bool, skipVerify bool) filestore.FileBackendSettings {
-	if *s.DriverName == model.ImageDriverLocal {
-		return filestore.FileBackendSettings{
-			DriverName: *s.DriverName,
-			Directory:  *s.Directory,
-		}
-	}
-	if *s.DriverName == model.ImageDriverAzure {
-		return filestore.FileBackendSettings{
-			DriverName:                      *s.DriverName,
-			AzureStorageAccount:             *s.AzureStorageAccount,
-			AzureAuthMode:                   *s.AzureAuthMode,
-			AzureAccessKey:                  *s.AzureAccessKey,
-			AzureContainer:                  *s.AzureContainer,
-			AzurePathPrefix:                 *s.AzurePathPrefix,
-			AzureCloud:                      *s.AzureCloud,
-			AzureEndpoint:                   *s.AzureEndpoint,
-			AzureSSL:                        s.AzureSSL == nil || *s.AzureSSL,
-			AzureRequestTimeoutMilliseconds: *s.AzureRequestTimeoutMilliseconds,
-			SkipVerify:                      skipVerify,
-		}
-	}
-	return filestore.FileBackendSettings{
-		DriverName:                         *s.DriverName,
-		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,
-		AmazonS3SecretAccessKey:            *s.AmazonS3SecretAccessKey,
-		AmazonS3Bucket:                     *s.AmazonS3Bucket,
-		AmazonS3PathPrefix:                 *s.AmazonS3PathPrefix,
-		AmazonS3Region:                     *s.AmazonS3Region,
-		AmazonS3Endpoint:                   *s.AmazonS3Endpoint,
-		AmazonS3SSL:                        s.AmazonS3SSL == nil || *s.AmazonS3SSL,
-		AmazonS3SignV2:                     s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
-		AmazonS3SSE:                        s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
-		AmazonS3Trace:                      s.AmazonS3Trace != nil && *s.AmazonS3Trace,
-		AmazonS3RequestTimeoutMilliseconds: *s.AmazonS3RequestTimeoutMilliseconds,
-		SkipVerify:                         skipVerify,
-	}
+func fileBackendSettingsFromConfig(cfg *model.Config) filestore.FileBackendSettings {
+	return filestore.NewFileBackendSettingsFromConfig(
+		&cfg.FileSettings,
+		false,
+		model.SafeDereference(cfg.ServiceSettings.EnableInsecureOutgoingConnections),
+		model.SafeDereference(cfg.ServiceSettings.AllowedUntrustedInternalConnections),
+	)
 }

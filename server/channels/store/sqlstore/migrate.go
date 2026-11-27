@@ -4,8 +4,10 @@
 package sqlstore
 
 import (
+	"bytes"
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,12 +19,15 @@ import (
 	"github.com/mattermost/morph"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	"github.com/mattermost/morph/models"
+	"github.com/mattermost/morph/sources"
 	mbindata "github.com/mattermost/morph/sources/embedded"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
 )
+
+var ErrUntrustedMigrationPlan = errors.New("migration plan does not match the migrations of this binary")
 
 type Migrator struct {
 	engine *morph.Morph
@@ -88,7 +93,7 @@ func (m *Migrator) GetFileName(plan *models.Plan) (string, error) {
 	return fmt.Sprintf("migration_plan_%d_%d", from, to), nil
 }
 
-func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) {
+func (ss *SqlStore) embeddedMigrationSource() (sources.Source, error) {
 	assets := db.Assets()
 
 	assetsList, err := assets.ReadDir(path.Join("migrations", ss.DriverName()))
@@ -101,12 +106,16 @@ func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) 
 		assetNamesForDriver[i] = entry.Name()
 	}
 
-	src, err := mbindata.WithInstance(&mbindata.AssetSource{
+	return mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
 			return assets.ReadFile(path.Join("migrations", ss.DriverName(), name))
 		},
 	})
+}
+
+func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) {
+	src, err := ss.embeddedMigrationSource()
 	if err != nil {
 		return nil, err
 	}
@@ -168,9 +177,68 @@ func (m *Migrator) GeneratePlan(shouldRecover bool) (*models.Plan, error) {
 	return plan, nil
 }
 
-// MigrateWithPlan migrates the database to the latest version using the provided plan.
+// MigrateWithPlan migrates the database using the provided plan. The plan is
+// rejected unless every migration in it can be vouched for by this binary.
 func (m *Migrator) MigrateWithPlan(plan *models.Plan, dryRun bool) error {
+	if err := m.verifyPlan(plan); err != nil {
+		return err
+	}
+
 	return m.engine.ApplyPlan(plan)
+}
+
+// verifyPlan requires each plan entry to match the embedded migration of the
+// same file name. Entries unknown to this binary are only accepted when they
+// are newer than every embedded migration and already applied to the
+// database, which is the case when downgrading with an older binary.
+func (m *Migrator) verifyPlan(plan *models.Plan) error {
+	src, err := m.store.embeddedMigrationSource()
+	if err != nil {
+		return fmt.Errorf("failed to read embedded migrations: %w", err)
+	}
+
+	embedded := make(map[string]*models.Migration)
+	var latestVersion uint32
+	for _, migration := range src.Migrations() {
+		embedded[migration.RawName] = migration
+		latestVersion = max(latestVersion, migration.Version)
+	}
+
+	appliedMigrations, err := m.store.GetAppliedMigrations()
+	if err != nil {
+		return err
+	}
+
+	type versionName struct {
+		version uint32
+		name    string
+	}
+	applied := make(map[versionName]bool, len(appliedMigrations))
+	for _, migration := range appliedMigrations {
+		applied[versionName{uint32(migration.Version), migration.Name}] = true
+	}
+
+	for _, migration := range slices.Concat(plan.Migrations, plan.RevertMigrations) {
+		if migration == nil {
+			return fmt.Errorf("%w: plan contains an empty migration", ErrUntrustedMigrationPlan)
+		}
+
+		if expected, ok := embedded[migration.RawName]; ok {
+			if migration.Version != expected.Version ||
+				migration.Name != expected.Name ||
+				migration.Direction != expected.Direction ||
+				!bytes.Equal(migration.Bytes, expected.Bytes) {
+				return fmt.Errorf("%w: %s differs from the embedded migration", ErrUntrustedMigrationPlan, migration.RawName)
+			}
+			continue
+		}
+
+		if migration.Version <= latestVersion || !applied[versionName{migration.Version, migration.Name}] {
+			return fmt.Errorf("%w: %s is neither embedded nor a newer applied migration", ErrUntrustedMigrationPlan, migration.RawName)
+		}
+	}
+
+	return nil
 }
 
 // PreMigrate runs the pre-migration handlers that normally execute during
