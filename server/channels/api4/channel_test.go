@@ -333,6 +333,316 @@ func TestCreateChannel(t *testing.T) {
 	})
 }
 
+// assertCreatedChannelSchemeID checks what a channel create call did with the
+// scheme id its request body carried. When wantAssigned is false, a refused call
+// satisfies the assertion just as well as a channel created without the scheme
+// id, so the assertion holds whether the field is ignored or the request is
+// turned down, and a turned-down call is checked for having written nothing.
+// When wantAssigned is true the channel must exist and carry exactly the scheme
+// id that was sent.
+//
+// The channel is read back through the app layer rather than trusting the create
+// response, so what is asserted is what was stored.
+func assertCreatedChannelSchemeID(t *testing.T, th *TestHelper, created *model.Channel, err error, requestedName, suppliedSchemeID string, wantAssigned bool) {
+	t.Helper()
+
+	if !wantAssigned && err != nil {
+		// A turned-down call returns no channel to read back, so look the
+		// requested name up among the channels the scheme id is attached to.
+		// This covers a call that answered with an error after already
+		// writing the channel.
+		if suppliedSchemeID != "" {
+			attached, storeErr := th.App.Srv().Store().Channel().GetChannelsByScheme(suppliedSchemeID, 0, 100)
+			require.NoError(t, storeErr)
+			for _, channel := range attached {
+				assert.NotEqual(t, requestedName, channel.Name, "no channel from this call should carry the scheme id it asked for")
+			}
+		}
+		return
+	}
+
+	require.NoError(t, err)
+	require.NotNil(t, created)
+
+	// Board channels are excluded from the regular channel lookup and have their
+	// own accessor.
+	var persisted *model.Channel
+	var appErr *model.AppError
+	if created.IsBoard() {
+		persisted, appErr = th.App.GetBoardChannel(th.Context, created.Id)
+	} else {
+		persisted, appErr = th.App.GetChannel(th.Context, created.Id)
+	}
+	require.Nil(t, appErr)
+
+	if wantAssigned {
+		require.Equal(t, suppliedSchemeID, model.SafeDereference(persisted.SchemeId), "channel should carry the scheme id from the request")
+		return
+	}
+
+	assert.Empty(t, model.SafeDereference(persisted.SchemeId), "channel should carry no scheme id")
+}
+
+const (
+	schemePermissionErrorID = "api.context.permissions.app_error"
+	schemeScopeErrorID      = "api.channel.create_channel.scheme_scope.error"
+	schemeNotFoundErrorID   = "app.scheme.get.app_error"
+)
+
+// requireSchemeAssignmentRejected checks that a create call carrying a scheme id
+// was turned down with the expected status and error id. A 403 is shared with the
+// create permission check, so createWithoutScheme repeats the call with the same
+// client and no scheme id, and must succeed for the 403 to be attributable to the
+// scheme id.
+func requireSchemeAssignmentRejected(t *testing.T, resp *model.Response, err error, wantStatus int, wantErrorID string, createWithoutScheme func() (*model.Response, error)) {
+	t.Helper()
+
+	require.Error(t, err)
+	require.Equal(t, wantStatus, resp.StatusCode)
+	CheckErrorID(t, err, wantErrorID)
+
+	if wantStatus == http.StatusForbidden {
+		controlResp, controlErr := createWithoutScheme()
+		require.NoError(t, controlErr, "the same client should be able to create this channel type without a scheme id")
+		CheckCreatedStatus(t, controlResp)
+	}
+}
+
+func TestCreateChannelSchemeAssignment(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	channelScheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeChannel,
+	})
+	require.NoError(t, err)
+
+	teamScheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.NoError(t, err)
+
+	removedScheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeChannel,
+	})
+	require.NoError(t, err)
+	_, err = th.SystemAdminClient.DeleteScheme(context.Background(), removedScheme.Id)
+	require.NoError(t, err)
+
+	// The team admin created the basic team, so they are already a member of it.
+	teamAdminClient := th.CreateClient()
+	th.LoginTeamAdminWithClient(t, teamAdminClient)
+
+	// The system manager role carries the permission the scheme assignment asks
+	// for, so it stands in for a caller who is allowed to assign a scheme
+	// without being a system admin. Team membership comes first so the session
+	// it logs in with carries it.
+	th.LinkUserToTeam(t, th.SystemManagerUser, th.BasicTeam)
+	th.LoginSystemManagerWithClient(t, th.SystemManagerClient)
+
+	// A guest is only able to reach the create call at all once its role grants
+	// channel creation.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	guestUser := th.CreateUser(t)
+	require.Nil(t, th.App.VerifyUserEmail(th.Context, guestUser.Id, guestUser.Email))
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, guestUser))
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
+	require.Nil(t, appErr)
+	th.AddPermissionToRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamGuestRoleId)
+	guestClient := th.CreateClient()
+	_, _, err = guestClient.Login(context.Background(), guestUser.Username, guestUser.Password)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name          string
+		client        *model.Client4
+		channelType   model.ChannelType
+		schemeID      string
+		emptySchemeID bool
+		mustSucceed   bool
+		wantAssigned  bool
+		wantStatus    int
+		wantErrorID   string
+	}{
+		{
+			name:        "team member, public channel, channel-scope scheme id",
+			client:      th.Client,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    channelScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "team member, private channel, channel-scope scheme id",
+			client:      th.Client,
+			channelType: model.ChannelTypePrivate,
+			schemeID:    channelScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "team member, public channel, team-scope scheme id",
+			client:      th.Client,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    teamScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "system admin, public channel, team-scope scheme id",
+			client:      th.SystemAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    teamScheme.Id,
+			wantStatus:  http.StatusBadRequest,
+			wantErrorID: schemeScopeErrorID,
+		},
+		{
+			name:        "system admin, public channel, scheme id that does not exist",
+			client:      th.SystemAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    model.NewId(),
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
+		},
+		{
+			name:        "team member, public channel, no scheme id",
+			client:      th.Client,
+			channelType: model.ChannelTypeOpen,
+			mustSucceed: true,
+		},
+		{
+			name:        "team member, private channel, no scheme id",
+			client:      th.Client,
+			channelType: model.ChannelTypePrivate,
+			mustSucceed: true,
+		},
+		{
+			name:         "system admin, public channel, channel-scope scheme id",
+			client:       th.SystemAdminClient,
+			channelType:  model.ChannelTypeOpen,
+			schemeID:     channelScheme.Id,
+			mustSucceed:  true,
+			wantAssigned: true,
+		},
+		{
+			name:        "team admin, public channel, channel-scope scheme id",
+			client:      teamAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    channelScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "guest, private channel, channel-scope scheme id",
+			client:      guestClient,
+			channelType: model.ChannelTypePrivate,
+			schemeID:    channelScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:         "system manager, public channel, channel-scope scheme id",
+			client:       th.SystemManagerClient,
+			channelType:  model.ChannelTypeOpen,
+			schemeID:     channelScheme.Id,
+			mustSucceed:  true,
+			wantAssigned: true,
+		},
+		{
+			name:          "team member, public channel, empty scheme id",
+			client:        th.Client,
+			channelType:   model.ChannelTypeOpen,
+			emptySchemeID: true,
+			mustSucceed:   true,
+		},
+		{
+			name:        "team member, public channel, whitespace scheme id",
+			client:      th.Client,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    " ",
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "system admin, public channel, whitespace scheme id",
+			client:      th.SystemAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    " ",
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
+		},
+		{
+			name:        "system admin, public channel, scheme id that is not an id",
+			client:      th.SystemAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    "not-a-scheme-id",
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
+		},
+		{
+			name:        "team member, public channel, channel-scope scheme id that was removed",
+			client:      th.Client,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    removedScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "system admin, public channel, channel-scope scheme id that was removed",
+			client:      th.SystemAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    removedScheme.Id,
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			channel := &model.Channel{
+				DisplayName: "Test API Name",
+				Name:        GenerateTestChannelName(),
+				Type:        tc.channelType,
+				TeamId:      th.BasicTeam.Id,
+			}
+			if tc.schemeID != "" || tc.emptySchemeID {
+				channel.SchemeId = model.NewPointer(tc.schemeID)
+			}
+
+			created, resp, cErr := tc.client.CreateChannel(context.Background(), channel)
+			if tc.mustSucceed {
+				require.NoError(t, cErr)
+				CheckCreatedStatus(t, resp)
+			}
+			if tc.wantStatus != 0 {
+				requireSchemeAssignmentRejected(t, resp, cErr, tc.wantStatus, tc.wantErrorID, func() (*model.Response, error) {
+					_, controlResp, controlErr := tc.client.CreateChannel(context.Background(), &model.Channel{
+						DisplayName: "Test API Name",
+						Name:        GenerateTestChannelName(),
+						Type:        tc.channelType,
+						TeamId:      th.BasicTeam.Id,
+					})
+					return controlResp, controlErr
+				})
+			}
+
+			assertCreatedChannelSchemeID(t, th, created, cErr, channel.Name, tc.schemeID, tc.wantAssigned)
+		})
+	}
+}
+
 func TestCreateChannelWithPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
