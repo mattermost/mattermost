@@ -269,6 +269,56 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
         });
+
+        describe('cancelling an edit', () => {
+            let refocusTarget: HTMLTextAreaElement;
+
+            const editingState = mergeObjects(initialState, {
+                views: {
+                    posts: {
+                        editingPost: {postId: 'post_id', refocusId: 'refocus_target', show: true, isRHS: false},
+                    },
+                },
+            });
+
+            beforeEach(() => {
+                refocusTarget = document.createElement('textarea');
+                refocusTarget.id = 'refocus_target';
+                document.body.appendChild(refocusTarget);
+            });
+
+            afterEach(() => {
+                refocusTarget.remove();
+            });
+
+            it('ESC should move the focus back to the textbox the edit started from', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        isInEditMode={true}
+                    />,
+                    editingState,
+                );
+
+                await userEvent.type(screen.getByTestId('edit_textbox'), 'something{escape}');
+
+                expect(refocusTarget).toHaveFocus();
+            });
+
+            it('the Cancel button should move the focus back to the textbox the edit started from', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        isInEditMode={true}
+                    />,
+                    editingState,
+                );
+
+                await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+                expect(refocusTarget).toHaveFocus();
+            });
+        });
     });
 
     it('should set the textbox value to an existing draft on mount and when changing channels', async () => {

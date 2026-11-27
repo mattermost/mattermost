@@ -57,6 +57,7 @@ const useKeyHandler = (
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const messageHistory = useSelector((state: GlobalState) => state.entities.posts.messagesHistory.messages);
+    const editingPostRefocusId = useSelector((state: GlobalState) => state.views.posts.editingPost.refocusId);
     const rhsExpanded = useSelector(getIsRhsExpanded);
 
     const timeoutId = useRef<number>(undefined);
@@ -189,6 +190,11 @@ const useKeyHandler = (
             textboxRef.current?.blur();
             if (isInEditMode) {
                 onCancel?.();
+
+                // Refocus the textbox the edit started from, as saving the edit does
+                if (editingPostRefocusId) {
+                    document.getElementById(editingPostRefocusId)?.focus();
+                }
                 dispatch(unsetEditingPost());
             }
         }
@@ -305,6 +311,7 @@ const useKeyHandler = (
         ctrlSend,
         dispatch,
         draft,
+        editingPostRefocusId,
         handleDraftChange,
         loadNextMessage,
         loadPrevMessage,

@@ -10,6 +10,8 @@ import {isMac} from '@mattermost/shared/utils/user_agent';
 import {unsetEditingPost} from 'actions/post_actions';
 import {isSendOnCtrlEnter} from 'selectors/preferences';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
     onSave: () => void;
     onCancel?: () => void;
@@ -20,10 +22,16 @@ export default function EditPostFooter(props: Props) {
     const dispatch = useDispatch();
 
     const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
+    const editingPostRefocusId = useSelector((state: GlobalState) => state.views.posts.editingPost.refocusId);
     const ctrlSendKey = isMac() ? '⌘+' : 'CTRL+';
 
     function handleCancel() {
         props.onCancel?.();
+
+        // Refocus the textbox the edit started from, as saving the edit does
+        if (editingPostRefocusId) {
+            document.getElementById(editingPostRefocusId)?.focus();
+        }
         dispatch(unsetEditingPost());
     }
 
