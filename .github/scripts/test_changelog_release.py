@@ -443,6 +443,47 @@ class ReviewersTest(unittest.TestCase):
         self.assertEqual(cr.reviewers_for([], {"*": ["docs-editor"]}), [])
 
 
+    def test_old_compatibility_mappings_still_match_the_renamed_subsection(self):
+        sections = [{"section": "Upgrade Impact", "subsection": "Important Upgrade Notes", "items": [{"text": "x"}]}]
+        self.assertEqual(cr.reviewers_for(sections, {"Upgrade Impact/Compatibility": ["release-lead"]}), ["release-lead"])
+
+    def test_each_reviewer_is_asked_once_per_pr(self):
+        timeline = [
+            {"event": "review_requested", "requested_reviewer": {"login": "Wiggin77"}},
+            {"event": "review_requested", "requested_team": {"slug": "server-platform"}},
+            {"event": "commented", "user": {"login": "someone"}},
+        ]
+        reviews = [{"user": {"login": "esethna"}, "state": "APPROVED"}]
+        asked = cr.already_asked(timeline, reviews)
+        self.assertEqual(asked, {"users": ["esethna", "wiggin77"], "teams": ["server-platform"]})
+        wanted = ["wiggin77", "esethna", "mattermost/server-platform", "mattermost/docs-team", "new-reviewer"]
+        self.assertEqual(cr.not_yet_asked(wanted, asked), ["mattermost/docs-team", "new-reviewer"])
+
+    def test_reviewers_command_reads_paginated_timeline_and_reviews(self):
+        import io
+        import os
+        import tempfile
+        from contextlib import redirect_stderr, redirect_stdout
+        tmp = Path(tempfile.mkdtemp())
+        (tmp / "sections.json").write_text(json.dumps({"sections": [
+            {"section": "Audit Log Event Changes", "subsection": None, "items": [{"text": "x"}]}]}))
+        (tmp / "timeline.json").write_text(json.dumps([{"event": "review_requested", "requested_reviewer": {"login": "a"}}])
+                                           + json.dumps([{"event": "labeled"}]))
+        (tmp / "reviews.json").write_text("[]\n[]")
+        saved = os.environ.get("SECTION_REVIEWERS")
+        os.environ["SECTION_REVIEWERS"] = json.dumps({"Audit Log Event Changes": ["a", "b"]})
+        try:
+            out, err = io.StringIO(), io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                cr.main(["x", "reviewers", str(tmp / "sections.json"), str(tmp / "timeline.json"), str(tmp / "reviews.json")])
+        finally:
+            if saved is None:
+                os.environ.pop("SECTION_REVIEWERS")
+            else:
+                os.environ["SECTION_REVIEWERS"] = saved
+        self.assertEqual(out.getvalue().strip(), "b")
+        self.assertIn("not asked again: a", err.getvalue())
+
 class LinkCheckTest(unittest.TestCase):
     PAGES = {
         "docs/main/product-overview/release-policy.mdx": "## Release types\n\n## Release types\n\n```\n## Not a heading\n```\n",
