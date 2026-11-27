@@ -460,10 +460,8 @@ const (
 	AuditEventInvalidateCaches           = "invalidateCaches"           // clear server caches
 	AuditEventLocalCheckIntegrity        = "localCheckIntegrity"        // check database integrity locally
 	AuditEventQueryLogs                  = "queryLogs"                  // search server log entries
-	AuditEventRestartServer              = "restartServer"              // restart Mattermost server process
 	AuditEventSetServerBusy              = "setServerBusy"              // set server busy status to disallow any operations
 	AuditEventUpdateViewedProductNotices = "updateViewedProductNotices" // update viewed status of product notices
-	AuditEventUpgradeToEnterprise        = "upgradeToEnterprise"        // upgrade server to Enterprise edition
 )
 
 // Teams

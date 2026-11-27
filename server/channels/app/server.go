@@ -13,12 +13,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -80,7 +78,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
@@ -991,45 +988,6 @@ func (s *Server) Shutdown() {
 	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error shutting down main logger (this can happen if a log target, e.g. a remote TCP endpoint, is unreachable; check preceding connection error logs for the affected target): %v\n", err)
 	}
-}
-
-func (s *Server) Restart() error {
-	percentage, err := s.UpgradeToE0Status()
-	if err != nil || percentage != 100 {
-		return errors.Wrap(err, "unable to restart because the system has not been upgraded")
-	}
-	s.Shutdown()
-
-	argv0, err := exec.LookPath(os.Args[0])
-	if err != nil {
-		return err
-	}
-
-	if _, err = os.Stat(argv0); err != nil {
-		return err
-	}
-
-	mlog.Info("Restarting server")
-	return syscall.Exec(argv0, os.Args, os.Environ())
-}
-
-func (s *Server) CanIUpgradeToE0() error {
-	return upgrader.CanIUpgradeToE0()
-}
-
-func (s *Server) UpgradeToE0() error {
-	if err := upgrader.UpgradeToE0(); err != nil {
-		return err
-	}
-	upgradedFromTE := &model.System{Name: model.SystemUpgradedFromTeId, Value: "true"}
-	if err := s.Store().System().Save(upgradedFromTE); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Server) UpgradeToE0Status() (int64, error) {
-	return upgrader.UpgradeToE0Status()
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

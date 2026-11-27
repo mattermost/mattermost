@@ -13,7 +13,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getServerLimits as selectServerLimits} from 'mattermost-redux/selectors/entities/limits';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
 
-import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping, isAllowedToUpgradeToEnterprise} from 'actions/admin_actions';
+import {requestTrialLicense} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
 
 import type {GlobalState} from 'types/store';
@@ -37,15 +37,10 @@ function mapDispatchToProps(dispatch: Dispatch) {
             uploadLicense,
             removeLicense,
             getPrevTrialLicense,
-            upgradeToE0,
-            upgradeToE0Status,
-            restartServer,
-            ping,
             requestTrialLicense,
             openModal,
             getFilteredUsersStats,
             getServerLimits,
-            isAllowedToUpgradeToEnterprise,
         }, dispatch),
     };
 }
