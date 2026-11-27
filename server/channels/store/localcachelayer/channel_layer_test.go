@@ -493,6 +493,127 @@ func TestChannelStoreGetManyCache(t *testing.T) {
 	})
 }
 
+// TestChannelStoreGetByNameDMGMCache verifies that InvalidateChannelByName with an empty
+// teamID correctly evicts the cache entry that GetByName ("", name, true) stored, and
+// that the previously broken "dm"-prefixed key (issue #40239) no longer leaks stale data.
+func TestChannelStoreGetByNameDMGMCache(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	// dmChannel simulates a 1-to-1 Direct Message channel (TeamId == "").
+	dmChannel := model.Channel{
+		Id:     "dm-channel-id",
+		Name:   "useraaa__userbbb",
+		Type:   model.ChannelTypeDirect,
+		TeamId: "",
+	}
+	// gmChannel simulates a Group Message channel (TeamId == "").
+	gmChannel := model.Channel{
+		Id:     "gm-channel-id",
+		Name:   "abcdef1234567890abcdef1234567890abcdef12",
+		Type:   model.ChannelTypeGroup,
+		TeamId: "",
+	}
+
+	newCachedStoreWithDMGM := func(t *testing.T) (LocalCacheStore, *mocks.ChannelStore) {
+		t.Helper()
+		mockStore := getMockStore(t)
+		mockChannelStore := mockStore.Channel().(*mocks.ChannelStore)
+		mockChannelStore.On("GetByName", "", dmChannel.Name, true).Return(&dmChannel, nil)
+		mockChannelStore.On("GetByName", "", dmChannel.Name, false).Return(&dmChannel, nil)
+		mockChannelStore.On("GetByName", "", gmChannel.Name, true).Return(&gmChannel, nil)
+		mockChannelStore.On("GetByName", "", gmChannel.Name, false).Return(&gmChannel, nil)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+		require.NoError(t, err)
+		return cachedStore, mockChannelStore
+	}
+
+	t.Run("DM channel: second GetByName is served from cache", func(t *testing.T) {
+		cachedStore, mockChannelStore := newCachedStoreWithDMGM(t)
+
+		ch, err := cachedStore.Channel().GetByName("", dmChannel.Name, true)
+		require.NoError(t, err)
+		assert.Equal(t, &dmChannel, ch)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+		ch, err = cachedStore.Channel().GetByName("", dmChannel.Name, true)
+		require.NoError(t, err)
+		assert.Equal(t, &dmChannel, ch)
+		// Still 1: the second call was a cache hit.
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+	})
+
+	t.Run("DM channel: InvalidateChannelByName with empty teamID evicts the cache entry", func(t *testing.T) {
+		cachedStore, mockChannelStore := newCachedStoreWithDMGM(t)
+
+		// Populate the cache.
+		_, err := cachedStore.Channel().GetByName("", dmChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+		// Invalidate using the correct empty-string teamID (the fix for issue #40239).
+		cachedStore.Channel().InvalidateChannelByName("", dmChannel.Name)
+
+		// Next read must miss the cache and go to the store.
+		_, err = cachedStore.Channel().GetByName("", dmChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 2)
+	})
+
+	t.Run("GM channel: second GetByName is served from cache", func(t *testing.T) {
+		cachedStore, mockChannelStore := newCachedStoreWithDMGM(t)
+
+		ch, err := cachedStore.Channel().GetByName("", gmChannel.Name, true)
+		require.NoError(t, err)
+		assert.Equal(t, &gmChannel, ch)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+		ch, err = cachedStore.Channel().GetByName("", gmChannel.Name, true)
+		require.NoError(t, err)
+		assert.Equal(t, &gmChannel, ch)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+	})
+
+	t.Run("GM channel: InvalidateChannelByName with empty teamID evicts the cache entry", func(t *testing.T) {
+		cachedStore, mockChannelStore := newCachedStoreWithDMGM(t)
+
+		_, err := cachedStore.Channel().GetByName("", gmChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+		cachedStore.Channel().InvalidateChannelByName("", gmChannel.Name)
+
+		_, err = cachedStore.Channel().GetByName("", gmChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 2)
+	})
+
+	t.Run("regular team channel: InvalidateChannelByName with teamID still works", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockChannelStore := mockStore.Channel().(*mocks.ChannelStore)
+		teamChannel := model.Channel{Id: "team-ch-id", Name: "general", TeamId: "team1"}
+		mockChannelStore.On("GetByName", "team1", teamChannel.Name, true).Return(&teamChannel, nil)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.Channel().GetByName("team1", teamChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+		// Second call: cache hit.
+		_, err = cachedStore.Channel().GetByName("team1", teamChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 1)
+
+		// Invalidate.
+		cachedStore.Channel().InvalidateChannelByName("team1", teamChannel.Name)
+
+		// Third call: cache miss after invalidation.
+		_, err = cachedStore.Channel().GetByName("team1", teamChannel.Name, true)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetByName", 2)
+	})
+}
+
 func TestChannelStoreGetByNamesCache(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
