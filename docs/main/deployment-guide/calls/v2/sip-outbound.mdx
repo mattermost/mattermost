@@ -1,0 +1,154 @@
+---
+title: "SIP outbound dialing"
+---
+
+:::caution
+Draft. Based on the Docker Compose and Kubernetes deployment artifacts under review. TODO markers mark items to confirm before publishing.
+:::
+
+SIP outbound dialing lets users dial phone numbers from a Calls v2 call. It is available only in Calls v2. Calls v1 has no phone support.
+
+:::important
+Outbound phone dialing requires an **Enterprise Advanced** license. Without it, the **Enable outbound phone dialing** setting has no effect and users cannot dial phone numbers.
+:::
+
+It needs two extra components next to LiveKit:
+
+- A **SIP bridge** (LiveKit SIP) that connects calls to your SIP provider.
+- **Redis**, which LiveKit uses to coordinate with the bridge. LiveKit runs in distributed mode when SIP is enabled.
+
+You also need a SIP trunk from a provider such as Twilio (an Elastic SIP trunk was used in testing), with the trunk address, a caller ID number and credentials.
+
+## Set up the bridge
+
+Enable the bridge as part of your deployment:
+
+- [Docker Compose](deploy-docker-compose.mdx#sip-outbound-optional): regenerate the configuration with `--sip` and recreate the containers.
+- [Kubernetes with Helm](deploy-kubernetes-helm.mdx#sip-outbound-optional): generate with `--sip` and apply `sip.yaml`.
+
+In both cases open `10000-10100/UDP` for RTP media in both directions. Outbound-only dialing does not need port 5060 open to the internet. See [Calls v2 networking and ports](networking.mdx).
+
+Confirm Redis is running **before** you enable SIP outbound in the plugin.
+
+## Configure the Calls plugin
+
+In **System Console > Plugins > Calls > Outbound phone calls**:
+
+1. Enable outbound phone dialing.
+2. Set the trunk mode to **managed**.
+3. Enter your provider's trunk address and caller ID number, plus credentials if your provider requires them.
+4. Optionally adjust the transport, media encryption and dialing rules. See the [settings reference](#sip-settings-reference).
+
+The plugin creates the trunk in LiveKit. The status should show `ready` with a trunk ID.
+
+### Choose a trunk mode
+
+| Mode | Use it when | Notes |
+|---|---|---|
+| **managed** | Self-hosted LiveKit (Docker Compose or Kubernetes). This is the recommended mode. | The plugin creates the trunk and re-creates it automatically if Redis restarts. |
+| **existing** | You use LiveKit Cloud and the SIP trunk is already set up there. | LiveKit Cloud manages the trunk. Enter the trunk ID. |
+
+:::important
+With self-hosted LiveKit, use **managed** mode. In **existing** mode the plugin does not re-create the trunk, so outbound dialing stops working if Redis restarts and the trunk is lost, until you create the trunk again.
+:::
+
+### SIP settings reference
+
+These settings are in **System Console > Plugins > Calls > Outbound phone calls**. {/* TODO: the section name is confirmed in the v2 console. Confirm the individual setting labels below against the build; they come from the plugin manifest. The trunk fields have no help text in the console; screenshots would help. */}
+
+**General**
+
+| Setting | Default | Description |
+|---|---|---|
+| **Enable outbound phone dialing** | Off | Lets users dial external phone numbers through LiveKit SIP. Requires a SIP outbound trunk and an Enterprise Advanced license. |
+| **SIP outbound trunk** (mode) | `existing` | `managed` or `existing`. See [Choose a trunk mode](#choose-a-trunk-mode). |
+| **SIP outbound trunk status** | n/a | Read-only. Shows the trunk state (for example `ready`, `pending`, `error`, `found` or `not_found`), the trunk ID and any error. |
+
+**Trunk, managed mode.** The plugin creates the trunk in LiveKit from these fields and updates it when they change.
+
+| Setting | Default | Description |
+|---|---|---|
+| **Trunk address** | None | Required. The host your SIP provider expects the bridge to send calls to. Enter a hostname only, without `sip:` or a protocol prefix. |
+| **Caller ID number** | None | Required. The caller ID in E.164 format, such as `+15555550123`. It must be attached to the trunk at your SIP provider. |
+| **Auth username** | None | The username for your provider. Leave empty if your provider does not use authentication. |
+| **Auth password** | None | The password for your provider. Stored as a secret. |
+| **SIP transport** | `auto` | SIP signaling transport: `auto`, `udp`, `tcp` or `tls`. |
+| **Media encryption** | `disable` | SRTP media encryption: `disable`, `allow` or `require`. Carriers that require TLS signaling generally require encrypted media too. |
+
+**Trunk, existing mode**
+
+| Setting | Default | Description |
+|---|---|---|
+| **SIP outbound trunk ID** | None | The ID of a trunk that already exists in LiveKit (for example `ST_xxx`). Used only in existing mode. |
+
+**Dialing rules.** These apply to both trunk modes.
+
+| Setting | Default | Description |
+|---|---|---|
+| **Default country code** | None | Country calling code (digits only, for example `1`) added to numbers entered without one. Leave empty to add none, for example on closed networks such as DSN. Numbers that start with `+` are never changed. |
+| **Extension max digits** | 0 | Numbers with this many digits or fewer are treated as PBX extensions and dialed as-is, without a country code. Set it to the length of your longest extension. `0` turns this off. |
+| **Enable outbound phone number allowlist** | Off | When on, only numbers in the allowlist can be dialed. Intended for development and test environments, to prevent accidental calls to real numbers. |
+| **Outbound phone number allowlist** | None | Numbers allowed when the allowlist is on, one per line, optionally followed by the owner's name (for example `+1 555-123-4567 John Doe`). A name that starts with a digit must follow a `#` (for example `+1 555-123-4567 # 3rd floor lobby`). Numbers are matched after conversion to E.164, so `+1 555-123-4567` and `+15551234567` are the same number. Numbers without a leading `+` use the default country code. |
+| **SIP outbound allowed teams** | None | Team URL names (from the team's web address) whose members may place outbound calls, separated by semicolons or commas. Leave empty to allow all authenticated users. |
+
+### If the trunk status shows an error
+
+In **managed** mode the plugin creates, or re-creates, the trunk when:
+
+- the plugin starts,
+- a SIP setting changes,
+- a user places an outbound call and the plugin has no working trunk. This is attempted at most once every 30 seconds. If LiveKit reports that the trunk no longer exists (for example after a Redis restart), the plugin re-creates it and retries the call automatically.
+
+It does not do this on every Save. The built-in diagnostic (`/call diag`) only reports the trunk status. It does not create or repair the trunk.
+
+If the status shows an error, for example `sip not connected (redis required)` because Redis was not running yet, fix the cause. The next outbound call attempt then retries by itself. To retry without placing a call, turn **Enable outbound phone dialing** off and on again, saving each time. Saving again without toggling does not retry, and the System Console can keep showing the old error until a retry succeeds. Disabling and re-enabling the Calls plugin also triggers a new attempt.
+
+In **existing** mode the plugin never creates or repairs the trunk. If the trunk is missing, the status shows `not_found` (trunk not found on this LiveKit server) and calls fail until the trunk exists again.
+
+### Check the trunk state without the System Console
+
+With a system admin access token:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  https://mattermost.example.com/plugins/com.mattermost.calls/sip/trunk-status
+```
+
+It returns `"state":"ready"` and the trunk ID when it worked, or an `error` message.
+
+A `ready` status does not prove the bridge is healthy. It can show `ready` before the bridge pod or container exists. Check the bridge logs as described below.
+
+## Verify
+
+Place a test call to a phone number you control:
+
+1. In any channel, post a `tel:` link with the number in E.164 format, for example `tel:+15555550123`. The web app turns it into a link automatically.
+2. Click the link. The plugin dials the number through your SIP trunk and joins you to the call.
+3. Answer the phone and confirm you can hear each other.
+
+Clicking `tel:` links in the web app and desktop app dials through the plugin while outbound dialing is enabled. If the click opens your operating system's phone app instead (for example the Phone app on macOS), outbound dialing is turned off or not licensed. If it shows an error, the trunk or SIP settings need attention: see [If the trunk status shows an error](#if-the-trunk-status-shows-an-error).
+
+:::note
+Use the web or desktop app for this test. The mobile apps hand `tel:` links to the phone's own dialer, and call pop-out windows do not dial.
+:::
+
+{/* Verified on macOS: bare tel: links are auto-linked by the webapp; with outbound dialing enabled the link dials through the plugin, and with it disabled the click opens the local phone app. TODO: confirm the mobile and pop-out behavior; from the code they are not intercepted. */}
+
+Then check the bridge logs:
+
+- Docker Compose: `docker compose logs livekit-sip`
+- Kubernetes: `kubectl -n livekit logs deploy/livekit-sip`
+
+A healthy call shows `Outbound SIP call established`, then `call statistics` with `audio_packets` counts in both directions, and ends with `BYE from remote` or `SIP call ended`.
+
+These messages also appear in healthy calls and are harmless:
+
+- `failed to get server reflexive address udp6 ... network is unreachable`, because the host has no IPv6 route.
+- `Failed to ping without candidate pairs` during call setup.
+- `error closing media port: opus: invalid argument` at hangup.
+
+## Troubleshooting
+
+- **`sip not connected (redis required)`:** LiveKit started without Redis. Enable SIP in your deployment, recreate or restart LiveKit so it rereads its configuration, then toggle outbound dialing off and on in the plugin.
+- **Bridge pod `Pending` on Kubernetes:** the node has too little memory or CPU left. Use larger nodes for LiveKit, or lower the bridge's resource requests for a test.
+- **No audio on the phone call:** confirm `10000-10100/UDP` is open on the host or nodes, and check your provider's allowed source addresses.

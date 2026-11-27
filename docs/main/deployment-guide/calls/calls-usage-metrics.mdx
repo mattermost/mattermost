@@ -1,0 +1,76 @@
+---
+title: "Calls usage metrics"
+sidebar_label: "Usage metrics"
+---
+
+:::caution
+Draft. Items marked TODO must be confirmed before this page is published.
+:::
+
+The Calls plugin exposes usage metrics through Prometheus: how many calls happen, how long they last, how many people join, and in which kinds of channels. These are separate from the performance metrics (CPU, memory, WebRTC connections and so on) described in [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx), and they work the same way on Calls v1 and Calls v2.
+
+| Version | Availability |
+|---|---|
+| Calls v1 | Calls v1.12.0 and later |
+| Calls v2 | All Calls v2 releases |
+
+## Metrics
+
+All usage metrics are gauges served by the Calls plugin at `/plugins/com.mattermost.calls/metrics`, under the Mattermost server's performance metrics endpoint (see [Prometheus scrape configuration](calls-metrics-monitoring.mdx#prometheus-scrape-configuration)). The values are computed from the Calls database, so they reflect all calls on the server and not just the node you scrape. This also means usage history carries over when you [migrate from Calls v1 to v2](migrate-v1-to-v2.mdx): the dashboard continues to show calls made on v1 alongside new calls made on v2.
+
+| Metric | Labels | Description |
+|---|---|---|
+| `mattermost_plugin_calls_aggregate_stats` | `stat` | Server-wide totals and averages. See the `stat` values below. |
+| `mattermost_plugin_calls_daily_calls_total` | `date` | Number of calls per day, for the last 30 days. |
+| `mattermost_plugin_calls_monthly_calls_total` | `month` | Number of calls per month. |
+| `mattermost_plugin_calls_calls_by_channel_type` | `type` | Number of calls by channel type: `public`, `private`, `direct`, `group` or `unknown`. |
+
+### `aggregate_stats` values
+
+| `stat` | Description |
+|---|---|
+| `total_calls` | Total number of calls. |
+| `total_active_calls` | Calls in progress now. |
+| `total_active_sessions` | Participant sessions in progress now. |
+| `avg_duration_seconds` | Average call duration, in seconds. |
+| `avg_participants` | Average number of participants per call. |
+| `total_screen_share_calls` | Calls in which someone shared their screen. |
+| `total_video_calls` | Calls in which someone used video. |
+| `total_video_duration_seconds` | Total camera-on time, in seconds. |
+| `avg_video_duration_seconds` | Average camera-on time per call that used video, in seconds. |
+
+The active calls and active sessions values refresh every minute. All other values refresh at startup and then hourly.
+
+:::note
+On Calls v2, the video values (`total_video_calls`, `total_video_duration_seconds` and `avg_video_duration_seconds`) read 0 until video usage is recorded. {/* TODO: confirm when video tracking lands on v2 (1:1 video), and remove this note then. */}
+:::
+
+## Set up the dashboard
+
+1. Configure Prometheus to scrape the Mattermost server's plugin metrics endpoint, as described in [Prometheus scrape configuration](calls-metrics-monitoring.mdx#prometheus-scrape-configuration). RTCD, LiveKit and node-exporter jobs are not needed for these metrics.
+2. Make sure the scrape job's series have a `namespace` label. The dashboard filters on a `namespace` variable. In Kubernetes this label is normally added for you. For other setups, add a static label to the scrape job:
+
+   ```yaml
+   scrape_configs:
+     - job_name: 'calls-plugin'
+       metrics_path: /plugins/com.mattermost.calls/metrics
+       static_configs:
+         - targets: ['MATTERMOST_SERVER_IP:8067']
+           labels:
+             namespace: 'mattermost'
+   ```
+
+3. Import the **Mattermost Calls Usage Statistics (Prometheus)** dashboard into Grafana. Download [`mattermost-calls-usage-statistics.json`](https://github.com/mattermost/mattermost-performance-assets/blob/master/grafana/mattermost-calls-usage-statistics.json) from the Mattermost performance assets repository, then in Grafana go to **Dashboards > New > Import** and upload the file. See the [Grafana import guide](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/import-dashboards/) for details. Select your Prometheus data source and the `namespace` you configured in the previous step.
+{/* TODO: once the dashboard is published on grafana.com, add its ID so it can be imported directly, like the Calls performance dashboard (23225). Confirm the performance assets PR (mattermost-performance-assets #32) has merged before publishing this page. */}
+
+The dashboard shows total calls, average duration, average participants, active calls and sessions, calls per month, calls over the last 30 days, calls by channel type, and the daily number of new calls, video calls and screen-share calls.
+
+Some panels need time to fill in:
+
+- The daily panels ("Daily New Calls" and "Cam-Time per Day") subtract the value from 24 hours earlier, so they stay empty until Prometheus has 24 hours of history for the series.
+- The camera-time panels show 0 on Calls v2 until video usage is recorded (see the note above).
+
+## Related
+
+- [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx): performance metrics for the plugin and RTCD, and baselines (Calls v1).
+- [Calls v2 overview](v2/calls-v2-overview.mdx)

@@ -1,0 +1,85 @@
+---
+title: "Calls overview: choose a version"
+---
+
+:::caution
+Draft. Cells marked **TBD** are unverified and must be confirmed before this page is published.
+:::
+
+Mattermost Calls provides self-hosted audio calling and screen sharing. Two versions are available, built on different media servers. This page explains the difference and helps you choose.
+
+- **Calls v1** uses Mattermost's own WebRTC stack. Media is handled either inside the Mattermost server (integrated) or by the separate RTCD service. Calls v1 will be deprecated when Calls v2 is released.
+- **Calls v2** uses [LiveKit](https://livekit.io) as the media server. It is the recommended version for new deployments.
+
+## Which version should I use?
+
+| Your situation | Recommendation |
+|---|---|
+| New installation | Use [Calls v2](v2/calls-v2-overview.mdx). |
+| Existing server already running Calls v1 | Stay on v1 when you update Mattermost. Plan a [migration to v2](migrate-v1-to-v2.mdx) when you are ready. |
+| You need 1:1 video calls in direct messages | Both versions support them once Calls v2 is released. Until then, use v1. |
+| You need multi-party video calls | Neither version supports them today. Multi-party video is planned for v2 after its first release. |
+| You cannot deploy or operate separate media infrastructure | Use v1 with integrated media. v2 does not work without external LiveKit infrastructure. |
+| You need to dial phone numbers from calls | Use v2 (requires an Enterprise Advanced license). v1 has no phone (SIP) support. |
+
+## How versions are selected
+
+Mattermost ships with both Calls v1 and Calls v2 as pre-packaged plugins. The `PluginSettings.CallsVersion` setting selects which one runs, so switching versions is a configuration change and does not require uploading a plugin. The setting accepts these values:
+
+| Value | Behavior |
+|---|---|
+| `""` (empty, **Automatic**, the default) | Mattermost picks the version when the server starts, based on the Calls plugin already installed on the server. See below. |
+| `v1` | Run Calls v1. |
+| `v2` | Run Calls v2. |
+
+With the default (Automatic), the version is chosen once at startup and then saved:
+
+- If no Calls plugin is installed (a new installation), Calls v2 is used.
+- If Calls v1 (a 1.x plugin) is installed, it stays on v1 when you update Mattermost, until you change the setting. See [Migrate from v1 to v2](migrate-v1-to-v2.mdx).
+- If Calls v2 (a 2.x plugin) is installed, it stays on v2.
+
+You can change the setting in **System Console > Plugin Management**, in the **Calls version** field below **Enable Automatic Prepackaged Plugins**, or with the `MM_PLUGINSETTINGS_CALLSVERSION` environment variable. Note:
+
+- The field is hidden when **Enable Automatic Prepackaged Plugins** is off, because pre-packaged plugins are then not installed or switched automatically.
+- **Automatic** is only offered while the setting is empty. After you pick `v1` or `v2` in the System Console, you can switch between them but not back to Automatic.
+- If you upload a Calls plugin bundle manually, the setting does not switch it. The uploaded plugin keeps running until you remove it.
+- In a high availability cluster, a switch reinstalls the plugin on all nodes.
+
+Switching versions replaces the running plugin and disconnects users who are on a call or connected to Calls, so do it in a quiet window.
+
+{/* TODO: confirm the exact field label and help text in the final MM-71535 build, and whether an empty value can be restored from the System Console. */}
+
+:::note
+Calls v2 requires a LiveKit deployment that you set up and operate, or LiveKit Cloud. Unlike v1, there is no option to run media inside the Mattermost server. Until LiveKit is deployed and configured, calls do not work.
+:::
+
+## Comparison
+
+| | Calls v1 | Calls v2 |
+|---|---|---|
+| Media server | Integrated in Mattermost, or RTCD | LiveKit (self-hosted or LiveKit Cloud) |
+| Integrated media (no extra infrastructure) | Yes | **No.** LiveKit is required. |
+| Audio calls and screen sharing | Yes | Yes |
+| Video | 1:1 calls in direct messages | 1:1 calls in direct messages, included in the first v2 release. Multi-party video is planned after that. |
+| Phone dialing (SIP outbound) | No | Yes, with an Enterprise Advanced license |
+| High availability | RTCD with an external load balancer | Multiple LiveKit nodes sharing state through Redis |
+| Recording, transcription and live captions | Yes, using [Calls Offloader](calls-offloader-setup.mdx) | Yes, using [Calls Offloader](calls-offloader-setup.mdx) |
+| Minimum mobile and desktop app versions | See the [v1 guide](calls-deployment-guide.mdx) | **TBD** |
+| Status | Deprecated when v2 is released. Supported for one year after that. | Recommended |
+
+## Calls v1 deprecation timeline
+
+- Calls v2 is scheduled for release in January 2027.
+- Calls v1 is deprecated when Calls v2 is released.
+- Calls v1 continues to be supported for one year after the Calls v2 release.
+
+{/* TODO: confirm the release date and support window are approved for publication, and give exact dates once fixed. */}
+
+Plan to [migrate to Calls v2](migrate-v1-to-v2.mdx) within the support window.
+
+## Where to go next
+
+- [Calls v1](calls-deployment-guide.mdx): deploy and operate the existing integrated or RTCD-based Calls.
+- [Calls v2](v2/calls-v2-overview.mdx): deploy LiveKit with Docker Compose, Kubernetes with Helm, or LiveKit Cloud.
+- [Calls Offloader](calls-offloader-setup.mdx): the service used for recording and transcription.
+- [Migrate from v1 to v2](migrate-v1-to-v2.mdx): switch an existing deployment.
