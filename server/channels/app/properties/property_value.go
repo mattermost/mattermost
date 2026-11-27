@@ -86,6 +86,28 @@ func (ps *PropertyService) searchPropertyValues(rctx request.CTX, groupID string
 	return ps.valueStore.SearchPropertyValues(rctx, opts)
 }
 
+// getStoredPropertyValues reads the values with the given IDs in groupID (any
+// group when empty) from the master, deleted ones included, by ID.
+func (ps *PropertyService) getStoredPropertyValues(rctx request.CTX, groupID string, ids []string) (map[string]*model.PropertyValue, error) {
+	byID := make(map[string]*model.PropertyValue, len(ids))
+	if len(ids) == 0 {
+		return byID, nil
+	}
+
+	values, err := ps.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{
+		IDs:            ids,
+		IncludeDeleted: true,
+		PerPage:        len(ids),
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range values {
+		byID[v.ID] = v
+	}
+	return byID, nil
+}
+
 func (ps *PropertyService) updatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
 	values, err := ps.updatePropertyValues(rctx, groupID, []*model.PropertyValue{value})
 	if err != nil {

@@ -4,12 +4,10 @@
 package properties
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // ValueTypeValidationHook refuses a value whose JSON does not fit its field's
@@ -97,7 +95,7 @@ func (h *ValueTypeValidationHook) asStored(rctx request.CTX, groupID string, val
 			ids = append(ids, v.ID)
 		}
 	}
-	stored, err := h.storedValues(rctx, groupID, ids)
+	stored, err := h.propertyService.getStoredPropertyValues(rctx, groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch values for value validation: %w", err)
 	}
@@ -117,28 +115,6 @@ func (h *ValueTypeValidationHook) asStored(rctx request.CTX, groupID string, val
 		checked[i] = &c
 	}
 	return checked, nil
-}
-
-// storedValues reads the values with the given IDs in groupID (any group when
-// empty) from the master, deleted ones included, by ID.
-func (h *ValueTypeValidationHook) storedValues(rctx request.CTX, groupID string, ids []string) (map[string]*model.PropertyValue, error) {
-	byID := make(map[string]*model.PropertyValue, len(ids))
-	if len(ids) == 0 {
-		return byID, nil
-	}
-
-	values, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{
-		IDs:            ids,
-		IncludeDeleted: true,
-		PerPage:        len(ids),
-	})
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range values {
-		byID[v.ID] = v
-	}
-	return byID, nil
 }
 
 // validate checks every value against its field's type. The values of a batch
@@ -163,7 +139,7 @@ func (h *ValueTypeValidationHook) validate(rctx request.CTX, values []*model.Pro
 
 	fieldTypes := make(map[string]model.PropertyFieldType, len(seen))
 	for groupID, fieldIDs := range fieldIDsByGroup {
-		fields, err := h.fieldsOfGroup(rctx, groupID, fieldIDs)
+		fields, err := h.propertyService.getExistingPropertyFields(rctx, groupID, fieldIDs)
 		if err != nil {
 			return fmt.Errorf("failed to fetch fields for value validation: %w", err)
 		}
@@ -185,33 +161,4 @@ func (h *ValueTypeValidationHook) validate(rctx request.CTX, values []*model.Pro
 		}
 	}
 	return nil
-}
-
-// fieldsOfGroup returns those of the fields the group holds. When some are not
-// in it, the rest are read one at a time, so their values are still checked.
-// The fields are read from the master: a replica that hasn't caught up with a
-// field just created as, or changed to, a checked type would let a value of the
-// wrong shape through.
-func (h *ValueTypeValidationHook) fieldsOfGroup(rctx request.CTX, groupID string, fieldIDs []string) ([]*model.PropertyField, error) {
-	rctx = store.RequestContextWithMaster(rctx)
-	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
-	if err == nil {
-		return fields, nil
-	}
-	if !errors.Is(err, ErrFieldNotFound) {
-		return nil, err
-	}
-
-	fields = fields[:0]
-	for _, id := range fieldIDs {
-		found, err := h.propertyService.getPropertyFields(rctx, groupID, []string{id})
-		if errors.Is(err, ErrFieldNotFound) {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-		fields = append(fields, found...)
-	}
-	return fields, nil
 }

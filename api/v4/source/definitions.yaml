@@ -696,8 +696,8 @@ components:
           description: >
             The type of property. `rank` is a select with ordered options;
             `graph` is a multiselect whose options can sit below other options.
-            A field can't be converted to or from `graph`.
-          enum: [text, select, multiselect, date, user, multiuser, rank, graph, number, checkbox]
+            A field can't be converted to or from `graph` or `key`.
+          enum: [text, select, multiselect, date, user, multiuser, rank, graph, number, checkbox, key]
         object_type:
           type: string
           description: The type of object this property applies to
@@ -715,6 +715,11 @@ components:
             supply it (400), and the property field options endpoints manage
             the options instead. A `graph` option written here may carry
             `parents`; only the options endpoints return them.
+
+
+            A `key` field requires a `prefix`: 1 to 10 letters and digits
+            starting with a letter, stored uppercased, and unique among the
+            group's `key` fields (400 otherwise).
         target_id:
           type: string
           description: The ID of the target (empty for system-level, team ID for team-level, channel ID for channel-level)
@@ -898,6 +903,10 @@ components:
             for `select` and `rank`, a user ID for `user`, and an array of
             option IDs or user IDs for `multiselect`, `graph` and `multiuser`.
             `number` stores a JSON number, and `checkbox` a JSON boolean.
+            `key` stores a positive JSON integer that the server assigns when
+            the value is created, from a per-field counter; clients show it as
+            the field's `prefix` and the number, such as `MM-42`. Callers can't
+            set or change it (400), but may send back the number they read.
         create_at:
           type: integer
           format: int64

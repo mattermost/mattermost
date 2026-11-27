@@ -463,6 +463,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.propertyService.AddHook(properties.NewSessionAttributesHook(s.propertyService, saGroup.ID))
 
+	// Key fields: validate prefixes and assign numbers. Registered ahead of the
+	// shape validation below so a value already holds its number when checked.
+	s.propertyService.AddHook(properties.NewKeyFieldHook(s.propertyService))
+
 	// Value shape validation for the field types core checks in every group
 	// (number, checkbox). A pre-hook, so its place in the chain does not matter
 	// beyond running before the store write.
