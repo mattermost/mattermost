@@ -10942,6 +10942,21 @@
     "description": "Admin console error when an operation targets a plugin that isn't installed on the server."
   },
   {
+    "id": "app.plugin.notice.playbooks_professional_unsupported",
+    "translation": "Playbooks is not supported on Professional licenses. Upgrade to Enterprise for full Playbooks support.",
+    "description": "Notice shown in System Console Plugin Management on the Playbooks plugin when the server has a Professional license."
+  },
+  {
+    "id": "app.plugin.notice.playbooks_v1_deprecated",
+    "translation": "Playbooks v1 is deprecated.",
+    "description": "Notice shown in System Console Plugin Management on the Playbooks plugin when the installed version is 1.x."
+  },
+  {
+    "id": "app.plugin.notice.status.unsupported",
+    "translation": "Unsupported",
+    "description": "Status label shown in System Console Plugin Management in place of the plugin state when the plugin is not supported by the current license; compact space."
+  },
+  {
     "id": "app.plugin.reattach.app_error",
     "translation": "Failed to reattach plugin",
     "description": "Internal error when reattaching to a running plugin process (local development feature) fails; developer-facing."

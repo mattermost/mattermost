@@ -28,7 +28,13 @@ export type PluginManifest = {
     props?: Record<string, any>;
 };
 
-export type PluginRedux = PluginManifest & {active: boolean};
+export type PluginNotice = {
+    deprecated: boolean;
+    status?: string;
+    message: string;
+};
+
+export type PluginRedux = PluginManifest & {active: boolean; notice?: PluginNotice};
 
 export type PluginManifestServer = {
     executables?: {
@@ -80,8 +86,8 @@ export type PluginSettingOption = {
 };
 
 export type PluginsResponse = {
-    active: PluginManifest[];
-    inactive: PluginManifest[];
+    active: Array<PluginManifest & {notice?: PluginNotice}>;
+    inactive: Array<PluginManifest & {notice?: PluginNotice}>;
 };
 
 export type PluginStatus = {
