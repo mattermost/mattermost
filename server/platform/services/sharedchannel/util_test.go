@@ -4,11 +4,16 @@
 package sharedchannel
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func Test_mungUsername(t *testing.T) {
@@ -247,4 +252,13 @@ func TestHandleUserMentions(t *testing.T) {
 		require.Equal(t, expected, postCopy.Message,
 			"Should remove remote cluster suffix when message is viewed on user's home server")
 	})
+}
+
+func TestIsNotFoundError(t *testing.T) {
+	notFound := store.NewErrNotFound("SharedChannelRemote", "id")
+
+	assert.False(t, isNotFoundError(nil))
+	assert.True(t, isNotFoundError(notFound))
+	assert.True(t, isNotFoundError(fmt.Errorf("wrapped: %w", notFound)))
+	assert.False(t, isNotFoundError(errors.New("other")))
 }
