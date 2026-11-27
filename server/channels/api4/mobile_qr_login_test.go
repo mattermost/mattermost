@@ -264,7 +264,8 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 
 			mobileClient := th.CreateClient()
 			deviceId := mobileQRTestDeviceId()
-			result, resp, err := mobileClient.LoginWithMobileQRToken(context.Background(), code, deviceId)
+			voipDeviceId := model.PushNotifyAppleReactNative + ":" + model.NewId()
+			result, resp, err := mobileClient.LoginWithMobileQRToken(context.Background(), code, deviceId, voipDeviceId)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 
@@ -278,6 +279,7 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 			assert.NotEqual(t, sourceSession.Id, session.Id)
 			assert.True(t, session.IsMobileApp())
 			assert.Equal(t, deviceId, session.DeviceId)
+			assert.Equal(t, voipDeviceId, session.VoIPDeviceId)
 			assert.Equal(t, result.Csrf, session.GetCSRF())
 			assert.Equal(t, tc.expectSaml, session.Props[model.UserAuthServiceIsSaml])
 			assert.Equal(t, tc.expectOAuth, session.Props[model.UserAuthServiceIsOAuth])
@@ -314,7 +316,7 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 		created, _, err := th.Client.CreateMobileQRLoginToken(context.Background())
 		require.NoError(t, err)
 
-		result, _, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), mobileQRTokenFromLink(t, created.Link), "")
+		result, _, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), mobileQRTokenFromLink(t, created.Link), "", "")
 		require.NoError(t, err)
 
 		session, appErr := th.App.GetSession(result.Token)
@@ -326,13 +328,13 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupMobileQRLogin(t)
 
-		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), "", "")
+		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), "", "", "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		created, _, err := th.Client.CreateMobileQRLoginToken(context.Background())
 		require.NoError(t, err)
-		_, resp, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), mobileQRTokenFromLink(t, created.Link), "not a device id")
+		_, resp, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), mobileQRTokenFromLink(t, created.Link), "not a device id", "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -345,10 +347,10 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 		require.NoError(t, err)
 		code := mobileQRTokenFromLink(t, created.Link)
 
-		_, _, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "")
+		_, _, err = th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "", "")
 		require.NoError(t, err)
 
-		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "")
+		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "", "")
 		CheckErrorID(t, err, "api.user.mobile_qr_login.invalid_token.app_error")
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -357,7 +359,7 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupMobileQRLogin(t)
 
-		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), model.NewRandomString(model.TokenSize), "")
+		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), model.NewRandomString(model.TokenSize), "", "")
 		CheckErrorID(t, err, "api.user.mobile_qr_login.invalid_token.app_error")
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -373,7 +375,7 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 		other := model.NewToken(model.TokenTypeSSOCodeExchange, string(extra))
 		require.NoError(t, th.App.Srv().Store().Token().Save(other))
 
-		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), other.Token, "")
+		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), other.Token, "", "")
 		CheckErrorID(t, err, "api.user.mobile_qr_login.invalid_token.app_error")
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -457,7 +459,7 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 			code := tc.setup(t, th, th.BasicUser, sourceSession)
 
 			mobileClient := th.CreateClient()
-			_, resp, err := mobileClient.LoginWithMobileQRToken(context.Background(), code, mobileQRTestDeviceId())
+			_, resp, err := mobileClient.LoginWithMobileQRToken(context.Background(), code, mobileQRTestDeviceId(), "")
 			CheckErrorID(t, err, "api.user.mobile_qr_login.invalid_token.app_error")
 			CheckUnauthorizedStatus(t, resp)
 
@@ -479,7 +481,7 @@ func TestLoginWithMobileQRToken(t *testing.T) {
 		_, botSession := newSessionClient(t, th, botUser, &model.Session{})
 
 		code := saveMobileQRToken(t, th, botUser, botSession.Id, model.GetMillis(), model.GetMillis()+60000)
-		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "")
+		_, resp, err := th.CreateClient().LoginWithMobileQRToken(context.Background(), code, "", "")
 		CheckErrorID(t, err, "api.user.mobile_qr_login.invalid_token.app_error")
 		CheckUnauthorizedStatus(t, resp)
 	})

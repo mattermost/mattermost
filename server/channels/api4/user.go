@@ -2351,6 +2351,7 @@ func loginWithMobileQRToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	props := model.MapFromJSON(r.Body)
 	token := props["token"]
 	deviceId := props["device_id"]
+	voipDeviceId := props["voip_device_id"]
 
 	if token == "" {
 		c.SetInvalidParam("token")
@@ -2361,8 +2362,9 @@ func loginWithMobileQRToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("login_method", "mobile_qr")
 	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voipDeviceId))
 
-	session, err := c.App.RedeemMobileQRLoginToken(c.AppContext, w, r, token, deviceId)
+	session, err := c.App.RedeemMobileQRLoginToken(c.AppContext, w, r, token, deviceId, voipDeviceId)
 	if err != nil {
 		c.Err = model.AsAppError(err)
 		return

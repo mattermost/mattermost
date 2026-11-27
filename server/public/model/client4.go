@@ -1108,10 +1108,11 @@ func (c *Client4) CreateMobileQRLoginToken(ctx context.Context) (*MobileQRLoginT
 }
 
 // LoginWithMobileQRToken redeems a code created by CreateMobileQRLoginToken and stores the new session token on the client.
-func (c *Client4) LoginWithMobileQRToken(ctx context.Context, token, deviceId string) (*MobileQRLoginResponse, *Response, error) {
+func (c *Client4) LoginWithMobileQRToken(ctx context.Context, token, deviceId, voipDeviceId string) (*MobileQRLoginResponse, *Response, error) {
 	m := make(map[string]string)
 	m["token"] = token
 	m["device_id"] = deviceId
+	m["voip_device_id"] = voipDeviceId
 	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("login", "mobile_qr"), m)
 	if err != nil {
 		return nil, BuildResponse(r), err

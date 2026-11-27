@@ -82,7 +82,7 @@ func (a *App) CreateMobileQRLoginToken(rctx request.CTX, session *model.Session)
 // RedeemMobileQRLoginToken consumes a code created by CreateMobileQRLoginToken and logs the
 // code's user in on a new mobile session. Every rejection returns the same client-facing error;
 // the reason is only kept in its detailed error.
-func (a *App) RedeemMobileQRLoginToken(rctx request.CTX, w http.ResponseWriter, r *http.Request, tokenString, deviceId string) (*model.Session, error) {
+func (a *App) RedeemMobileQRLoginToken(rctx request.CTX, w http.ResponseWriter, r *http.Request, tokenString, deviceId, voipDeviceId string) (*model.Session, error) {
 	invalid := func(detail string) error {
 		return model.NewAppError("RedeemMobileQRLoginToken", "api.user.mobile_qr_login.invalid_token.app_error", nil, detail, http.StatusUnauthorized)
 	}
@@ -122,10 +122,11 @@ func (a *App) RedeemMobileQRLoginToken(rctx request.CTX, w http.ResponseWriter, 
 	}
 
 	session, appErr := a.DoLogin(rctx, w, r, user, model.LoginOptions{
-		DeviceId:    deviceId,
-		IsMobile:    true,
-		IsSaml:      sourceSession.IsSaml(),
-		IsOAuthUser: sourceSession.IsOAuthUser(),
+		DeviceId:     deviceId,
+		VoIPDeviceId: voipDeviceId,
+		IsMobile:     true,
+		IsSaml:       sourceSession.IsSaml(),
+		IsOAuthUser:  sourceSession.IsOAuthUser(),
 	})
 	if appErr != nil {
 		return nil, appErr
