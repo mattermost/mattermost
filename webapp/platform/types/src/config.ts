@@ -1068,7 +1068,6 @@ export type AccessControlSettings = {
     EnforceDeviceIDConsistency: boolean;
     EnableAccessControlAuditLogging: boolean;
     SyncJobIntervalSeconds: number;
-    AttributeRefreshIntervalSeconds: number;
     DecisionCacheMaxAgeSeconds: number;
     DecisionCacheSize: number;
     EnableDecisionCache: boolean;

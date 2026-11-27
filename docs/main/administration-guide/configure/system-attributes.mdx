@@ -135,18 +135,3 @@ Only membership changes are recorded. Individual permission decisions, such as w
 </tr>
 </tbody>
 </table>
-
-### Attribute refresh interval \{#attribute-refresh-interval-seconds}
-
-<table>
-<colgroup>
-<col style={{width: '56%'}} />
-<col style={{width: '43%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Controls how quickly attribute changes reach the searches that access control runs. Mattermost keeps a copy of user and channel attribute values for finding the users who match a rule and for reading a channel's attributes, and refreshes that copy at most once in this interval. After a user or channel attribute changes, it can take up to this long before the change shows in:</p><ul><li>The people offered when adding members to a channel with a membership policy.</li><li>The results of testing or simulating a rule.</li><li>Checks against rules that use channel attributes.</li></ul><p>Membership sync jobs always read the latest values.</p><p>Numerical input in seconds. Default is <strong>30</strong> seconds. Set it to <strong>0</strong> to refresh the copy before every search. Results are then always current, but busy servers do more database work.</p><p>This setting has no System Console option. Cloud admins can't modify this configuration setting.</p></td>
-<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>AttributeRefreshIntervalSeconds</code> &gt; <code>30</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ATTRIBUTEREFRESHINTERVALSECONDS</code></li></ul></td>
-</tr>
-</tbody>
-</table>

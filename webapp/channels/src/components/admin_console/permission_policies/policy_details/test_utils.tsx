@@ -63,7 +63,6 @@ const accessControlSettings: AccessControlSettings = {
     EnforceDeviceIDConsistency: false,
     EnableAccessControlAuditLogging: false,
     SyncJobIntervalSeconds: 3600,
-    AttributeRefreshIntervalSeconds: 30,
     DecisionCacheMaxAgeSeconds: 60,
     DecisionCacheSize: 1000000,
     EnableDecisionCache: true,

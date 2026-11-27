@@ -10672,11 +10672,6 @@
     "description": "API error when searching attribute-based access control policies fails; admin-facing."
   },
   {
-    "id": "app.pap.simulate.attribute_refresh",
-    "translation": "Failed to refresh attributes for the simulation.",
-    "description": "Error in the access control policy simulator (admin tool for testing policies) when reloading user attribute values fails."
-  },
-  {
     "id": "app.pap.simulate.channel_required_for_resource",
     "translation": "A channel is required to simulate a policy that references channel attributes.",
     "description": "API error (400) shown to a system admin running the access-policy simulation/preview in the System Console when the policy references channel attributes but no channel was selected to simulate against."
@@ -17668,11 +17663,6 @@
     "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "To must be greater than From.",
     "description": "Validation error when a system admin creates a compliance export job with an end date before the start date; 'To' and 'From' are the date-range field labels."
-  },
-  {
-    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
-    "translation": "Invalid access control attribute refresh interval. Must be greater than or equal to 0.",
-    "description": "Configuration validation error shown to a system admin when the access control attribute refresh interval setting is negative. Blocks saving the configuration."
   },
   {
     "id": "model.config.is_valid.access_control_decision_cache_max_age.app_error",
