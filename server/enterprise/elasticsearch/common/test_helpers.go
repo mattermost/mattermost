@@ -4,8 +4,14 @@
 package common
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
@@ -112,6 +118,64 @@ func (r *ClusterRecorder) ResetSearches() {
 	defer r.mut.Unlock()
 
 	r.searchBodies = nil
+}
+
+// BulkDeleteRecorder is a pass-through proxy to a search cluster that records
+// the document IDs of every delete operation sent in a _bulk request.
+type BulkDeleteRecorder struct {
+	URL string
+
+	mut        sync.Mutex
+	deletedIDs []string
+}
+
+func NewBulkDeleteRecorder(t *testing.T, target string) *BulkDeleteRecorder {
+	t.Helper()
+
+	targetURL, err := url.Parse(target)
+	require.NoError(t, err)
+	proxy := httputil.NewSingleHostReverseProxy(targetURL)
+
+	r := &BulkDeleteRecorder{}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if strings.HasSuffix(req.URL.Path, "/_bulk") {
+			body, readErr := io.ReadAll(req.Body)
+			if readErr != nil {
+				http.Error(w, readErr.Error(), http.StatusBadRequest)
+				return
+			}
+			req.Body = io.NopCloser(bytes.NewReader(body))
+			r.recordDeletes(body)
+		}
+		proxy.ServeHTTP(w, req)
+	}))
+	t.Cleanup(ts.Close)
+	r.URL = ts.URL
+
+	return r
+}
+
+func (r *BulkDeleteRecorder) recordDeletes(bulkBody []byte) {
+	r.mut.Lock()
+	defer r.mut.Unlock()
+
+	for line := range bytes.SplitSeq(bulkBody, []byte("\n")) {
+		var action struct {
+			Delete *struct {
+				ID string `json:"_id"`
+			} `json:"delete"`
+		}
+		if json.Unmarshal(line, &action) == nil && action.Delete != nil {
+			r.deletedIDs = append(r.deletedIDs, action.Delete.ID)
+		}
+	}
+}
+
+func (r *BulkDeleteRecorder) DeletedIDs() []string {
+	r.mut.Lock()
+	defer r.mut.Unlock()
+
+	return slices.Clone(r.deletedIDs)
 }
 
 // CatPluginsResponse builds a response for the CAT plugins API. As in a real CAT plugins response,

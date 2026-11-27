@@ -4,7 +4,9 @@
 package opensearch
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -21,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 )
 
 func TestOpenSearchIndexerClientTimesOutStalledResponse(t *testing.T) {
@@ -122,6 +125,110 @@ func TestOpenSearchIndexerJobIsEnabled(t *testing.T) {
 	})
 }
 
+// setupOpenSearchIndexerThroughRecorder points the server at OpenSearch through
+// a common.BulkDeleteRecorder, using an index prefix unique to the test so that its
+// indexes start out missing, as they are after a purge. It returns a running
+// indexer worker, a client for direct assertions and the recorder.
+//
+// Skips the test if OpenSearch is not available.
+func setupOpenSearchIndexerThroughRecorder(t *testing.T, th *api4.TestHelper) (model.Worker, *opensearchapi.Client, *common.BulkDeleteRecorder, string) {
+	t.Helper()
+
+	connURL := "http://localhost:9201"
+	if os.Getenv("IS_CI") == "true" {
+		connURL = "http://opensearch:9201"
+	}
+	rec := common.NewBulkDeleteRecorder(t, connURL)
+	indexPrefix := "test" + model.NewId()[:8] + "_"
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = rec.URL
+		*cfg.ElasticsearchSettings.Sniff = false
+		*cfg.ElasticsearchSettings.IndexPrefix = indexPrefix
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
+	if _, err := client.Info(context.Background(), nil); err != nil {
+		t.Skipf("OpenSearch not available at %s: %v", connURL, err)
+	}
+	t.Cleanup(func() {
+		_, _ = client.Indices.Delete(context.Background(), opensearchapi.IndicesDeleteReq{Indices: []string{indexPrefix + "*"}})
+	})
+
+	impl := OpensearchIndexerInterfaceImpl{Server: th.App.Srv()}
+	worker := impl.MakeWorker()
+	require.NotNil(t, worker)
+	th.Server.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, worker, nil)
+	go worker.Run()
+	t.Cleanup(worker.Stop)
+
+	return worker, client, rec, indexPrefix
+}
+
+func runIndexingJob(t *testing.T, th *api4.TestHelper, worker model.Worker) *model.Job {
+	t.Helper()
+	job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeElasticsearchPostIndexing, map[string]string{})
+	require.Nil(t, appErr)
+	worker.JobChannel() <- *job
+	return waitForIndexingJob(t, th, job.Id, 60*time.Second)
+}
+
+func countIndexedPosts(t *testing.T, client *opensearchapi.Client, indexPrefix string, postIDs ...string) int {
+	t.Helper()
+	postIndexes := indexPrefix + common.IndexBasePosts + "*"
+	_, err := client.Indices.Refresh(context.Background(), &opensearchapi.IndicesRefreshReq{Index: []string{postIndexes}})
+	require.NoError(t, err)
+
+	query, err := json.Marshal(map[string]any{"query": map[string]any{"ids": map[string]any{"values": postIDs}}})
+	require.NoError(t, err)
+	resp, err := client.Indices.Count(context.Background(), &opensearchapi.IndicesCountReq{
+		Indices: []string{postIndexes},
+		Body:    bytes.NewReader(query),
+	})
+	require.NoError(t, err)
+	return resp.Count
+}
+
+// softDeletePost marks a post as deleted in the database only, as if it had been
+// deleted while live indexing was unavailable.
+func softDeletePost(t *testing.T, th *api4.TestHelper, post *model.Post) {
+	t.Helper()
+	require.NoError(t, th.App.Srv().Store().Post().Delete(th.Context, post.Id, model.GetMillis(), th.BasicUser.Id))
+}
+
+// TestOpenSearchIndexerSkipsDeletesForEmptyIndexes verifies that a reindex into
+// empty indexes, such as after a purge, sends no delete operations for
+// soft-deleted posts, while a reindex into populated indexes still deletes them.
+//
+// Requires a running OpenSearch instance (skipped otherwise).
+func TestOpenSearchIndexerSkipsDeletesForEmptyIndexes(t *testing.T) {
+	th := api4.SetupEnterprise(t).InitBasic(t)
+	postDeletedBeforeRebuild := th.CreatePost(t)
+	postDeletedAfterRebuild := th.CreatePost(t)
+
+	worker, client, rec, indexPrefix := setupOpenSearchIndexerThroughRecorder(t, th)
+
+	softDeletePost(t, th, postDeletedBeforeRebuild)
+
+	job := runIndexingJob(t, th, worker)
+	require.Equal(t, model.JobStatusSuccess, job.Status)
+	assert.Empty(t, rec.DeletedIDs(), "a rebuild into empty indexes should not send delete operations")
+	assert.Equal(t, 2, countIndexedPosts(t, client, indexPrefix, th.BasicPost.Id, postDeletedAfterRebuild.Id))
+	assert.Zero(t, countIndexedPosts(t, client, indexPrefix, postDeletedBeforeRebuild.Id))
+
+	softDeletePost(t, th, postDeletedAfterRebuild)
+
+	job = runIndexingJob(t, th, worker)
+	require.Equal(t, model.JobStatusSuccess, job.Status)
+	assert.ElementsMatch(t, []string{postDeletedBeforeRebuild.Id, postDeletedAfterRebuild.Id}, rec.DeletedIDs(),
+		"a reindex into populated indexes should send delete operations for soft-deleted posts")
+	assert.Zero(t, countIndexedPosts(t, client, indexPrefix, postDeletedAfterRebuild.Id), "the stale document should be removed")
+	assert.Equal(t, 1, countIndexedPosts(t, client, indexPrefix, th.BasicPost.Id))
+}
+
 // TestOpenSearchDeleteNonExistentDocument verifies that bulk deletes returning 404
 // (document not found) do not cause the indexing job to fail. A soft-deleted post
 // that was never indexed is used so the delete operation is guaranteed to 404.
@@ -130,45 +237,22 @@ func TestOpenSearchIndexerJobIsEnabled(t *testing.T) {
 func TestOpenSearchDeleteNonExistentDocument(t *testing.T) {
 	th := api4.SetupEnterprise(t).InitBasic(t)
 
-	connURL := "http://localhost:9201"
-	if os.Getenv("IS_CI") == "true" {
-		connURL = "http://opensearch:9201"
-	}
+	worker, _, rec, _ := setupOpenSearchIndexerThroughRecorder(t, th)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ElasticsearchSettings.ConnectionURL = connURL
-		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
-		*cfg.ElasticsearchSettings.EnableIndexing = true
-		*cfg.ElasticsearchSettings.EnableSearching = true
-		*cfg.ElasticsearchSettings.EnableAutocomplete = true
-		*cfg.SqlSettings.DisableDatabaseSearch = true
+	// Populate the indexes first: deletes are only sent to indexes that are not empty.
+	job := runIndexingJob(t, th, worker)
+	require.Equal(t, model.JobStatusSuccess, job.Status)
+
+	neverIndexedPost, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "never indexed",
+		DeleteAt:  model.GetMillis(),
 	})
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	require.NoError(t, err)
 
-	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
-
-	_, err := client.Info(context.Background(), nil)
-	if err != nil {
-		t.Skipf("OpenSearch not available at %s: %v", connURL, err)
-	}
-
-	// Soft-delete a post so the job issues a bulk delete for it. Since the index
-	// is empty (no prior reindex), the document doesn't exist and OS returns 404.
-	_, appErr := th.App.DeletePost(th.Context, th.BasicPost.Id, th.BasicUser.Id)
-	require.Nil(t, appErr)
-
-	impl := OpensearchIndexerInterfaceImpl{Server: th.App.Srv()}
-	worker := impl.MakeWorker()
-	require.NotNil(t, worker)
-	th.Server.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, worker, nil)
-
-	go worker.Run()
-	defer worker.Stop()
-
-	job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeElasticsearchPostIndexing, map[string]string{})
-	require.Nil(t, appErr)
-	worker.JobChannel() <- *job
-	job = waitForIndexingJob(t, th, job.Id, 60*time.Second)
+	job = runIndexingJob(t, th, worker)
+	require.Contains(t, rec.DeletedIDs(), neverIndexedPost.Id)
 	assert.Equal(t, model.JobStatusSuccess, job.Status, "reindex with 404 deletes should succeed")
 }
 
