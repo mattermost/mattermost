@@ -2524,7 +2524,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.mobileSecurity.mobileQRLogin.enableDescription', defaultMessage: 'When enabled, signed-in users on the web or desktop app can show a one-time QR code. Scanning it with the phone\'s camera opens the Mattermost mobile app and signs in with the same account. Codes can be used once and expire quickly. The mobile session lasts as long as the mobile session length set in {sessionLengths}.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                                     help_text_values: {
                                         sessionLengths: (
-                                            <a href='../session_lengths'>
+                                            <a href='session_lengths'>
                                                 <b>
                                                     <FormattedMessage
                                                         id='admin.mobileSecurity.mobileQRLogin.sessionLengths'
