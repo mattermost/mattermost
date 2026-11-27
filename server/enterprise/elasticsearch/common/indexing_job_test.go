@@ -9,6 +9,7 @@ import (
 	"maps"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
@@ -66,6 +68,114 @@ func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
 	assert.Equal(t, deletedChannel, lastChannel)
 	assert.True(t, indexedChannels["ch1"], "Active channel should be indexed")
 	assert.True(t, indexedChannels["ch2"], "Deleted channel should also be indexed")
+}
+
+type bulkOp struct {
+	index, op, id string
+}
+
+type bulkOpRecorder struct {
+	ops []bulkOp
+}
+
+func (r *bulkOpRecorder) add(indexName, indexOp, docID string, _ io.ReadSeeker) error {
+	r.ops = append(r.ops, bulkOp{index: indexName, op: indexOp, id: docID})
+	return nil
+}
+
+func (r *bulkOpRecorder) ids(op string) []string {
+	var ids []string
+	for _, o := range r.ops {
+		if o.op == op {
+			ids = append(ids, o.id)
+		}
+	}
+	return ids
+}
+
+func TestBulkIndexSkipsDeletesForEmptyIndexes(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	jobServer := &jobs.JobServer{ConfigService: &testutils.StaticConfigService{Cfg: cfg}}
+	now := time.Now()
+
+	newWorker := func(t *testing.T, rec *bulkOpRecorder, isIndexEmpty func(string) (bool, error)) *IndexerWorker {
+		return NewIndexerWorker("test", model.ElasticsearchSettingsOSBackend, jobServer, mlog.CreateConsoleTestLogger(t), nil, nil, nil, rec.add, nil, isIndexEmpty)
+	}
+
+	livePost := &model.PostForIndexing{Post: model.Post{Id: model.NewId(), CreateAt: now.UnixMilli()}}
+	deletedPost := &model.PostForIndexing{Post: model.Post{Id: model.NewId(), CreateAt: now.UnixMilli(), DeleteAt: now.UnixMilli()}}
+	liveFile := &model.FileForIndexing{FileInfo: model.FileInfo{Id: model.NewId(), PostId: livePost.Id, CreateAt: now.UnixMilli()}}
+	deletedFile := &model.FileForIndexing{FileInfo: model.FileInfo{Id: model.NewId(), PostId: deletedPost.Id, CreateAt: now.UnixMilli(), DeleteAt: now.UnixMilli()}}
+
+	for _, tc := range []struct {
+		name          string
+		isIndexEmpty  func(string) (bool, error)
+		expectDeletes bool
+	}{
+		{
+			name:          "empty indexes",
+			isIndexEmpty:  func(string) (bool, error) { return true, nil },
+			expectDeletes: false,
+		},
+		{
+			name:          "populated indexes",
+			isIndexEmpty:  func(string) (bool, error) { return false, nil },
+			expectDeletes: true,
+		},
+		{
+			name:          "failing emptiness check",
+			isIndexEmpty:  func(string) (bool, error) { return false, fmt.Errorf("timeout") },
+			expectDeletes: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := &bulkOpRecorder{}
+			worker := newWorker(t, rec, tc.isIndexEmpty)
+
+			_, appErr := worker.BulkIndexPosts([]*model.PostForIndexing{livePost, deletedPost}, IndexingProgress{Now: now})
+			require.Nil(t, appErr)
+			_, appErr = worker.BulkIndexFiles([]*model.FileForIndexing{liveFile, deletedFile}, IndexingProgress{Now: now})
+			require.Nil(t, appErr)
+
+			assert.ElementsMatch(t, []string{livePost.Id, liveFile.Id}, rec.ids(indexOp))
+			if tc.expectDeletes {
+				assert.ElementsMatch(t, []string{deletedPost.Id, deletedFile.Id}, rec.ids(deleteOp))
+				assert.Zero(t, worker.skippedDeletes)
+			} else {
+				assert.Empty(t, rec.ids(deleteOp))
+				assert.Equal(t, int64(2), worker.skippedDeletes)
+			}
+		})
+	}
+
+	t.Run("checks each index once, before writing to it", func(t *testing.T) {
+		rec := &bulkOpRecorder{}
+		var checked []string
+		worker := newWorker(t, rec, func(indexName string) (bool, error) {
+			for _, o := range rec.ops {
+				assert.NotEqual(t, indexName, o.index, "index checked after the job wrote to it")
+			}
+			checked = append(checked, indexName)
+			return true, nil
+		})
+
+		yesterday := now.AddDate(0, 0, -1)
+		postFromYesterday := &model.PostForIndexing{Post: model.Post{Id: model.NewId(), CreateAt: yesterday.UnixMilli()}}
+
+		_, appErr := worker.BulkIndexPosts([]*model.PostForIndexing{postFromYesterday, livePost}, IndexingProgress{Now: now})
+		require.Nil(t, appErr)
+		_, appErr = worker.BulkIndexPosts([]*model.PostForIndexing{deletedPost}, IndexingProgress{Now: now})
+		require.Nil(t, appErr)
+
+		prefix := *cfg.ElasticsearchSettings.IndexPrefix + IndexBasePosts
+		assert.Equal(t, []string{
+			fmt.Sprintf("%s_%d_%02d_%02d", prefix, yesterday.Year(), yesterday.Month(), yesterday.Day()),
+			fmt.Sprintf("%s_%d_%02d_%02d", prefix, now.Year(), now.Month(), now.Day()),
+		}, checked)
+		assert.Empty(t, rec.ids(deleteOp), "the index was empty when the job first wrote to it")
+		assert.Equal(t, int64(1), worker.skippedDeletes)
+	})
 }
 
 func TestCurrentProgressCapsAt100(t *testing.T) {
