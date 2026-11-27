@@ -44,10 +44,17 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Under ``PluginSettings`` in ``config.json``, added ``RestrictUnauthenticatedWebappPlugins`` configuration setting to control whether unauthenticated requests to ``GET /api/v4/plugins/webapp`` only return plugins that set ``webapp.pre_auth``. Defaults to enabled for new installations; disabled on upgrade. See the [Web app plugins: Loading before login with preauth](https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth) documentation for details.
    - Under ``CloudSettings`` in ``config.json``, added ``PreviewLandingPath`` configuration setting for the path a cloud preview visitor lands on after the CWS login.
 
-#### Compatibility
- - Reduced the client configuration returned by ``GET /api/v4/config/client`` to users who are not logged in. It no longer includes settings that are only needed after login, such as build details, logging settings, websocket settings, support settings, and feature flags. These settings are still returned to logged-in users. Plugin and integration developers whose code reads any of these settings before the user logs in should update their code accordingly.
-
 #### Important Upgrade Notes
+ - The client configuration returned by ``GET /api/v4/config/client`` to users who aren't logged in no longer includes settings that are only needed after login. The following settings are now returned only to logged-in users:
+   - Build and environment details: ``BuildDate``, ``BuildHashEnterprise``, ``IsFipsEnabled``
+   - Logging and diagnostics: ``EnableFile``, ``FileLevel``, ``EnableDiagnostics``, ``EnableClientMetrics``, ``EnableComplianceExport``
+   - Websocket settings: ``WebsocketURL``, ``WebsocketPort``, ``WebsocketSecurePort``
+   - Mobile app version requirements: ``AndroidLatestVersion``, ``AndroidMinVersion``, ``IosLatestVersion``, ``IosMinVersion``
+   - Support settings: ``ReportAProblemType``, ``ReportAProblemMail``, ``AllowDownloadLogs``, ``SupportEmail``, ``EnableAskCommunityLink``
+   - Other settings: ``EnableCustomEmoji``, ``EnableUserStatuses``, ``HasImageProxy``, ``AppsPluginEnabled``, ``HideGuestTags``, ``GuestAccountsEnforceMultifactorAuthentication``, ``CWSURL``, ``EnableBotAccountCreation``, ``EnableJoinLeaveMessageByDefault``, ``MobilePreventScreenCapture``
+   - All feature flags (``FeatureFlag*``), except ``FeatureFlagSessionAttributes``
+
+   Mattermost web, desktop and mobile apps aren't affected. 3rd party plugins and integrations that read any of these settings before the user logs in should update their code accordingly.
  - Config validation now rejects a ``CacheSettings.RedisCachePrefix`` value that contains ``:``, ``*``, ``?``, ``[``, ``]``, or ``\`` when the Redis cache is enabled. A server already configured with such a prefix will fail config validation after upgrading and must change the prefix before restarting.
  - Allowed 0 (no limit) for ``TeamSettings.MaxUsersPerTeam`` and ``TeamSettings.MaxChannelsPerTeam``, and made 0 the default for new installations. Existing deployments keep their saved values. A server with either setting at 0 fails to start if downgraded to an earlier version that does not support 0.
  - ``LogSettings.EnableWebhookDebugging`` now defaults to false. When enabled, it logs failed incoming webhook requests with their payload, and System Console > Reporting > Site health shows a warning while it is on and debug logging is active. See the [Important upgrade notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes) documentation for details.
