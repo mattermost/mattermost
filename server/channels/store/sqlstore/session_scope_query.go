@@ -19,7 +19,12 @@ func sessionScopeChannelIDsQuery(builder sq.StatementBuilderType, resources *mod
 		From("Channels").
 		Where(sq.Eq{"Channels.DeleteAt": 0}).
 		Where(sq.NotEq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}}).
-		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = Channels.Id AND acp.Type = ?)", model.AccessControlPolicyTypeChannel))
+		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = Channels.Id AND acp.Type = ?)", model.AccessControlPolicyTypeChannel)).
+		Where(sq.Expr(`Channels.TeamId IN (
+			SELECT ct.Id FROM Teams ct
+			WHERE ct.DeleteAt = 0
+			AND NOT EXISTS (SELECT 1 FROM AccessControlPolicies ctacp WHERE ctacp.ID = ct.Id AND ctacp.Type = ?)
+		)`, model.AccessControlPolicyTypeTeam))
 
 	inScope := sq.Or{}
 	if resources != nil && len(resources.ChannelIDs) > 0 {

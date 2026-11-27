@@ -122,8 +122,7 @@ func (a *App) getScopeListedChannels(rctx request.CTX, scope *model.SessionScope
 	}
 	teamsByID, err := a.teamsByIDForChannels(channels)
 	if err != nil {
-		rctx.Logger().Warn("Failed to get the teams of channels listed by a session scope", mlog.Err(err))
-		return nil
+		return nil, err
 	}
 	listed := make([]*model.Channel, 0, len(channels))
 	for _, channel := range channels {

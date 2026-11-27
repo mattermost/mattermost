@@ -896,10 +896,14 @@ func TestScopedSessionSearch(t *testing.T) {
 		private, _, err := th.Client.CreateChannel(ctx, &model.Channel{TeamId: team.Id, Type: model.ChannelTypePrivate, Name: model.NewId(), DisplayName: "zzz private"})
 		require.NoError(t, err)
 
-		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
-			Permissions: model.ScopeReadPermissions,
-			Resources:   model.SessionScopeResources{ChannelIDs: []string{private.Id}, OpenTeamPublicChannels: true},
-		}, model.GetMillis()+30*60*1000)
+		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", &model.CreateScopedSessionRequest{
+			UserID: f.bot.Id,
+			Scope: &model.SessionScope{
+				Permissions: model.ScopeReadPermissions,
+				Resources:   model.SessionScopeResources{ChannelIDs: []string{private.Id}, OpenTeamPublicChannels: true},
+			},
+			ExpiresAt: model.GetMillis() + 30*60*1000,
+		})
 		require.NoError(t, err)
 		client := th.CreateClient()
 		client.SetToken(session.Token)
@@ -928,10 +932,14 @@ func TestScopedSessionSearch(t *testing.T) {
 				listed = append(listed, channel.Id)
 			}
 		}
-		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
-			Permissions: model.ScopeReadPermissions,
-			Resources:   model.SessionScopeResources{ChannelIDs: listed},
-		}, model.GetMillis()+30*60*1000)
+		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", &model.CreateScopedSessionRequest{
+			UserID: f.bot.Id,
+			Scope: &model.SessionScope{
+				Permissions: model.ScopeReadPermissions,
+				Resources:   model.SessionScopeResources{ChannelIDs: listed},
+			},
+			ExpiresAt: model.GetMillis() + 30*60*1000,
+		})
 		require.NoError(t, err)
 		client := th.CreateClient()
 		client.SetToken(session.Token)
@@ -1104,13 +1112,17 @@ func TestScopedSessionChannelAndTeamSearch(t *testing.T) {
 	})
 
 	t.Run("the triggering team's public channels with public_channel_team_ids", func(t *testing.T) {
-		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
-			Permissions: model.ScopeReadPermissions,
-			Resources: model.SessionScopeResources{
-				ChannelIDs:           []string{f.triggering.Id},
-				PublicChannelTeamIDs: []string{f.closedTeam.Id},
+		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", &model.CreateScopedSessionRequest{
+			UserID: f.bot.Id,
+			Scope: &model.SessionScope{
+				Permissions: model.ScopeReadPermissions,
+				Resources: model.SessionScopeResources{
+					ChannelIDs:           []string{f.triggering.Id},
+					PublicChannelTeamIDs: []string{f.closedTeam.Id},
+				},
 			},
-		}, model.GetMillis()+30*60*1000)
+			ExpiresAt: model.GetMillis() + 30*60*1000,
+		})
 		require.NoError(t, err)
 		client := th.CreateClient()
 		client.SetToken(session.Token)
