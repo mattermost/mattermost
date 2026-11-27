@@ -110,13 +110,22 @@ func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
 }
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
+	return SetupConfig(tb, nil, options...)
+}
+
+// SetupConfig is Setup with updateConfig applied to the config before the service starts, after
+// the helper's own settings, for settings the service reads once at start. Changing such a
+// setting on a running service would mean restarting its hubs, and the config listener publishes
+// an event on its own goroutine for every change, which reads the hub slice while the restart
+// replaces it.
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config), options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
 
 	dbStore, dbSettings := setupDBStore(tb)
 
-	return setupTestHelper(dbStore, dbSettings, false, true, tb, options...)
+	return setupTestHelper(dbStore, dbSettings, false, true, updateConfig, tb, options...)
 }
 
 func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
@@ -138,7 +147,7 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	options = append(options, StoreOverride(mockStore))
-	th := setupTestHelper(mockStore, &model.SqlSettings{}, false, false, tb, options...)
+	th := setupTestHelper(mockStore, &model.SqlSettings{}, false, false, nil, tb, options...)
 	return th
 }
 
@@ -149,15 +158,19 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 
 	dbStore, dbSettings := setupDBStore(tb)
 
-	th := setupTestHelper(dbStore, dbSettings, true, true, tb)
+	th := setupTestHelper(dbStore, dbSettings, true, true, nil, tb)
 	th.Service.clusterIFace = cluster
 
 	return th
 }
 
-func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
+func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, updateConfig func(cfg *model.Config), tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
+	// Shutdown removes the workspace too, but it is only registered once the service has
+	// started; this covers a setup that fails before that. Cleanups run last in, first out, so
+	// it runs after Shutdown.
+	tb.Cleanup(func() { os.RemoveAll(tempWorkspace) })
 
 	configStore := config.NewTestMemoryStore()
 
@@ -179,6 +192,13 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
+	// Share same configuration with app.TestHelper
+	*memoryConfig.TeamSettings.MaxUsersPerTeam = 50
+	*memoryConfig.RateLimitSettings.Enable = false
+	*memoryConfig.TeamSettings.EnableOpenServer = true
+	if updateConfig != nil {
+		updateConfig(memoryConfig)
+	}
 	_, _, err = configStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
@@ -211,13 +231,6 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 		emptyMockStore.On("Status").Return(&statusMock)
 		th.Service.Store = &emptyMockStore
 	}
-
-	// Share same configuration with app.TestHelper
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.MaxUsersPerTeam = 50
-		*cfg.RateLimitSettings.Enable = false
-		*cfg.TeamSettings.EnableOpenServer = true
-	})
 
 	if enterprise {
 		th.Service.SetLicense(model.NewTestLicense())

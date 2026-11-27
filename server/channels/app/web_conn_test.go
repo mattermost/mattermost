@@ -20,7 +20,11 @@ import (
 func TestWebConnShouldSendEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic(t)
+	// With channel iteration on, the hub's index decides channel membership and ShouldSendEvent does not
+	// check it; this test exercises the per-connection check, so the hubs start with the setting off.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = false
+	}).InitBasic(t)
 
 	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
 		{

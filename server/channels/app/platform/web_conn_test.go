@@ -1030,14 +1030,18 @@ func shouldSendEventBenchCases(memberChannelID string) []shouldSendEventBenchCas
 	}
 }
 
+// channelIterationOff starts the hubs with EnableWebHubChannelIteration off, so that
+// ShouldSendEvent checks channel membership itself instead of leaving it to the hub's index.
+// The hubs read the setting once when they start.
+func channelIterationOff(cfg *model.Config) {
+	*cfg.ServiceSettings.EnableWebHubChannelIteration = false
+}
+
 // TestWebConnShouldSendEventDecisions pins the decisions ShouldSendEvent makes on the
 // in-memory path (warm membership cache, EnableWebHubChannelIteration off), using a mock
 // suite so that permission denials can be exercised.
 func TestWebConnShouldSendEventDecisions(t *testing.T) {
-	th := Setup(t)
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableWebHubChannelIteration = false
-	})
+	th := SetupConfig(t, channelIterationOff)
 
 	const grantedPermission = "granted_permission"
 	const deniedPermission = "denied_permission"
@@ -1113,10 +1117,7 @@ func TestWebConnShouldSendEventDecisions(t *testing.T) {
 // TestWebConnShouldSendEventAllocs asserts that the per-connection filtering the hub does
 // for every broadcast event does not allocate once the membership cache is warm.
 func TestWebConnShouldSendEventAllocs(t *testing.T) {
-	th := Setup(t)
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableWebHubChannelIteration = false
-	})
+	th := SetupConfig(t, channelIterationOff)
 
 	wc, channelIDs := newShouldSendEventBenchConn(t, th, 200)
 	memberChannelID := channelIDs[len(channelIDs)/2]
@@ -1385,10 +1386,7 @@ func TestDecodeBinaryRequestEnforcesMaxSize(t *testing.T) {
 }
 
 func BenchmarkShouldSendEvent(b *testing.B) {
-	th := Setup(b)
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableWebHubChannelIteration = false
-	})
+	th := SetupConfig(b, channelIterationOff)
 
 	wc, channelIDs := newShouldSendEventBenchConn(b, th, 200)
 
