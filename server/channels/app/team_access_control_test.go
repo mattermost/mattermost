@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -447,6 +448,264 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 	assert.Equal(t, int64(0), total, "total should reflect filtered count")
 }
 
+// TestSearchTeamAccessPolicies_ChannellessParentSelfInclusion verifies that a
+// team-scoped parent with no channels is listed only when the requester
+// satisfies its rules, matching ValidateTeamAdminPolicySelfInclusion.
+func TestSearchTeamAccessPolicies_ChannellessParentSelfInclusion(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const matchingExpr = "user.attributes.department == 'platform'"
+	const excludingExpr = "user.attributes.clearance == 'top-secret'"
+
+	saveChannellessParent := func(expression string) *model.AccessControlPolicy {
+		t.Helper()
+		policy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Name:     "Channelless Policy " + model.NewId(),
+			Scope:    model.AccessControlPolicyScopeTeam,
+			ScopeID:  th.BasicTeam.Id,
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: expression, Actions: []string{"*"}},
+			},
+		})
+		require.NoError(t, err)
+		return policy
+	}
+	matching := saveChannellessParent(matchingExpr)
+	excluding := saveChannellessParent(excludingExpr)
+
+	originalACS := th.App.Srv().ch.AccessControl
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+		mockACS.AssertExpectations(t)
+	})
+
+	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			return policy, nil
+		}).Maybe()
+	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), matchingExpr, mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil)
+	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), excludingExpr, mock.Anything).
+		Return([]*model.User{}, int64(0), nil)
+
+	policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+	require.Nil(t, appErr)
+	ids := make([]string, 0, len(policies))
+	for _, p := range policies {
+		ids = append(ids, p.ID)
+	}
+	assert.Contains(t, ids, matching.ID)
+	assert.NotContains(t, ids, excluding.ID)
+	assert.Equal(t, int64(1), total)
+
+	for _, tc := range []struct {
+		policyID string
+		want     bool
+	}{
+		{policyID: matching.ID, want: true},
+		{policyID: excluding.ID, want: false},
+	} {
+		included, err := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, tc.policyID, nil)
+		require.NoError(t, err)
+		assert.Equal(t, tc.want, included)
+	}
+}
+
+// TestSearchTeamAccessPolicies_MultipleRules verifies that when a policy has
+// multiple membership rules, a requester matching any of them is included
+// (OR semantics), not just the first one.
+func TestSearchTeamAccessPolicies_MultipleRules(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const firstRuleExpr = "user.attributes.department == 'engineering'"
+	const secondRuleExpr = "user.attributes.department == 'platform'"
+
+	// Create a policy with multiple membership rules.
+	policy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Type:     model.AccessControlPolicyTypeParent,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Revision: 1,
+		Name:     "Multi-rule Policy",
+		Scope:    model.AccessControlPolicyScopeTeam,
+		ScopeID:  th.BasicTeam.Id,
+		Rules: []model.AccessControlPolicyRule{
+			{Expression: firstRuleExpr, Actions: []string{model.AccessControlPolicyActionMembership}},
+			{Expression: secondRuleExpr, Actions: []string{model.AccessControlPolicyActionMembership}},
+		},
+	})
+	require.NoError(t, err)
+
+	originalACS := th.App.Srv().ch.AccessControl
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+	})
+
+	t.Run("requester matching first rule is included", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), firstRuleExpr, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), secondRuleExpr, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Maybe()
+
+		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		ids := make([]string, 0, len(policies))
+		for _, p := range policies {
+			ids = append(ids, p.ID)
+		}
+		assert.Contains(t, ids, policy.ID, "policy should be visible when requester matches first rule")
+		assert.Equal(t, int64(1), total)
+	})
+
+	t.Run("requester matching only second rule is included", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), firstRuleExpr, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), secondRuleExpr, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
+
+		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		ids := make([]string, 0, len(policies))
+		for _, p := range policies {
+			ids = append(ids, p.ID)
+		}
+		assert.Contains(t, ids, policy.ID, "policy should be visible when requester matches second rule")
+		assert.Equal(t, int64(1), total)
+	})
+
+	t.Run("requester matching neither rule is excluded", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			mockACS.AssertExpectations(t)
+		})
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), firstRuleExpr, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), secondRuleExpr, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		ids := make([]string, 0, len(policies))
+		for _, p := range policies {
+			ids = append(ids, p.ID)
+		}
+		assert.NotContains(t, ids, policy.ID, "policy should be hidden when requester matches no rules")
+		assert.Equal(t, int64(0), total)
+	})
+}
+
+// TestSearchTeamAccessPolicies_MixedRuleTypes verifies that when a policy has
+// both membership and permission rules, only the membership rules are checked
+// for self-inclusion filtering (permission rules are ignored).
+func TestSearchTeamAccessPolicies_MixedRuleTypes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const membershipRuleExpr = "user.attributes.department == 'platform'"
+	const permissionRuleExpr = "user.attributes.clearance == 'top-secret'"
+
+	// Create a v0.3 policy with a permission rule first, then a membership rule.
+	// This tests that we don't just check the first effective rule.
+	policy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Type:     model.AccessControlPolicyTypeParent,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Revision: 1,
+		Name:     "Mixed Rule Policy",
+		Scope:    model.AccessControlPolicyScopeTeam,
+		ScopeID:  th.BasicTeam.Id,
+		Rules: []model.AccessControlPolicyRule{
+			{Expression: permissionRuleExpr, Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}},
+			{Expression: membershipRuleExpr, Actions: []string{model.AccessControlPolicyActionMembership}},
+		},
+	})
+	require.NoError(t, err)
+
+	originalACS := th.App.Srv().ch.AccessControl
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+		mockACS.AssertExpectations(t)
+	})
+
+	mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+		Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			return policy, nil
+		}).Maybe()
+
+	t.Run("requester matching membership rule is included even when permission rule doesn't match", func(t *testing.T) {
+		// Permission rule check should not be called - only membership rules are checked.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), membershipRuleExpr, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
+
+		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		ids := make([]string, 0, len(policies))
+		for _, p := range policies {
+			ids = append(ids, p.ID)
+		}
+		assert.Contains(t, ids, policy.ID, "policy should be visible when requester matches the membership rule")
+		assert.Equal(t, int64(1), total)
+	})
+
+	t.Run("requester not matching membership rule is excluded regardless of permission rule", func(t *testing.T) {
+		// Permission rule check should not be called - only membership rules are checked.
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), membershipRuleExpr, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		ids := make([]string, 0, len(policies))
+		for _, p := range policies {
+			ids = append(ids, p.ID)
+		}
+		assert.NotContains(t, ids, policy.ID, "policy should be hidden when requester doesn't match membership rules")
+		assert.Equal(t, int64(0), total)
+	})
+}
+
 func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -880,6 +1139,51 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, result)
 	})
+}
+
+func TestValidateTeamAdminPolicySelfInclusion_NormalizesStoredRules(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ch := th.CreatePrivateChannel(t, th.BasicTeam)
+	parentPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+	parentPolicy.Rules = []model.AccessControlPolicyRule{
+		{Expression: "user.attributes.field_id == 'x'", Actions: []string{"*"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+	require.NoError(t, err)
+
+	mockACS.ExpectedCalls = nil
+	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			policy.Rules = []model.AccessControlPolicyRule{
+				{Expression: "user.attributes.department == 'x'", Actions: []string{"*"}},
+			}
+			return policy, nil
+		})
+	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"),
+		"user.attributes.department == 'x'", mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil)
+
+	included, err := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.NoError(t, err)
+	assert.True(t, included)
+}
+
+func TestValidateTeamAdminPolicySelfInclusion_NormalizeFailureFailsClosed(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ch := th.CreatePrivateChannel(t, th.BasicTeam)
+	parentPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+	parentPolicy.Rules = []model.AccessControlPolicyRule{
+		{Expression: "user.attributes.department == 'x'", Actions: []string{"*"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+	require.NoError(t, err)
+
+	included, err := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.Error(t, err)
+	assert.False(t, included)
+	mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 }
 
 // TestCreateOrUpdateAccessControlPolicy_AdvancedMembershipRule verifies that

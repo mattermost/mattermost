@@ -118,21 +118,18 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	// Filter by self-inclusion. Skip the filter for parent policies whose
 	// children are all public channels — public-channel ABAC is advisory and
 	// can never lock the requesting admin out, so a non-matching expression
-	// is not a reason to hide the policy from them.
+	// is not a reason to hide the policy from them. Parents with no children
+	// keep the filter, so the list matches what get, update and delete allow.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
-		effectiveRules := policy.EffectiveRules()
-		if len(effectiveRules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
-			expression := effectiveRules[0].Expression
-			matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
-			if matchErr != nil {
-				rctx.Logger().Warn("Failed to validate self-inclusion for policy",
-					mlog.String("policy_id", policy.ID), mlog.Err(matchErr))
-				continue
-			}
-			if !matches {
-				continue
-			}
+		visible, matchErr := a.teamPolicyVisibleToRequester(rctx, policy, requesterID, idToType, batchLookupFailed)
+		if matchErr != nil {
+			rctx.Logger().Warn("Failed to validate self-inclusion for policy",
+				mlog.String("policy_id", policy.ID), mlog.Err(matchErr))
+			continue
+		}
+		if !visible {
+			continue
 		}
 		filtered = append(filtered, policy)
 	}
@@ -195,6 +192,197 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 	}
 
 	return len(channelResults) > 0, nil
+}
+
+// teamPolicyVisibleToRequester is the per-policy self-inclusion predicate used
+// by SearchTeamAccessPolicies and ValidateTeamAdminPolicySelfInclusion. A
+// parent stays visible when it has no effective rules, or when it has children
+// and none of them is a private channel. Otherwise, including for a parent
+// with no children, the requester must satisfy at least one membership rule.
+//
+// visible is false when the requester does not satisfy any membership rule. A
+// non-nil error means the expression could not be evaluated; the listing hides
+// the policy, and a single-policy caller fails closed.
+func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string, idToType map[string]model.ChannelType, batchLookupFailed bool) (bool, error) {
+	if len(policy.EffectiveRules()) == 0 {
+		return true, nil
+	}
+	if childIDs, ok := childIDsFromPolicyProps(policy); ok && len(childIDs) > 0 &&
+		!policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
+		return true, nil
+	}
+	return a.requesterMatchesAnyMembershipRule(rctx, policy, requesterID)
+}
+
+// requesterMatchesAnyMembershipRule reports whether requesterID satisfies any
+// membership rule in the policy. The engine ORs membership rules together, so
+// this function checks all rules with the membership action (or legacy "*") and
+// returns true if the requester matches at least one. No effective rules is a
+// match. Expression errors are returned to the caller.
+func (a *App) requesterMatchesAnyMembershipRule(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string) (bool, error) {
+	effectiveRules := policy.EffectiveRules()
+	if len(effectiveRules) == 0 {
+		return true, nil
+	}
+
+	// Filter for membership rules (membership action or legacy "*").
+	var membershipRules []model.AccessControlPolicyRule
+	for _, rule := range effectiveRules {
+		if slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) || slices.Contains(rule.Actions, "*") {
+			membershipRules = append(membershipRules, rule)
+		}
+	}
+
+	// If there are no membership rules, treat it as a match to maintain
+	// backwards compatibility with permission-only policies.
+	if len(membershipRules) == 0 {
+		return true, nil
+	}
+
+	// Check each membership rule. Return true if any matches (OR semantics).
+	for _, rule := range membershipRules {
+		matches, appErr := a.ValidateExpressionAgainstRequester(rctx, rule.Expression, requesterID)
+		if appErr != nil {
+			return false, appErr
+		}
+		if matches {
+			return true, nil
+		}
+	}
+
+	// No membership rule matched.
+	return false, nil
+}
+
+// ValidateTeamAdminPolicySelfInclusion reports whether userID satisfies the
+// stored rules of a parent policy. addedChannelIDs are included with the
+// policy's children before teamPolicyVisibleToRequester runs, so a channel
+// being assigned is part of the same check the team policy list uses.
+//
+// Returns (true, nil) when the check passes, (false, nil) when it does not,
+// or (false, err) when the policy cannot be loaded or the expression cannot
+// be evaluated.
+func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, policyID string, addedChannelIDs []string) (bool, error) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		IDs:             []string{policyID},
+		Type:            model.AccessControlPolicyTypeParent,
+		IncludeChildren: true,
+		Limit:           1,
+	})
+	if err != nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(policies) == 0 || policies[0] == nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "policy not found", http.StatusInternalServerError)
+	}
+
+	policy, appErr := acs.NormalizePolicy(rctx, policies[0])
+	if appErr != nil {
+		return false, appErr
+	}
+	if policy == nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "policy not found", http.StatusInternalServerError)
+	}
+	addChildChannelIDs(policy, addedChannelIDs)
+
+	childIDs, propsOk := childIDsFromPolicyProps(policy)
+	var idToType map[string]model.ChannelType
+	batchLookupFailed := false
+	if propsOk {
+		idToType, batchLookupFailed = a.childChannelTypesForSelfInclusion(rctx, childIDs)
+	}
+	return a.teamPolicyVisibleToRequester(rctx, policy, userID, idToType, batchLookupFailed)
+}
+
+// addChildChannelIDs appends channel IDs onto Props["child_ids"] when that
+// value is already a string list. An unreadable shape is left unchanged so
+// policyAppliesToPrivateChannel keeps the filter on.
+func addChildChannelIDs(policy *model.AccessControlPolicy, added []string) {
+	if policy == nil || len(added) == 0 {
+		return
+	}
+	existing, ok := childIDsFromPolicyProps(policy)
+	if !ok {
+		return
+	}
+
+	seen := make(map[string]struct{}, len(existing)+len(added))
+	merged := make([]string, 0, len(existing)+len(added))
+	for _, id := range existing {
+		if _, dup := seen[id]; dup {
+			continue
+		}
+		seen[id] = struct{}{}
+		merged = append(merged, id)
+	}
+	for _, id := range added {
+		if id == "" {
+			continue
+		}
+		if _, dup := seen[id]; dup {
+			continue
+		}
+		seen[id] = struct{}{}
+		merged = append(merged, id)
+	}
+	if policy.Props == nil {
+		policy.Props = map[string]any{}
+	}
+	policy.Props["child_ids"] = merged
+}
+
+// childChannelTypesForSelfInclusion loads channel types for a single policy's
+// children. On a store error it reports batchLookupFailed so the caller keeps
+// the self-inclusion filter on, matching SearchTeamAccessPolicies.
+func (a *App) childChannelTypesForSelfInclusion(rctx request.CTX, childIDs []string) (map[string]model.ChannelType, bool) {
+	if len(childIDs) == 0 {
+		return map[string]model.ChannelType{}, false
+	}
+
+	unionSet := make(map[string]struct{}, len(childIDs))
+	for _, id := range childIDs {
+		if id != "" {
+			unionSet[id] = struct{}{}
+		}
+	}
+	union := make([]string, 0, len(unionSet))
+	for id := range unionSet {
+		union = append(union, id)
+	}
+	slices.Sort(union)
+	if len(union) == 0 {
+		return map[string]model.ChannelType{}, false
+	}
+
+	channels, err := a.Srv().Store().Channel().GetChannelsByIds(union, true)
+	if err != nil {
+		rctx.Logger().Warn("Failed to look up child channels for self-inclusion gating; keeping the filter on",
+			mlog.Err(err),
+		)
+		return nil, true
+	}
+	if len(channels) != len(union) {
+		rctx.Logger().Warn("Partial batch child-channel lookup for self-inclusion gating",
+			mlog.Int("requested", len(union)),
+			mlog.Int("returned", len(channels)),
+		)
+	}
+	idToType := make(map[string]model.ChannelType, len(channels))
+	for _, ch := range channels {
+		idToType[ch.Id] = ch.Type
+	}
+	return idToType, false
 }
 
 // ReconcilePolicyTeamScope evaluates a parent policy's assigned channels and
@@ -457,9 +645,7 @@ func policyAppliesToPrivateChannel(rctx request.CTX, policy *model.AccessControl
 	}
 
 	if len(childIDs) == 0 {
-		// Channel-less policy (newly created, not yet assigned). Until a
-		// channel is attached there's nothing to lock anyone out of, so the
-		// filter is meaningless here.
+		// Channel-less policy (newly created, not yet assigned).
 		return false
 	}
 

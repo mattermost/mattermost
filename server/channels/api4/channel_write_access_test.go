@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -897,6 +898,12 @@ func TestChannelManagementAccessGatesTeamPolicyAssignment(t *testing.T) {
 			mockACS := installMockACS(t, th)
 			mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
 			mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).Return(false, nil).Maybe()
+			mockACS.On("NormalizePolicy", mock.Anything, mock.Anything).
+				Return(func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+					return policy, nil
+				}).Maybe()
+			mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+				Return([]*model.User{{Id: th.TeamAdminUser.Id}}, int64(1), nil).Maybe()
 			mockACS.On("AccessEvaluation", mock.Anything, channelManagementAccessEvaluation).
 				Return(model.AccessDecision{Decision: allow}, nil)
 			mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).

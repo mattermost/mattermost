@@ -124,6 +124,22 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 	}
 }
 
+// requireTeamAdminPolicySelfInclusion runs the stored-rule check for a team
+// admin and writes the same permission error as a failed ownership check.
+// Returns false when the handler should stop.
+func requireTeamAdminPolicySelfInclusion(c *Context, policyID string, addedChannelIDs []string) bool {
+	included, err := c.App.ValidateTeamAdminPolicySelfInclusion(c.AppContext, c.AppContext.Session().UserId, policyID, addedChannelIDs)
+	if err != nil {
+		c.Err = model.AsAppError(err)
+		return false
+	}
+	if !included {
+		c.SetPermissionError(model.PermissionManageTeamAccessRules)
+		return false
+	}
+	return true
+}
+
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var policy model.AccessControlPolicy
 	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
@@ -185,6 +201,9 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				}
 				if !owned {
 					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
+				if !requireTeamAdminPolicySelfInclusion(c, policy.ID, nil) {
 					return
 				}
 			}
@@ -317,6 +336,9 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
+				if !requireTeamAdminPolicySelfInclusion(c, policyID, nil) {
+					return
+				}
 			} else {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -400,6 +422,9 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				}
 				if !owned {
 					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
+				if !requireTeamAdminPolicySelfInclusion(c, policyID, nil) {
 					return
 				}
 			}
@@ -1070,6 +1095,9 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 							c.SetPermissionError(model.PermissionManageTeamAccessRules)
 							return
 						}
+						if !requireTeamAdminPolicySelfInclusion(c, entry.ID, nil) {
+							return
+						}
 					}
 				} else {
 					c.SetPermissionError(model.PermissionManageChannelAccessRules)
@@ -1167,6 +1195,9 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		if !owned {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
+			return
+		}
+		if !requireTeamAdminPolicySelfInclusion(c, policyID, assignments.ChannelIds) {
 			return
 		}
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
@@ -1275,6 +1306,9 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
+		if !requireTeamAdminPolicySelfInclusion(c, policyID, nil) {
+			return
+		}
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
 			return
@@ -1357,6 +1391,9 @@ func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *htt
 				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
+			if !requireTeamAdminPolicySelfInclusion(c, policyID, nil) {
+				return
+			}
 		} else {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
@@ -1416,6 +1453,9 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 			}
 			if !owned {
 				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
+			}
+			if !requireTeamAdminPolicySelfInclusion(c, c.Params.PolicyId, nil) {
 				return
 			}
 		} else {
