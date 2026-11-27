@@ -459,6 +459,16 @@ class NoteCleanupTest(unittest.TestCase):
                 self.assertNotIn("config-change-checker:start", result)
         self.assertEqual(checker.inject_note(marked, ""), "```release-note\nNONE\n```")
 
+    def test_existing_header_without_fence_gets_the_fence_under_it(self):
+        for body in ["#### Release Note\nfoo", "intro\n## Release Notes\n<!-- hint -->\nmore", "#### Release Note"]:
+            with self.subTest(body=body):
+                generated = checker.inject_note(body, "note")
+                self.assertEqual(generated.lower().count("release note"), body.lower().count("release note"))
+                header_end = generated.lower().index("release note")
+                self.assertGreater(checker._release_note_fence(generated).start(), header_end)
+                self.assertEqual(checker.inject_note(generated, "note"), generated)
+                self.assertEqual(checker.inject_note(generated, ""), body)
+
     def test_repeated_runs_do_not_grow_the_description(self):
         for body in ["## Release Notes\nfoo", "description", ""]:
             with self.subTest(body=body):
