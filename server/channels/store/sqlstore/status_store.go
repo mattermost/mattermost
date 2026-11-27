@@ -158,7 +158,10 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 }
 
 func (s SqlStatusStore) ResetAll() error {
-	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = ? WHERE Manual = false", model.StatusOffline); err != nil {
+	// A manually pinned online status is cleared alongside the automatic ones: it must not
+	// outlive the connections that justify it. Manual is reset too, otherwise the row would
+	// become a manual offline and block the user from coming back online on reconnect.
+	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = ?, Manual = false WHERE Manual = false OR Status = ?", model.StatusOffline, model.StatusOnline); err != nil {
 		return errors.Wrap(err, "failed to update Statuses")
 	}
 	return nil
