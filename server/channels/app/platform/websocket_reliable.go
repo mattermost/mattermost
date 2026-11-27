@@ -44,6 +44,8 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 		return &model.WSQueues{
 			ActiveQ:    aqSlice,
 			ReuseCount: connRes.ReuseCount,
+
+			SessionAttributes: connRes.SessionAttributes,
 		}, nil
 	}
 
@@ -63,6 +65,8 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 			ActiveQ:    aqSlice,
 			DeadQ:      dqSlice,
 			ReuseCount: connRes.ReuseCount,
+
+			SessionAttributes: connRes.SessionAttributes,
 		}, nil
 	}
 

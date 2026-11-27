@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitFor} from '@testing-library/react';
 import cloneDeep from 'lodash/cloneDeep';
 import nock from 'nock';
 import type {IntlShape} from 'react-intl';
@@ -8,6 +9,7 @@ import type {AnyAction} from 'redux';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import type {DesktopAPI} from '@mattermost/desktop-api';
 import {
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
@@ -47,6 +49,7 @@ import store from 'stores/redux_store';
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
@@ -2558,5 +2561,38 @@ describe('channel read access on role changes', () => {
 
             expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('handleSessionAttributesExpired', () => {
+    const originalDesktopAPI = window.desktopAPI;
+
+    afterEach(() => {
+        window.desktopAPI = originalDesktopAPI;
+        jest.restoreAllMocks();
+        nock.cleanAll();
+    });
+
+    test('has the Desktop App resend its session attributes on a request it then makes', async () => {
+        TestHelper.initBasic(Client4);
+        const fetchSpy = jest.spyOn(global, 'fetch');
+        let requestsBeforeResend: number | undefined;
+        window.desktopAPI = {
+            resendSessionAttributes: () => {
+                requestsBeforeResend = fetchSpy.mock.calls.length;
+            },
+        } as Partial<DesktopAPI> as DesktopAPI;
+
+        const refresh = nock(Client4.getBaseRoute()).
+            get('/users/sessions/attributes/manifest').
+            reply(200, []);
+
+        handleEvent(wsMessage<WebSocketMessages.SessionAttributesExpired>({
+            event: WebSocketEvents.SessionAttributesExpired,
+            data: {attributes: ['ip_address']},
+        }));
+
+        await waitFor(() => expect(refresh.isDone()).toBe(true));
+        expect(requestsBeforeResend).toBe(0);
     });
 });
