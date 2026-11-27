@@ -32,6 +32,76 @@ import {Filter} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
 
+// The words that name the list as a whole, for a list of channels or of boards (Browse Boards).
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const listMessages: Record<string, KindMessages> = {
+    noArchived: {
+        channel: defineMessage({id: 'more_channels.noArchived', defaultMessage: 'No archived channels'}),
+        board: defineMessage({id: 'more_channels.noArchived.board', defaultMessage: 'No archived boards'}),
+    },
+    noPrivate: {
+        channel: defineMessage({id: 'more_channels.noPrivate', defaultMessage: 'No private channels'}),
+        board: defineMessage({id: 'more_channels.noPrivate.board', defaultMessage: 'No private boards'}),
+    },
+    noPublic: {
+        channel: defineMessage({id: 'more_channels.noPublic', defaultMessage: 'No public channels'}),
+        board: defineMessage({id: 'more_channels.noPublic.board', defaultMessage: 'No public boards'}),
+    },
+    noChannels: {
+        channel: defineMessage({id: 'more_channels.noChannels', defaultMessage: 'No channels'}),
+        board: defineMessage({id: 'more_channels.noChannels.board', defaultMessage: 'No boards'}),
+    },
+    showArchived: {
+        channel: defineMessage({id: 'more_channels.show_archived_channels', defaultMessage: 'Channel Type: Archived'}),
+        board: defineMessage({id: 'more_channels.show_archived_channels.board', defaultMessage: 'Board Type: Archived'}),
+    },
+    showPublic: {
+        channel: defineMessage({id: 'more_channels.show_public_channels', defaultMessage: 'Channel Type: Public'}),
+        board: defineMessage({id: 'more_channels.show_public_channels.board', defaultMessage: 'Board Type: Public'}),
+    },
+    showPrivate: {
+        channel: defineMessage({id: 'more_channels.show_private_channels', defaultMessage: 'Channel Type: Private'}),
+        board: defineMessage({id: 'more_channels.show_private_channels.board', defaultMessage: 'Board Type: Private'}),
+    },
+    showAll: {
+        channel: defineMessage({id: 'more_channels.show_all_channels', defaultMessage: 'Channel Type: All'}),
+        board: defineMessage({id: 'more_channels.show_all_channels.board', defaultMessage: 'Board Type: All'}),
+    },
+    searchPlaceholder: {
+        channel: defineMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'}),
+        board: defineMessage({id: 'filtered_channels_list.search.board', defaultMessage: 'Search boards'}),
+    },
+    searchLabel: {
+        channel: defineMessage({id: 'filtered_channels_list.search.label', defaultMessage: 'Search Channels'}),
+        board: defineMessage({id: 'filtered_channels_list.search.label.board', defaultMessage: 'Search Boards'}),
+    },
+    typeAll: {
+        channel: defineMessage({id: 'suggestion.all', defaultMessage: 'All channel types'}),
+        board: defineMessage({id: 'suggestion.all.board', defaultMessage: 'All board types'}),
+    },
+    typePublic: {
+        channel: defineMessage({id: 'suggestion.public', defaultMessage: 'Public channels'}),
+        board: defineMessage({id: 'suggestion.public.board', defaultMessage: 'Public boards'}),
+    },
+    typePrivate: {
+        channel: defineMessage({id: 'suggestion.private', defaultMessage: 'Private channels'}),
+        board: defineMessage({id: 'suggestion.private.board', defaultMessage: 'Private boards'}),
+    },
+    typeArchived: {
+        channel: defineMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'}),
+        board: defineMessage({id: 'suggestion.archive.board', defaultMessage: 'Archived boards'}),
+    },
+    typeFilter: {
+        channel: defineMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+        board: defineMessage({id: 'more_channels.channel_type_filter.board', defaultMessage: 'Board type filter'}),
+    },
+    typeFilterSet: {
+        channel: defineMessage({id: 'more_channels.channel_type_filter.filter_type_set', defaultMessage: 'Channel type filter set to {filterType}'}),
+        board: defineMessage({id: 'more_channels.channel_type_filter.filter_type_set.board', defaultMessage: 'Board type filter set to {filterType}'}),
+    },
+};
+/* eslint-enable formatjs/enforce-placeholders */
+
 interface Props extends WrappedComponentProps {
     channels: Channel[];
     channelsPerPage: number;
@@ -57,12 +127,20 @@ interface Props extends WrappedComponentProps {
     // API calls. The two callbacks are no-ops on the parent if the FF is
     // off (children never render the affordance in that case).
     showDiscoverableFilters?: boolean;
+
+    // Whether rows offer Request to Join for discoverable private channels, when that differs from
+    // showing the filters: Browse Boards hides the filters but its rows still request access.
+    // Defaults to showDiscoverableFilters.
+    discoverableEnabled?: boolean;
     myPendingJoinRequests?: Record<string, ChannelJoinRequest>;
     handleRequestToJoin?: (channel: Channel, done: () => void) => void;
     handleWithdrawRequest?: (channel: Channel, done: () => void) => void;
 
     // The kinds of the listed channels that aren't plain channels, by id, which pick the words their rows use.
     channelKinds?: Record<string, ChannelKind>;
+
+    // What the list holds as a whole ('board' for Browse Boards), which picks the words naming it.
+    kind?: ChannelKind;
 }
 
 type State = {
@@ -173,7 +251,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     // member. The combined check folds the FF gate into one place so the
     // row rendering code stays linear.
     private isDiscoverableNonMember(channel: Channel) {
-        return Boolean(this.props.showDiscoverableFilters) &&
+        return Boolean(this.props.discoverableEnabled ?? this.props.showDiscoverableFilters) &&
             channel.type === Constants.PRIVATE_CHANNEL &&
             channel.discoverable === true &&
             !this.isMemberOfChannel(channel.id);
@@ -464,6 +542,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     handleArchivedChecked = () => {
         this.props.hideArchivedChannelsPreference(!this.props.rememberHideArchivedChannelsChecked);
     };
+    listKind = (): ChannelKind => this.props.kind ?? 'channel';
+
     getEmptyStateMessage = () => {
         if (this.state.channelSearchValue.length > 0) {
             return (
@@ -479,25 +559,22 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         case Filter.Archived:
             return (
                 <FormattedMessage
-                    id={'more_channels.noArchived'}
+                    {...listMessages.noArchived[this.listKind()]}
                     tagName='strong'
-                    defaultMessage={'No archived channels'}
                 />
             );
         case Filter.Private:
             return (
                 <FormattedMessage
-                    id={'more_channels.noPrivate'}
+                    {...listMessages.noPrivate[this.listKind()]}
                     tagName='strong'
-                    defaultMessage={'No private channels'}
                 />
             );
         case Filter.Public:
             return (
                 <FormattedMessage
-                    id={'more_channels.noPublic'}
+                    {...listMessages.noPublic[this.listKind()]}
                     tagName='strong'
-                    defaultMessage={'No public channels'}
                 />
             );
         case Filter.Recommended:
@@ -527,9 +604,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         default:
             return (
                 <FormattedMessage
-                    id={'more_channels.noChannels'}
+                    {...listMessages.noChannels[this.listKind()]}
                     tagName='strong'
-                    defaultMessage={'No channels'}
                 />
             );
         }
@@ -538,24 +614,15 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         switch (this.props.filter) {
         case Filter.Archived:
             return (
-                <FormattedMessage
-                    id='more_channels.show_archived_channels'
-                    defaultMessage='Channel Type: Archived'
-                />
+                <FormattedMessage {...listMessages.showArchived[this.listKind()]}/>
             );
         case Filter.Public:
             return (
-                <FormattedMessage
-                    id='more_channels.show_public_channels'
-                    defaultMessage='Channel Type: Public'
-                />
+                <FormattedMessage {...listMessages.showPublic[this.listKind()]}/>
             );
         case Filter.Private:
             return (
-                <FormattedMessage
-                    id='more_channels.show_private_channels'
-                    defaultMessage='Channel Type: Private'
-                />
+                <FormattedMessage {...listMessages.showPrivate[this.listKind()]}/>
             );
         case Filter.Recommended:
             return (
@@ -580,10 +647,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             );
         default:
             return (
-                <FormattedMessage
-                    id='more_channels.show_all_channels'
-                    defaultMessage='Channel Type: All'
-                />
+                <FormattedMessage {...listMessages.showAll[this.listKind()]}/>
             );
         }
     };
@@ -664,12 +728,12 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id='searchChannelsTextbox'
                     ref={this.filter}
                     className='form-control filter-textbox'
-                    placeholder={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
+                    placeholder={this.props.intl.formatMessage(listMessages.searchPlaceholder[this.listKind()])}
                     onInput={this.handleChange}
                     clearable={true}
                     onClear={this.handleClear}
                     value={this.state.channelSearchValue}
-                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search.label', defaultMessage: 'Search Channels'})}
+                    aria-label={this.props.intl.formatMessage(listMessages.searchLabel[this.listKind()])}
                 />
             </div>
         );
@@ -686,42 +750,27 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='channelsMoreDropdownAll'
                 onClick={() => this.filterChange(Filter.All)}
                 leadingElement={<GlobeCheckedIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.all'
-                        defaultMessage='All channel types'
-                    />
-                }
+                labels={<FormattedMessage {...listMessages.typeAll[this.listKind()]}/>}
                 trailingElements={this.props.filter === Filter.All ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.all', defaultMessage: 'All channel types'})}
+                aria-label={this.props.intl.formatMessage(listMessages.typeAll[this.listKind()])}
             />,
             <Menu.Item
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
                 onClick={() => this.filterChange(Filter.Public)}
                 leadingElement={<GlobeIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.public'
-                        defaultMessage='Public channels'
-                    />
-                }
+                labels={<FormattedMessage {...listMessages.typePublic[this.listKind()]}/>}
                 trailingElements={this.props.filter === Filter.Public ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.public', defaultMessage: 'Public channels'})}
+                aria-label={this.props.intl.formatMessage(listMessages.typePublic[this.listKind()])}
             />,
             <Menu.Item
                 key='channelsMoreDropdownPrivate'
                 id='channelsMoreDropdownPrivate'
                 onClick={() => this.filterChange(Filter.Private)}
                 leadingElement={<LockOutlineIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.private'
-                        defaultMessage='Private channels'
-                    />
-                }
+                labels={<FormattedMessage {...listMessages.typePrivate[this.listKind()]}/>}
                 trailingElements={this.props.filter === Filter.Private ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.private', defaultMessage: 'Private channels'})}
+                aria-label={this.props.intl.formatMessage(listMessages.typePrivate[this.listKind()])}
             />,
         ];
 
@@ -789,14 +838,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='channelsMoreDropdownArchived'
                 onClick={() => this.filterChange(Filter.Archived)}
                 leadingElement={<ArchiveOutlineIcon size={16}/>}
-                labels={
-                    <FormattedMessage
-                        id='suggestion.archive'
-                        defaultMessage='Archived channels'
-                    />
-                }
+                labels={<FormattedMessage {...listMessages.typeArchived[this.listKind()]}/>}
                 trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
-                aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
+                aria-label={this.props.intl.formatMessage(listMessages.typeArchived[this.listKind()])}
             />,
         );
         const menuButton = (
@@ -815,10 +859,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     aria-atomic='true'
                     className='sr-only'
                 >
-                    {this.props.intl.formatMessage({
-                        id: 'more_channels.channel_type_filter.filter_type_set',
-                        defaultMessage: 'Channel type filter set to {filterType}',
-                    }, {
+                    {this.props.intl.formatMessage(listMessages.typeFilterSet[this.listKind()], {
                         filterType: this.props.filter,
                     })}
                 </div>
@@ -826,7 +867,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     menuButton={{
                         id: 'menuWrapper',
                         children: menuButton,
-                        'aria-label': this.props.intl.formatMessage({id: 'more_channels.channel_type_filter', defaultMessage: 'Channel type filter'}),
+                        'aria-label': this.props.intl.formatMessage(listMessages.typeFilter[this.listKind()]),
                     }}
                     menu={{
                         id: 'browseChannelsDropdown',

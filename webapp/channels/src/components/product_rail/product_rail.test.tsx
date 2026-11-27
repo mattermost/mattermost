@@ -7,7 +7,7 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {ChannelTypes, PreferenceTypes} from 'mattermost-redux/action_types';
+import {PreferenceTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
 import type {ChannelKindRegistration} from 'selectors/views/product_rail';
@@ -229,6 +229,18 @@ describe('ProductRail', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+        });
+
+        test('should open the boards empty state when the user is in no boards, and mark Boards active there', () => {
+            const state = getBoardsState(townSquare.id, 'boards');
+            const channels = state.entities!.channels!;
+            const noBoards = {...state, entities: {...state.entities, channels: {...channels, myMembers: {[townSquare.id]: channels.myMembers![townSquare.id]}}}};
+
+            renderAt('/team-one/boards', noBoards);
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/boards');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
         });
 
         test('should mark Channels active in a channel', () => {
@@ -585,118 +597,23 @@ describe('ProductRail', () => {
             };
         }
 
-        test('should stay in place in a channel, just switching the sidebar', () => {
+        // The page says what boards are and opens the first board once there is one, so it also
+        // covers boards that aren't known yet.
+        test('should open the boards empty state from a channel', () => {
             renderAt('/team-one/channels/town-square', getNoBoardsState());
 
-            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/town-square');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/boards');
         });
 
-        test('should open the channel Channels would from another product, keeping the Boards sidebar', async () => {
+        test('should open the boards empty state from another product, with the Boards sidebar', async () => {
             const history = createMemoryHistory({initialEntries: ['/mattermost-ai']});
             const {store} = renderWithContext(<ProductRail/>, getNoBoardsState(), {history});
 
-            const boardsLink = screen.getByRole('link', {name: /Boards/});
-            expect(boardsLink).toHaveAttribute('href', '/team-one/channels/town-square');
+            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
 
-            await userEvent.click(boardsLink);
-
-            expect(history.location.pathname).toBe('/team-one/channels/town-square');
+            expect(history.location.pathname).toBe('/team-one/boards');
             expect(store.getState().views.productRail.section).toBe('boards');
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
-        });
-    });
-
-    describe('Boards before the team\'s boards are known', () => {
-        test('should open the first board once the boards load', async () => {
-            const historyReplace = (global as unknown as {historyMock: {replace: jest.Mock}}).historyMock.replace;
-            historyReplace.mockClear();
-
-            // The boards plugin can't tell boards apart until its own state has loaded.
-            let boardsKnown = false;
-            const state = getBoardsState(townSquare.id);
-            const {store} = renderAt('/mattermost-ai', {
-                ...state,
-                plugins: {
-                    components: {
-                        Product: [agents],
-                        ChannelKind: [{...boardKind, matcher: (_state: GlobalState, channel: {id: string}) => boardsKnown && channel.id === roadmap.id}],
-                    } as unknown as GlobalState['plugins']['components'],
-                },
-            });
-
-            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
-            expect(historyReplace).not.toHaveBeenCalled();
-
-            boardsKnown = true;
-            act(() => {
-                store.dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: {...roadmap}});
-            });
-
-            expect(historyReplace).toHaveBeenCalledWith('/team-one/channels/roadmap');
-        });
-    });
-
-    describe('Boards with no board to open, leaving before the channel loads', () => {
-        test('should move the sidebar to Channels on a later, ordinary visit to that channel', async () => {
-            // Bugs is still the open channel, so the fallback channel hasn't loaded yet when the user leaves.
-            const state = getBoardsState(bugs.id, 'channels');
-            const history = createMemoryHistory({initialEntries: ['/mattermost-ai']});
-            const {store} = renderWithContext(<ProductRail/>, {
-                ...state,
-                plugins: {
-                    components: {
-                        Product: [agents],
-                        ChannelKind: [{...boardKind, matcher: () => false}],
-                    } as unknown as GlobalState['plugins']['components'],
-                },
-            }, {history});
-
-            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
-            expect(history.location.pathname).toBe('/team-one/channels/town-square');
-            act(() => {
-                history.push('/mattermost-ai');
-            });
-
-            // Later, town square opens from an ordinary link.
-            act(() => {
-                store.dispatch({type: ChannelTypes.SELECT_CHANNEL, data: townSquare.id});
-                history.push('/team-one/channels/town-square');
-            });
-
-            expect(store.getState().views.productRail.section).toBe('channels');
-        });
-    });
-
-    describe('Boards before the team\'s boards are known, leaving first', () => {
-        test('should not open the first board after the user leaves for a page outside the rail', async () => {
-            const historyReplace = (global as unknown as {historyMock: {replace: jest.Mock}}).historyMock.replace;
-            historyReplace.mockClear();
-
-            let boardsKnown = false;
-            const state = getBoardsState(townSquare.id);
-            const history = createMemoryHistory({initialEntries: ['/mattermost-ai']});
-            const {store} = renderWithContext(<ProductRail/>, {
-                ...state,
-                plugins: {
-                    components: {
-                        Product: [agents],
-                        ChannelKind: [{...boardKind, matcher: (_state: GlobalState, channel: {id: string}) => boardsKnown && channel.id === roadmap.id}],
-                    } as unknown as GlobalState['plugins']['components'],
-                },
-            }, {history});
-
-            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
-            act(() => {
-                history.push('/team-one/integrations');
-            });
-
-            boardsKnown = true;
-            act(() => {
-                store.dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: {...roadmap}});
-                history.push('/team-one/channels/town-square');
-            });
-
-            expect(historyReplace).not.toHaveBeenCalled();
         });
     });
 

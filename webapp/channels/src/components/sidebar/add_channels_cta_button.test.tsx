@@ -7,7 +7,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {WindowSizes} from 'utils/constants';
+import {ModalIdentifiers, WindowSizes} from 'utils/constants';
 
 import AddChannelsCtaButton from './add_channels_cta_button';
 
@@ -131,6 +131,18 @@ describe('components/new_channel_modal', () => {
 
             // Menu items run their action once the menu has closed.
             await waitFor(() => expect(createBoardAction).toHaveBeenCalledWith('current_team_id'));
+        });
+
+        test('should browse boards, opening Browse Channels as Browse Boards', async () => {
+            renderWithContext(<AddChannelsCtaButton/>, withBoardMenuItem);
+
+            await userEvent.click(screen.getByRole('button', {name: /add boards/i}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Browse boards'}));
+
+            await waitFor(() => expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.MORE_CHANNELS,
+                dialogProps: {kind: 'board'},
+            })));
         });
 
         test('should keep the channel wording when only another plugin adds an item after Create new channel', () => {
