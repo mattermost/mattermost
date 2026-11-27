@@ -8,7 +8,17 @@ the release note; those get the callout. Weak: wording in the release note ("bre
 
 import re
 
-from check_config_changes_ci import _AUTO_LINE_RE as CHECKER_LINE
+# The lines config-change-checker (check_config_changes_ci._format_lines) writes into a release
+# note. The checker no longer exports a pattern for them (it records its lines in a hidden ledger
+# in the PR description); this one is defined here, and test_signals_and_reviewers checks it against
+# every line shape _format_lines writes, so a change of wording there fails a test here.
+CHECKER_LINE = re.compile(
+    r"^(Added|Removed) `{1,2}[^`]+`{1,2}.*(configuration setting|API endpoint|audit log event)\."
+    r"|^Go runtime updated from \S+ to \S+\."
+    r"|^Go runtime set to `{1,2}[^`]+`{1,2}\."
+    r"|^🆕 New API file:"
+    r"|^🗑️\s+Removed API file:"
+)
 
 LABEL_SIGNAL = re.compile(r"(?i)breaking|deprecat")
 NEGATED_LABEL = re.compile(r"(?i)\b(?:non|no|not|without)[-_\s]*(?:breaking|deprecat)")

@@ -29,10 +29,10 @@ from changelog_release import (
     plugin_packages,
     plugin_version_link,
 )
-from check_config_changes_ci import _AUTO_LINE_RE as CHECKER_LINE
 from check_config_changes_ci import _scan_struct_fields
 
 from . import release_docs_pr, templates, version_archive
+from .breaking_signals import CHECKER_LINE
 from .breaking_signals import signals as breaking_signals
 from .publish import TRAILER, Target, run_url, skipped_label_note, write
 from .result import TODO_MARKER, Result

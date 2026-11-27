@@ -7,7 +7,8 @@ for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "M
     os.environ.setdefault(name, value)  # generate_changelog, whose release-note parser the signals use, reads them
 
 from release_docs import publish  # noqa: E402
-from release_docs.breaking_signals import is_signal, signals  # noqa: E402
+import check_config_changes_ci as checker  # noqa: E402
+from release_docs.breaking_signals import CHECKER_LINE, is_signal, signals  # noqa: E402
 from release_docs.result import Result  # noqa: E402
 
 from .fakes import FakeGitHub  # noqa: E402
@@ -88,6 +89,31 @@ class ReviewersTest(unittest.TestCase):
             self.assertEqual(gh.pulls[SERVER][0]["labels"], ["release-agent"])  # labels still added after it
             self.assertTrue(outcome.endswith(expected), outcome)
 
+
+
+class CheckerLineTest(unittest.TestCase):
+    """CHECKER_LINE against what config-change-checker itself writes: every line shape of its
+    _format_lines, for each kind of finding. If the checker's wording changes, this fails."""
+
+    def test_every_line_the_checker_writes_is_recognised(self):
+        results = [
+            checker.CheckResult(label="`config.json` Field Changes", additions=["``ServiceSettings.NewThing``"],
+                                removals=["``ServiceSettings.OldThing``"]),
+            checker.CheckResult(label="API Changes (`api4`)", additions=["``GET /api/v4/things`` (``getThings``)"],
+                                removals=["``DELETE /api/v4/things/{id}`` (``deleteThing``)"],
+                                changes=["🆕 New API file: `things.go`", "🗑️  Removed API file: `old.go`"]),
+            checker.CheckResult(label="Audit Log Event Changes", additions=["``createThing``"], removals=["``deleteThing``"]),
+            checker.CheckResult(label="Go Runtime Version", additions=["``1.27``"], changes=["Go updated: ``1.26`` → ``1.27``"]),
+        ]
+        lines = [line for result in results for line in checker._format_lines(result)]
+        self.assertEqual(len(lines), 10)  # 2 config, 4 API, 2 audit, 2 Go
+        for line in lines:
+            self.assertRegex(line, CHECKER_LINE, line)
+
+    def test_a_person_s_note_is_not_a_checker_line(self):
+        for line in ("Added a new sidebar.", "Removed the old sidebar from the System Console.",
+                     "Go runtime is faster now."):
+            self.assertIsNone(CHECKER_LINE.match(line), line)
 
 if __name__ == "__main__":
     unittest.main()
