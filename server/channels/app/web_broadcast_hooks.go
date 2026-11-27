@@ -750,7 +750,10 @@ func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string, b
 	message.GetBroadcast().AddHook(broadcastChannelReadAccess, args)
 }
 
-const channelReadAccessArgByChannelPolicy = "by_channel_policy"
+const (
+	channelReadAccessArgByChannelPolicy = "by_channel_policy"
+	channelReadAccessArgGoverned        = "governed"
+)
 
 // boolHookArg reads an optional bool hook arg. present is false when the key is absent;
 // err is set when it is present but not a bool. getTypedArg alone can't tell the two
@@ -813,12 +816,25 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 // channel's content.
 type channelReadAccessRedactBroadcastHook struct{}
 
-func useChannelReadAccessRedactHook(message *model.WebSocketEvent, channelID string) {
-	message.GetBroadcast().AddHook(broadcastChannelReadAccessRedact, map[string]any{
+// useChannelReadAccessRedactHook attaches channelReadAccessRedactBroadcastHook for channelID.
+// governance carries the publisher's decision for channel_read_access: governed=false lets
+// every recipient keep the channel with no lookups; governed=true evaluates each recipient,
+// with by_channel_policy saying whether the channel's own policy governs the action. nil
+// leaves both args out, and the hook loads the channel and decides per recipient.
+func useChannelReadAccessRedactHook(message *model.WebSocketEvent, channelID string, governance *channelGovernance) {
+	args := map[string]any{
 		"channel_id": channelID,
-	})
+	}
+	if governance != nil {
+		args[channelReadAccessArgGoverned] = governance.governed
+		args[channelReadAccessArgByChannelPolicy] = governance.byChannelPolicy
+	}
+	message.GetBroadcast().AddHook(broadcastChannelReadAccessRedact, args)
 }
 
+// Process strips the channel for a recipient the channel's read rules deny. As in
+// channelReadAccessBroadcastHook, governance comes from the publisher and may be a few
+// milliseconds stale, which is accepted.
 func (h *channelReadAccessRedactBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	channelID, err := getTypedArg[string](args, "channel_id")
 	if err != nil {
@@ -826,12 +842,35 @@ func (h *channelReadAccessRedactBroadcastHook) Process(msg *platform.HookedWebSo
 		return errors.Wrap(err, "Invalid channel_id value passed to channelReadAccessRedactBroadcastHook")
 	}
 
+	governed, governedPresent, err := boolHookArg(args, channelReadAccessArgGoverned)
+	if err != nil {
+		msg.Add("channel", "")
+		return errors.Wrap(err, "Invalid governed value passed to channelReadAccessRedactBroadcastHook")
+	}
+	byChannelPolicy, byChannelPolicyPresent, err := boolHookArg(args, channelReadAccessArgByChannelPolicy)
+	if err != nil {
+		msg.Add("channel", "")
+		return errors.Wrap(err, "Invalid by_channel_policy value passed to channelReadAccessRedactBroadcastHook")
+	}
+	governanceKnown := governedPresent && byChannelPolicyPresent
+
+	if governanceKnown && !governed {
+		// Nothing governs read access in the channel, so every recipient may see it.
+		return nil
+	}
+
 	// As in channelReadAccessBroadcastHook, the evaluation needs this connection's
 	// session; without one the channel stays out.
 	session := webConn.GetSession()
 	if session != nil {
 		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-		if webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
+		var allowed bool
+		if governanceKnown {
+			allowed = webConn.Suite.HasChannelReadAccessGoverned(rctx, webConn.UserId, channelID, byChannelPolicy)
+		} else {
+			allowed = webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID)
+		}
+		if allowed {
 			return nil
 		}
 	}

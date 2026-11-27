@@ -1481,6 +1481,70 @@ func TestChannelReadAccessRedactBroadcastHook_Process(t *testing.T) {
 		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
 		assert.Equal(t, "", msg.Get("channel"))
 	})
+
+	// strictConn has no expectations, so any check the hook made would panic.
+	strictConn := func(withSession bool) *platform.WebConn {
+		wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: &platform_mocks.SuiteIFace{}}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	t.Run("governed=false keeps the channel for everyone with no check", func(t *testing.T) {
+		for _, withSession := range []bool{true, false} {
+			msg := makeMessage()
+			require.NoError(t, hook.Process(msg, strictConn(withSession), map[string]any{"channel_id": channelID, "governed": false, "by_channel_policy": false}))
+			assert.Equal(t, channelJSON, msg.Get("channel"))
+		}
+	})
+
+	t.Run("governed=true decides through the governed path", func(t *testing.T) {
+		for _, byChannelPolicy := range []bool{true, false} {
+			for _, allowed := range []bool{true, false} {
+				mockSuite := &platform_mocks.SuiteIFace{}
+				mockSuite.On("HasChannelReadAccessGoverned", mock.Anything, userID, channelID, byChannelPolicy).Return(allowed)
+				wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: mockSuite}
+				wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+
+				msg := makeMessage()
+				require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID, "governed": true, "by_channel_policy": byChannelPolicy}))
+				assert.False(t, msg.Event().IsRejected())
+				if allowed {
+					assert.Equal(t, channelJSON, msg.Get("channel"))
+				} else {
+					assert.Equal(t, "", msg.Get("channel"))
+				}
+			}
+		}
+	})
+
+	t.Run("governed=true strips the channel for a connection without a session", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, strictConn(false), map[string]any{"channel_id": channelID, "governed": true, "by_channel_policy": false}))
+		assert.Equal(t, "", msg.Get("channel"))
+	})
+
+	t.Run("missing args take the fallback, not the bad-arg path", func(t *testing.T) {
+		msg := makeMessage()
+		wc := makeWebConn(t, true, true)
+		require.NoError(t, hook.Process(msg, wc, map[string]any{"channel_id": channelID}))
+		assert.Equal(t, channelJSON, msg.Get("channel"))
+		wc.Suite.(*platform_mocks.SuiteIFace).AssertCalled(t, "HasChannelReadAccessByID", mock.Anything, userID, channelID)
+	})
+
+	t.Run("an arg that isn't a bool strips the channel", func(t *testing.T) {
+		for _, args := range []map[string]any{
+			{"channel_id": channelID, "governed": "false", "by_channel_policy": false},
+			{"channel_id": channelID, "governed": true, "by_channel_policy": 1},
+			{"channel_id": channelID, "governed": nil, "by_channel_policy": false},
+		} {
+			msg := makeMessage()
+			require.Error(t, hook.Process(msg, strictConn(true), args), "%v", args)
+			assert.False(t, msg.Event().IsRejected())
+			assert.Equal(t, "", msg.Get("channel"), "%v", args)
+		}
+	})
 }
 
 func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {

@@ -1649,18 +1649,31 @@ func TestThreadUpdatedCarriesTheReadAccessHook(t *testing.T) {
 // channel for them, never the one that would drop the event.
 func TestChannelAccessControlUpdatedCarriesTheRedactHook(t *testing.T) {
 	h := setupChannelReadAccessTest(t)
-	h.mockACS(t)
+	mockACS := h.mockACS(t)
+	governedCall := mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+		Return(true, nil)
 
 	publish := func(t *testing.T, h *channelReadAccessHarness) {
 		h.th.App.publishChannelPolicyEnforcedUpdate(h.th.Context, h.th.BasicChannel.Id)
 	}
 
+	// The publisher passes its governance decision, so the hook needs no lookups.
 	published := captureWebsocketEvents(t, h, publish)[model.WebsocketEventChannelAccessControlUpdated]
 	require.Len(t, published, 1)
 	broadcast := published[0].GetBroadcast()
 	require.Contains(t, broadcast.BroadcastHooks, broadcastChannelReadAccessRedact)
 	require.NotContains(t, broadcast.BroadcastHooks, broadcastChannelReadAccess)
-	require.Contains(t, broadcast.BroadcastHookArgs, map[string]any{"channel_id": h.th.BasicChannel.Id})
+	require.Contains(t, broadcast.BroadcastHookArgs,
+		map[string]any{"channel_id": h.th.BasicChannel.Id, "governed": true, "by_channel_policy": false})
+
+	// Still attached when nothing governs read access, so every recipient keeps the channel.
+	governedCall.Unset()
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+		Return(false, nil)
+	published = captureWebsocketEvents(t, h, publish)[model.WebsocketEventChannelAccessControlUpdated]
+	require.Len(t, published, 1)
+	require.Contains(t, published[0].GetBroadcast().BroadcastHookArgs,
+		map[string]any{"channel_id": h.th.BasicChannel.Id, "governed": false, "by_channel_policy": false})
 
 	h.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
@@ -1941,7 +1954,7 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		governed(h.mockACS(t))
 
 		message := event(model.WebsocketEventChannelAccessControlUpdated, h.th.BasicChannel.Id, "")
-		useChannelReadAccessRedactHook(message, h.th.BasicChannel.Id)
+		useChannelReadAccessRedactHook(message, h.th.BasicChannel.Id, nil)
 		h.th.App.attachChannelReadAccessHook(message)
 		require.Equal(t, []string{broadcastChannelReadAccessRedact}, message.GetBroadcast().BroadcastHooks)
 	})
