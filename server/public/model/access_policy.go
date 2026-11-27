@@ -255,11 +255,12 @@ type AccessControlPolicySearch struct {
 	Active          bool                      `json:"active"`
 	// AutoAdd filters on whether the membership rule sets any auto_add mode. Nil
 	// means no filter; the pointer distinguishes "unset" from an explicit false.
-	AutoAdd *bool    `json:"auto_add,omitempty"`
-	TeamID  string   `json:"team_id"`
-	Scope   string   `json:"scope,omitempty"`
-	ScopeID string   `json:"scope_id,omitempty"`
-	Actions []string `json:"actions"`
+	AutoAdd      *bool    `json:"auto_add,omitempty"`
+	TeamID       string   `json:"team_id"`
+	Scope        string   `json:"scope,omitempty"`
+	ScopeID      string   `json:"scope_id,omitempty"`
+	Actions      []string `json:"actions"`
+	ExcludeTypes []string `json:"-"`
 }
 
 type AccessControlPolicyCursor struct {
@@ -797,6 +798,11 @@ func (p *AccessControlPolicy) validateSystemSettingPolicyRules() *AppError {
 	if err := validatePermissionPolicyRoles(p.Roles); err != nil {
 		return err
 	}
+	switch p.Roles[0] {
+	case SystemUserRoleId, SystemAdminRoleId, SystemGuestRoleId, AccessControlPolicyRoleSystemBot:
+	default:
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.system_setting_role.app_error", nil, fmt.Sprintf("invalid system_setting role: %s", p.Roles[0]), 400)
+	}
 
 	if len(p.Imports) > 0 {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
@@ -807,7 +813,7 @@ func (p *AccessControlPolicy) validateSystemSettingPolicyRules() *AppError {
 	}
 
 	seenKeys := make(map[string]struct{}, len(p.Rules))
-	for _, rule := range p.Rules {
+	for i, rule := range p.Rules {
 		if len(rule.Actions) != 1 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "system_setting rules must specify exactly one setting key", 400)
 		}
@@ -832,6 +838,9 @@ func (p *AccessControlPolicy) validateSystemSettingPolicyRules() *AppError {
 		}
 		if appErr := rule.validateRuleContract(); appErr != nil {
 			return appErr
+		}
+		if i > 0 && rule.Expression != p.Rules[0].Expression {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.system_setting_expression_mismatch.app_error", nil, "all rules in a system_setting policy must share the same expression", 400)
 		}
 	}
 

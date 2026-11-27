@@ -2280,6 +2280,44 @@ func TestSystemSettingPolicyValidation(t *testing.T) {
 		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
 	})
 
+	t.Run("accepts only supported system roles", func(t *testing.T) {
+		for _, role := range []string{SystemUserRoleId, SystemAdminRoleId, SystemGuestRoleId, AccessControlPolicyRoleSystemBot} {
+			p := validPolicy()
+			p.Roles = []string{role}
+			require.Nil(t, p.IsValid(), "expected role %q to be valid", role)
+		}
+
+		for _, badRole := range []string{"custom_system_role", ChannelUserRoleId, TeamAdminRoleId} {
+			p := validPolicy()
+			p.Roles = []string{badRole}
+			err := p.IsValid()
+			require.NotNil(t, err, "expected role %q to be rejected", badRole)
+			require.Equal(t, "model.access_policy.is_valid.system_setting_role.app_error", err.Id)
+		}
+	})
+
+	t.Run("enforces shared expression across multiple rules", func(t *testing.T) {
+		const extraKey = "TestSecondSystemSettingKey"
+		systemSettingDefinitions[extraKey] = SystemSettingDefinition{
+			Key:       extraKey,
+			ValueType: SystemSettingValueTypeString,
+		}
+		t.Cleanup(func() { delete(systemSettingDefinitions, extraKey) })
+
+		p := validPolicy()
+		p.Rules = append(p.Rules, AccessControlPolicyRule{
+			Actions:    []string{extraKey},
+			Expression: p.Rules[0].Expression,
+			Value:      "allowed",
+		})
+		require.Nil(t, p.IsValid())
+
+		p.Rules[1].Expression = `user.attributes.Department == "Engineering"`
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.system_setting_expression_mismatch.app_error", err.Id)
+	})
+
 	t.Run("rejects imports and scope", func(t *testing.T) {
 		p := validPolicy()
 		p.Imports = []string{NewId()}

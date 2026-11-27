@@ -17050,9 +17050,19 @@
     "description": "API validation error shown to system admins saving a system setting policy that specifies the same ClientConfig setting key ({{.Key}}) in more than one rule."
   },
   {
+    "id": "model.access_policy.is_valid.system_setting_expression_mismatch.app_error",
+    "translation": "All rules in a system setting policy must share the same condition expression.",
+    "description": "API validation error shown to system admins saving a system setting policy whose rules specify different CEL condition expressions."
+  },
+  {
     "id": "model.access_policy.is_valid.system_setting_key.app_error",
     "translation": "{{.Key}} is not a supported policy-configurable system setting.",
     "description": "API validation error shown to system admins saving a system setting policy targeting an unrecognized or unsupported ClientConfig setting key ({{.Key}})."
+  },
+  {
+    "id": "model.access_policy.is_valid.system_setting_role.app_error",
+    "translation": "System setting policies can only apply to the System User, System Guest, System Admin, or Bot role.",
+    "description": "API validation error shown to system admins saving a system setting policy whose role is not one of the supported built-in system roles."
   },
   {
     "id": "model.access_policy.is_valid.system_setting_value.app_error",
