@@ -41,8 +41,7 @@ export class ListItemSizeObserver {
                 return;
             }
 
-            const changedHeight = Math.ceil(resizeEntry.borderBoxSize[0].blockSize);
-            itemData.callback(changedHeight);
+            itemData.callback(resizeEntry.borderBoxSize[0].blockSize);
         });
     };
 
