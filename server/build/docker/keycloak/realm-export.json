@@ -633,7 +633,7 @@
       "saml.force.post.binding" : "true",
       "saml.encrypt" : "false",
       "post.logout.redirect.uris" : "+",
-      "saml.server.signature" : "false",
+      "saml.server.signature" : "true",
       "saml.server.signature.keyinfo.ext" : "false",
       "saml.signing.certificate" : "MIICozCCAYsCBgGNzPeaJzANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDDAptYXR0ZXJtb3N0MB4XDTI0MDIyMTE4MzgxNVoXDTM0MDIyMTE4Mzk1NVowFTETMBEGA1UEAwwKbWF0dGVybW9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALTGWjhcVlJ9u+/b/Q4laMj1mEYEMuNmP+ZB9zTICk7sQbihJ1JRY8vJ450GXcFRTEuSWLOavSsInLZNkYqtBQ1/cVBmj8NgqMBOyLXsa1BnSE+mB3S3MpmWZwMIY1/1fPpEW8potkIKRigidkoa1zi8U/0fDu6sA9wzygUdeckX3TxN2sIwAr7beBdcwEKyKZS5VGATj3HU7TUAIyk02Xbq5vgKIR9KqdazHIuV46I0BPgQ+WbXROviq/U7/txxXu6qxEuvAxwXxFa56fYQW6qpWS3s4muEGFyi9uKbeUeKLPYSjiZYFHOloAZ3ZILbC3k8dpPWSUq5lH5jsuPkEBkCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAO/cKwQAJBNSdwl/s4evpcfNAZMnvRi3IvhLKDbv648/eQQEhBVK7FQ8J9iQJaVbhdkZCSOF+x+HUURX/82h+CKNj0SehxPaELpVpiLXWh+KKBAiRHWTvsmjgfuqa5dWcmjBc2W1r+kOtvG/KZnxdmSR9fZc/BUF+64FUY+m7SMUBNDndn28Bc4wXZVWjHUF6NjTzplm5Karvcd7E892PwApSytwPA7BiPdL6DKgOOPya5Klyyykwz2jn74LWi+fEIWb7coaamwZ+bSU1eQINp3mjJz3w+EKX6gmbsSWopSm8cMDhh8l3/Dc1mh1gpiZV+zxoWpPFvRnDWJtV8iBsqw==",
       "saml.artifact.binding.identifier" : "s+FCT7acoISBsDrZ2B6VSIQhmX8=",

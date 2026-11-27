@@ -4,7 +4,7 @@
         "EnableSyncWithLdap": false,
         "EnableSyncWithLdapIncludeAuth": false,
         "IgnoreGuestsLdapSync": false,
-        "Verify": false,
+        "Verify": true,
         "Encrypt": false,
         "SignRequest": false,
         "IdpURL": "http://localhost:8484/realms/mattermost/protocol/saml",
