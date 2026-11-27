@@ -2212,7 +2212,10 @@ const AdminDefinition: AdminDefinitionType = {
                                 title: defineMessage({id: 'admin.service.testingProductionWarning.title', defaultMessage: 'Testing commands are not recommended for production environments'}),
                                 text: defineMessage({id: 'admin.service.testingProductionWarning.text', defaultMessage: 'The /test command exposes load-testing and data-generation tools that can modify your data. Enable only in non-production environments.'}),
                             },
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
+                            ),
                         },
                         {
                             type: 'bool',
