@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -497,6 +498,132 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		checkHTTPStatus(t, resp, http.StatusConflict)
 		CheckErrorID(t, err, "api.remote_cluster.save_not_unique.app_error")
 		require.Empty(t, rc)
+	})
+
+	// Confirms the response is the not-unique error, the invite site receives no requests,
+	// and the stored remote cluster and its shared channel remotes match the values read before the call.
+	t.Run("stored remote id is left unchanged when the invite uses a different name", func(t *testing.T) {
+		defer func() {
+			rcAcceptInvite.Name = "remotecluster"
+			rcAcceptInvite.DisplayName = ""
+			rcAcceptInvite.Invite = encoded
+			rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id
+		}()
+
+		for _, tc := range []struct {
+			name    string
+			deleted bool
+		}{
+			{name: "active row", deleted: false},
+			{name: "deleted row", deleted: true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				var calls atomic.Int32
+				remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					calls.Add(1)
+					_, _ = w.Write([]byte(`{"status":"FAIL","err":"unavailable"}`))
+				}))
+				t.Cleanup(remote.Close)
+
+				remoteID := model.NewId()
+				storedName := "stored" + model.NewId()
+				storedSiteURL := "https://" + model.NewId() + ".example.com"
+
+				saved, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+					RemoteId:  remoteID,
+					Name:      storedName,
+					SiteURL:   storedSiteURL,
+					Token:     model.NewId(),
+					CreatorId: th.SystemAdminUser.Id,
+				})
+				require.Nil(t, appErr)
+				require.NotEqual(t, remote.URL, saved.SiteURL)
+
+				channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+				_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
+					ChannelId: channel.Id,
+					TeamId:    channel.TeamId,
+					Home:      true,
+					ShareName: "sc" + model.NewId(),
+					CreatorId: th.SystemAdminUser.Id,
+					RemoteId:  model.NewId(),
+				})
+				require.NoError(t, err)
+
+				_, err = th.App.Srv().Store().SharedChannel().SaveRemote(&model.SharedChannelRemote{
+					ChannelId:         channel.Id,
+					CreatorId:         th.SystemAdminUser.Id,
+					RemoteId:          saved.RemoteId,
+					IsInviteAccepted:  true,
+					IsInviteConfirmed: true,
+				})
+				require.NoError(t, err)
+
+				if tc.deleted {
+					_, err = th.App.Srv().Store().RemoteCluster().Delete(saved.RemoteId)
+					require.NoError(t, err)
+				}
+
+				beforeRC, appErr := th.App.GetRemoteCluster(saved.RemoteId, true)
+				require.Nil(t, appErr)
+
+				remoteFilter := model.SharedChannelRemoteFilterOpts{
+					RemoteId:           saved.RemoteId,
+					IncludeDeleted:     true,
+					IncludeUnconfirmed: true,
+				}
+				beforeRemotes, err := th.App.Srv().Store().SharedChannel().GetRemotes(0, 100, remoteFilter)
+				require.NoError(t, err)
+				require.NotEmpty(t, beforeRemotes)
+
+				invite := &model.RemoteClusterInvite{
+					RemoteId: saved.RemoteId,
+					SiteURL:  remote.URL,
+					Token:    model.NewId(),
+				}
+				encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
+				require.NoError(t, err)
+
+				rcAcceptInvite.Name = "other" + model.NewId()
+				rcAcceptInvite.DisplayName = ""
+				rcAcceptInvite.Invite = base64.URLEncoding.EncodeToString(encrypted)
+				rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id
+				require.NotEqual(t, beforeRC.Name, rcAcceptInvite.Name)
+
+				rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+				checkHTTPStatus(t, resp, http.StatusConflict)
+				CheckErrorID(t, err, "api.remote_cluster.save_not_unique.app_error")
+				require.Empty(t, rc)
+				require.Zero(t, calls.Load())
+
+				all, err := th.App.Srv().Store().RemoteCluster().GetAll(0, 10000, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+				require.NoError(t, err)
+				var afterRC *model.RemoteCluster
+				for _, row := range all {
+					if row.RemoteId == beforeRC.RemoteId && row.Name == beforeRC.Name {
+						afterRC = row
+						break
+					}
+				}
+				require.NotNil(t, afterRC)
+				require.Equal(t, beforeRC.Name, afterRC.Name)
+				require.Equal(t, beforeRC.SiteURL, afterRC.SiteURL)
+				require.Equal(t, beforeRC.DeleteAt, afterRC.DeleteAt)
+				require.Equal(t, beforeRC.Token, afterRC.Token)
+				if !tc.deleted {
+					require.Zero(t, afterRC.DeleteAt)
+				}
+
+				afterRemotes, err := th.App.Srv().Store().SharedChannel().GetRemotes(0, 100, remoteFilter)
+				require.NoError(t, err)
+				require.Equal(t, beforeRemotes, afterRemotes)
+				if !tc.deleted {
+					for _, scr := range afterRemotes {
+						require.Zero(t, scr.DeleteAt)
+					}
+				}
+			})
+		}
 	})
 
 	t.Run("should return a sanitized remote cluster if the action succeeds", func(t *testing.T) {
