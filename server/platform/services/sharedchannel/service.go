@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -482,10 +483,7 @@ func (scs *Service) postChannelSharedWithWorkspace(channel *model.Channel, peer 
 	if channel == nil || peer == nil {
 		return
 	}
-	workspaceName := remoteClusterDisplayName(peer)
-	if workspaceName == "" {
-		workspaceName = peer.RemoteId
-	}
+	workspaceName := cmp.Or(remoteClusterDisplayName(peer), peer.RemoteId)
 	props := model.StringInterface{
 		model.PostPropsSharedChannelState:         model.SharedChannelStatePostValueShared,
 		model.PostPropsSharedChannelWorkspaceName: workspaceName,

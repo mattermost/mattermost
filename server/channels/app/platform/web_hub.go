@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"cmp"
 	"fmt"
 	"hash/maphash"
 	"iter"
@@ -238,10 +239,7 @@ func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 
 func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
 	ps.Store.Channel().InvalidateChannel(channel.Id)
-	teamID := channel.TeamId
-	if teamID == "" {
-		teamID = "dm"
-	}
+	teamID := cmp.Or(channel.TeamId, "dm")
 
 	ps.Store.Channel().InvalidateChannelByName(teamID, channel.Name)
 }
@@ -358,9 +356,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		case model.WSQueuesStatusOldConnStillOpen:
 			remoteReason = reconnectFailureOldConnStillOpen
 		case model.WSQueuesStatusMissedEventsEvicted:
-			if remoteReason == "" {
-				remoteReason = reconnectFailureMissedEventsEvicted
-			}
+			remoteReason = cmp.Or(remoteReason, reconnectFailureMissedEventsEvicted)
 		}
 		if queues.ActiveQ == nil {
 			continue

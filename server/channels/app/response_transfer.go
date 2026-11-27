@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -85,9 +86,7 @@ func (rt *PluginResponseWriter) GenerateResponse(ctx context.Context, pr *io.Pip
 		Body:       body,
 	}
 
-	if res.StatusCode == 0 {
-		res.StatusCode = http.StatusOK
-	}
+	res.StatusCode = cmp.Or(res.StatusCode, http.StatusOK)
 
 	res.Status = fmt.Sprintf("%03d %s", res.StatusCode, http.StatusText(res.StatusCode))
 

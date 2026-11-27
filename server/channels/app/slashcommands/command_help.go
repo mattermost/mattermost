@@ -4,6 +4,8 @@
 package slashcommands
 
 import (
+	"cmp"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -37,9 +39,7 @@ func (h *HelpProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 func (h *HelpProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	helpLink := *a.Config().SupportSettings.HelpLink
 
-	if helpLink == "" {
-		helpLink = model.SupportSettingsDefaultHelpLink
-	}
+	helpLink = cmp.Or(helpLink, model.SupportSettingsDefaultHelpLink)
 
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeEphemeral,

@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"cmp"
 	"math/rand/v2"
 	"net/http"
 	"os"
@@ -42,10 +43,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 
 	*cfg.ServiceSettings.LicenseFileLocation = f.Name()
 
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
+	driverName := cmp.Or(os.Getenv("MM_SQLSETTINGS_DRIVERNAME"), model.DatabaseDriverPostgres)
 	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 
 	configStore := config.NewTestMemoryStore()
@@ -64,10 +62,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	cfg := model.Config{}
 	cfg.SetDefaults()
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
+	driverName := cmp.Or(os.Getenv("MM_SQLSETTINGS_DRIVERNAME"), model.DatabaseDriverPostgres)
 	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}

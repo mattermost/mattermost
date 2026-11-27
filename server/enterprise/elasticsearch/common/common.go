@@ -4,6 +4,7 @@
 package common
 
 import (
+	"cmp"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -155,9 +156,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing, mmBlocksEnabled bool
 		searchPost.URLs = model.RemoveDuplicateStringsNonSort(urlAccum)
 	}
 
-	if searchPost.Type == "" {
-		searchPost.Type = "default"
-	}
+	searchPost.Type = cmp.Or(searchPost.Type, "default")
 
 	return &searchPost
 }

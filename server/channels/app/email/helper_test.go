@@ -4,6 +4,7 @@
 package email
 
 import (
+	"cmp"
 	"os"
 	"path/filepath"
 	"testing"
@@ -271,14 +272,8 @@ func (th *TestHelper) UpdateConfig(tb testing.TB, f func(*model.Config)) {
 }
 
 func (th *TestHelper) ConfigureInbucketMail(tb testing.TB) {
-	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "localhost"
-	}
-	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "10025"
-	}
+	inbucket_host := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
+	inbucket_port := cmp.Or(os.Getenv("CI_INBUCKET_SMTP_PORT"), "10025")
 	th.UpdateConfig(tb, func(cfg *model.Config) {
 		*cfg.EmailSettings.SMTPServer = inbucket_host
 		*cfg.EmailSettings.SMTPPort = inbucket_port

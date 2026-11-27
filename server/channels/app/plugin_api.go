@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -1479,9 +1480,7 @@ func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...any) {
 func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	// Bots created by a plugin should use the plugin's ID for the creator field, unless
 	// otherwise specified by the plugin.
-	if bot.OwnerId == "" {
-		bot.OwnerId = api.id
-	}
+	bot.OwnerId = cmp.Or(bot.OwnerId, api.id)
 	// Bots cannot be owners of other bots
 	if user, err := api.app.GetUser(api.ctx, bot.OwnerId); err == nil {
 		if user.IsBot {
@@ -1692,9 +1691,7 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 	updatedCmd.UpdateAt = model.GetMillis()
 	updatedCmd.DeleteAt = oldCmd.DeleteAt
 	updatedCmd.PluginId = api.id
-	if updatedCmd.TeamId == "" {
-		updatedCmd.TeamId = oldCmd.TeamId
-	}
+	updatedCmd.TeamId = cmp.Or(updatedCmd.TeamId, oldCmd.TeamId)
 
 	if err := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); err != nil {
 		return nil, err

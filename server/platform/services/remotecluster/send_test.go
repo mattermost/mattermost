@@ -5,6 +5,7 @@ package remotecluster
 
 import (
 	"bytes"
+	"cmp"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -435,10 +436,7 @@ func TestService_sendFrameToRemote_Metrics(t *testing.T) {
 				metrics.On("IncrementRemoteClusterMsgErrorsCounter", rc.RemoteId, tc.wantTimeout).Once()
 			}
 
-			timeout := tc.timeout
-			if timeout == 0 {
-				timeout = defaultCallTimeout
-			}
+			timeout := cmp.Or(tc.timeout, defaultCallTimeout)
 
 			rs.setReply(tc.reply)
 			defer rs.awaitIdle(t)
@@ -808,10 +806,7 @@ func assertReplyCases(t *testing.T, rs *responseServer, call func(time.Duration)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			timeout := tc.timeout
-			if timeout == 0 {
-				timeout = defaultCallTimeout
-			}
+			timeout := cmp.Or(tc.timeout, defaultCallTimeout)
 
 			rs.setReply(tc.reply)
 			rs.takeRequestCount()
@@ -962,10 +957,7 @@ func newResponseServer() *responseServer {
 
 		reply := rs.reply.Load()
 
-		status := reply.status
-		if status == 0 {
-			status = http.StatusOK
-		}
+		status := cmp.Or(reply.status, http.StatusOK)
 		if reply.declaredLength > 0 {
 			w.Header().Set("Content-Length", strconv.Itoa(reply.declaredLength))
 			// A reply that does not match its declared length breaks the connection, so keep the

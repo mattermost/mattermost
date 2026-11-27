@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"cmp"
 	"context"
 	"io"
 	"time"
@@ -174,9 +175,7 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 	}
 
 	// if S3 endpoint is not set call the set defaults to set that
-	if settings.AmazonS3Endpoint == "" {
-		settings.AmazonS3Endpoint = "s3.amazonaws.com"
-	}
+	settings.AmazonS3Endpoint = cmp.Or(settings.AmazonS3Endpoint, "s3.amazonaws.com")
 
 	return nil
 }

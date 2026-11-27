@@ -75,6 +75,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"fmt"
 	"io"
 	"net/http"
@@ -255,14 +256,8 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
 	// Installing only validates the plugin id, so the uploaded name and homepage may be missing.
 	// Fall back to the installed plugin's metadata to keep the plugin identifiable.
-	name := uploadedManifest.Name
-	if name == "" {
-		name = existingManifest.Name
-	}
-	homepageURL := uploadedManifest.HomepageURL
-	if homepageURL == "" {
-		homepageURL = existingManifest.HomepageURL
-	}
+	name := cmp.Or(uploadedManifest.Name, existingManifest.Name)
+	homepageURL := cmp.Or(uploadedManifest.HomepageURL, existingManifest.HomepageURL)
 
 	direction := model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest)
 

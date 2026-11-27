@@ -6,6 +6,7 @@ package app
 import (
 	"archive/tar"
 	"bytes"
+	"cmp"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/base64"
@@ -422,15 +423,9 @@ func TestPluginSync(t *testing.T) {
 		{
 			"s3",
 			func(cfg *model.Config) {
-				s3Host := os.Getenv("CI_MINIO_HOST")
-				if s3Host == "" {
-					s3Host = "localhost"
-				}
+				s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-				s3Port := os.Getenv("CI_MINIO_PORT")
-				if s3Port == "" {
-					s3Port = "9000"
-				}
+				s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)

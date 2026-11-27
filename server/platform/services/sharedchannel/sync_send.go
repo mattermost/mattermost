@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -832,9 +833,7 @@ func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 		locale = user.Locale
 	}
 
-	if locale == "" {
-		locale = model.DefaultLocale
-	}
+	locale = cmp.Or(locale, model.DefaultLocale)
 	return i18n.GetUserTranslations(locale)
 }
 
