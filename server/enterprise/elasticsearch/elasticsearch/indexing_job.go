@@ -5,6 +5,8 @@ package elasticsearch
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"sync/atomic"
@@ -108,5 +110,27 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				logger.Info("Bulk indexer closed", fields...)
 			}
 			return realFailed.Load(), err
+		},
+		func(indexName string) (bool, error) {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+			defer cancel()
+			res, err := client.Count(client.Count.WithContext(ctx), client.Count.WithIndex(indexName))
+			if err != nil {
+				return false, err
+			}
+			defer res.Body.Close()
+			if res.StatusCode == http.StatusNotFound {
+				return true, nil
+			}
+			if res.IsError() {
+				return false, fmt.Errorf("failed to count documents in index %s: %s", indexName, res.String())
+			}
+			var body struct {
+				Count int64 `json:"count"`
+			}
+			if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+				return false, err
+			}
+			return body.Count == 0, nil
 		})
 }

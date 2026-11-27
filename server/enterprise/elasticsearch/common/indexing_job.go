@@ -45,6 +45,7 @@ func NewIndexerWorker(name string,
 	createBulkProcessorFn func() error,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
 	closeBulkProcessorFn func() (int64, error),
+	isIndexEmptyFn func(indexName string) (bool, error),
 ) *IndexerWorker {
 	return &IndexerWorker{
 		name:                   name,
@@ -59,6 +60,8 @@ func NewIndexerWorker(name string,
 		createBulkProcessor:    createBulkProcessorFn,
 		addItemToBulkProcessor: addItemToBulkProcessorFn,
 		closeBulkProcessor:     closeBulkProcessorFn,
+		isIndexEmpty:           isIndexEmptyFn,
+		emptyIndexes:           make(map[string]bool),
 	}
 }
 
@@ -81,6 +84,12 @@ type IndexerWorker struct {
 	createBulkProcessor    func() error
 	closeBulkProcessor     func() (int64, error)
 	addItemToBulkProcessor func(indexName, indexOp, docID string, body io.ReadSeeker) error
+	isIndexEmpty           func(indexName string) (bool, error)
+
+	// emptyIndexes records, per index, whether it was empty when the current
+	// job first touched it. Deletes sent to such an index can only return 404.
+	emptyIndexes   map[string]bool
+	skippedDeletes int64
 }
 
 type IndexingProgress struct {
@@ -237,6 +246,9 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 
 	logger.Info("Worker: Indexing job claimed by worker")
 
+	worker.emptyIndexes = make(map[string]bool)
+	worker.skippedDeletes = 0
+
 	err := worker.createBulkProcessor()
 	if err != nil {
 		logger.Error("Worker: Failed to setup bulk processor", mlog.Err(err))
@@ -351,7 +363,7 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 						logger.Error("Worker: Failed to set error for job", mlog.Err(err2), mlog.NamedErr("set_error", err))
 					}
 				}
-				logger.Info("Worker: Indexing job finished successfully")
+				logger.Info("Worker: Indexing job finished successfully", mlog.Int("num_skipped_deletes", worker.skippedDeletes))
 				return
 			}
 		}
@@ -433,6 +445,29 @@ func (worker *IndexerWorker) IndexPostsBatch(logger mlog.LoggerIFace, progress I
 	return progress, nil
 }
 
+// indexWasEmpty reports whether indexName had no documents when the current job
+// first touched it, which is the case when rebuilding from scratch (e.g. after
+// a purge). It must be called before adding any operation for indexName: any
+// document added afterwards comes from this job or from live indexing, which
+// sends its own deletes, so the job's deletes for that index can be skipped.
+func (worker *IndexerWorker) indexWasEmpty(indexName string) bool {
+	if empty, ok := worker.emptyIndexes[indexName]; ok {
+		return empty
+	}
+
+	empty, err := worker.isIndexEmpty(indexName)
+	if err != nil {
+		worker.logger.Warn("Failed to check whether index is empty, delete operations will be sent to it", mlog.String("index_name", indexName), mlog.Err(err))
+		empty = false
+	}
+	if empty {
+		worker.logger.Debug("Index is empty, skipping delete operations for it", mlog.String("index_name", indexName))
+	}
+
+	worker.emptyIndexes[indexName] = empty
+	return empty
+}
+
 func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, progress IndexingProgress) (*model.Post, *model.AppError) {
 	for _, post := range posts {
 		indexName := BuildPostIndexName(*worker.jobServer.Config().ElasticsearchSettings.AggregatePostsAfterDays,
@@ -447,6 +482,8 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 			continue
 		}
 
+		indexWasEmpty := worker.indexWasEmpty(indexName)
+
 		if post.DeleteAt == 0 {
 			searchPost := ESPostFromPostForIndexing(post, worker.jobServer.Config().FeatureFlags.MmBlocksEnabled)
 
@@ -460,6 +497,8 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 			if err != nil {
 				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 			}
+		} else if indexWasEmpty {
+			worker.skippedDeletes++
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, post.Id, nil)
 			if err != nil {
@@ -522,6 +561,7 @@ func (worker *IndexerWorker) IndexFilesBatch(logger mlog.LoggerIFace, progress I
 func (worker *IndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, progress IndexingProgress) (*model.FileInfo, *model.AppError) {
 	for _, file := range files {
 		indexName := *worker.jobServer.Config().ElasticsearchSettings.IndexPrefix + IndexBaseFiles
+		indexWasEmpty := worker.indexWasEmpty(indexName)
 
 		if file.ShouldIndex() {
 			searchFile := ESFileFromFileForIndexing(file)
@@ -536,6 +576,8 @@ func (worker *IndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, prog
 			if err != nil {
 				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("index_name", indexName), mlog.Err(err))
 			}
+		} else if indexWasEmpty {
+			worker.skippedDeletes++
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, file.Id, nil)
 			if err != nil {
