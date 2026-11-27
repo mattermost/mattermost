@@ -54,6 +54,7 @@ import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
+import BlockableLink from './blockable_link';
 import BoardAttributes, {searchableStrings as boardAttributesSearchableStrings} from './board_attributes';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
@@ -2524,14 +2525,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.mobileSecurity.mobileQRLogin.enableDescription', defaultMessage: 'When enabled, signed-in users on the web or desktop app can show a one-time QR code. Scanning it with the phone\'s camera opens the Mattermost mobile app and signs in with the same account. Codes can be used once and expire quickly. The mobile session lasts as long as the mobile session length set in {sessionLengths}.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                                     help_text_values: {
                                         sessionLengths: (
-                                            <Link to='/admin_console/environment/session_lengths'>
+                                            <BlockableLink to='/admin_console/environment/session_lengths'>
                                                 <b>
                                                     <FormattedMessage
                                                         id='admin.mobileSecurity.mobileQRLogin.sessionLengths'
                                                         defaultMessage='Session Lengths'
                                                     />
                                                 </b>
-                                            </Link>
+                                            </BlockableLink>
                                         ),
                                     },
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
