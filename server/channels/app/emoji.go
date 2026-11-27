@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/color"
 	"image/color/palette"
 	"image/draw"
 	"image/gif"
@@ -331,13 +332,37 @@ func resizeEmojiGif(gifImg *gif.GIF) {
 	b := image.Rect(0, 0, firstFrame.Dx(), firstFrame.Dy())
 	img := image.NewRGBA(b)
 
+	if len(gifImg.Disposal) != len(gifImg.Image) {
+		gifImg.Disposal = make([]byte, len(gifImg.Image))
+	}
+
 	resizedImage := image.Image(nil)
 	// Resize each frame.
 	for index, frame := range gifImg.Image {
 		bounds := frame.Bounds()
+		disposal := gifImg.Disposal[index]
+
+		var previous *image.RGBA
+		if disposal == gif.DisposalPrevious {
+			previous = image.NewRGBA(b)
+			copy(previous.Pix, img.Pix)
+		}
+
 		draw.Draw(img, bounds, frame, bounds.Min, draw.Over)
 		resizedImage = resizeEmoji(img, firstFrame.Dx(), firstFrame.Dy())
 		gifImg.Image[index] = imageToPaletted(resizedImage)
+
+		// Apply the frame's disposal method, so the next frame is drawn on the
+		// right background instead of on top of every previous frame.
+		switch disposal {
+		case gif.DisposalBackground:
+			draw.Draw(img, bounds, image.Transparent, image.Point{}, draw.Src)
+		case gif.DisposalPrevious:
+			img = previous
+		}
+		// Each output frame is a full composite: clear it before the next one
+		// so its transparent pixels do not show the previous frame.
+		gifImg.Disposal[index] = gif.DisposalBackground
 	}
 	// Set new gif width and height
 	gifImg.Config.Width = resizedImage.Bounds().Dx()
@@ -358,9 +383,16 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight)
 }
 
+var emojiGIFPalette = func() color.Palette {
+	p := make(color.Palette, len(palette.Plan9))
+	copy(p, palette.Plan9)
+	p[0] = color.Transparent
+	return p
+}()
+
 func imageToPaletted(img image.Image) *image.Paletted {
 	b := img.Bounds()
-	pm := image.NewPaletted(b, palette.Plan9)
+	pm := image.NewPaletted(b, emojiGIFPalette)
 	draw.FloydSteinberg.Draw(pm, b, img, image.Point{})
 	return pm
 }
