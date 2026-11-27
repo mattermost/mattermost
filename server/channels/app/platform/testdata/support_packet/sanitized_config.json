@@ -694,7 +694,8 @@
         "SyncJobIntervalSeconds": null,
         "AttributeRefreshIntervalSeconds": null,
         "DecisionCacheMaxAgeSeconds": null,
-        "DecisionCacheSize": null
+        "DecisionCacheSize": null,
+        "EnableDecisionCache": null
     },
     "ContentFlaggingSettings": {
         "EnableContentFlagging": null,

@@ -4293,6 +4293,9 @@ type AccessControlSettings struct {
 	// age drops every cached decision, and lowering the size empties each shard above its new limit.
 	DecisionCacheMaxAgeSeconds *int `access:"write_restrictable,cloud_restrictable"`
 	DecisionCacheSize          *int `access:"write_restrictable,cloud_restrictable"`
+	// EnableDecisionCache turns the ABAC decision cache on or off. Read once at startup: a
+	// change takes effect after a restart.
+	EnableDecisionCache *bool `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4336,6 +4339,10 @@ func (s *AccessControlSettings) SetDefaults() {
 
 	if s.DecisionCacheSize == nil {
 		s.DecisionCacheSize = new(AccessControlDecisionCacheSizeDefault)
+	}
+
+	if s.EnableDecisionCache == nil {
+		s.EnableDecisionCache = new(true)
 	}
 }
 

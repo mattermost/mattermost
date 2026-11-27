@@ -29,6 +29,7 @@ describe('TeamAccessPoliciesTab', () => {
             AttributeRefreshIntervalSeconds: 30,
             DecisionCacheMaxAgeSeconds: 60,
             DecisionCacheSize: 1000000,
+            EnableDecisionCache: true,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),

@@ -25,6 +25,10 @@ const (
 
 	accessDecisionMetricsInterval = 10 * time.Second
 	accessDecisionSweepInterval   = 5 * time.Minute
+
+	accessDecisionCacheEnabledLog       = "ABAC decision cache is enabled"
+	accessDecisionCacheDisabledLog      = "ABAC decision cache is disabled by AccessControlSettings.EnableDecisionCache; every access check asks the policy decision point"
+	accessDecisionCacheSwitchChangedLog = "AccessControlSettings.EnableDecisionCache changed; the new value takes effect after a restart"
 )
 
 // accessDecisionInvalidation is the ClusterEventInvalidateAccessDecisions payload.
@@ -50,9 +54,10 @@ var (
 
 // accessDecisionsTracked is false while the PDP can't answer (ABAC off or no Enterprise Advanced
 // license); invalidations are skipped then, and the config and license listeners reset the cache
-// when it comes back.
+// when it comes back. It doesn't depend on this node's cache: with EnableDecisionCache off, peers
+// may still cache decisions, and the roles and subjects they evict travel with the invalidation.
 func (ch *Channels) accessDecisionsTracked() bool {
-	if ch.accessDecisions == nil || ch.AccessControl == nil {
+	if ch.AccessControl == nil {
 		return false
 	}
 	cfg := ch.cfgSvc.Config()
@@ -297,21 +302,61 @@ func (ch *Channels) applyAccessDecisionCacheSettings(prevCfg, cfg *model.Config)
 	}
 }
 
-// initAccessDecisionCache builds the cache from the startup config and registers its listeners.
-func (ch *Channels) initAccessDecisionCache() {
-	size, maxAge := accessDecisionCacheSettings(ch.cfgSvc.Config())
+// accessDecisionCacheEnabled reads AccessControlSettings.EnableDecisionCache, which defaults to on.
+func accessDecisionCacheEnabled(cfg *model.Config) bool {
+	if cfg == nil || cfg.AccessControlSettings.EnableDecisionCache == nil {
+		return true
+	}
+	return *cfg.AccessControlSettings.EnableDecisionCache
+}
 
-	ch.accessDecisions = newAccessDecisionCache(size, maxAge)
+// initAccessDecisionCache builds the cache from the startup config and registers its listeners.
+// With EnableDecisionCache off the cache isn't allocated, so every check asks the PDP, but
+// invalidations are still sent to peers, which may run with it on. The setting is read only
+// here: a change takes effect after a restart.
+func (ch *Channels) initAccessDecisionCache() {
+	cfg := ch.cfgSvc.Config()
+	enabled := accessDecisionCacheEnabled(cfg)
+	if enabled {
+		size, maxAge := accessDecisionCacheSettings(cfg)
+		ch.accessDecisions = newAccessDecisionCache(size, maxAge)
+	}
 	ch.accessDecisionBroadcaster = newAccessDecisionBroadcaster(ch.sendAccessDecisionInvalidation)
+	if enabled {
+		ch.srv.Log().Info(accessDecisionCacheEnabledLog)
+	} else {
+		ch.srv.Log().Info(accessDecisionCacheDisabledLog)
+	}
+	ch.reportAccessDecisionCacheEnabled()
 
 	ch.AddConfigListener(ch.invalidateAccessDecisionsOnConfigChange)
 	ch.AddConfigListener(ch.applyAccessDecisionCacheSettings)
+	ch.AddConfigListener(ch.onAccessDecisionCacheSwitchChange)
 	ch.srv.platform.AddLicenseListener(ch.invalidateAccessDecisionsOnLicenseChange)
 
 	if l, ok := ch.srv.Store().(interface {
 		SetMembershipChangeListener(localcachelayer.MembershipChangeListener)
 	}); ok {
 		l.SetMembershipChangeListener(ch)
+	}
+}
+
+// reportAccessDecisionCacheEnabled sets the gauge to whether this node allocated the cache.
+func (ch *Channels) reportAccessDecisionCacheEnabled() {
+	if metrics := ch.srv.GetMetrics(); metrics != nil {
+		metrics.SetAccessControlDecisionCacheEnabled(ch.accessDecisions != nil)
+	}
+}
+
+// onAccessDecisionCacheSwitchChange logs that a changed EnableDecisionCache waits for a restart.
+// It also reports the gauge again, since metrics can be turned on after startup.
+func (ch *Channels) onAccessDecisionCacheSwitchChange(prevCfg, cfg *model.Config) {
+	ch.reportAccessDecisionCacheEnabled()
+	if enabled := accessDecisionCacheEnabled(cfg); enabled != accessDecisionCacheEnabled(prevCfg) {
+		ch.srv.Log().Info(accessDecisionCacheSwitchChangedLog,
+			mlog.Bool("enabled", enabled),
+			mlog.Bool("running_enabled", ch.accessDecisions != nil),
+		)
 	}
 }
 
@@ -364,13 +409,13 @@ func (ch *Channels) startAccessDecisionMaintenance() {
 }
 
 func (ch *Channels) stopAccessDecisionMaintenance() {
-	if ch.accessDecisionStop == nil {
-		return
+	if ch.accessDecisionStop != nil {
+		close(ch.accessDecisionStop)
+		<-ch.accessDecisionDone
+		ch.accessDecisionStop = nil
+		ch.accessDecisionDone = nil
 	}
-	close(ch.accessDecisionStop)
-	<-ch.accessDecisionDone
-	ch.accessDecisionStop = nil
-	ch.accessDecisionDone = nil
+	// Flushed with the cache off too: the broadcaster runs either way.
 	if ch.accessDecisionBroadcaster != nil {
 		ch.accessDecisionBroadcaster.flush()
 	}

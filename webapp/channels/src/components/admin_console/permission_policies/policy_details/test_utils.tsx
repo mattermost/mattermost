@@ -66,6 +66,7 @@ const accessControlSettings: AccessControlSettings = {
     AttributeRefreshIntervalSeconds: 30,
     DecisionCacheMaxAgeSeconds: 60,
     DecisionCacheSize: 1000000,
+    EnableDecisionCache: true,
 };
 
 export const baseProps = {

@@ -142,6 +142,8 @@ type MetricsInterface interface {
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
+	// SetAccessControlDecisionCacheEnabled reports whether this node runs the ABAC decision cache.
+	SetAccessControlDecisionCacheEnabled(enabled bool)
 
 	// Auto-translation metrics
 	ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64)
