@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Клас зберігання даних Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Режим розробки) Якщо увімкнено, записувати додаткову налагоджувальну інформацію до системних журналів.",
   "admin.image.amazonS3TraceTitle": "Увімкнути налагодження Amazon S3:",
-  "admin.image.archiveRecursionDescription": "Якщо увімкнено, вміст документів у ZIP-файлах буде повертатися в результатах пошуку. Це може вплинути на продуктивність сервера для великих файлів.",
-  "admin.image.archiveRecursionTitle": "Увімкнути пошук вмісту документів у ZIP-файлах:",
   "admin.image.azureAccessKeyDescription": "Спільний ключ вашого облікового запису Azure Storage.",
   "admin.image.azureAccessKeyExample": "Наприклад: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Ключ облікового запису Azure Storage:",

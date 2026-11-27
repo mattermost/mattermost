@@ -7991,14 +7991,6 @@
     "defaultMessage": "Enable Amazon S3 Debugging:",
     "description": "Setting label (toggle) on the File Storage admin page enabling verbose S3 logging; ends with a colon."
   },
-  "admin.image.archiveRecursionDescription": {
-    "defaultMessage": "When enabled, content of documents within ZIP files will be returned in search results. This may have an impact on server performance for large files.",
-    "description": "Admin console help text under the toggle for searching document content inside ZIP archives on the File Storage page."
-  },
-  "admin.image.archiveRecursionTitle": {
-    "defaultMessage": "Enable searching content of documents within ZIP files:",
-    "description": "Setting label (toggle) on the File Storage admin page; controls whether documents inside ZIP files are indexed for search. Ends with a colon."
-  },
   "admin.image.azureAccessKeyDescription": {
     "defaultMessage": "The shared key for your Azure Storage account.",
     "description": "Admin console help text under the Azure Storage Account Key field on the File Storage page."

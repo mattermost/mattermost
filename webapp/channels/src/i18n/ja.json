@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3ストレージクラス:",
   "admin.image.amazonS3TraceDescription": "(開発モード) 有効な場合、詳細なデバッグ情報がシステムログに出力されます。",
   "admin.image.amazonS3TraceTitle": "Amazon S3のデバッグを有効にする:",
-  "admin.image.archiveRecursionDescription": "有効な場合、ZIPファイル内のドキュメントの内容が検索結果に表示されるようになります。大きなファイルの場合、サーバーのパフォーマンスに影響を与える可能性があります。",
-  "admin.image.archiveRecursionTitle": "ZIPファイル内の文書の内容を検索可能にする:",
   "admin.image.azureAccessKeyDescription": "Azure Storageアカウントの共有キーです。",
   "admin.image.azureAccessKeyExample": "例: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storageアカウントキー:",

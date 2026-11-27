@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 Storage klasse:",
   "admin.image.amazonS3TraceDescription": "(Ontwikkelingsmodus) Als dit waar is, schrijf aanvullende foutopsporingsinformatie in de systeemlogboeken.",
   "admin.image.amazonS3TraceTitle": "Amazon S3-foutopsporing inschakelen:",
-  "admin.image.archiveRecursionDescription": "Indien ingeschakeld, zal de inhoud van documenten in ZIP-bestanden worden weergegeven in zoekresultaten. Dit kan invloed hebben op de serverprestaties voor grote bestanden.",
-  "admin.image.archiveRecursionTitle": "Het zoeken in de inhoud van documenten binnen ZIP-bestanden inschakelen:",
   "admin.image.azureAccessKeyDescription": "De gedeelde sleutel voor je Azure Storage-account.",
   "admin.image.azureAccessKeyExample": "Bijv.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storage-accountsleutel:",

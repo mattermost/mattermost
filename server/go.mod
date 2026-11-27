@@ -55,7 +55,6 @@ require (
 	github.com/mattermost/pdf v0.0.0-20261106150958-aad8dd5c3f19
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.5.0
-	github.com/mholt/archives v0.1.5
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.4.1
 	github.com/molecule-man/go-brrr v1.3.1

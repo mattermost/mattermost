@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 depolama sınıfı:",
   "admin.image.amazonS3TraceDescription": "(Geliştirme kipi) Açıldığında, sistem günlüklerine ek hata ayıklama bilgileri yazılır.",
   "admin.image.amazonS3TraceTitle": "Amazon S3 hata ayıklaması kullanılsın:",
-  "admin.image.archiveRecursionDescription": "Açıldığında, arama sonuçlarında ZIP dosyalarındaki belgelerin içerikleri de görüntülenir. Büyük dosyalar varsa sunucu başarımı olumsuz etkilenebilir.",
-  "admin.image.archiveRecursionTitle": "ZIP dosyalarındaki belge içerikleri aranabilsin:",
   "admin.image.azureAccessKeyDescription": "Azure Storage hesabınızın paylaşılan anahtarı.",
   "admin.image.azureAccessKeyExample": "Örnek: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storage hesap anahtarı:",

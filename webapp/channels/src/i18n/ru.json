@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Класс хранилища Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Режим разработки) При значении \"да\" вносить дополнительную информацию об отладке в системные журналы.",
   "admin.image.amazonS3TraceTitle": "Включить отладку Amazon S3:",
-  "admin.image.archiveRecursionDescription": "При включении этого параметра содержимое документов в ZIP-файлах будет возвращено в результатах поиска. Это может повлиять на производительность сервера для больших файлов.",
-  "admin.image.archiveRecursionTitle": "Включить поиск в документах в ZIP-файлах:",
   "admin.image.azureAccessKeyDescription": "Общий ключ для вашей учётной записи Azure Storage.",
   "admin.image.azureAccessKeyExample": "Например: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Ключ учётной записи Azure Storage:",

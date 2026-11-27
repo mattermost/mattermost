@@ -25,10 +25,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
-// testBudget returns a generous ExtractionBudget for use in unit tests that
-// are not specifically testing budget or depth limits.
+// testBudget returns a generous ExtractionBudget for use in unit tests.
 func testBudget() *ExtractionBudget {
-	return newExtractionBudget(maxArchiveExtractedText, defaultMaxArchiveDepth)
+	return newExtractionBudget(maxExtractedText)
 }
 
 func TestExtract(t *testing.T) {
@@ -55,54 +54,6 @@ func TestExtract(t *testing.T) {
 			"test-hashtags.md",
 			ExtractSettings{},
 			[]string{"should", "render", "strings"},
-			[]string{},
-			false,
-		},
-		{
-			"Zip file without recursion",
-			"Fake_Team_Import.zip",
-			ExtractSettings{},
-			[]string{"users", "channels", "general"},
-			[]string{"purpose", "announcements"},
-			false,
-		},
-		{
-			"Zip file with recursion",
-			"Fake_Team_Import.zip",
-			ExtractSettings{ArchiveRecursion: true},
-			[]string{"users", "channels", "general", "purpose", "announcements"},
-			[]string{},
-			false,
-		},
-		{
-			"Rar file without recursion",
-			"Fake_Team_Import.rar",
-			ExtractSettings{},
-			[]string{"users", "channels", "general"},
-			[]string{"purpose", "announcements"},
-			false,
-		},
-		{
-			"Rar file with recursion",
-			"Fake_Team_Import.rar",
-			ExtractSettings{ArchiveRecursion: true},
-			[]string{"users", "channels", "general", "purpose", "announcements"},
-			[]string{},
-			false,
-		},
-		{
-			"Tar.gz file without recursion",
-			"Fake_Team_Import.tar.gz",
-			ExtractSettings{},
-			[]string{"users", "channels", "general"},
-			[]string{"purpose", "announcements"},
-			false,
-		},
-		{
-			"Tar.gz file with recursion",
-			"Fake_Team_Import.tar.gz",
-			ExtractSettings{ArchiveRecursion: true},
-			[]string{"users", "channels", "general", "purpose", "announcements"},
 			[]string{},
 			false,
 		},
@@ -163,6 +114,13 @@ func TestExtract(t *testing.T) {
 		data, err := testutils.ReadTestFile("testjpg.jpg")
 		require.NoError(t, err)
 		text, err := Extract(logger, "testjpg.jpg", bytes.NewReader(data), ExtractSettings{})
+		require.NoError(t, err)
+		require.Equal(t, "", text)
+	})
+
+	t.Run("Archive file", func(t *testing.T) {
+		data := buildZipPackage(t, []zipPackageEntry{{name: "message.txt", data: []byte("archive contents"), method: zip.Deflate}})
+		text, err := Extract(logger, "bundle.zip", bytes.NewReader(data), ExtractSettings{})
 		require.NoError(t, err)
 		require.Equal(t, "", text)
 	})
@@ -437,75 +395,6 @@ func TestDocumentMaxFileSize(t *testing.T) {
 	})
 }
 
-func TestArchiveMaxFileSize(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name           string
-		file           string
-		recursion      bool
-		limit          int64
-		expectContains []string
-		expectMissing  []string
-	}{
-		{
-			name:           "Zip with recursion and large limit extracts fully",
-			file:           "Fake_Team_Import.zip",
-			recursion:      true,
-			limit:          10 * 1024 * 1024,
-			expectContains: []string{"purpose", "announcements"},
-		},
-		{
-			name:          "Zip with recursion and tiny limit rejects oversized entries",
-			file:          "Fake_Team_Import.zip",
-			recursion:     true,
-			limit:         1,
-			expectMissing: []string{"purpose", "announcements"},
-		},
-		{
-			name:           "Zip with recursion and zero limit means unlimited",
-			file:           "Fake_Team_Import.zip",
-			recursion:      true,
-			limit:          0,
-			expectContains: []string{"purpose", "announcements"},
-		},
-		{
-			name:           "Zip without recursion lists paths regardless of limit",
-			file:           "Fake_Team_Import.zip",
-			recursion:      false,
-			limit:          1,
-			expectContains: []string{"channels"},
-		},
-		{
-			name:          "Tar.gz with recursion and tiny limit rejects oversized entries",
-			file:          "Fake_Team_Import.tar.gz",
-			recursion:     true,
-			limit:         1,
-			expectMissing: []string{"purpose", "announcements"},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			data, err := testutils.ReadTestFile(tc.file)
-			require.NoError(t, err)
-
-			settings := ExtractSettings{ArchiveRecursion: tc.recursion, MaxFileSize: tc.limit}
-			text, err := Extract(mlog.CreateConsoleTestLogger(t), tc.file, bytes.NewReader(data), settings)
-			require.NoError(t, err)
-
-			for _, s := range tc.expectContains {
-				assert.Contains(t, text, s)
-			}
-			for _, s := range tc.expectMissing {
-				assert.NotContains(t, text, s)
-			}
-		})
-	}
-}
-
 func TestExtractConcurrency(t *testing.T) {
 	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70109")
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -575,7 +464,7 @@ func TestExtractConcurrency(t *testing.T) {
 // documentAllocRatioLimit is how far allocations for the longer listing may
 // exceed a single listing. The margin leaves room for a larger package
 // listing when each distinct part is handled once and retained text stays
-// within maxArchiveExtractedText.
+// within maxExtractedText.
 const (
 	documentPartTextBytes   = 256 * 1024
 	documentPartListings    = 12
@@ -821,7 +710,7 @@ func textFitsCopies(text string, payload []byte, copies int) bool {
 }
 
 func overRetainPayload() []byte {
-	n := (int(maxArchiveExtractedText) + documentPartTextBytes) / len("lorem ")
+	n := (int(maxExtractedText) + documentPartTextBytes) / len("lorem ")
 	return bytes.Repeat([]byte("lorem "), n)
 }
 
@@ -860,11 +749,11 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 			require.Greater(t, onceAlloc, uint64(0))
 
 			ratio := float64(manyAlloc) / float64(onceAlloc)
-			textOK := len(manyText) <= int(maxArchiveExtractedText)
+			textOK := len(manyText) <= int(maxExtractedText)
 			allocOK := manyAlloc <= onceAlloc*uint64(documentAllocRatioLimit)
 			if !textOK || !allocOK {
 				t.Fatalf("part listed %d times: textOnce=%d textMany=%d retained=%d allocOnce=%d allocMany=%d ratio=%.2f allocLimit=%d zipOnce=%d zipMany=%d",
-					documentPartListings, len(onceText), len(manyText), maxArchiveExtractedText, onceAlloc, manyAlloc, ratio, documentAllocRatioLimit, len(oncePkg), len(manyPkg))
+					documentPartListings, len(onceText), len(manyText), maxExtractedText, onceAlloc, manyAlloc, ratio, documentAllocRatioLimit, len(oncePkg), len(manyPkg))
 			}
 		})
 	}
@@ -967,14 +856,14 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 				text, err := (&documentExtractor{}).Extract(context.Background(), "part."+spec.ext, bytes.NewReader(pkg), documentExtractLimit, nil)
 				require.NoError(t, err)
 				require.Contains(t, text, "lorem")
-				require.LessOrEqual(t, len(text), int(maxArchiveExtractedText))
+				require.LessOrEqual(t, len(text), int(maxExtractedText))
 			})
 		}
 	})
 
 	t.Run("retained text", func(t *testing.T) {
 		large := overRetainPayload()
-		require.Greater(t, len(large), int(maxArchiveExtractedText))
+		require.Greater(t, len(large), int(maxExtractedText))
 		for _, spec := range officePartSpecs() {
 			pkg := buildRepeatedDocumentPackage(t, spec.ext, 1, large)
 			filename := "part." + spec.ext
@@ -995,7 +884,7 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 					require.NoError(t, err)
 					require.Contains(t, text, "lorem")
 					// One part larger than the retained size stops at that size.
-					require.Equal(t, int(maxArchiveExtractedText), len(text))
+					require.Equal(t, int(maxExtractedText), len(text))
 				})
 			}
 		}
@@ -1190,8 +1079,8 @@ func TestDocumentRepeatedPartConcurrent(t *testing.T) {
 					}
 					lengths[i] = len(text)
 					assert.Contains(t, text, "lorem")
-					assert.LessOrEqual(t, len(text), int(maxArchiveExtractedText))
-					if len(text) > int(maxArchiveExtractedText) {
+					assert.LessOrEqual(t, len(text), int(maxExtractedText))
+					if len(text) > int(maxExtractedText) {
 						errMsgs[i] = "over retained size"
 					}
 				}(i)
@@ -1397,9 +1286,9 @@ func TestOfficeManyShortRuns(t *testing.T) {
 
 			text, err := extractOfficeText(context.Background(), tc.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
 			require.NoError(t, err)
-			require.Equal(t, int(maxArchiveExtractedText), len(text))
+			require.Equal(t, int(maxExtractedText), len(text))
 
-			small := newExtractionBudget(4096, defaultMaxArchiveDepth)
+			small := newExtractionBudget(4096)
 			text, err = extractOfficeText(context.Background(), tc.ext, bytes.NewReader(pkg), documentExtractLimit, small)
 			require.NoError(t, err)
 			require.Equal(t, 4096, len(text))

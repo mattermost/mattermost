@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Clasă de stocare Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Mod de dezvoltare) Când este adevărat, accesați informațiile de depanare suplimentare în jurnalele de sistem.",
   "admin.image.amazonS3TraceTitle": "Activați Amazon S3 Debugging:",
-  "admin.image.archiveRecursionDescription": "Când este activată, conținutul documentelor din fișierele ZIP va fi returnat în rezultatele căutării. Acest lucru poate avea un impact asupra performanțelor serverului în cazul fișierelor mari.",
-  "admin.image.archiveRecursionTitle": "Permite căutarea în conținutul documentelor din fișierele ZIP:",
   "admin.image.azureAccessKeyDescription": "Cheia partajată pentru contul dvs. de stocare Azure.",
   "admin.image.azureAccessKeyExample": "De exemplu: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Cheia contului de stocare Azure:",

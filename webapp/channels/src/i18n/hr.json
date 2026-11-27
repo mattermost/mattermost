@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 klasa pohrane:",
   "admin.image.amazonS3TraceDescription": "(Razvojni način) Kada je uključeno, u zapisnike sustava bilježe se dodatne informacije za otklanjanje grešaka.",
   "admin.image.amazonS3TraceTitle": "Omogući otklanjanje grešaka za Amazon S3:",
-  "admin.image.archiveRecursionDescription": "Kada je uključeno, sadržaj dokumenata unutar ZIP datoteka vraćat će se u rezultatima pretrage. To može utjecati na performanse servera kod velikih datoteka.",
-  "admin.image.archiveRecursionTitle": "Omogući pretraživanje sadržaja dokumenata unutar ZIP datoteka:",
   "admin.image.azureAccessKeyDescription": "Dijeljeni ključ tvog Azure Storage računa.",
   "admin.image.azureAccessKeyExample": "Npr.: „9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=”",
   "admin.image.azureAccessKeyTitle": "Ključ Azure Storage računa:",

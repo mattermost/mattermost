@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 lagringsklass:",
   "admin.image.amazonS3TraceDescription": "(Utvecklarläge) När aktiverad loggas extra debugginformation i systemloggen.",
   "admin.image.amazonS3TraceTitle": "Aktivera Amazon S3-debug:",
-  "admin.image.archiveRecursionDescription": "När aktiverad kommer innehållet i dokument i ZIP-filer att returneras i sökresultaten. Detta kan påverka serverns prestanda för stora filer.",
-  "admin.image.archiveRecursionTitle": "Aktivera möjligheten att söka efter innehåll i dokument inuti ZIP-filer:",
   "admin.image.azureAccessKeyDescription": "Den delade nyckeln för ditt Azure Storage-konto.",
   "admin.image.azureAccessKeyExample": "T.ex.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storage-kontonyckel:",

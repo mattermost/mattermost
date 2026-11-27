@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Classe de stockage Amazon S3 :",
   "admin.image.amazonS3TraceDescription": "(Mode développement) Si activé, ajoute des informations de débogage supplémentaires aux journaux du système.",
   "admin.image.amazonS3TraceTitle": "Activer le débogage d'Amazon S3 :",
-  "admin.image.archiveRecursionDescription": "Si activé, le contenu des documents se trouvant dans des archives ZIP seront retournés dans les résultats de recherche. Ceci peut avoir un impact sur la performance du serveur pour les gros fichiers.",
-  "admin.image.archiveRecursionTitle": "Activer la recherche à l'intérieur des fichiers contenu dans une archive ZIP :",
   "admin.image.azureAccessKeyDescription": "La clé partagée de votre compte de stockage Azure.",
   "admin.image.azureAccessKeyExample": "Ex. : « 9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So= »",
   "admin.image.azureAccessKeyTitle": "Clé du compte de stockage Azure :",

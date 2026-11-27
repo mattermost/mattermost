@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 -tallennusluokka:",
   "admin.image.amazonS3TraceDescription": "(Kehittäjämoodi) Kun tosi, järjestelmälogiin kirjoitetaan lisää debuggaustietoja.",
   "admin.image.amazonS3TraceTitle": "Ota käyttöön Amazon S3 debuggaus:",
-  "admin.image.archiveRecursionDescription": "Kun käytössä, ZIP-tiedostojen sisältämien asiakirjojen sisältö näytetään hakutuloksissa. Tämä voi vaikuttaa palvelimen suorituskykyyn suurilla tiedostoilla.",
-  "admin.image.archiveRecursionTitle": "Ota ZIP-tiedostojen sisältämien asiakirjojen sisältöhaku käyttöön:",
   "admin.image.azureAccessKeyDescription": "Azure Storage -tilisi jaettu avain.",
   "admin.image.azureAccessKeyExample": "Esim.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storage -tilin avain:",

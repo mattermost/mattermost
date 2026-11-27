@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Třída úložiště Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Režim vývoje) Když je zapnuto, do systémových záznamů se zaznamenávají další ladící informace.",
   "admin.image.amazonS3TraceTitle": "Zapnout Amazon S3 Debugging:",
-  "admin.image.archiveRecursionDescription": "Když je aktivní, obsah dokumentů uvnitř souborů ZIP bude zahrnut v výsledcích vyhledávání. To může ovlivnit výkon serveru u velkých souborů.",
-  "admin.image.archiveRecursionTitle": "Povolit vyhledávání obsahu dokumentů v souborech ZIP:",
   "admin.image.azureAccessKeyDescription": "Sdílený klíč vašeho účtu Azure Storage.",
   "admin.image.azureAccessKeyExample": "Např.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Klíč účtu Azure Storage:",

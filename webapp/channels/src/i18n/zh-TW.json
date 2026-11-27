@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 儲存類別：",
   "admin.image.amazonS3TraceDescription": "（開發模式）啟用時，系統紀錄檔將包含額外的除錯資訊。",
   "admin.image.amazonS3TraceTitle": "啟用 Amazon S3 除錯：",
-  "admin.image.archiveRecursionDescription": "啟用時，搜尋結果中將包含 ZIP 檔案中的文件內容。搜尋到大檔案時可能會對伺服器效能產生影響。",
-  "admin.image.archiveRecursionTitle": "啟用搜尋 ZIP 檔案中的文件：",
   "admin.image.azureAccessKeyDescription": "Azure 儲存體帳戶的共用金鑰。",
   "admin.image.azureAccessKeyExample": "如：「9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=」",
   "admin.image.azureAccessKeyTitle": "Azure 儲存體帳戶金鑰：",

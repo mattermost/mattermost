@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Classe de armazenamento do Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Modo de Desenvolvimento) Se verdadeiro, adiciona mais informações de debug no log do sistema.",
   "admin.image.amazonS3TraceTitle": "Ativar Amazon S3 Debug:",
-  "admin.image.archiveRecursionDescription": "Se ativado, o conteúdo dos documentos nos arquivos ZIP será retornado nos resultados da pesquisa. Isso pode ter um impacto no desempenho do servidor para arquivos grandes.",
-  "admin.image.archiveRecursionTitle": "Ativar a pesquisa de conteúdo de documentos em arquivos ZIP:",
   "admin.image.azureAccessKeyDescription": "A chave compartilhada da sua conta de Armazenamento do Azure.",
   "admin.image.azureAccessKeyExample": "Ex.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Chave da Conta de Armazenamento do Azure:",

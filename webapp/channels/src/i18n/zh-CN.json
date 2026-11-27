@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 存储类别：",
   "admin.image.amazonS3TraceDescription": "(开发模式) 当设为是时，系统日志将记录额外的调试信息。",
   "admin.image.amazonS3TraceTitle": "开启 Amazon S3 调试：",
-  "admin.image.archiveRecursionDescription": "当启用时，ZIP 文件中的文档内容将在搜索结果中返回。这可能会让大文件对服务器性能产生影响。",
-  "admin.image.archiveRecursionTitle": "启用搜索 ZIP 文件中的文档的内容：",
   "admin.image.azureAccessKeyDescription": "Azure 存储账号的共享密钥。",
   "admin.image.azureAccessKeyExample": "例如：“9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=”",
   "admin.image.azureAccessKeyTitle": "Azure 存储账号密钥：",

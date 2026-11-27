@@ -1970,8 +1970,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 lagerklasse:",
   "admin.image.amazonS3TraceDescription": "(Udvikling-Tilstand), Når true, log yderligere fejlfindingsoplysninger til systemets logfiler.",
   "admin.image.amazonS3TraceTitle": "Aktiver Amazon S3 Debugging:",
-  "admin.image.archiveRecursionDescription": "Når aktiveret, returneres indholdet af dokumenter i ZIP-filer i søgeresultater. Dette kan have indvirkning på serverens ydeevne ved store filer.",
-  "admin.image.archiveRecursionTitle": "Aktivér søgning i indhold af dokumenter i ZIP-filer:",
   "admin.image.azureAccessKeyDescription": "Den delte nøgle til din Azure Storage-konto.",
   "admin.image.azureAccessKeyExample": "F.eks.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Nøgle til Azure Storage-konto:",

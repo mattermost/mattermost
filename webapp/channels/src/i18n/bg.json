@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Клас за съхранение в Amazon S3:",
   "admin.image.amazonS3TraceDescription": "(Режим на разработка) Когато е true, се регистрира допълнителна информация за отстраняване на грешки в системните регистрационни файлове.",
   "admin.image.amazonS3TraceTitle": "Активиране на отстраняване на грешки в Amazon S3:",
-  "admin.image.archiveRecursionDescription": "Когато е разрешено, съдържанието на документите в ZIP файловете ще се връща в резултатите от търсенето. Това може да окаже влияние върху производителността на сървъра при големи файлове.",
-  "admin.image.archiveRecursionTitle": "Разрешава търсене в съдържанието на документи в ZIP файлове:",
   "admin.image.azureAccessKeyDescription": "Споделеният ключ за вашия акаунт в Azure Storage.",
   "admin.image.azureAccessKeyExample": "Например: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Ключ за акаунта в Azure Storage:",

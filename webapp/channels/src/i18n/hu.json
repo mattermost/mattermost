@@ -1967,8 +1967,6 @@
   "admin.image.amazonS3StorageClassTitle": "Amazon S3 tárolási osztály:",
   "admin.image.amazonS3TraceDescription": "(Fejlesztő mód) Ha igaz, akkor további hibakeresési információkat naplóz a rendszernaplókba.",
   "admin.image.amazonS3TraceTitle": "Amazon S3 hibakeresés engedélyezése:",
-  "admin.image.archiveRecursionDescription": "Ha engedélyezve van, a ZIP fájlokban lévő dokumentumok tartalma visszatér a keresési eredmények közé. Ez hatással lehet a nagy fájlok kiszolgálóinak teljesítményére.",
-  "admin.image.archiveRecursionTitle": "ZIP fájlokban lévő dokumentumok tartalmában történő keresés engedélyezése:",
   "admin.image.azureAccessKeyDescription": "Az Azure Storage-fiók megosztott kulcsa.",
   "admin.image.azureAccessKeyExample": "Pl.: \"9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So=\"",
   "admin.image.azureAccessKeyTitle": "Azure Storage-fiók kulcsa:",
