@@ -114,14 +114,24 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 		func(indexName string) (bool, error) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
+			// Count only sees refreshed documents.
+			refreshRes, err := client.Indices.Refresh(client.Indices.Refresh.WithContext(ctx), client.Indices.Refresh.WithIndex(indexName))
+			if err != nil {
+				return false, err
+			}
+			defer refreshRes.Body.Close()
+			if refreshRes.StatusCode == http.StatusNotFound {
+				return true, nil
+			}
+			if refreshRes.IsError() {
+				return false, fmt.Errorf("failed to refresh index %s: %s", indexName, refreshRes.String())
+			}
+
 			res, err := client.Count(client.Count.WithContext(ctx), client.Count.WithIndex(indexName))
 			if err != nil {
 				return false, err
 			}
 			defer res.Body.Close()
-			if res.StatusCode == http.StatusNotFound {
-				return true, nil
-			}
 			if res.IsError() {
 				return false, fmt.Errorf("failed to count documents in index %s: %s", indexName, res.String())
 			}

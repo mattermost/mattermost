@@ -133,10 +133,15 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 		func(indexName string) (bool, error) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*esi.Server.Jobs.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 			defer cancel()
-			resp, err := client.Indices.Count(ctx, &opensearchapi.IndicesCountReq{Indices: []string{indexName}})
+			// Count only sees refreshed documents.
+			_, err := client.Indices.Refresh(ctx, &opensearchapi.IndicesRefreshReq{Index: []string{indexName}})
 			if isIndexNotFound(err) {
 				return true, nil
 			}
+			if err != nil {
+				return false, err
+			}
+			resp, err := client.Indices.Count(ctx, &opensearchapi.IndicesCountReq{Indices: []string{indexName}})
 			if err != nil {
 				return false, err
 			}
