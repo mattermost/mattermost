@@ -31,8 +31,8 @@ describe('Markdown', () => {
             },
         });
 
-        // # Login as test user and visit off-topic
-        cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+        // # Stay logged in as sysadmin (team creator) since `/test` commands require system admin, and visit off-topic
+        cy.apiInitSetup().then(({offTopicUrl}) => {
             cy.visit(offTopicUrl);
             cy.postMessage('hello');
         });

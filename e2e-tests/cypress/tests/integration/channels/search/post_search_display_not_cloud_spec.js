@@ -23,8 +23,9 @@ describe('Search', () => {
     });
 
     beforeEach(() => {
+        // # Stay logged in as sysadmin (team creator) since `/test` commands require system admin
         cy.apiAdminLogin();
-        cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+        cy.apiInitSetup().then(({offTopicUrl}) => {
             cy.visit(offTopicUrl);
         });
     });

@@ -1786,6 +1786,10 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_test.permission.app_error",
+    "translation": "You don't have enough permissions to run this command."
+  },
+  {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
