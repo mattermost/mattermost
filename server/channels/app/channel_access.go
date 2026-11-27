@@ -859,14 +859,16 @@ func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, c
 		return true
 	}
 
-	channel, appErr := a.GetChannel(rctx, channelID)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
+	// The bare cached read: the checks read only the channel's id, type and
+	// PolicyEnforced, so the hydrated policy actions GetChannel adds aren't needed.
+	channel, err := a.Srv().getChannel(rctx, channelID)
+	if err != nil {
+		if appErr := model.AsAppError(err); appErr.StatusCode == http.StatusNotFound {
 			return true
 		}
 		rctx.Logger().Warn("Failed to resolve channel for channel-access evaluation; denying",
 			mlog.String("channel_id", channelID),
-			mlog.Err(appErr),
+			mlog.Err(err),
 		)
 		return false
 	}
