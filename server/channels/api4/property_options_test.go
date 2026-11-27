@@ -995,8 +995,6 @@ func TestGetPropertyFieldOptionsInUse(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 		cfg.FeatureFlags.ChannelAttributes = true
 		cfg.FeatureFlags.ChannelAttributesRequired = true
-		// A request at the option cap is longer than the default URL limit.
-		cfg.ServiceSettings.MaximumURLLength = model.NewPointer(16384)
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
@@ -1071,8 +1069,8 @@ func TestGetPropertyFieldOptionsInUse(t *testing.T) {
 		field := newField(t, group.ID, channelObject, system, "")
 		hold(t, group.ID, field, optionA)
 
-		httpResp, err := th.SystemAdminClient.DoAPIGet(context.Background(),
-			"/properties/groups/"+group.Name+"/"+channelObject+"/fields/"+field.ID+"/options/in_use?option_ids="+optionA+","+optionB, "")
+		httpResp, err := th.SystemAdminClient.DoAPIPost(context.Background(),
+			"/properties/groups/"+group.Name+"/"+channelObject+"/fields/"+field.ID+"/options/in_use", `["`+optionA+`","`+optionB+`"]`)
 		require.NoError(t, err)
 		defer httpResp.Body.Close()
 		body, err := io.ReadAll(httpResp.Body)

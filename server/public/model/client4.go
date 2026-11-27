@@ -8432,9 +8432,7 @@ func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, object
 // GetPropertyFieldOptionsInUse returns which of optionIDs are held by a channel
 // value, on the field or any channel field linking to it.
 func (c *Client4) GetPropertyFieldOptionsInUse(ctx context.Context, groupName, objectType, fieldID string, optionIDs []string) ([]string, *Response, error) {
-	values := url.Values{}
-	values.Set("option_ids", strings.Join(optionIDs, ","))
-	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID).Join("in_use"), values, "")
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID).Join("in_use"), optionIDs)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

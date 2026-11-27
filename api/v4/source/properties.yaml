@@ -1104,7 +1104,7 @@
         "501":
           $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/options/in_use":
-    get:
+    post:
       tags:
         - properties
       summary: Get which property field options are in use
@@ -1147,14 +1147,17 @@
           required: true
           schema:
             type: string
-        - name: option_ids
-          in: query
-          description: >
-            A comma-separated list of option IDs to check. At least one is
-            required, and at most 200 are accepted.
-          required: true
-          schema:
-            type: string
+      requestBody:
+        description: >
+          The option IDs to check. At least one is required, and at most 200
+          are accepted.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
       responses:
         "200":
           description: Options in use retrieval successful

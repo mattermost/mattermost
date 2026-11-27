@@ -2608,11 +2608,9 @@ export default class Client4 {
     // channel value, on the field or any channel field linking to it. Only the
     // verdict is returned, never counts.
     getPropertyFieldOptionsInUse = async (groupName: string, objectType: string, fieldId: string, optionIds: string[]) => {
-        const params = new URLSearchParams();
-        params.set('option_ids', optionIds.join(','));
         return this.doFetch<{option_ids: string[]}>(
-            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}/in_use?${params.toString()}`,
-            {method: 'GET'},
+            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}/in_use`,
+            {method: 'POST', body: JSON.stringify(optionIds)},
         );
     };
 

@@ -51,7 +51,7 @@ func (api *API) InitProperties() {
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
 
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(getPropertyFieldOptions)).Methods(http.MethodGet)
-		api.BaseRoutes.PropertyFieldOptions.Handle("/in_use", api.APISessionRequired(getPropertyFieldOptionsInUse)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyFieldOptions.Handle("/in_use", api.APISessionRequired(getPropertyFieldOptionsInUse)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(createPropertyFieldOptions)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(patchPropertyFieldOptions)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(deletePropertyFieldOptions)).Methods(http.MethodDelete)

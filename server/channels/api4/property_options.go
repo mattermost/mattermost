@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -185,8 +184,9 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// getPropertyFieldOptionsInUse reports which of the options named in the query
-// are held by a channel value. Only the verdict is returned: how many channels
+// getPropertyFieldOptionsInUse reports which of the options named in the body
+// are held by a channel value. The IDs ride in a body, as up to the option cap
+// of them would not fit the default URL length limit. Only the verdict is returned: how many channels
 // hold an option, and which, would expose channels the caller may not see.
 func getPropertyFieldOptionsInUse(c *Context, w http.ResponseWriter, r *http.Request) {
 	field, rctx := propertyFieldForOptions(c, "getPropertyFieldOptionsInUse")
@@ -213,8 +213,9 @@ func getPropertyFieldOptionsInUse(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	var optionIDs []string
-	if raw := r.URL.Query().Get("option_ids"); raw != "" {
-		optionIDs = strings.Split(raw, ",")
+	if err := json.NewDecoder(r.Body).Decode(&optionIDs); err != nil {
+		c.SetInvalidParamWithErr("option_ids", err)
+		return
 	}
 	if !checkPropertyFieldOptionCount(c, len(optionIDs), "getPropertyFieldOptionsInUse") {
 		return
