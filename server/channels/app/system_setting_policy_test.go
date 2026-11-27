@@ -329,10 +329,15 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 	}
 
 	sessionCtx := func(user *model.User) request.CTX {
+		var props model.StringMap
+		if user.IsBot {
+			props = model.StringMap{model.SessionPropIsBot: model.SessionPropIsBotValue}
+		}
 		return request.EmptyContext(th.Server.Log()).WithSession(&model.Session{
 			Id:     model.NewId(),
 			UserId: user.Id,
 			Roles:  user.GetRawRoles(),
+			Props:  props,
 		})
 	}
 
@@ -465,8 +470,9 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "false"}, overrides)
 
-		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser))
+		overrides, hasCandidate, appErr := th.App.evaluateClientConfigOverrides(sessionCtx(th.BasicUser))
 		require.Nil(t, appErr)
+		assert.False(t, hasCandidate, "human sessions must skip subject construction when only system_bot policies exist")
 		assert.Empty(t, overrides, "system_bot policies do not apply to users")
 
 		require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, botPolicy.ID))

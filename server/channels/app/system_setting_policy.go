@@ -174,7 +174,8 @@ func (c *systemSettingPolicyCache) Get(rctx request.CTX, policyStore store.Acces
 // GetIncluding is for callers that must see a change already stored, such as a
 // broadcast that can reach this node before the cluster invalidation for it.
 // Entries loaded before the change are reloaded once, however many callers
-// notice it.
+// notice it. Compiled CEL expressions live in AccessControl's private cache and
+// rely on SavePolicy/DeletePolicy's cluster invalidation.
 func (c *systemSettingPolicyCache) GetIncluding(rctx request.CTX, policyStore store.AccessControlPolicyStore, change systemSettingPolicyChangeRef) ([]cachedSystemSettingPolicy, error) {
 	entries, err := c.get(rctx, policyStore)
 	if err != nil {
@@ -307,7 +308,7 @@ func (a *App) evaluateClientConfigOverrides(rctx request.CTX) (map[string]string
 	}
 
 	systemRole := ResolveSystemRole(session.Roles)
-	candidateRoles := systemSettingRoleChain(systemRole, true)
+	candidateRoles := systemSettingRoleChain(systemRole, session.IsBotUser())
 	hasCandidate := false
 	for _, p := range policies {
 		if len(p.Roles) > 0 && slices.Contains(candidateRoles, p.Roles[0]) {

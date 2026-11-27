@@ -891,7 +891,7 @@ func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocket
 			msg.Reject()
 			return errors.Wrap(err, "Invalid target_roles value passed to systemSettingPolicyBroadcastHook")
 		}
-		candidateRoles := systemSettingRoleChain(ResolveSystemRole(session.Roles), true)
+		candidateRoles := systemSettingRoleChain(ResolveSystemRole(session.Roles), session.IsBotUser())
 		if !slices.ContainsFunc(candidateRoles, func(role string) bool { return slices.Contains(targetRoles, role) }) {
 			msg.Reject()
 			return nil
@@ -935,12 +935,35 @@ func addClientConfigOverrides(msg *platform.HookedWebSocketEvent, overrides map[
 		return nil
 	}
 
-	config, err := getTypedArg[map[string]string](msg.Event().GetData(), "config")
-	if err != nil {
+	raw, ok := msg.Event().GetData()["config"]
+	if !ok {
 		msg.Reject()
-		return errors.Wrap(err, "Invalid config value in a system setting policy event")
+		return errors.New("Invalid config value in a system setting policy event: key config not found")
 	}
-	config = maps.Clone(config)
+
+	var config map[string]string
+	switch typed := raw.(type) {
+	case map[string]string:
+		config = maps.Clone(typed)
+	case map[string]any:
+		config = make(map[string]string, len(typed)+len(overrides))
+		for k, v := range typed {
+			if v == nil {
+				config[k] = ""
+				continue
+			}
+			s, isStr := v.(string)
+			if !isStr {
+				msg.Reject()
+				return errors.Errorf("Invalid config value for key %s in a system setting policy event", k)
+			}
+			config[k] = s
+		}
+	default:
+		msg.Reject()
+		return errors.New("Invalid config value in a system setting policy event")
+	}
+
 	maps.Copy(config, overrides)
 	msg.Add("config", config)
 	return nil
