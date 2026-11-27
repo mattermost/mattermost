@@ -436,10 +436,22 @@ func TestHealthDashboardLocal(t *testing.T) {
 		assert.Equal(t, job.Id, got.Id)
 	})
 
-	t.Run("export is not routed", func(t *testing.T) {
-		_, _, resp, err := th.LocalClient.ExportHealthFindings(context.Background(), "md")
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+	t.Run("export is served in UTC", func(t *testing.T) {
+		before := time.Now().UTC()
+		data, filename, resp, err := th.LocalClient.ExportHealthFindings(context.Background(), "md")
+		after := time.Now().UTC()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.Equal(t, "text/markdown; charset=utf-8", resp.Header.Get("Content-Type"))
+		assert.Contains(t, []string{
+			"mm_site_health_My_awesome_Company_" + before.Format("2006-01-02T15-04") + ".md",
+			"mm_site_health_My_awesome_Company_" + after.Format("2006-01-02T15-04") + ".md",
+		}, filename)
+
+		report := string(data)
+		assert.Contains(t, report, "SiteURL uses http:// (not https://)")
+		assert.Contains(t, report, " UTC\n", "a local session has no user timezone")
 	})
 
 	t.Run("mute is not routed", func(t *testing.T) {

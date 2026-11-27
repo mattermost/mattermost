@@ -672,8 +672,8 @@ func (th *propertyValuesTestHelper) setValues(t *testing.T, post *model.Post, gr
 
 // hydrateChannelPropertyValues refuses to hydrate rather than hand back a possibly truncated page,
 // once either the applicable fields or the fetched values exceed their bound. Neither bound is
-// merely defensive: the field bound is the post field cap, but it is applied to whatever PSAv2
-// group the caller names, and nothing caps the value count at all.
+// merely defensive: the field bound is the most fields that can apply to a post, but it is
+// applied to whatever PSAv2 group the caller names, and nothing caps the value count at all.
 //
 // What matters at each guard is that the caller still gets its posts, marked "attributes unknown"
 // rather than silently carrying none.
@@ -684,7 +684,7 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		post := th.post(t, th.BasicChannel)
 		groupID := th.createOtherGroup(t)
-		th.createFields(t, groupID, model.PostAttributesMaxFields+1)
+		th.createFields(t, groupID, model.PostAttributesMaxApplicableFields+1)
 
 		hydrated := th.prepare(t, post, groupID)
 
@@ -702,7 +702,7 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 		th := setupPropertyValuesTest(t)
 		post := th.post(t, th.BasicChannel)
 		groupID := th.createOtherGroup(t)
-		fields := th.createFields(t, groupID, model.PostAttributesMaxFields)
+		fields := th.createFields(t, groupID, model.PostAttributesMaxApplicableFields)
 		th.setValues(t, post, groupID, fields[:1])
 
 		hydrated := th.prepare(t, post, groupID)
@@ -712,6 +712,50 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
 		require.Len(t, hydrated.Metadata.PropertyValues, 1)
 		assert.Equal(t, fields[0].ID, hydrated.Metadata.PropertyValues[0].FieldID)
+	})
+
+	// post_attributes caps fields per target, so a post can have up to three targets' worth
+	// applying to it: the system's, its team's and its channel's.
+	t.Run("post_attributes fields filling every target still hydrate", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		post := th.post(t, th.BasicChannel)
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		targets := []struct {
+			level model.PropertyFieldTargetLevel
+			id    string
+		}{
+			{model.PropertyFieldTargetLevelSystem, ""},
+			{model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id},
+			{model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id},
+		}
+		var fields []*model.PropertyField
+		for _, target := range targets {
+			for i := range model.PostAttributesMaxFieldsPerTarget {
+				field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+					GroupID:    group.ID,
+					Name:       string(target.level) + "-" + strconv.Itoa(i),
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypePost,
+					TargetType: string(target.level),
+					TargetID:   target.id,
+				}, false, "")
+				require.Nil(t, appErr)
+				fields = append(fields, field)
+			}
+		}
+		require.Len(t, fields, model.PostAttributesMaxApplicableFields)
+		// One value from each target.
+		withValues := []*model.PropertyField{fields[0], fields[model.PostAttributesMaxFieldsPerTarget], fields[len(fields)-1]}
+		th.setValues(t, post, group.ID, withValues)
+
+		hydrated := th.prepare(t, post, group.ID)
+
+		require.NotNil(t, hydrated.Metadata)
+		require.NotNil(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.False(t, *hydrated.Metadata.PropertyValuesUnavailable)
+		assert.ElementsMatch(t, []string{withValues[0].ID, withValues[1].ID, withValues[2].ID}, valueFieldIDs(hydrated))
 	})
 }
 
