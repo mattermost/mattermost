@@ -90,7 +90,7 @@ type refreshCountingAttributesStore struct {
 	refreshes atomic.Int64
 }
 
-func (s *refreshCountingAttributesStore) RefreshAttributes() error {
+func (s *refreshCountingAttributesStore) RefreshAttributes(objectTypes ...string) error {
 	s.refreshes.Add(1)
-	return s.AttributesStore.RefreshAttributes()
+	return s.AttributesStore.RefreshAttributes(objectTypes...)
 }

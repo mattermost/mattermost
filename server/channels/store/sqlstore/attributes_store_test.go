@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -70,6 +71,100 @@ func TestAttributeLiveViewSubjectLookupUsesIndex(t *testing.T) {
 			require.NoError(t, tx.Select(&lines, "EXPLAIN "+query, args...))
 			plan := strings.Join(lines, "\n")
 			require.Contains(t, plan, "idx_propertyvalues_targetid_groupid", "the live view lookup must use the index, plan was:\n%s", plan)
+		})
+	}
+}
+
+// TestRefreshAttributesDoesNotBlockReaders checks that RefreshAttributes refreshes CONCURRENTLY.
+// A transaction reads UserAttributeView and stays open, holding its ACCESS SHARE lock. A plain
+// refresh needs ACCESS EXCLUSIVE, so it would wait until the transaction ends; a concurrent one
+// needs only EXCLUSIVE, which doesn't conflict with readers, so it finishes while the reader is
+// still open.
+func TestRefreshAttributesDoesNotBlockReaders(t *testing.T) {
+	logger := mlog.CreateTestLogger(t)
+
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+
+	store, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+	defer store.Close()
+
+	reader, err := store.GetMaster().Begin()
+	require.NoError(t, err)
+	defer reader.Rollback() //nolint:errcheck
+
+	var rows int
+	require.NoError(t, reader.Get(&rows, "SELECT COUNT(*) FROM UserAttributeView"))
+
+	done := make(chan error, 1)
+	go func() {
+		done <- store.Attributes().RefreshAttributes(model.PropertyFieldObjectTypeUser)
+	}()
+
+	select {
+	case refreshErr := <-done:
+		require.NoError(t, refreshErr)
+	case <-time.After(10 * time.Second):
+		// End the reader so the refresh, and this test, can finish.
+		require.NoError(t, reader.Rollback())
+		require.NoError(t, <-done, "the refresh should finish once the reader ends")
+		require.FailNow(t, "the refresh waited for an open reader of the view: it isn't concurrent")
+	}
+}
+
+// TestAttributesMembersToRemoveUseTargetIndex checks that the members-to-remove queries join
+// UserAttributeView through idx_userattributeview_target (migration 000246) rather than scanning
+// the view. The queries are rendered by the helpers the store uses, with a policy expression that
+// reads the view the way a CEL-generated one does. Sequential scans are disabled in the
+// transaction, so the assertion is about whether the planner can use the index.
+func TestAttributesMembersToRemoveUseTargetIndex(t *testing.T) {
+	logger := mlog.CreateTestLogger(t)
+
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+
+	store, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+	defer store.Close()
+
+	attributes, ok := store.Attributes().(*SqlAttributesStore)
+	require.True(t, ok)
+
+	opts := model.SubjectSearchOptions{
+		Query: "UserAttributeView.Attributes ->> 'department' = $1",
+		Args:  []any{"engineering"},
+		Limit: 50,
+	}
+
+	for name, render := range map[string]func() (string, []any, error){
+		"GetChannelMembersToRemove": func() (string, []any, error) {
+			return attributes.channelMembersToRemoveQuery(model.NewId(), opts)
+		},
+		"GetTeamMembersToRemove": func() (string, []any, error) {
+			return attributes.teamMembersToRemoveQuery(model.NewId(), opts)
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			query, args, qErr := render()
+			require.NoError(t, qErr)
+
+			// enable_seqscan is a session setting, so it and the EXPLAIN share a transaction.
+			tx, txErr := store.GetMaster().Begin()
+			require.NoError(t, txErr)
+			defer tx.Rollback() //nolint:errcheck
+
+			_, txErr = tx.Exec("SET LOCAL enable_seqscan = off")
+			require.NoError(t, txErr)
+
+			var lines []string
+			require.NoError(t, tx.Select(&lines, "EXPLAIN "+query, args...))
+			plan := strings.Join(lines, "\n")
+			require.Contains(t, plan, "idx_userattributeview_target", "the join on UserAttributeView must use its index, plan was:\n%s", plan)
 		})
 	}
 }

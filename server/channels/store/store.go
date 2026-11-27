@@ -1384,7 +1384,10 @@ type AccessControlPolicyStore interface {
 }
 
 type AttributesStore interface {
-	RefreshAttributes() error
+	// RefreshAttributes refreshes the attribute materialized views of the given object types
+	// (model.PropertyFieldObjectType*), or all of them when called with none. An unknown type
+	// is an error and refreshes nothing.
+	RefreshAttributes(objectTypes ...string) error
 	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
