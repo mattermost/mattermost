@@ -2581,7 +2581,7 @@
   },
   "admin.board_attributes.table.select_type.key": {
     "defaultMessage": "Key",
-    "description": ""
+    "description": "Menu option in the attribute type dropdown; a property type that gives each item a unique, incrementing identifier shown with a short prefix, like an issue key such as MM-42."
   },
   "admin.board_attributes.table.select_type.multi_select": {
     "defaultMessage": "Multi-select",
@@ -2617,15 +2617,15 @@
   },
   "admin.board_attributes.table.validation.prefix_invalid": {
     "defaultMessage": "A prefix must start with a letter and use only letters and numbers.",
-    "description": ""
+    "description": "Validation warning under the prefix input of a Key attribute in the Board Attributes admin table, shown when the prefix has an invalid format."
   },
   "admin.board_attributes.table.validation.prefix_required": {
     "defaultMessage": "Please enter a prefix.",
-    "description": ""
+    "description": "Validation warning under the prefix input of a Key attribute in the Board Attributes admin table, shown when the prefix is empty."
   },
   "admin.board_attributes.table.validation.prefix_taken": {
     "defaultMessage": "Prefix already used by another key attribute.",
-    "description": ""
+    "description": "Validation warning under the prefix input of a Key attribute in the Board Attributes admin table, shown when another Key attribute already uses the same prefix."
   },
   "admin.board_attributes.table.validation.values_unique": {
     "defaultMessage": "Values must be unique.",
@@ -2661,7 +2661,7 @@
   },
   "admin.board_attributes.values.prefix": {
     "defaultMessage": "Prefix",
-    "description": ""
+    "description": "Placeholder and accessibility label for the text input where an admin sets a Key attribute's short prefix (for example MM in MM-42) in the Board Attributes admin table."
   },
   "admin.board_attributes.values.protected_tooltip": {
     "defaultMessage": "System attribute options cannot be modified",
