@@ -23,7 +23,6 @@ import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user'
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import Markdown from 'components/markdown';
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import SaveButton from 'components/save_button';
@@ -34,12 +33,10 @@ import TextSetting from 'components/widgets/settings/text_setting';
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
 import {getHistory} from 'utils/browser_history';
-import {getUserPropertyFieldLabel} from 'utils/properties';
 
-import {SYSTEM_BOT_ROLE, getHiddenNativeReferences, getSyncedAttributeReferences} from '../../access_control/bot_scope';
-import {hasUsableAttributes, isNativeField, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
-import RuleEditorCard, {type EditorMode, type PolicyScope} from '../../permission_policies/policy_details/rule_editor_card';
-import {AVAILABLE_ROLES, roleMessages} from '../../permission_policies/roles';
+import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
+import RuleEditorCard, {type EditorMode} from '../../permission_policies/policy_details/rule_editor_card';
+import {type RoleDefinition, roleMessages} from '../../permission_policies/roles';
 import {
     AVAILABLE_SYSTEM_SETTINGS,
     SCOPED_CONFIGURATION_LIST_ROUTE,
@@ -49,6 +46,19 @@ import {
 } from '../settings';
 
 import './scoped_configuration_details.scss';
+
+const scopedRoleMessages = defineMessages({
+    memberDescription: {
+        id: 'admin.scoped_configuration.role.system_user.description',
+        defaultMessage: 'Applies to regular members. System administrators fall back to this policy if no system administrator policy sets the same configuration',
+    },
+});
+
+const SCOPED_CONFIGURATION_ROLES: RoleDefinition[] = [
+    {value: 'system_user', label: roleMessages.memberLabel, description: scopedRoleMessages.memberDescription},
+    {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
+    {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
+];
 
 const AddConfigurationMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
     const {children, ...rest} = props;
@@ -66,41 +76,14 @@ const AddConfigurationMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComp
 });
 AddConfigurationMenuTrigger.displayName = 'AddConfigurationMenuTrigger';
 
-const whoSubtitleMessages = defineMessages({
-    user: {id: 'admin.permission_policies.edit.who.subtitle', defaultMessage: 'Define rules based on user attributes and values'},
-    bot: {id: 'admin.permission_policies.edit.who.subtitle_bot', defaultMessage: 'Define rules based on bot attributes and values'},
-});
-
-const syncedBotMessages = defineMessages({
-    title: {
-        id: 'admin.permission_policies.edit.notice.synced_bot.title',
-        defaultMessage: 'Bots can\'t hold synced attributes',
-    },
-    text: {
-        id: 'admin.permission_policies.edit.notice.synced_bot.text',
-        defaultMessage: '{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can\'t hold synced values. This policy will deny every bot.',
-    },
-});
-
-const hiddenNativeBotMessages = defineMessages({
-    title: {
-        id: 'admin.permission_policies.edit.notice.hidden_native_bot.title',
-        defaultMessage: 'Some attributes aren\'t available for bots',
-    },
-    text: {
-        id: 'admin.permission_policies.edit.notice.hidden_native_bot.text',
-        defaultMessage: '{count, plural, one {{attributes} can\'t be used in Bot accounts policies. Remove it from the rules to save this policy.} other {{attributes} can\'t be used in Bot accounts policies. Remove them from the rules to save this policy.}}',
-    },
-    error: {
-        id: 'admin.permission_policies.edit.error.hidden_native_bot',
-        defaultMessage: 'Remove {attributes} from the rules. Bot accounts policies can\'t use {count, plural, one {this attribute} other {these attributes}}.',
-    },
-});
-
 const panelMessages = defineMessages({
     whoTitle: {
         id: 'admin.permission_policies.edit.who.title',
         defaultMessage: 'Who this policy applies to',
+    },
+    whoSubtitle: {
+        id: 'admin.permission_policies.edit.who.subtitle',
+        defaultMessage: 'Define rules based on user attributes and values',
     },
     configurationTitle: {
         id: 'admin.scoped_configuration.edit.configuration.title',
@@ -294,10 +277,7 @@ export default function ScopedConfigurationDetails({
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
 
-    const isBotScope = selectedRole === SYSTEM_BOT_ROLE;
-    const scope: PolicyScope = isBotScope ? 'bot' : 'user';
-
-    const {formatMessage, formatList} = useIntl();
+    const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
 
     const userFields = useMemo(
@@ -312,21 +292,6 @@ export default function ScopedConfigurationDetails({
         () => mergeSessionAttributes(userFields, sessionFields),
         [userFields, sessionFields],
     );
-
-    const syncedRefs = useMemo(
-        () => (isBotScope ? getSyncedAttributeReferences(expression, userFields) : []),
-        [isBotScope, expression, userFields],
-    );
-
-    const hiddenNativeLabels = useMemo(() => {
-        if (!isBotScope) {
-            return [];
-        }
-        return getHiddenNativeReferences(expression).map((name) => {
-            const field = userFields.find((f) => f.name === name && isNativeField(f));
-            return field ? getUserPropertyFieldLabel(field) : name;
-        });
-    }, [isBotScope, expression, userFields]);
 
     useEffect(() => {
         if (!policyId) {
@@ -402,17 +367,10 @@ export default function ScopedConfigurationDetails({
             }));
             return false;
         }
-        if (!AVAILABLE_ROLES.some((role) => role.value === selectedRole)) {
+        if (!SCOPED_CONFIGURATION_ROLES.some((role) => role.value === selectedRole)) {
             setServerError(formatMessage({
                 id: 'admin.permission_policies.edit.error.role_required',
                 defaultMessage: 'Please select a role',
-            }));
-            return false;
-        }
-        if (hiddenNativeLabels.length > 0) {
-            setServerError(formatMessage(hiddenNativeBotMessages.error, {
-                attributes: formatList(hiddenNativeLabels, {type: 'conjunction'}),
-                count: hiddenNativeLabels.length,
             }));
             return false;
         }
@@ -619,7 +577,7 @@ export default function ScopedConfigurationDetails({
                             <AdminPanel
                                 id='scoped_configuration_who'
                                 title={panelMessages.whoTitle}
-                                subtitle={whoSubtitleMessages[scope]}
+                                subtitle={panelMessages.whoSubtitle}
                             >
                                 <div className='pp-role-selector'>
                                     <span className='pp-role-selector-label'>
@@ -635,7 +593,7 @@ export default function ScopedConfigurationDetails({
                                             children: (
                                                 <>
                                                     <span>{(() => {
-                                                        const found = AVAILABLE_ROLES.find((r) => r.value === selectedRole);
+                                                        const found = SCOPED_CONFIGURATION_ROLES.find((r) => r.value === selectedRole);
                                                         return found ? formatMessage(found.label) : formatMessage(roleMessages.selectRole);
                                                     })()}</span>
                                                     <ChevronDownIcon size={18}/>
@@ -650,7 +608,7 @@ export default function ScopedConfigurationDetails({
                                             }),
                                         }}
                                     >
-                                        {AVAILABLE_ROLES.map((role) => (
+                                        {SCOPED_CONFIGURATION_ROLES.map((role) => (
                                             <Menu.Item
                                                 key={role.value}
                                                 id={`pp-role-option-${role.value}`}
@@ -671,42 +629,8 @@ export default function ScopedConfigurationDetails({
                                 </div>
                             </AdminPanel>
 
-                            {syncedRefs.length > 0 && (
-                                <div className='admin-console__warning-notice'>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={formatMessage(syncedBotMessages.title)}
-                                        description={
-                                            <Markdown
-                                                message={formatMessage(syncedBotMessages.text, {
-                                                    attributes: formatList(syncedRefs.map((f) => `\`${getUserPropertyFieldLabel(f).replace(/`/g, '')}\``), {type: 'conjunction'}),
-                                                    count: syncedRefs.length,
-                                                })}
-                                            />
-                                        }
-                                    />
-                                </div>
-                            )}
-
-                            {hiddenNativeLabels.length > 0 && (
-                                <div className='admin-console__warning-notice'>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={formatMessage(hiddenNativeBotMessages.title)}
-                                        description={
-                                            <Markdown
-                                                message={formatMessage(hiddenNativeBotMessages.text, {
-                                                    attributes: formatList(hiddenNativeLabels.map((label) => `\`${label.replace(/`/g, '')}\``), {type: 'conjunction'}),
-                                                    count: hiddenNativeLabels.length,
-                                                })}
-                                            />
-                                        }
-                                    />
-                                </div>
-                            )}
-
                             <RuleEditorCard
-                                scope={scope}
+                                scope='user'
                                 expression={expression}
                                 editorMode={editorMode}
                                 onExpressionChange={handleExpressionChange}

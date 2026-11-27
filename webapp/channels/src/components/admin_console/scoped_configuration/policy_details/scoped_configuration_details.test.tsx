@@ -258,4 +258,17 @@ describe('components/admin_console/scoped_configuration/policy_details/ScopedCon
         expect(mockCreatePolicy).not.toHaveBeenCalled();
         expect(mockPush).toHaveBeenCalledWith('/admin_console/system_attributes/scoped_configuration');
     });
+
+    test('role selector offers human roles and excludes Bot accounts', async () => {
+        renderEditor('/admin_console/system_attributes/scoped_configuration/edit_policy');
+
+        await screen.findByTestId('table-editor');
+        await userEvent.click(screen.getByRole('button', {name: /Members/i}));
+
+        expect(await screen.findByRole('menuitem', {name: /^Members/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /^System administrators/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /^Guest users/})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: /Bot accounts/i})).not.toBeInTheDocument();
+        expect(screen.getAllByRole('menuitem')).toHaveLength(3);
+    });
 });

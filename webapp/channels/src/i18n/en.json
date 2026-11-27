@@ -14539,6 +14539,10 @@
     "defaultMessage": "Role",
     "description": ""
   },
+  "admin.scoped_configuration.role.system_user.description": {
+    "defaultMessage": "Applies to regular members. System administrators fall back to this policy if no system administrator policy sets the same configuration",
+    "description": ""
+  },
   "admin.scoped_configuration.search_errored": {
     "defaultMessage": "Something went wrong. Try again",
     "description": ""
