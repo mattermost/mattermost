@@ -336,7 +336,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             // * But the row is there, saying the channel is incomplete, and it can be filled
             const info = {attributes: await openChannelInfo(app)};
-            await expect(row(info.attributes, undesignated).locator).toContainMessage(
+            await expect(row(info.attributes, undesignated).missingText).toHaveMessage(
                 Msg.channel_attributes.info.select_a_value,
             );
             await select(app, info.attributes, undesignated, 'FILLED');

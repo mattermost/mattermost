@@ -57,7 +57,56 @@ const OPTIONS = [
     {id: 'opt_unclassified', name: 'UNCLASSIFIED', color: 'green'},
 ];
 
+const SCOPE = 'composer';
+
+// A chip is keyed by its field's id and the test names fields by name, so every field made is recorded here.
+const fieldIds: Record<string, string> = {};
+
+function idOf(name: string): string {
+    return fieldIds[name] ?? name;
+}
+
+function chipEl(name: string) {
+    return screen.getByTestId(`${SCOPE}.chip:${idOf(name)}`);
+}
+
+function queryChip(name: string) {
+    return screen.queryByTestId(`${SCOPE}.chip:${idOf(name)}`);
+}
+
+// The parts inside a chip carry no key: they are found within the chip.
+function triggerEl(name: string) {
+    return within(chipEl(name)).getByTestId(`${SCOPE}.chip.attribute.value--button`);
+}
+
+function restEl(name: string) {
+    return within(chipEl(name)).getByTestId(`${SCOPE}.chip.rest--button`);
+}
+
+function inputEl(name: string) {
+    return within(chipEl(name)).getByTestId(`${SCOPE}.chip.attribute.value_input--textbox`);
+}
+
+function queryInput(name: string) {
+    return within(chipEl(name)).queryByTestId(`${SCOPE}.chip.attribute.value_input--textbox`);
+}
+
+function addItemEl(name: string) {
+    return screen.getByTestId(`${SCOPE}.add_menu.field:${idOf(name)}--menuitem`);
+}
+
+function queryAddItem(name: string) {
+    return screen.queryByTestId(`${SCOPE}.add_menu.field:${idOf(name)}--menuitem`);
+}
+
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
+    const field = makeFieldWith(overrides);
+    fieldIds[field.name] = field.id;
+
+    return field;
+}
+
+function makeFieldWith(overrides: Partial<PropertyField>): PropertyField {
     return {
         id: 'field_1',
         group_id: GROUP_ID,
@@ -148,6 +197,7 @@ function Host({initialValues = []}: {initialValues?: ComposerPropertyValue[]}) {
                 onAdd={staged.add}
                 onChange={staged.change}
                 onRemove={staged.remove}
+                testIdScope={SCOPE}
             />
             <output data-testid='staged-values'>{JSON.stringify(staged.values)}</output>
         </>
@@ -166,19 +216,19 @@ function renderComposer(fields: PropertyField[], initialValues: ComposerProperty
 }
 
 async function addAttribute(fieldName: string) {
-    await userEvent.click(screen.getByTestId('post-attributes-add'));
-    await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
+    await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+    await userEvent.click(addItemEl(fieldName));
 
     // The picker's items defer their `onClick` until the menu has finished
     // closing, so the chip is not there yet when the click returns.
-    await waitFor(() => expect(screen.getByTestId(`post-attribute-chip-${fieldName}`)).toBeInTheDocument());
+    await waitFor(() => expect(chipEl(fieldName)).toBeInTheDocument());
 }
 
 describe('PostAttributesComposer', () => {
     test('renders nothing with nothing staged, even if the channel has fields', () => {
         renderComposer([makeField(), spareField()]);
 
-        expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(SCOPE)).not.toBeInTheDocument();
     });
 
     test('an `always` field is treated like any other: no chip until the user picks it, and nothing staged', async () => {
@@ -186,23 +236,23 @@ describe('PostAttributesComposer', () => {
 
         renderComposer([always, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(addItemEl('classification')).toBeInTheDocument();
         await userEvent.keyboard('{Escape}');
 
         await addAttribute('classification');
 
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(chipEl('classification')).toBeInTheDocument();
         expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
     });
 
     test('an `always` field alone renders nothing in the chip row', () => {
         renderComposer([makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}})]);
 
-        expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(SCOPE)).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
     });
 
     test('a `when_set` field is absent until picked, then appears as a chip', async () => {
@@ -216,11 +266,11 @@ describe('PostAttributesComposer', () => {
             [{field_id: 'f_spare', value: 'opt_secret'}],
         );
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
 
         await addAttribute('classification');
 
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(chipEl('classification')).toBeInTheDocument();
     });
 
     test('picking a field from the picker opens its value menu immediately', async () => {
@@ -231,14 +281,14 @@ describe('PostAttributesComposer', () => {
 
         await addAttribute('spare');
 
-        expect(screen.getByTestId('post-attribute-trigger-spare')).toHaveAttribute('aria-expanded', 'true');
+        expect(triggerEl('spare')).toHaveAttribute('aria-expanded', 'true');
         expect(screen.getByRole('menuitemradio', {name: /SECRET/})).toBeInTheDocument();
     });
 
     test('clicking a staged chip reopens its value menu', async () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        const trigger = triggerEl('classification');
         expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
         await userEvent.click(trigger);
@@ -249,8 +299,8 @@ describe('PostAttributesComposer', () => {
     test('a staged value renders through the same PostAttributeChip a sent post would show', () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        const trigger = screen.getByTestId('post-attribute-trigger-classification');
-        const chip = within(trigger).getByTestId('select-property');
+        const trigger = triggerEl('classification');
+        const chip = within(trigger).getByTestId(`${SCOPE}.chip.value.select--text`);
         expect(chip).toHaveTextContent('SECRET');
         expect(chip).toHaveClass('PostAttributeChip');
     });
@@ -258,21 +308,21 @@ describe('PostAttributesComposer', () => {
     test('a chip with a value shows only the value; the field name is its tooltip', async () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        const chip = screen.getByTestId('post-attribute-chip-classification');
+        const chip = chipEl('classification');
         expect(chip).not.toHaveTextContent('Classification');
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveAccessibleName('Classification: SECRET');
+        expect(triggerEl('classification')).toHaveAccessibleName('Classification: SECRET');
 
-        await userEvent.hover(screen.getByTestId('post-attribute-trigger-classification'));
+        await userEvent.hover(triggerEl('classification'));
         expect(await screen.findByRole('tooltip')).toHaveTextContent('Classification');
     });
 
     test("picking a value writes the composer's state, keyed by field id", async () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-trigger-classification'));
+        await userEvent.click(triggerEl('classification'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('UNCLASSIFIED'));
+        await waitFor(() => expect(triggerEl('classification')).toHaveTextContent('UNCLASSIFIED'));
     });
 
     test('the picker offers only fields not already staged', async () => {
@@ -281,15 +331,15 @@ describe('PostAttributesComposer', () => {
             [{field_id: 'field_1', value: 'opt_secret'}],
         );
 
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.queryByTestId('post-attribute-add-classification')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-add-spare')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(queryAddItem('classification')).not.toBeInTheDocument();
+        expect(addItemEl('spare')).toBeInTheDocument();
     });
 
     test('with nothing left to offer, the add control is not rendered', () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(`${SCOPE}.add--button`)).not.toBeInTheDocument();
     });
 
     test('a locked field is neither shown nor offered by the picker', async () => {
@@ -307,16 +357,16 @@ describe('PostAttributesComposer', () => {
             [{field_id: 'field_1', value: 'opt_secret'}, {field_id: 'f_editable', value: 'opt_secret'}],
         );
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-chip-locked_always')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
+        expect(queryChip('locked_always')).not.toBeInTheDocument();
         expect(screen.queryByRole('img', {name: "You don't have permission to modify this attribute."})).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-chip-editable')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-trigger-editable')).toBeInTheDocument();
+        expect(chipEl('editable')).toBeInTheDocument();
+        expect(triggerEl('editable')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.queryByTestId('post-attribute-add-classification')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-add-locked_always')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-add-spare')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(queryAddItem('classification')).not.toBeInTheDocument();
+        expect(queryAddItem('locked_always')).not.toBeInTheDocument();
+        expect(addItemEl('spare')).toBeInTheDocument();
     });
 
     test('a field the composer has no control for is neither shown nor offered by the picker', async () => {
@@ -324,12 +374,12 @@ describe('PostAttributesComposer', () => {
 
         renderComposer([due, makeField(), spareField()], [{field_id: 'f_due', value: 1700000000000}, {field_id: 'field_1', value: 'opt_secret'}]);
 
-        expect(screen.queryByTestId('post-attribute-chip-due')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(queryChip('due')).not.toBeInTheDocument();
+        expect(chipEl('classification')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.queryByTestId('post-attribute-add-due')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-add-spare')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(queryAddItem('due')).not.toBeInTheDocument();
+        expect(addItemEl('spare')).toBeInTheDocument();
     });
 
     test('with only locked fields, nothing is rendered', () => {
@@ -338,7 +388,7 @@ describe('PostAttributesComposer', () => {
             [{field_id: 'field_1', value: 'opt_secret'}],
         );
 
-        expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(SCOPE)).not.toBeInTheDocument();
     });
 
     test('removing a picked chip drops both its value and the chip', async () => {
@@ -353,12 +403,12 @@ describe('PostAttributesComposer', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Remove Classification'}));
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
         expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
 
         // Removed, it is offered again.
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(addItemEl('classification')).toBeInTheDocument();
     });
 
     test('removing a picked text chip with no value yet drops the chip', async () => {
@@ -372,7 +422,7 @@ describe('PostAttributesComposer', () => {
         // menu covers the ×, and closing the menu un-stages it on its own.
         await userEvent.click(screen.getByRole('button', {name: 'Remove Note'}));
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
     });
 
     test('a picked option chip with no value shows the field name and has its own accessible name', async () => {
@@ -383,7 +433,7 @@ describe('PostAttributesComposer', () => {
 
         await addAttribute('classification');
 
-        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        const trigger = triggerEl('classification');
         expect(trigger).toHaveTextContent('Classification');
         expect(trigger).toHaveAccessibleName('Select value for Classification');
     });
@@ -397,11 +447,11 @@ describe('PostAttributesComposer', () => {
         await addAttribute('classification');
         await userEvent.keyboard('{Escape}');
 
-        await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
+        await waitFor(() => expect(queryChip('classification')).not.toBeInTheDocument());
         expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(addItemEl('classification')).toBeInTheDocument();
     });
 
     test('picking a single-choice value closes the menu and keeps the chip', async () => {
@@ -415,18 +465,18 @@ describe('PostAttributesComposer', () => {
 
         await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'opt_secret'}));
         await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+        expect(chipEl('classification')).toBeInTheDocument();
+        expect(triggerEl('classification')).toHaveTextContent('SECRET');
     });
 
     test('reopening a chip that has a value and closing it changes nothing', async () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-trigger-classification'));
+        await userEvent.click(triggerEl('classification'));
         await userEvent.keyboard('{Escape}');
         await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
 
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(chipEl('classification')).toBeInTheDocument();
         expect(stagedValues()).toEqual([{field_id: 'field_1', value: 'opt_secret'}]);
     });
 
@@ -441,11 +491,11 @@ describe('PostAttributesComposer', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Remove Classification'}));
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
         expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        await userEvent.click(screen.getByTestId('post-attributes-add'));
-        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId(`${SCOPE}.add--button`));
+        expect(addItemEl('classification')).toBeInTheDocument();
     });
 
     test('an emptied multiselect is dropped from the staged values, keeps its chip while open, and loses it on close', async () => {
@@ -461,11 +511,11 @@ describe('PostAttributesComposer', () => {
         await userEvent.click(screen.getByRole('menuitemcheckbox', {name: /^SECRET/}));
         await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]));
 
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(chipEl('classification')).toBeInTheDocument();
 
         await userEvent.keyboard('{Escape}');
 
-        await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
+        await waitFor(() => expect(queryChip('classification')).not.toBeInTheDocument());
         expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
     });
 
@@ -476,20 +526,20 @@ describe('PostAttributesComposer', () => {
 
         await addAttribute('classification');
 
-        await userEvent.type(screen.getByTestId('post-attribute-input-classification'), 'hello');
+        await userEvent.type(inputEl('classification'), 'hello');
         await userEvent.tab();
         await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'hello'}));
 
         // Left, it rests as a chip; editing it again goes through the chip.
-        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
-        await userEvent.clear(screen.getByTestId('post-attribute-input-classification'));
+        await userEvent.click(restEl('classification'));
+        await userEvent.clear(inputEl('classification'));
         await userEvent.tab();
 
         await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]));
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(chipEl('classification')).toBeInTheDocument();
 
         // An emptied text chip rests as the field's name.
-        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveTextContent('Note');
+        expect(restEl('classification')).toHaveTextContent('Note');
     });
 
     test('picking a text field focuses its input', async () => {
@@ -499,7 +549,7 @@ describe('PostAttributesComposer', () => {
 
         await addAttribute('classification');
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-input-classification')).toHaveFocus());
+        await waitFor(() => expect(inputEl('classification')).toHaveFocus());
     });
 
     test('picking a user field focuses its search input', async () => {
@@ -515,19 +565,19 @@ describe('PostAttributesComposer', () => {
     test('a staged text field that was not just picked rests as a chip and does not take focus', () => {
         renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 
-        const rest = screen.getByTestId('post-attribute-rest-classification');
+        const rest = restEl('classification');
         expect(rest).not.toHaveFocus();
         expect(rest).toHaveAccessibleName('Note: hello');
-        expect(within(rest).getByTestId('text-property')).toHaveTextContent('hello');
-        expect(screen.queryByTestId('post-attribute-input-classification')).not.toBeInTheDocument();
+        expect(within(rest).getByTestId(`${SCOPE}.chip.value.text--text`)).toHaveTextContent('hello');
+        expect(queryInput('classification')).not.toBeInTheDocument();
     });
 
     test('a text chip at rest turns into its input on click, and back into a chip on blur', async () => {
         renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
+        await userEvent.click(restEl('classification'));
 
-        const input = screen.getByTestId('post-attribute-input-classification');
+        const input = inputEl('classification');
         await waitFor(() => expect(input).toHaveFocus());
         expect(input).toHaveValue('hello');
 
@@ -535,15 +585,15 @@ describe('PostAttributesComposer', () => {
         await userEvent.tab();
 
         await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'field_1', value: 'hello there'}]));
-        expect(screen.queryByTestId('post-attribute-input-classification')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Note: hello there');
+        expect(queryInput('classification')).not.toBeInTheDocument();
+        expect(restEl('classification')).toHaveAccessibleName('Note: hello there');
     });
 
     test('pressing the × on a text chip being edited keeps focus in its input, so one click removes the chip', async () => {
         renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
-        const input = screen.getByTestId('post-attribute-input-classification');
+        await userEvent.click(restEl('classification'));
+        const input = inputEl('classification');
         await waitFor(() => expect(input).toHaveFocus());
 
         // jsdom has no layout, so the × can't move away from the pointer here;
@@ -553,16 +603,16 @@ describe('PostAttributesComposer', () => {
         expect(input).toHaveFocus();
 
         await userEvent.click(remove);
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(queryChip('classification')).not.toBeInTheDocument();
         expect(stagedValues()).toEqual([]);
     });
 
     test('a user chip at rest shows the name with no profile popover, and turns into the user picker on click', async () => {
         renderComposer([makeField({type: 'user', attrs: {display_name: 'Owner'}})], [{field_id: 'field_1', value: CURRENT_USER_ID}]);
 
-        const rest = screen.getByTestId('post-attribute-rest-classification');
+        const rest = restEl('classification');
         expect(rest).toHaveAccessibleName(/^Owner: /);
-        expect(within(rest).getByTestId('user-property')).toBeInTheDocument();
+        expect(within(rest).getByTestId(`${SCOPE}.chip.value.user`)).toBeInTheDocument();
 
         // The name is plain text: a button inside the chip's button would be
         // invalid, and the click belongs to the chip.
@@ -578,6 +628,6 @@ describe('PostAttributesComposer', () => {
 
         renderComposer([field], [{field_id: 'field_1', value: 'opt_secret'}]);
 
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toBeInTheDocument();
+        expect(triggerEl('classification')).toBeInTheDocument();
     });
 });

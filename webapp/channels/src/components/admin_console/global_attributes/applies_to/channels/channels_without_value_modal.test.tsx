@@ -69,6 +69,7 @@ describe('ChannelsWithoutValueModal', () => {
         try {
             renderWithContext(
                 <ChannelsWithoutValueModal
+                    testId='without_value'
                     fieldId='field1'
                     attributeDisplayName='Cost center'
                     totalCount={2}
@@ -95,6 +96,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 attributeDisplayName='Cost center'
                 totalCount={26}
@@ -110,6 +112,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={0}
                 onExited={onExited}
@@ -137,6 +140,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={1}
                 onExited={onExited}
@@ -167,6 +171,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={30}
                 sharedCount={3}
@@ -199,6 +204,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={30}
                 sharedCount={3}
@@ -219,13 +225,14 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={0}
                 onExited={onExited}
             />,
         );
 
-        await userEvent.click(screen.getByTestId('channelsWithoutValueModalClose'));
+        await userEvent.click(screen.getByTestId('without_value.footer_close--button'));
 
         expect(onExited).toHaveBeenCalled();
     });
@@ -249,6 +256,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={21}
                 onExited={onExited}
@@ -256,7 +264,7 @@ describe('ChannelsWithoutValueModal', () => {
         );
 
         await waitFor(() => expect(screen.getByText('Channel 19')).toBeInTheDocument());
-        expect(screen.getByTestId('channelsWithoutValueModalClose')).toBeInTheDocument();
+        expect(screen.getByTestId('without_value.footer_close--button')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Previous'})).toBeDisabled();
 
         await userEvent.click(screen.getByRole('button', {name: 'Next'}));
@@ -272,6 +280,7 @@ describe('ChannelsWithoutValueModal', () => {
 
         renderWithContext(
             <ChannelsWithoutValueModal
+                testId='without_value'
                 fieldId='field1'
                 totalCount={20}
                 onExited={onExited}

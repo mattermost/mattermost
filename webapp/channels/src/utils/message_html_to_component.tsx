@@ -227,6 +227,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     value={node.attribs['data-entity-value'] || ''}
                     occurrence={node.attribs['data-entity'] || ''}
                     postId={options.postId}
+                    testIdScope='post.entity'
                     url={node.attribs['data-entity-url']}
                     label={node.attribs['data-entity-label']}
                     title={node.attribs['data-entity-title']}

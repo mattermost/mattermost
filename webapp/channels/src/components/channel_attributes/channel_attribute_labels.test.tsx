@@ -713,6 +713,7 @@ describe('ChannelAttributeLabels', () => {
 
             renderWithContext(
                 <ChannelAttributeLabels
+                    testId={T}
                     channelId={CHANNEL_ID}
                     surface='header'
                     showMissingPlaceholders={true}
@@ -720,7 +721,7 @@ describe('ChannelAttributeLabels', () => {
                 missingState([requiredField('program')]),
             );
 
-            const chip = await screen.findByTestId('channelHeaderMissingAttributeChip-program');
+            const chip = await screen.findByTestId(`${T}.missing:program--button`);
             expect(chip.tagName).toBe('BUTTON');
             expect(chip).toHaveTextContent('Set PROGRAM');
         });
@@ -743,7 +744,7 @@ describe('ChannelAttributeLabels', () => {
                 state as DeepPartial<GlobalState>,
             );
 
-            const setChip = await screen.findByTestId('channelHeaderMissingAttributeChip-program');
+            const setChip = await screen.findByTestId(`${T}.missing:program--button`);
             const valueChips = screen.getAllByTestId(CHIP);
             expect(valueChips).toHaveLength(1);
             expect(valueChips[0]).toHaveTextContent('CLASSIFICATION');
@@ -756,13 +757,14 @@ describe('ChannelAttributeLabels', () => {
 
             renderWithContext(
                 <ChannelAttributeLabels
+                    testId={T}
                     channelId={CHANNEL_ID}
                     surface='header'
                 />,
                 missingState([requiredField('program')]),
             );
 
-            expect(screen.queryByTestId('channelHeaderMissingAttributeChip-program')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${T}.missing:program--button`)).not.toBeInTheDocument();
         });
 
         test('shows no placeholder for a field that is not designated for the header', () => {
@@ -770,6 +772,7 @@ describe('ChannelAttributeLabels', () => {
 
             renderWithContext(
                 <ChannelAttributeLabels
+                    testId={T}
                     channelId={CHANNEL_ID}
                     surface={['info', 'header']}
                     showMissingPlaceholders={true}
@@ -777,7 +780,7 @@ describe('ChannelAttributeLabels', () => {
                 missingState([requiredField('program', ['display_label_info'])]),
             );
 
-            expect(screen.queryByTestId('channelHeaderMissingAttributeChip-program')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${T}.missing:program--button`)).not.toBeInTheDocument();
         });
 
         test('clicking the chip opens the editor for that field', async () => {
@@ -786,6 +789,7 @@ describe('ChannelAttributeLabels', () => {
 
             renderWithContext(
                 <ChannelAttributeLabels
+                    testId={T}
                     channelId={CHANNEL_ID}
                     surface='header'
                     showMissingPlaceholders={true}
@@ -793,7 +797,7 @@ describe('ChannelAttributeLabels', () => {
                 missingState([requiredField('program')]),
             );
 
-            await userEvent.click(await screen.findByTestId('channelHeaderMissingAttributeChip-program'));
+            await userEvent.click(await screen.findByTestId(`${T}.missing:program--button`));
 
             expect(openEditor).toHaveBeenCalledWith(CHANNEL_ID, 'program');
         });
@@ -818,7 +822,7 @@ describe('ChannelAttributeLabels', () => {
             });
 
             const popover = await screen.findByTestId(`${T}.overflow_popover`);
-            await userEvent.click(within(popover).getByTestId('channelHeaderMissingAttributeChip-c'));
+            await userEvent.click(within(popover).getByTestId(`${T}.overflow_popover.missing:c--button`));
 
             expect(openEditor).toHaveBeenCalledWith(CHANNEL_ID, 'c');
             await waitFor(() => expect(screen.queryByTestId(`${T}.overflow_popover`)).not.toBeInTheDocument());

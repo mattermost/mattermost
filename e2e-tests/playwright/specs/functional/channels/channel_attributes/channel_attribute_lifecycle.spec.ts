@@ -181,16 +181,16 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             const attributes = await openChannelInfo(app);
 
             // The empty row is both the signal and the retry path.
-            const unset = row(attributes, required).locator;
+            const unset = row(attributes, required).missingText;
             await expect(unset).toBeVisible();
-            await expect(unset).toContainMessage(Msg.channel_attributes.info.select_a_value);
+            await expect(unset).toHaveMessage(Msg.channel_attributes.info.select_a_value);
 
             // No chip while unset.
             await expect(app.channelHeader.attributes.chipList).toHaveKeyCount(0);
 
             await select(app, attributes, required, 'RECOVERED');
 
-            await expect(unset).toContainText('RECOVERED');
+            await expect(row(attributes, required).locator).toContainText('RECOVERED');
             await expect(row(attributes, required).unsetText).toHaveCount(0);
 
             await expect

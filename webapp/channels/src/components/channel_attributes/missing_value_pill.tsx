@@ -8,6 +8,9 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 type Props = {
     field: PropertyField;
+
+    // The attribute row's testid scope; the pill is `<testId>.missing--text`.
+    testId?: string;
 };
 
 /**
@@ -15,11 +18,11 @@ type Props = {
  * can fill in. It sits inside the control that opens the editor, so it carries no
  * behaviour of its own.
  */
-export default function MissingValuePill({field}: Props) {
+export default function MissingValuePill({field, testId}: Props) {
     return (
         <span
             className='ChannelInfoAttributes__missingValue'
-            data-testid={`channelInfoAttributeMissing-${field.name}`}
+            data-testid={testId ? `${testId}.missing--text` : undefined}
         >
             {field.type === 'text' ? (
                 <FormattedMessage

@@ -38,12 +38,15 @@ type Props = {
     // list itself is paginated, so per-page rows cannot drive the filter tabs.
     sharedCount?: number;
     onExited: () => void;
+
+    // The modal's testid scope, from the host that opens it.
+    testId?: string;
 };
 
 export const useChannelsWithoutValueModal = () => {
     const dispatch = useDispatch();
 
-    return (args: {fieldId: string; attributeDisplayName?: string; totalCount: number; sharedCount?: number}) => {
+    return (args: {fieldId: string; attributeDisplayName?: string; totalCount: number; sharedCount?: number; testId?: string}) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.GLOBAL_ATTRIBUTE_CHANNELS_WITHOUT_VALUE,
             dialogType: ChannelsWithoutValueModal,
@@ -52,7 +55,7 @@ export const useChannelsWithoutValueModal = () => {
     };
 };
 
-function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: seedTotalCount, sharedCount = 0, onExited}: Props) {
+function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: seedTotalCount, sharedCount = 0, onExited, testId}: Props) {
     const {formatMessage} = useIntl();
 
     const [channels, setChannels] = useState<ChannelMissingAttributeValue[]>([]);
@@ -152,7 +155,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
         <GenericModal
             id='channelsWithoutValueModal'
             className='ChannelsWithoutValueModal a11y__modal'
-            dataTestId='channelsWithoutValueModal'
+            testId={testId}
             compassDesign={true}
             show={true}
             onHide={onExited}
@@ -172,6 +175,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                             emphasis='tertiary'
                             disabled={page === 0 || loading}
                             onClick={handlePrevious}
+                            data-testid={testId ? `${testId}.previous--button` : undefined}
                         >
                             <FormattedMessage
                                 id='admin.global_attributes.applies_to.channels.without_value.previous'
@@ -182,6 +186,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                             emphasis='tertiary'
                             disabled={loading || !hasNextPage}
                             onClick={handleNext}
+                            data-testid={testId ? `${testId}.next--button` : undefined}
                         >
                             <FormattedMessage
                                 id='admin.global_attributes.applies_to.channels.without_value.next'
@@ -191,7 +196,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                     </div>
                     <Button
                         onClick={onExited}
-                        data-testid='channelsWithoutValueModalClose'
+                        data-testid={testId ? `${testId}.footer_close--button` : undefined}
                     >
                         <FormattedMessage
                             id='admin.global_attributes.applies_to.channels.without_value.close'
@@ -207,6 +212,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                         type='button'
                         className={filter === 'all' ? 'active' : ''}
                         onClick={() => setFilter('all')}
+                        data-testid={testId ? `${testId}.filter:all--button` : undefined}
                     >
                         {formatMessage({id: 'admin.global_attributes.applies_to.channels.without_value.filter.all', defaultMessage: 'All ({count})'}, {count: totalCount})}
                     </button>
@@ -214,6 +220,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                         type='button'
                         className={filter === 'local' ? 'active' : ''}
                         onClick={() => setFilter('local')}
+                        data-testid={testId ? `${testId}.filter:local--button` : undefined}
                     >
                         {formatMessage({id: 'admin.global_attributes.applies_to.channels.without_value.filter.local', defaultMessage: 'Local ({count})'}, {count: localCount})}
                     </button>
@@ -221,6 +228,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                         type='button'
                         className={filter === 'shared' ? 'active' : ''}
                         onClick={() => setFilter('shared')}
+                        data-testid={testId ? `${testId}.filter:shared--button` : undefined}
                     >
                         {formatMessage({id: 'admin.global_attributes.applies_to.channels.without_value.filter.shared', defaultMessage: 'Shared ({count})'}, {count: sharedCount})}
                     </button>
@@ -236,6 +244,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                     <button
                         type='button'
                         onClick={() => load(page)}
+                        data-testid={testId ? `${testId}.retry--button` : undefined}
                     >
                         <FormattedMessage
                             id='admin.global_attributes.applies_to.channels.without_value.retry'
@@ -245,7 +254,10 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                 </div>
             )}
             {!loading && !failed && totalCount === 0 && (
-                <div className='ChannelsWithoutValueModal__empty'>
+                <div
+                    className='ChannelsWithoutValueModal__empty'
+                    data-testid={testId ? `${testId}.empty--text` : undefined}
+                >
                     <FormattedMessage
                         id='admin.global_attributes.applies_to.channels.without_value.empty'
                         defaultMessage='Every channel has a value'
@@ -286,13 +298,17 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                     </thead>
                     <tbody>
                         {visibleChannels.map((ch) => (
-                            <tr key={ch.channel_id}>
+                            <tr
+                                key={ch.channel_id}
+                                data-testid={testId ? `${testId}.channel:${ch.channel_id}--row` : undefined}
+                            >
                                 <td>
                                     <div className='ChannelsWithoutValueModal__channel-cell'>
                                         {ch.channel_type === 'P' ? <LockOutlineIcon size={16}/> : <GlobeIcon size={16}/>}
                                         <ExternalLink
                                             href={`${getSiteURL()}/admin_console/user_management/channels/${ch.channel_id}`}
                                             location='channels_without_value_modal'
+                                            data-testid={testId ? `${testId}.channel_link:${ch.channel_id}--link` : undefined}
                                             aria-label={formatMessage({
                                                 id: 'admin.global_attributes.applies_to.channels.without_value.open_channel_aria',
                                                 defaultMessage: 'Open {channel} in a new tab',

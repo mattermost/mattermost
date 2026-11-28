@@ -20,6 +20,7 @@ type Props = {
     // Why no attribute can be added right now; disables the button.
     disabledReason?: string;
 
+    // The scope of the picker's test ids (`<scope>.add--button` and the rest).
     testIdScope?: string;
 };
 
@@ -44,7 +45,6 @@ const PostAttributesButton = ({fields, onSelect, disabledReason, testIdScope}: P
     return (
         <PostAttributesFieldPicker
             id={`postAttributesButton-${instanceId}`}
-            dataTestId='post-attributes-composer-add'
             testIdScope={testIdScope}
             fields={fields}
             onSelect={onSelect}

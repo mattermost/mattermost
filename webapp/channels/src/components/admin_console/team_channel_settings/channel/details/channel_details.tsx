@@ -1567,6 +1567,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 onCheckingRequiredChange={this.handleCheckingRequiredChannelAttributesChange}
                                 onRequiredCheckFailedChange={this.handleRequiredChannelAttributesCheckFailedChange}
                                 showRequiredErrors={attributesBlockSave}
+                                testIdScope='admin.channel.attributes'
                             />
                         )}
                         {!isLocalArchived && nonArchivedContent}
@@ -1582,7 +1583,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     serverError={attributesBlockSave ? (
                         <>
                             {serverError}
-                            <div data-testid='channelAttributesRequiredToSave'>
+                            <div data-testid='admin.channel.attributes_required--text'>
                                 <FormError
                                     error={(
                                         <FormattedMessage

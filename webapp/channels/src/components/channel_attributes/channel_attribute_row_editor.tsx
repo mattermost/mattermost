@@ -279,7 +279,10 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     }
 
     const emptyPlaceholder = missing ? (
-        <MissingValuePill field={field}/>
+        <MissingValuePill
+            field={field}
+            testId={testId}
+        />
     ) : (
         <span
             className='ChannelInfoAttributes__empty'

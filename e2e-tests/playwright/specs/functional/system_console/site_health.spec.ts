@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {readFile} from 'node:fs/promises';
+
 import type {Client4} from '@mattermost/client';
 
 import {
@@ -676,6 +678,39 @@ test('hides Site health from admins who cannot read Site Statistics', {tag: '@sy
 });
 
 /**
+ * @objective Verify a system admin can download the Site health findings as an HTML report that is named
+ * after the site and the date and contains a known finding.
+ */
+test('downloads the Site health findings as HTML', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, ENTERPRISE_TIER);
+
+    const {adminUser, adminClient} = await pw.initSetup();
+    await adminClient.patchConfig(LOG_WEBHOOK_PAYLOADS.fire);
+
+    const {app} = await pw.testBrowser.login(adminUser);
+    const siteHealth = siteHealthPage(app);
+
+    // # Open Site health and run the checks
+    await siteHealth.goto();
+    await siteHealth.runChecks();
+
+    // * Verify the finding is listed
+    await expect(siteHealth.rows(LOG_WEBHOOK_PAYLOADS.title)).toBeVisible();
+
+    // # Download the HTML export
+    await siteHealth.health.export.container.click();
+    const [download] = await Promise.all([
+        app.page.waitForEvent('download'),
+        siteHealth.health.export.htmlMenuItem.click(),
+    ]);
+
+    // * Verify the file name and that the report contains the finding
+    expect(download.suggestedFilename()).toMatch(/^mm_site_health_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.html$/);
+    const html = await readFile(await download.path(), 'utf8');
+    expect(html).toContain(LOG_WEBHOOK_PAYLOADS.title);
+});
+
+/**
  * @objective Verify a System Manager, who can read Site Statistics, gets Site health in place of Workspace Optimization,
  * with the HealthDashboard feature flag at its default (on).
  */
@@ -714,3 +749,85 @@ test(
         await expect(siteHealth.health.loadError).not.toBeVisible();
     },
 );
+
+async function getAutomaticChecks(adminClient: Client4) {
+    return (await adminClient.getConfig()).SiteHealthSettings.EnableAutomaticChecks;
+}
+
+/**
+ * @objective Verify a system admin can turn automatic checks off, still run the checks on demand while they are
+ * off, and turn them back on.
+ */
+test('turns automatic checks off and back on', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, ENTERPRISE_TIER);
+
+    const {adminUser, adminClient} = await pw.initSetup();
+    await adminClient.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: true}});
+
+    const {app} = await pw.testBrowser.login(adminUser);
+    const siteHealth = siteHealthPage(app);
+    const {health} = siteHealth;
+
+    // # Open Site health
+    await siteHealth.goto();
+
+    // * Verify automatic checks are on, with no banner
+    await expect(health.automaticChecksSwitch).toBeOn();
+    await expect(health.automaticChecksOff.container).not.toBeVisible();
+
+    // # Turn the Automatic checks switch off
+    await health.automaticChecksSwitch.set(false);
+
+    // * Verify the server stores the setting and the page says automatic checks are off
+    await expect.poll(() => getAutomaticChecks(adminClient)).toBe(false);
+    await expect(health.automaticChecksOff.container).toBeVisible();
+
+    // # Reload the page
+    await app.page.reload();
+    await siteHealth.toBeVisible();
+
+    // * Verify the setting stayed off
+    await expect(health.automaticChecksSwitch).not.toBeOn();
+    await expect(health.automaticChecksOff.container).toBeVisible();
+
+    // # Run the checks on demand while automatic checks are off
+    await siteHealth.runChecks();
+
+    // # Turn the Automatic checks switch back on
+    await health.automaticChecksSwitch.set(true);
+
+    // * Verify the server stores the setting, the banner goes away and the switch is on
+    await expect.poll(() => getAutomaticChecks(adminClient)).toBe(true);
+    await expect(health.automaticChecksOff.container).not.toBeVisible();
+    await expect(health.automaticChecksSwitch).toBeOn();
+});
+
+/**
+ * @objective Verify a System Manager, who can read Site Statistics but lacks manage_system, sees automatic checks
+ * read-only: the switch is disabled.
+ */
+test('shows automatic checks read-only to a system manager', {tag: '@system_console'}, async ({pw}) => {
+    await skipUnlessLicensed(pw, PROFESSIONAL_TIER);
+
+    const {adminClient, user} = await pw.initSetup();
+
+    // Assigning system_manager needs the Custom Permission Schemes license feature.
+    test.skip(
+        !hasCustomPermissionsSchemesLicense(await adminClient.getClientLicenseOld()),
+        'Skipping test - server does not have Custom Permission Schemes',
+    );
+
+    await adminClient.patchConfig({SiteHealthSettings: {EnableAutomaticChecks: false}});
+    await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+    const {app} = await pw.testBrowser.login(user);
+    const siteHealth = siteHealthPage(app);
+    const {health} = siteHealth;
+
+    // # Open Site health
+    await siteHealth.goto();
+
+    // * Verify the banner shows and the switch can't be changed
+    await expect(health.automaticChecksOff.container).toBeVisible();
+    await expect(health.automaticChecksSwitch).not.toBeOn();
+    await expect(health.automaticChecksSwitch).toBeDisabled();
+});

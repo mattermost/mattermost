@@ -338,7 +338,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             const info = {attributes: await openChannelInfo(app)};
 
             // * A required attribute with no value shows as missing and is still editable
-            await expect(row(info.attributes, marking).locator).toContainMessage(
+            await expect(row(info.attributes, marking).missingText).toHaveMessage(
                 Msg.channel_attributes.info.select_a_value,
             );
             await expect(row(info.attributes, marking).locked).toHaveCount(0);

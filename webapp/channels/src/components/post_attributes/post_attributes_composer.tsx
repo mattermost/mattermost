@@ -35,6 +35,10 @@ type Props = {
     onAdd: (fieldId: string) => void;
     onChange: (fieldId: string, next: unknown) => void;
     onRemove: (fieldId: string) => void;
+
+    // The scope of the composer's test ids: the row is `<scope>`, each chip `<scope>.chip:<field id>` and the
+    // `+ Add attribute` after them `<scope>.add--button`.
+    testIdScope?: string;
 };
 
 /**
@@ -45,7 +49,7 @@ type Props = {
  * Fully controlled by `useStagedPostAttributes`, which the editor owns so it can
  * clear the staged state after a send and on a channel or thread switch.
  */
-export default function PostAttributesComposer({chips, addable, justAdded, onAdd, onChange, onRemove}: Props) {
+export default function PostAttributesComposer({chips, addable, justAdded, onAdd, onChange, onRemove, testIdScope}: Props) {
     const {formatMessage} = useIntl();
 
     // Each composer mounted at once (centre channel, thread sidebar) needs its
@@ -61,7 +65,7 @@ export default function PostAttributesComposer({chips, addable, justAdded, onAdd
             className='PostAttributesChips PostAttributesComposer'
             role='group'
             aria-label={formatMessage({id: 'post_attributes.composer.group', defaultMessage: 'Attached post attributes', description: 'Accessible label of the row of attribute chips above the message box in the composer.'})}
-            data-testid='post-attributes-composer'
+            data-testid={testIdScope}
         >
             {chips.map(({field, value}) => (
                 <PostAttributesComposerChip
@@ -71,6 +75,7 @@ export default function PostAttributesComposer({chips, addable, justAdded, onAdd
                     autoOpen={field.id === justAdded}
                     onChange={onChange}
                     onRemove={onRemove}
+                    testIdScope={testIdScope}
                 />
             ))}
 
@@ -84,6 +89,7 @@ export default function PostAttributesComposer({chips, addable, justAdded, onAdd
                     compact={true}
                     fields={addable}
                     onSelect={onAdd}
+                    testIdScope={testIdScope}
                 />
             )}
         </div>
@@ -96,6 +102,7 @@ type ChipProps = {
     autoOpen: boolean;
     onChange: (fieldId: string, next: unknown) => void;
     onRemove: (fieldId: string) => void;
+    testIdScope?: string;
 };
 
 /**
@@ -109,7 +116,7 @@ type ChipProps = {
  * input or user picker while the user edits it; leaving the control turns it
  * back into a chip.
  */
-function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}: ChipProps) {
+function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove, testIdScope}: ChipProps) {
     const {formatMessage, formatList} = useIntl();
 
     const label = getPropertyFieldLabel(field);
@@ -145,6 +152,9 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
         );
     }
 
+    const valueScope = testIdScope ? `${testIdScope}.chip.value` : undefined;
+    const renderValue = useCallback((valueField: PropertyField, fieldValue: PropertyValue<unknown>) => renderChipValue(valueField, fieldValue, valueScope), [valueScope]);
+
     const handleRemove = useCallback(() => onRemove(field.id), [field.id, onRemove]);
     const removeLabel = formatMessage(
         {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}', description: 'Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute\'s name. Verb.'},
@@ -154,14 +164,14 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
     return (
         <div
             className='PostAttributesComposerChip'
-            data-testid={`post-attribute-chip-${field.name}`}
+            data-testid={testIdScope ? `${testIdScope}.chip:${field.id}` : undefined}
         >
             {!isOptionType && !editing ? (
                 <WithTooltip title={label}>
                     <button
                         type='button'
                         className='PostAttributesComposerChip__rest'
-                        data-testid={`post-attribute-rest-${field.name}`}
+                        data-testid={testIdScope ? `${testIdScope}.chip.rest--button` : undefined}
                         onClick={startEditing}
                     >
                         {value ? (
@@ -178,6 +188,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                                     field={field}
                                     value={value}
                                     interactive={false}
+                                    testIdScope={valueScope}
                                 />
                             </>
                         ) : pendingLabel}
@@ -189,12 +200,13 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                     onBlur={isOptionType ? undefined : handleEditorBlur}
                 >
                     <PostAttributeValueControl
+                        testIdScope={testIdScope ? `${testIdScope}.chip` : undefined}
                         field={field}
                         value={value}
                         disabled={false}
                         onChange={onChange}
                         ariaLabel={ariaLabel}
-                        renderValue={renderChipValue}
+                        renderValue={renderValue}
                         autoOpen={isOptionType ? autoOpen : true}
 
                         // An option chip with no value shows the field's name, so its
@@ -218,7 +230,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                     size='x-small'
                     padding='compact'
                     className='PostAttributesComposerChip__remove'
-                    data-testid={`post-attribute-remove-${field.name}`}
+                    data-testid={testIdScope ? `${testIdScope}.chip.remove--button` : undefined}
                     icon={<Icon glyph={<CloseIcon/>}/>}
 
                     // Named after the attribute, so a row of chips does not
@@ -241,12 +253,13 @@ function preventDefault(event: React.MouseEvent) {
 }
 
 // Inside the option menu's trigger button, so the user name is plain text.
-function renderChipValue(field: PropertyField, value: PropertyValue<unknown>) {
+function renderChipValue(field: PropertyField, value: PropertyValue<unknown>, testIdScope?: string) {
     return (
         <PostAttributeChip
             field={field}
             value={value}
             interactive={false}
+            testIdScope={testIdScope}
         />
     );
 }

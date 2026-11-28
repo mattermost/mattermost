@@ -186,7 +186,7 @@ const ChannelInfoRhs = ({
     const openUnarchiveChannel = () => actions.openModal({
         modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
         dialogType: UnarchiveChannelModal,
-        dialogProps: {channel},
+        dialogProps: {channel, testId: 'channel_info_rhs.unarchive_modal'},
     });
 
     const gmUsers = channelMembers.filter((user) => {

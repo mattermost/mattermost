@@ -37,8 +37,8 @@ type Props = {
     interactive?: boolean;
 
     // The scope of the chip's test ids: `<scope>.select--text`, `.user`, `.channel`, `.team`, `.timestamp--text`,
-    // `.post_preview` and `.text--text`, as the renderers these chips replaced named them. Without a scope (the
-    // composer's staged chips) the ids are the plain ones.
+    // `.post_preview` and `.text--text`, as the renderers these chips replaced named them. Without a scope the chips
+    // carry no id.
     testIdScope?: string;
 };
 
@@ -73,7 +73,7 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
                         key={`${index}:${chip.key}`}
                         size='small'
                         className='PostAttributeChip'
-                        data-testid={testIdScope ? `${testIdScope}.select--text` : 'select-property'}
+                        data-testid={testIdScope ? `${testIdScope}.select--text` : undefined}
                     >
                         {chip.label}
                     </Chip>
@@ -133,7 +133,7 @@ function UserChip({userId, interactive, testIdScope}: {userId: string; interacti
         <Chip
             size='small'
             className='PostAttributeChip'
-            data-testid={testIdScope ? `${testIdScope}.user` : 'user-property'}
+            data-testid={testIdScope ? `${testIdScope}.user` : undefined}
             leadingAvatar={user ? {src: imageURLForUser(user.id, user.last_picture_update), alt: ''} : undefined}
         >
             <UserProfileComponent
@@ -162,7 +162,7 @@ function TextChip({field, value, testIdScope}: {field: PropertyField; value: Pro
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid={testIdScope ? `${testIdScope}.channel` : 'channel-property'}
+                data-testid={testIdScope ? `${testIdScope}.channel` : undefined}
                 leadingIcon={hasIcon ? <ChannelIcon channel={channel}/> : undefined}
             >
                 {channel ? channel.display_name : (
@@ -184,7 +184,7 @@ function TextChip({field, value, testIdScope}: {field: PropertyField; value: Pro
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid={testIdScope ? `${testIdScope}.team` : 'team-property'}
+                data-testid={testIdScope ? `${testIdScope}.team` : undefined}
                 leadingAvatar={image ? {src: image, alt: ''} : undefined}
             >
                 {team ? team.display_name : (
@@ -203,7 +203,7 @@ function TextChip({field, value, testIdScope}: {field: PropertyField; value: Pro
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid={testIdScope ? `${testIdScope}.timestamp--text` : 'timestamp-property'}
+                data-testid={testIdScope ? `${testIdScope}.timestamp--text` : undefined}
             >
                 <TimestampPropertyRenderer value={value}/>
             </Chip>
@@ -218,7 +218,7 @@ function TextChip({field, value, testIdScope}: {field: PropertyField; value: Pro
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid={testIdScope ? `${testIdScope}.post_preview` : 'post-preview-property'}
+                data-testid={testIdScope ? `${testIdScope}.post_preview` : undefined}
             >
                 {channel ? (
                     <FormattedMessage
@@ -243,7 +243,7 @@ function TextChip({field, value, testIdScope}: {field: PropertyField; value: Pro
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid={testIdScope ? `${testIdScope}.text--text` : 'text-property'}
+                data-testid={testIdScope ? `${testIdScope}.text--text` : undefined}
                 title={stored}
             >
                 {stored}

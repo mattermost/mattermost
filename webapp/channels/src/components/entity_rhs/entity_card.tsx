@@ -214,7 +214,7 @@ function formatCardInstant(instant: number, timeZone: string | undefined, milita
     });
 }
 
-export default function EntityCardView({card, onOpen, reload}: {card: EntityCard; onOpen?: (target: EntityOpenTarget) => void; reload?: () => void}) {
+export default function EntityCardView({card, onOpen, reload, testIdScope}: {card: EntityCard; onOpen?: (target: EntityOpenTarget) => void; reload?: () => void; testIdScope?: string}) {
     const intl = useIntl();
     const timezone = useSelector(getCurrentTimezone);
     const military = useSelector(isUseMilitaryTime);
@@ -234,14 +234,14 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const heading = localInstant || card.title;
 
     return (
-        <div data-testid='entity-card'>
+        <div data-testid={testIdScope ? `${testIdScope}--region` : undefined}>
             <h3 style={title}>{heading}</h3>
             {(localInstant || card.title !== card.value) && <p style={ident}>{card.value}</p>}
             {(severity || card.exploited) && (
                 <div style={{display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10}}>
                     {severity && (
                         <span
-                            data-testid='entity-severity'
+                            data-testid={testIdScope ? `${testIdScope}.severity--text` : undefined}
                             style={{...badge, ...severityStyle[severity]}}
                         >
                             {card.score && <span style={{fontWeight: 600}}>{card.score}</span>}
@@ -250,7 +250,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     )}
                     {card.exploited && (
                         <span
-                            data-testid='entity-exploited'
+                            data-testid={testIdScope ? `${testIdScope}.exploited--text` : undefined}
                             style={{...badge, background: 'rgba(210, 75, 78, 0.12)', color: 'var(--error-text, #d24b4e)', boxShadow: 'inset 0 0 0 1px var(--error-text, #d24b4e)'}}
                         >
                             <FormattedMessage
@@ -264,7 +264,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
             {hasBlockBody ? (
                 <div
                     style={{marginTop: 16}}
-                    data-testid='entity-card-blocks'
+                    data-testid={testIdScope ? `${testIdScope}.blocks--region` : undefined}
                 >
                     <BlockRenderer
                         blocks={bodyBlocks}
@@ -324,7 +324,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     <ExternalLink
                         href={cardHref}
                         location='entity_card'
-                        data-testid='entity-card-link'
+                        data-testid={testIdScope ? `${testIdScope}.link--link` : undefined}
                     >{card.url}</ExternalLink>
                 </p>
             )}

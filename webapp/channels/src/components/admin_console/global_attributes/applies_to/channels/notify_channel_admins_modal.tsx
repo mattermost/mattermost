@@ -31,6 +31,9 @@ type Props = NotifyChannelAdminsStats & {
     onConfirm: () => void;
     onCancel: () => void;
     onExited: () => void;
+
+    // The modal's testid scope, from the host that opens it.
+    testId?: string;
 };
 
 /**
@@ -47,7 +50,7 @@ type Props = NotifyChannelAdminsStats & {
 export const useNotifyChannelAdmins = () => {
     const dispatch = useDispatch();
 
-    return (stats: NotifyChannelAdminsStats): Promise<boolean> => {
+    return (stats: NotifyChannelAdminsStats, testId?: string): Promise<boolean> => {
         return new Promise<boolean>((resolve) => {
             let resolved = false;
             const resolveOnce = (value: boolean) => {
@@ -62,6 +65,7 @@ export const useNotifyChannelAdmins = () => {
                 dialogType: NotifyChannelAdminsModal,
                 dialogProps: {
                     ...stats,
+                    testId,
                     onConfirm: () => resolveOnce(true),
                     onCancel: () => resolveOnce(false),
                     onExited: () => resolveOnce(false),
@@ -81,6 +85,7 @@ function NotifyChannelAdminsModal({
     onConfirm,
     onCancel,
     onExited,
+    testId,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -102,7 +107,7 @@ function NotifyChannelAdminsModal({
     return (
         <GenericModal
             id='notifyChannelAdminsModal'
-            dataTestId='notifyChannelAdminsModal'
+            testId={testId}
             confirmButtonText={confirmButtonText}
             handleCancel={onCancel}
             handleConfirm={onConfirm}
@@ -154,7 +159,10 @@ function NotifyChannelAdminsModal({
             </div>
             {/* Rendered as the DM will be, so the admin previews the message,
                 not its markdown source. */}
-            <blockquote className='NotifyChannelAdminsModal__preview'>
+            <blockquote
+                className='NotifyChannelAdminsModal__preview'
+                data-testid={testId ? `${testId}.preview--text` : undefined}
+            >
                 <Markdown message={messagePreview}/>
             </blockquote>
         </GenericModal>

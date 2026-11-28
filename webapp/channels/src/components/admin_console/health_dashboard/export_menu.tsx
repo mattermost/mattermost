@@ -111,7 +111,7 @@ const ExportMenu = ({onError}: Props) => {
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                dataTestId: 'healthDashboardExportButton',
+                testId: 'admin.health.export',
                 as: ExportMenuTrigger,
                 disabled: exporting,
 
@@ -137,18 +137,21 @@ const ExportMenu = ({onError}: Props) => {
         >
             <Menu.Item
                 id={`${menuId}-html`}
+                data-testid='admin.health.export.html--menuitem'
                 leadingElement={<DownloadOutlineIcon size={18}/>}
                 labels={<FormattedMessage {...msg.html}/>}
                 onClick={() => exportFindings('html', download)}
             />
             <Menu.Item
                 id={`${menuId}-markdown`}
+                data-testid='admin.health.export.markdown--menuitem'
                 leadingElement={<DownloadOutlineIcon size={18}/>}
                 labels={<FormattedMessage {...msg.markdown}/>}
                 onClick={() => exportFindings('md', download)}
             />
             <Menu.Item
                 id={`${menuId}-print`}
+                data-testid='admin.health.export.print--menuitem'
                 leadingElement={<FilePdfOutlineIcon size={18}/>}
                 labels={<FormattedMessage {...msg.print}/>}
                 onClick={() => exportFindings('html', print)}

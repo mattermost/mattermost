@@ -15,6 +15,10 @@ import './missing_required_attributes_notice.scss';
 
 type Props = {
     channelId: string;
+
+    // Where the notice sits in the testid tree, e.g. `center.post_list.missing_attributes`; its button is
+    // `<testId>.add_values--button`.
+    testId?: string;
 };
 
 /**
@@ -23,7 +27,7 @@ type Props = {
  * the message list, beneath the list's own toasts (new messages, calls), which
  * are more urgent and come and go.
  */
-export default function MissingRequiredAttributesNotice({channelId}: Props) {
+export default function MissingRequiredAttributesNotice({channelId, testId}: Props) {
     const dispatch = useDispatch();
     const {fields, firstFieldId} = useFixableMissingRequiredAttributes(channelId);
 
@@ -42,7 +46,7 @@ export default function MissingRequiredAttributesNotice({channelId}: Props) {
             <div
                 className='MissingRequiredAttributesNotice__pill'
                 role='status'
-                data-testid='missingRequiredAttributesNotice'
+                data-testid={testId}
             >
                 <AlertCircleOutlineIcon
                     size={12}
@@ -58,7 +62,7 @@ export default function MissingRequiredAttributesNotice({channelId}: Props) {
                     type='button'
                     className='MissingRequiredAttributesNotice__button'
                     onClick={addValues}
-                    data-testid='missingRequiredAttributesNoticeAddValues'
+                    data-testid={testId ? `${testId}.add_values--button` : undefined}
                 >
                     <FormattedMessage
                         id='channel_attributes.missing_notice.add_values'

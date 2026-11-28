@@ -37,11 +37,14 @@ type SwitchProps = {
     saving: boolean;
     disabledReason?: AutomaticChecksDisabledReason;
     onChange: (value: boolean) => void;
+
+    // Where the switch sits in the testid tree, e.g. `admin.health.automatic_checks`; the switch is `<testId>--switch`.
+    testId?: string;
 };
 
 // The tooltip only reaches the wrapping span, which takes the hover a disabled input doesn't, so
 // the same text is also tied to the input as its description for screen readers.
-export const AutomaticChecksSwitch = ({checked, saving, disabledReason, onChange}: SwitchProps) => {
+export const AutomaticChecksSwitch = ({checked, saving, disabledReason, onChange, testId}: SwitchProps) => {
     const descriptionId = useId();
     const description = disabledReason ? disabledReasonMessages[disabledReason] : hourlyMessage;
 
@@ -50,7 +53,7 @@ export const AutomaticChecksSwitch = ({checked, saving, disabledReason, onChange
             <span className='HealthDashboard__automaticChecks'>
                 <Switch
                     size='small'
-                    data-testid='healthDashboardAutomaticChecks'
+                    data-testid={testId ? `${testId}--switch` : undefined}
                     checked={checked}
                     disabled={saving || Boolean(disabledReason)}
                     aria-describedby={descriptionId}
@@ -72,9 +75,11 @@ export const AutomaticChecksSwitch = ({checked, saving, disabledReason, onChange
     );
 };
 
-export const AutomaticChecksOffBanner = () => (
+// testId: the banner's test id, e.g. `admin.health.automatic_checks_off`.
+export const AutomaticChecksOffBanner = ({testId}: {testId?: string}) => (
     <AlertBanner
         mode='info'
+        testId={testId}
         className='HealthDashboard__automaticChecksOff'
         message={
             <FormattedMessage

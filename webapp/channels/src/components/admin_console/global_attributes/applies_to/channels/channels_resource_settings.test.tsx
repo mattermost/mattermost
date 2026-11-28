@@ -194,7 +194,7 @@ describe('ChannelsResourceSettings', () => {
 
         renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}, channelFieldId: 'field1'});
 
-        const banner = screen.getByTestId('channelsMissingValuesBanner');
+        const banner = screen.getByTestId('admin.attribute.applies_to.channel.settings.missing_values_banner');
         expect(banner).toHaveClass('info');
         expect(banner).not.toHaveClass('warning');
 
@@ -261,7 +261,7 @@ describe('ChannelsResourceSettings', () => {
         await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
-        expect(screen.getByTestId('channelsMissingValuesBanner')).not.toHaveClass('warning');
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.missing_values_banner')).not.toHaveClass('warning');
         expect(screen.getByText(/New channels must set one/)).toBeInTheDocument();
     });
 
@@ -359,6 +359,7 @@ describe('ChannelsResourceSettings', () => {
             attributeDisplayName: 'Cost center',
             totalCount: 9,
             sharedCount: 2,
+            testId: 'admin.attribute.applies_to.channel.settings.channels_without_value_modal',
         });
     });
 
@@ -382,7 +383,7 @@ describe('ChannelsResourceSettings', () => {
             noAdminCount: 0,
             messagePreview: 'preview',
             attributeDisplayName: 'Cost center',
-        });
+        }, 'admin.attribute.applies_to.channel.settings.notify_channel_admins_modal');
 
         await waitFor(() => expect(mockNotify).toHaveBeenCalledWith('field1'));
         await waitFor(() => expect(reload).toHaveBeenCalled());

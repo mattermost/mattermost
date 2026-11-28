@@ -993,6 +993,7 @@ const AdvancedTextEditor = ({
                         onAdd={stagedAttributes.add}
                         onChange={stagedAttributes.change}
                         onRemove={stagedAttributes.remove}
+                        testIdScope={testIdScope ? `${testIdScope}.post_attributes` : undefined}
                     />
                 </div>
             )}
@@ -1109,6 +1110,7 @@ const AdvancedTextEditor = ({
                                         fields={composerAttributes.addable}
                                         onSelect={stagedAttributes.add}
                                         disabledReason={addAttributesBlockedReason}
+                                        testIdScope={testIdScope ? `${testIdScope}.post_attributes_button` : undefined}
                                     />
                                 )}
                                 <ToggleFormattingBar

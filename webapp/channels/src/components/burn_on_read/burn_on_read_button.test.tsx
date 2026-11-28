@@ -13,6 +13,7 @@ describe('BurnOnReadButton', () => {
         onToggle: jest.fn(),
         disabled: false,
         durationMinutes: 10,
+        testIdScope: 'composer',
     };
 
     it('should render correctly when disabled', () => {
@@ -55,7 +56,7 @@ describe('BurnOnReadButton', () => {
         await userEvent.click(button);
         expect(onToggle).not.toHaveBeenCalled();
 
-        await userEvent.hover(screen.getByTestId('burn-on-read-blocked'));
+        await userEvent.hover(screen.getByTestId('composer.burn_on_read_blocked--group'));
         expect(await screen.findByRole('tooltip')).toHaveTextContent('Messages with attributes can’t be burn-on-read');
     });
 
@@ -64,7 +65,7 @@ describe('BurnOnReadButton', () => {
             <BurnOnReadButton {...defaultProps}/>,
         );
 
-        expect(screen.queryByTestId('burn-on-read-blocked')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('composer.burn_on_read_blocked--group')).not.toBeInTheDocument();
 
         await userEvent.hover(screen.getByRole('button'));
         expect(await screen.findByRole('tooltip')).toHaveTextContent('Burn-on-read');

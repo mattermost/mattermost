@@ -1374,11 +1374,14 @@ describe('ChannelInfoAttributes missing required attributes', () => {
 
     test('a missing required select row shows a red label and a Select a value pill', () => {
         renderWithContext(
-            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            <ChannelInfoAttributes
+                testId='fixture.channel_info'
+                channelId={CHANNEL_ID}
+            />,
             loadedState([field('program', {required: true})]),
         );
 
-        expect(screen.getByTestId('channelInfoAttributeMissing-program')).toHaveTextContent('Select a value');
+        expect(within(screen.getByTestId('fixture.channel_info.attribute:program')).getByTestId('fixture.channel_info.attribute.missing--text')).toHaveTextContent('Select a value');
         expect(screen.getByText('Program')).toHaveClass('ChannelInfoAttributes__label--missing');
         expect(screen.queryByText('Not set')).not.toBeInTheDocument();
     });
@@ -1392,22 +1395,24 @@ describe('ChannelInfoAttributes missing required attributes', () => {
             loadedState([field('notes', {required: true, type: 'text', options: []})]),
         );
 
-        expect(screen.getByTestId('channelInfoAttributeMissing-notes')).toHaveTextContent('Enter a value');
+        expect(within(screen.getByTestId('fixture.channel_info.attribute:notes')).getByTestId('fixture.channel_info.attribute.missing--text')).toHaveTextContent('Enter a value');
         await userEvent.click(within(screen.getByTestId('fixture.channel_info.attribute:notes')).getByTestId('fixture.channel_info.attribute.edit--button'));
         expect(within(screen.getByTestId('fixture.channel_info.attribute:notes')).getByTestId('fixture.channel_info.attribute.editor--textbox')).toHaveFocus();
     });
 
     test('a row with a value, an optional row and a row the viewer cannot set are not highlighted', () => {
         renderWithContext(
-            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            <ChannelInfoAttributes
+                testId='fixture.channel_info'
+                channelId={CHANNEL_ID}
+            />,
             loadedState([
                 field('program', {required: true}),
                 field('tempo', {required: true, permissionValues: 'sysadmin'}),
             ], [value('program', 'opt_program')]),
         );
 
-        expect(screen.queryByTestId('channelInfoAttributeMissing-program')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('channelInfoAttributeMissing-tempo')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('fixture.channel_info.attribute.missing--text')).not.toBeInTheDocument();
         expect(screen.getByText('Tempo')).not.toHaveClass('ChannelInfoAttributes__label--missing');
     });
 
