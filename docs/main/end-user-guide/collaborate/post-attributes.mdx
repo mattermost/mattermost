@@ -1,0 +1,59 @@
+---
+title: "Post attributes"
+---
+
+From Mattermost v12.2, post attributes let you tag messages with structured values — such as a severity level, status, or owner — before or after sending.
+
+<Note>
+
+Post attributes are controlled by the `PostAttributes` feature flag. Ask your system admin whether the feature is enabled in your deployment.
+
+</Note>
+
+## Set attributes while writing a message
+
+You can attach attribute values to a message before you send it. The values are saved with the post when it is created.
+
+1. Open the message composer in a channel or thread.
+2. Select **+** in the formatting bar, or select **+ Add attribute** inline after any chips already staged, to open the field picker.
+3. Select the attribute you want to set. The value control opens immediately.
+4. Enter or choose a value:
+   - **Select / rank** — choose an option from the menu.
+   - **Multiselect** — tick one or more options; the menu stays open until you close it.
+   - **Text** — type a value and press **Enter** to commit it.
+   - **User / multiuser** — type a name and select from the suggestions.
+5. The attribute appears as a chip above the message box. Repeat from step 2 to add more.
+6. Write your message and send it. The chips are cleared from the composer once the post is created.
+
+The field picker shows only the attributes you have permission to set in this channel. When there are five or more attributes available, a search box appears at the top of the picker so you can filter by name.
+
+### Change or remove a staged attribute
+
+- **Change a value** — select the chip to reopen its value control and choose or type a new value.
+- **Remove a chip** — select **×** on the chip. The field is offered again in the picker. You can also focus the × with **Tab** and press **Enter**.
+
+Only attributes that still have a chip when you send are included in the post. Removing a chip before sending means that value is not saved.
+
+### Constraints while attributes are staged
+
+- **Scheduled send** is disabled while attributes are staged. A tooltip explains why.
+- **Burn-on-read** is disabled while attributes are staged. A tooltip explains why.
+- Adding attributes is disabled while the message is set to burn-on-read.
+
+## View attributes on a post
+
+Attribute chips appear below a post's text. If a post has more chips than fit in the row, an overflow badge such as **+3** shows the count of hidden chips. Hover the chip row to see a card listing all attributes, including any that overflowed.
+
+The **Edit** button in the hover card opens the attributes modal, where you can change or add values on an already-sent post.
+
+## Attribute chip appearance
+
+Option chips (select, multiselect, rank) render in a neutral palette regardless of any colour stored on the option. All options in a field draw the same neutral background.
+
+System messages do not show a chip row.
+
+## Edit attributes after sending
+
+1. Hover over the post and select **Edit**, or hover the chip row and select **Edit** in the hover card.
+2. In the attributes modal, change existing values or select **Add attribute** to add new ones.
+3. Save your changes.
