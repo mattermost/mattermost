@@ -5,7 +5,7 @@ import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AtMention from './at_mention';
@@ -40,6 +40,87 @@ describe('components/AtMention', () => {
         );
 
         expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    test('should isolate a user mention from the text direction of the surrounding message', () => {
+        render(
+            <AtMention
+                {...baseProps}
+                mentionName='user1'
+            >
+                {'@user1'}
+            </AtMention>,
+        );
+
+        expect(screen.getByText('@Nick').closest('bdi')).toBeInTheDocument();
+    });
+
+    test('should isolate a group mention from the text direction of the surrounding message', () => {
+        renderWithContext(
+            <AtMention
+                {...baseProps}
+                mentionName='developers'
+            >
+                {'@developers'}
+            </AtMention>,
+        );
+
+        expect(screen.getByText('@developers').closest('bdi')).toBeInTheDocument();
+    });
+
+    test('should isolate a mention that matches no user or group from the text direction of the surrounding message', () => {
+        render(
+            <AtMention
+                {...baseProps}
+                mentionName='all'
+            >
+                {'@all'}
+            </AtMention>,
+        );
+
+        expect(screen.getByText('@all').closest('bdi')).toBeInTheDocument();
+    });
+
+    test('should keep punctuation that trails a user mention outside the isolated mention', () => {
+        const {container} = render(
+            <AtMention
+                {...baseProps}
+                mentionName='user1.'
+            >
+                {'@user1.'}
+            </AtMention>,
+        );
+
+        expect(container.querySelector('bdi')).toHaveTextContent(/^@Nick$/);
+        expect(container).toHaveTextContent(/^@Nick\.$/);
+    });
+
+    test('should keep punctuation that trails a group mention outside the isolated mention', () => {
+        const {container} = renderWithContext(
+            <AtMention
+                {...baseProps}
+                mentionName='developers.'
+            >
+                {'@developers.'}
+            </AtMention>,
+        );
+
+        expect(container.querySelector('bdi')).toHaveTextContent(/^@developers$/);
+        expect(container).toHaveTextContent(/^@developers\.$/);
+    });
+
+    test('should keep punctuation that trails an unknown mention outside the isolated mention', () => {
+        const {container} = render(
+            <AtMention
+                {...baseProps}
+                mentionName='unknown.'
+            >
+                {['@unknown.']}
+            </AtMention>,
+        );
+
+        expect(container.querySelector('bdi')).toHaveTextContent(/^@unknown$/);
+        expect(container).toHaveTextContent(/^@unknown\.$/);
     });
 
     describe('fetchMissingUsers', () => {
