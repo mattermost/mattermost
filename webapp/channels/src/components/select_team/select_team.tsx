@@ -185,7 +185,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
 
         let openContent;
         if (this.state.loadingTeamId) {
-            openContent = <LoadingScreen/>;
+            openContent = <LoadingScreen testId='select_team.loading'/>;
         } else if (this.state.error) {
             openContent = (
                 <div className='signup__content'>
@@ -268,7 +268,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     className='signup__content'
                 >
                     <div className='SelectTeam__sub-header'>
-                        <h4>
+                        <h4 data-testid='select_team.title--text'>
                             <FormattedMessage
                                 id='signup_team.join_open'
                                 defaultMessage='Teams you can join: '
@@ -297,6 +297,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         bufferValue={280}
                         pageNumber={currentPage}
                         loaderStyle={{padding: '0px', height: '40px'}}
+                        testId='select_team.teams_loading'
                     >
                         {joinableTeamContents}
                     </InfiniteScroll>
@@ -366,7 +367,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             );
         }
         return (
-            <div>
+            <div data-testid='select_team'>
                 <AnnouncementBar/>
                 {headerButton}
                 <div className='col-sm-12'>

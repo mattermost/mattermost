@@ -77,13 +77,16 @@ export default class MFAController extends React.PureComponent<Props & RouteComp
         }
 
         return (
-            <div className='inner-wrap'>
+            <div
+                className='inner-wrap'
+                data-testid='mfa'
+            >
                 <div className='row content'>
                     <div>
                         {backButton}
                         <div className='col-sm-12'>
                             <div className='signup-team__container'>
-                                <h3>
+                                <h3 data-testid='mfa.title--text'>
                                     <FormattedMessage
                                         id='mfa.setupTitle'
                                         defaultMessage='Multi-factor Authentication Setup'

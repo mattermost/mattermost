@@ -13,3 +13,14 @@ export {closeTeamSettings, openChannelSettings, openTeamSettings} from './settin
 export {openSystemConsoleSection, openSystemUsers, searchSystemUsers, systemConsolePath} from './system_console';
 
 export * from './attributes';
+
+export {
+    expectLoginHeading,
+    expectSignedIn,
+    logIn,
+    logInWithKeycloak,
+    openLogin,
+    openSignedOut,
+    loginPageUrl,
+    signedInUrl,
+} from './auth';

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, expect, requireSubpathServer} from '@mattermost/playwright-lib';
+import {expectLoginHeading, App, test, expect, logIn, requireSubpathServer} from '@mattermost/playwright-lib';
 
 test.describe('Subpath - login cookie path', {tag: '@subpath'}, () => {
     let subpathBaseURL: string;
@@ -22,10 +22,12 @@ test.describe('Subpath - login cookie path', {tag: '@subpath'}, () => {
         await page.goto(`${subpathBaseURL}/${team.name}/channels/town-square`);
 
         // # Log in
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.loginInput.fill(user.username);
-        await pw.loginPage.passwordInput.fill(user.password);
-        await pw.loginPage.signInButton.click();
+        const app = new App(page);
+        await expect(app.login.loginId.container).toBeVisible();
+
+        await expectLoginHeading(app);
+        await expect(app.login.password.container).toBeVisible();
+        await logIn(app, user.username, user.password);
         await expect.poll(() => page.url()).toBe(`${subpathBaseURL}/${team.name}/channels/town-square`);
 
         // * Verify every cookie's Path attribute is the subpath

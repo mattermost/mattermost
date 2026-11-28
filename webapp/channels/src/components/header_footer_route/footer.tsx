@@ -22,13 +22,13 @@ const Footer = () => {
 
     return (
         <div
-            data-testid='hfroute-footer'
+            data-testid='public.footer'
             className='hfroute-footer'
         >
             <span
                 key='footer-copyright'
                 className='footer-copyright'
-                data-testid='footer-copyright'
+                data-testid='public.footer.copyright--text'
             >
                 {`© ${new Date().getFullYear()} Mattermost Inc.`}
             </span>
@@ -36,6 +36,7 @@ const Footer = () => {
                 <ExternalLink
                     key='footer-link-about'
                     className='footer-link'
+                    data-testid='public.footer.link:about--link'
                     href={AboutLink}
                     location='footer'
                 >
@@ -46,6 +47,7 @@ const Footer = () => {
                 <ExternalLink
                     key='footer-link-privacy'
                     className='footer-link'
+                    data-testid='public.footer.link:privacy--link'
                     href={PrivacyPolicyLink}
                     location='footer'
                 >
@@ -56,6 +58,7 @@ const Footer = () => {
                 <ExternalLink
                     key='footer-link-terms'
                     className='footer-link'
+                    data-testid='public.footer.link:terms--link'
                     href={TermsOfServiceLink}
                     location='footer'
                 >
@@ -66,6 +69,7 @@ const Footer = () => {
                 <ExternalLink
                     key='footer-link-help'
                     className='footer-link'
+                    data-testid='public.footer.link:help--link'
                     href={HelpLink}
                     location='footer'
                 >

@@ -360,7 +360,7 @@ context('ldap', () => {
                 cy.visit(`/${testTeam.name}/pl/${postId}`);
 
                 // * We expect an error that says "Message not found"
-                cy.findByTestId('errorMessageTitle').contains('Message Not Found');
+                cy.findByTestId('error_view.title--text').contains('Message Not Found');
             });
         });
 

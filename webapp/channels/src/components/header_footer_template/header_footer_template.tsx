@@ -46,6 +46,7 @@ const HeaderFooterNotLoggedIn = (props: Props) => {
                 key='about_link'
                 id='about_link'
                 className='footer-link'
+                data-testid='public.template_footer.link:about--link'
                 location='header_footer_template'
                 href={config.AboutLink}
             >
@@ -60,6 +61,7 @@ const HeaderFooterNotLoggedIn = (props: Props) => {
                 key='privacy_link'
                 id='privacy_link'
                 className='footer-link'
+                data-testid='public.template_footer.link:privacy--link'
                 location='header_footer_template'
                 href={config.PrivacyPolicyLink}
             >
@@ -74,6 +76,7 @@ const HeaderFooterNotLoggedIn = (props: Props) => {
                 key='terms_link'
                 id='terms_link'
                 className='footer-link'
+                data-testid='public.template_footer.link:terms--link'
                 location='header_footer_template'
                 href={config.TermsOfServiceLink}
             >
@@ -88,6 +91,7 @@ const HeaderFooterNotLoggedIn = (props: Props) => {
                 key='help_link'
                 id='help_link'
                 className='footer-link'
+                data-testid='public.template_footer.link:help--link'
                 location='header_footer_template'
                 href={config.HelpLink}
             >
@@ -104,6 +108,7 @@ const HeaderFooterNotLoggedIn = (props: Props) => {
             <div className='row footer'>
                 <div
                     id='footer_section'
+                    data-testid='public.template_footer'
                     className='footer-pane col-xs-12'
                 >
                     <div className='col-xs-12'>

@@ -3,35 +3,38 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {openLogin} from './support';
+
 /**
  * @objective Verify empty login fields show validation errors instead of submitting.
  */
-test('shows validation errors for empty login fields', {tag: '@authentication'}, async ({pw}) => {
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+test('shows validation errors for empty login fields', {tag: '@authentication'}, async ({pw, page}) => {
+    const app = await openLogin(pw, page);
 
     // # Submit the login form with both fields empty
-    await pw.loginPage.signInButton.click();
+    await app.login.card.logInButton.click();
 
     // * Verify empty-field errors are shown and the user stays on login
-    await expect(pw.loginPage.errorBanner).toBeVisible();
-    await pw.loginPage.expectOnLoginPage();
+    await expect(app.login.banner).toBeVisible();
+    await expect(app.login.banner).toContainText(/Please enter your /);
+    await expect(page).toHavePath(app.loginPage.pathFor());
 });
 
 /**
  * @objective Verify the create-account link is hidden when open server is disabled.
  */
-test('MM-T1760 hides the create-account link when open server is disabled', {tag: '@authentication'}, async ({pw}) => {
-    const {adminClient} = await pw.getAdminClient();
+test(
+    'MM-T1760 hides the create-account link when open server is disabled',
+    {tag: '@authentication'},
+    async ({pw, page}) => {
+        const {adminClient} = await pw.getAdminClient();
 
-    // # Disable open server
-    await adminClient.patchConfig({TeamSettings: {EnableOpenServer: false}});
+        // # Disable open server
+        await adminClient.patchConfig({TeamSettings: {EnableOpenServer: false}});
 
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+        const app = await openLogin(pw, page);
 
-    // * Verify the create-account link is hidden
-    await expect(pw.loginPage.createAccountLink).toBeHidden();
-});
+        // * Verify the create-account link is hidden
+        await expect(app.login.alternate.actionLink).toBeHidden();
+    },
+);

@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {DOMAIN_NOT_ALLOWED, openLogin, openSignup, signUp} from './support';
+
 const ALLOWED_DOMAINS = 'mattermost.com, test.com';
 
 /**
@@ -11,33 +13,34 @@ const ALLOWED_DOMAINS = 'mattermost.com, test.com';
  * @precondition
  * A licensed server.
  */
-test('MM-T1759 rejects open-team invite signup for a disallowed domain', {tag: '@authentication'}, async ({pw}) => {
-    await pw.ensureLicense();
-    await pw.skipIfNoLicense();
+test(
+    'MM-T1759 rejects open-team invite signup for a disallowed domain',
+    {tag: '@authentication'},
+    async ({pw, page}) => {
+        await pw.ensureLicense();
+        await pw.skipIfNoLicense();
 
-    const {adminClient, team} = await pw.initSetup();
+        const {adminClient, team} = await pw.initSetup();
 
-    await adminClient.patchConfig({TeamSettings: {RestrictCreationToDomains: ALLOWED_DOMAINS}});
-    await adminClient.updateTeam({...team, allow_open_invite: true});
+        await adminClient.patchConfig({TeamSettings: {RestrictCreationToDomains: ALLOWED_DOMAINS}});
+        await adminClient.updateTeam({...team, allow_open_invite: true});
 
-    const username = `Test${pw.random.id()}`;
-    await pw.hasSeenLandingPage();
-    await pw.signupPage.goto(`/signup_user_complete/?id=${team.invite_id}`);
-    await pw.signupPage.toBeVisible();
+        const username = `Test${pw.random.id()}`;
 
-    // # Attempt signup with a disallowed-domain email
-    await pw.signupPage.create(
-        {
+        const app = await openSignup(pw, page, `?id=${team.invite_id}`);
+
+        // # Attempt signup with a disallowed-domain email
+        await signUp(app, {
             email: `${username.toLowerCase()}@example.com`,
             username,
             password: pw.newTestPassword(),
-        },
-        false,
-    );
+        });
 
-    // * Verify the domain restriction error is shown
-    await expect(pw.signupPage.domainRestrictionError).toBeVisible();
-});
+        // * Verify the domain restriction error is shown
+        await expect(app.signup.banner).toBeVisible();
+        await expect(app.signup.banner).toContainText(DOMAIN_NOT_ALLOWED);
+    },
+);
 
 /**
  * @objective Verify the create-account link remains visible when email signup is off but LDAP is on.
@@ -48,7 +51,7 @@ test('MM-T1759 rejects open-team invite signup for a disallowed domain', {tag: '
 test(
     'MM-T1761 keeps the create-account link when email signup is off and LDAP is on',
     {tag: '@authentication'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
@@ -60,13 +63,11 @@ test(
             LdapSettings: {Enable: true},
         });
 
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-
         // # Open the login page with email signup off and LDAP on
+        const app = await openLogin(pw, page);
+
         // * Verify the create-account link is still shown
-        await expect(pw.loginPage.createAccountLink).toBeVisible();
+        await expect(app.login.alternate.actionLink).toBeVisible();
     },
 );
 
@@ -79,7 +80,7 @@ test(
 test(
     'MM-T1766 shows email signup fields when email account creation is enabled',
     {tag: '@authentication'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
@@ -90,13 +91,14 @@ test(
             TeamSettings: {RestrictCreationToDomains: ALLOWED_DOMAINS},
         });
 
-        await pw.hasSeenLandingPage();
-        await pw.signupPage.goto(`/signup_user_complete/?id=${team.invite_id}`);
-        await pw.signupPage.toBeVisible();
-
         // # Open invite signup with email account creation enabled
+        const app = await openSignup(pw, page, `?id=${team.invite_id}`);
+
         // * Verify email signup fields are shown
-        await expect(pw.signupPage.emailAddressLabel).toBeVisible();
-        await expect(pw.signupPage.choosePasswordPlaceholder).toBeVisible();
+        await expect(app.signup.card.email.container).toBeVisible();
+        await expect(app.signup.card.email.container).toHaveAccessibleName('Email address');
+        await expect(app.signup.card.password.container).toBeVisible();
+        await expect(app.signup.card.password.container).toHaveAccessibleName('Choose a Password');
+        await expect(app.signup.card.password.container).toHaveAttribute('placeholder', 'Choose a Password');
     },
 );

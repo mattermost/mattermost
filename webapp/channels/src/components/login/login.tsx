@@ -451,6 +451,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         return (
             <AlternateLinkLayout
                 className='login-body-alternate-link'
+                testId='login.alternate'
                 alternateLinkPath={'/signup_user_complete'}
                 alternateLinkLabel={linkLabel}
             />
@@ -545,7 +546,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [hasError]);
 
     if (initializing) {
-        return (<LoadingScreen/>);
+        return (<LoadingScreen testId='login.loading'/>);
     }
 
     const getInputPlaceholder = () => {
@@ -886,6 +887,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     <ExternalLink
                         location='login_page'
                         href={ForgotPasswordLink}
+                        data-testid='login.forgot_password--link'
                     >
                         {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
                     </ExternalLink>
@@ -896,7 +898,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (enableSignInWithUsername || enableSignInWithEmail) {
             return (
                 <div className='login-body-card-form-link'>
-                    <Link to='/reset_password'>
+                    <Link
+                        to='/reset_password'
+                        data-testid='login.forgot_password--link'
+                    >
                         {formatMessage({id: 'login.forgot', defaultMessage: 'Forgot your password?'})}
                     </Link>
                 </div>
@@ -961,7 +966,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             onError={handleBrandImageError}
                         />
                     ) : (
-                        <h1 className='login-body-message-title'>
+                        <h1
+                            className='login-body-message-title'
+                            data-testid='login.title--text'
+                        >
                             {formatMessage({id: 'login.title', defaultMessage: 'Log in to your account'})}
                         </h1>
                     )}
@@ -971,7 +979,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
-                            data-testid='login-body-card'
+                            data-testid='login.card'
                             className='login-body-card-content'
                         >
                             {magicLinkSuccessful ? (
@@ -985,6 +993,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                     {alertBanner && (
                                         <AlertBanner
                                             id='login-body-card-banner'
+                                            testId='login.banner'
                                             className='login-body-card-banner'
                                             mode={alertBanner.mode}
                                             title={alertBanner.title}
@@ -999,7 +1008,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                         >
                                             <div className='login-body-card-form'>
                                                 <Input
-                                                    data-testid='login-id-input'
+                                                    testId='login.login_id'
                                                     ref={loginIdInput}
                                                     name='loginId'
                                                     containerClassName='login-body-card-form-input'
@@ -1018,6 +1027,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                         <PasswordInput
                                                             ref={passwordInput}
                                                             className='login-body-card-form-password-input'
+                                                            testId='login.password'
                                                             value={password}
                                                             inputSize={SIZE.LARGE}
                                                             onChange={handlePasswordInputOnChange}
@@ -1028,6 +1038,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     </>
                                                 )}
                                                 <SaveButton
+                                                    testId='login.card.log_in'
                                                     extraClasses='login-body-card-form-button-submit large'
                                                     saving={isWaiting}
                                                     onClick={preSubmit}
@@ -1051,6 +1062,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     key={option.id}
                                                     direction={enableBaseLogin ? undefined : 'column'}
                                                     {...option}
+                                                    testId='login.external'
+                                                    testKey={option.id}
                                                 />
                                             ))}
                                         </div>
