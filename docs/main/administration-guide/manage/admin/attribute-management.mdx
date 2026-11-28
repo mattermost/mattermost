@@ -27,6 +27,16 @@ After the conversion:
 
 If the server isn't licensed when it starts, the conversion is skipped and runs on a later restart once a license is applied.
 
+## Upgrade to v12.2: post attribute data migration
+
+<Warning>
+
+From Mattermost v12.2, post attributes (behind the `PostAttributes` feature flag) are stored in the `access_control` property group. Migration 000244 permanently deletes the `post_attributes` property group and all of its fields, options, and values. This migration runs automatically on upgrade and cannot be reversed. If you enabled the `PostAttributes` feature flag before upgrading to v12.2, all existing post attribute data will be lost.
+
+</Warning>
+
+After upgrading, recreate any post attribute fields through **System Console \> System Attributes \> Attribute Management** by adding **Posts** as a resource. Recreating post attribute fields requires a Mattermost Entry, Enterprise, or Enterprise Advanced licence. From Mattermost v12.2, requesting `propertyGroup=post_attributes` on the posts API returns 404; use `propertyGroup=access_control` instead.
+
 ## Review attributes
 
 The Attribute Management page lists every attribute alphabetically by display name. Use **Search attributes** to filter by display name or name. Use **Source** to show only attributes from one source: **Managed here**, **AD/LDAP**, **SAML**, **OpenID Connect**, or **Plugin**. Use **Resource type** to show only attributes that apply to **Users**, **Channels**, or **Posts**; the list offers only the resource types available on your server, and is hidden when **Users** is the only one. Select a row to edit an attribute.
@@ -165,6 +175,16 @@ The **Channels** resource requires a Mattermost Entry or Enterprise Advanced lic
   - **Cannot be changed once set**
 - **Display location**: Where else the value is shown in the channel: **Header**, **Banner**, or both. The value is always shown in Channel Info, so Channel Info isn't a choice here.
 - **Required**: When enabled, a channel must have a value for this attribute before it can be created. Available only when the `ChannelAttributesRequired` feature flag is also enabled.
+
+### Posts
+
+The **Posts** resource is available when the `PostAttributes` feature flag is enabled and the server has a Mattermost Entry, Enterprise, or Enterprise Advanced licence. From Mattermost v12.2, post attributes are stored in the `access_control` property group. Requesting post attribute values by passing `propertyGroup=access_control` to the posts API without a qualifying licence returns HTTP 501; the webapp will not request post attribute hydration when the licence check fails, so posts display without attribute chips and the Attributes menu item is hidden. From Mattermost v12.2, requesting `propertyGroup=post_attributes` returns 404.
+
+Post attribute fields are system-scoped only. The server refuses to create or update post fields with channel or team scope; channel- and team-scoped post fields are planned for a later release.
+
+- **Who can set the value**: When you create a post attribute from the System Console, the post field is created with `creator` permission, meaning the post's author and admins of the post's channel can set the value. Other channel members cannot.
+
+Up to 50 attributes can apply to **Posts**. Post fields also count toward the group's 200-field limit. Text values are capped at 64 characters. **Number** and **Checkbox** types are not available for post attributes.
 
 ## Edit an attribute
 
