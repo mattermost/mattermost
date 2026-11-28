@@ -56,7 +56,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
         submitPreference();
     }, [renderEmoticonsAsEmoji, updateSection, value, submitPreference]);
 
-    const options = [
+    const emoticonOptions = [
         {
             option: 'true',
             inputId: 'renderEmoticonsAsEmojiOn',
@@ -80,10 +80,11 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
                 />
             </legend>
             <div className='settings-radio-group'>
-                {options.map(({option, inputId, messageId, defaultMessage}) => (
+                {emoticonOptions.map(({option, inputId, messageId, defaultMessage}) => (
                     <Radio
                         key={option}
                         id={inputId}
+                        data-testid={`settings.display.section.render_emoticons_as_emoji.option:${option}--radio`}
                         name='renderEmoticonsAsEmoji'
                         value={option}
                         checked={value === option}
@@ -107,6 +108,8 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
 
     return (
         <SettingItemMax
+            testIdScope='settings.display.section'
+            testKey='renderEmoticonsAsEmoji'
             title={
                 <FormattedMessage
                     id='user.settings.display.renderEmoticonsAsEmojiTitle'

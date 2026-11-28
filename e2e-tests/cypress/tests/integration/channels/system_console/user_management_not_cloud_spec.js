@@ -76,7 +76,7 @@ describe('User Management', () => {
                 type(otherUser.email, {force: true});
 
             // * Deactivated user does not show up in View Members for teams
-            cy.findByTestId('noUsersFound');
+            cy.findByTestId('team_members_modal.members.no_users--text');
             cy.uiClose();
         });
 

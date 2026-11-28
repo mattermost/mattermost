@@ -144,14 +144,14 @@ describe('Bot accounts - CRUD Testing', () => {
             cy.wrap(el[0].parentElement!.parentElement!).findByText('Create New Token').should('be.visible').click();
 
             // * Save is disabled until a description is entered.
-            cy.findByTestId('saveSetting').should('be.disabled');
+            cy.findByTestId('integrations.bots.bot.new_token.save--button').should('be.disabled');
             cy.wrap(el[0].parentElement!.parentElement!).find('input').scrollIntoView();
 
             // # Add description
             cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type(testBot.username + 'description!');
 
             // # Save and check that no error is visible
-            cy.findByTestId('saveSetting').should('be.enabled').click();
+            cy.findByTestId('integrations.bots.bot.new_token.save--button').should('be.enabled').click();
 
             cy.get('#clientError').should('not.exist');
 
@@ -175,7 +175,7 @@ describe('Bot accounts - CRUD Testing', () => {
             cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type('description!');
 
             // # Save
-            cy.findByTestId('saveSetting').click();
+            cy.findByTestId('integrations.bots.bot.new_token.save--button').click();
 
             // # Click Close button
             cy.wrap(el[0].parentElement!.parentElement!).findByText('Close').should('be.visible').click();

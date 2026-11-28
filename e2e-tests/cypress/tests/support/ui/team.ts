@@ -10,7 +10,7 @@ function uiInviteMemberToCurrentTeam(username: string) {
     cy.uiOpenTeamMenu('Invite people');
 
     // # Open members section if licensed for guest accounts
-    cy.findByTestId('invitationModal').
+    cy.findByTestId('invitation_modal').
         then((container) => container.find('[data-testid="inviteMembersLink"]')).
         then((link) => link?.click());
 
@@ -18,7 +18,7 @@ function uiInviteMemberToCurrentTeam(username: string) {
     cy.get('.users-emails-input__control input').typeWithForce(username).as('input');
     cy.get('.users-emails-input__option ').contains(`@${username}`);
     cy.get('@input').typeWithForce('{enter}');
-    cy.findByTestId('inviteButton').click();
+    cy.findByTestId('invitation_modal.invite.send--button').click();
 
     // * Verify user invited to team
     cy.get('.invitation-modal-confirm--sent .InviteResultRow').
@@ -26,7 +26,7 @@ function uiInviteMemberToCurrentTeam(username: string) {
         and('contain.text', 'This member has been added to the team.');
 
     // # Close, return
-    cy.findByTestId('confirm-done').click();
+    cy.findByTestId('invitation_modal.result.done--button').click();
 }
 Cypress.Commands.add('uiInviteMemberToCurrentTeam', uiInviteMemberToCurrentTeam);
 

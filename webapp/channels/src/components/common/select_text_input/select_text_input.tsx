@@ -3,7 +3,8 @@
 
 import React, {useCallback, useMemo} from 'react';
 import type {KeyboardEventHandler} from 'react';
-import type {StylesConfig} from 'react-select';
+import {components as selectComponents} from 'react-select';
+import type {ContainerProps, InputProps, MultiValueRemoveProps, StylesConfig} from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 
 import './select_text_input.scss';
@@ -25,6 +26,12 @@ type Props = {
     id?: string;
     isClearable?: boolean;
     description?: string;
+
+    /**
+     * Testid scope: the select is `<testId>`, its text input `<testId>.input--combobox`, and each value's
+     * remove button `<testId>.remove--button` (values are free text, so they aren't keyed).
+     */
+    testId?: string;
 };
 
 const styles = {
@@ -72,7 +79,7 @@ const styles = {
     }),
 } satisfies StylesConfig<SelectTextInputOption, true>;
 
-const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, isClearable, description}: Props) => {
+const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, isClearable, description, testId}: Props) => {
     const [inputValue, setInputValue] = React.useState('');
 
     const handleTextEnter = useCallback(() => {
@@ -97,6 +104,30 @@ const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, 
         }
     }, [inputValue, handleTextEnter]);
 
+    // react-select's styles arrive in innerProps, so its own parts stay; the testids go in through innerProps (the
+    // input takes extra props directly)
+    const selectParts = useMemo(() => (testId ? {
+        ...components,
+        SelectContainer: (props: ContainerProps<SelectTextInputOption, true>) => (
+            <selectComponents.SelectContainer
+                {...props}
+                innerProps={{...props.innerProps, 'data-testid': testId} as ContainerProps<SelectTextInputOption, true>['innerProps']}
+            />
+        ),
+        Input: (props: InputProps<SelectTextInputOption, true>) => (
+            <selectComponents.Input
+                {...props}
+                data-testid={testId ? `${testId}.input--combobox` : undefined}
+            />
+        ),
+        MultiValueRemove: (props: MultiValueRemoveProps<SelectTextInputOption, true>) => (
+            <selectComponents.MultiValueRemove
+                {...props}
+                innerProps={{...props.innerProps, 'data-testid': testId ? `${testId}.remove--button` : undefined} as MultiValueRemoveProps<SelectTextInputOption, true>['innerProps']}
+            />
+        ),
+    } : components), [testId]);
+
     const selectValues = useMemo(() => {
         return value.map((singleValue) => ({label: singleValue, value: singleValue}));
     }, [value]);
@@ -107,7 +138,7 @@ const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, 
                 id={id}
                 className='select-text-input'
                 styles={styles}
-                components={components}
+                components={selectParts}
                 isClearable={isClearable}
                 onChange={useCallback((value: readonly SelectTextInputOption[]) => onChange(value), [onChange])}
                 inputValue={inputValue}

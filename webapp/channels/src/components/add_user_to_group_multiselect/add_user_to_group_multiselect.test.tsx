@@ -29,6 +29,7 @@ describe('component/add_user_to_group_multiselect', () => {
     } as UserProfileValue];
 
     const baseProps = {
+        testId: 'test_group.users' as const,
         multilSelectKey: 'addUsersToGroupKey',
         onSubmitCallback: jest.fn().mockImplementation(() => Promise.resolve()),
         focusOnLoad: false,

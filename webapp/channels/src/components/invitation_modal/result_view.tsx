@@ -76,7 +76,7 @@ export default function ResultView(props: Props) {
                     />
                 </h1>
             </Modal.Header>
-            <Modal.Body>
+            <Modal.Body data-testid='invitation_modal.result'>
                 {props.notSent.length > 0 && (
                     <ResultTable
                         sent={false}
@@ -94,7 +94,7 @@ export default function ResultView(props: Props) {
                 <Button
                     onClick={props.inviteMore}
                     emphasis='tertiary'
-                    data-testid='invite-more'
+                    data-testid='invitation_modal.result.invite_more--button'
                 >
                     <FormattedMessage
                         id='invitation_modal.invite.more'
@@ -104,7 +104,7 @@ export default function ResultView(props: Props) {
                 <Button
                     onClick={props.onDone}
                     emphasis='primary'
-                    data-testid='confirm-done'
+                    data-testid='invitation_modal.result.done--button'
                     aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                 >

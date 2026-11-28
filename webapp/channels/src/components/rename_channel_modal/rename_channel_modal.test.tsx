@@ -75,7 +75,7 @@ describe('RenameChannelModal', () => {
     test('should not offer the URL Edit button for the default channel', () => {
         renderWithContext(<RenameChannelModal {...makeProps(defaultChannel)}/>, state);
 
-        expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+        expect(screen.getByTestId('rename_channel_modal.url.label--text')).toHaveTextContent('town-square');
         expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
         expect(screen.getByText('The URL of the default channel cannot be changed.')).toBeVisible();
     });
@@ -111,7 +111,7 @@ describe('RenameChannelModal', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Edit'}));
 
-        const urlInput = screen.getByTestId('channelURLInput');
+        const urlInput = screen.getByTestId('rename_channel_modal.url.value--textbox');
         await userEvent.clear(urlInput);
         await userEvent.type(urlInput, 'renamed-channel');
 

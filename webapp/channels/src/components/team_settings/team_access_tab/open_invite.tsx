@@ -40,6 +40,7 @@ const OpenInvite = ({isPublic, isGroupConstrained, onChange}: Props) => {
         return (
             <BaseSettingItem
                 className='access-invite-domains-section'
+                dataTestId='team_settings_modal.access.discoverability'
                 title={formatMessage({
                     id: 'team_settings.discoverability.title',
                     defaultMessage: 'Discoverability',
@@ -83,6 +84,7 @@ const OpenInvite = ({isPublic, isGroupConstrained, onChange}: Props) => {
                     }),
                 }}
                 onChange={handleChange}
+                testId='team_settings_modal.access.discoverability'
             />
         </div>
     );
@@ -90,6 +92,7 @@ const OpenInvite = ({isPublic, isGroupConstrained, onChange}: Props) => {
     return (
         <BaseSettingItem
             className='access-invite-domains-section'
+            dataTestId='team_settings_modal.access.discoverability'
             title={formatMessage({
                 id: 'team_settings.discoverability.title',
                 defaultMessage: 'Discoverability',

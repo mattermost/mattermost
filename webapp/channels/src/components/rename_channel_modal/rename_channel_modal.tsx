@@ -99,6 +99,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                 onExited={this.props.onExited}
                 role='dialog'
                 aria-labelledby='renameChannelModalLabel'
+                data-testid='rename_channel_modal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
@@ -110,6 +111,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                 </Modal.Header>
                 <Modal.Body>
                     <ChannelNameFormField
+                        testIdScope='rename_channel_modal'
                         value={this.state.displayName}
                         name='rename-channel'
                         label={formatMessage(channelKindMessages.nameLabel[this.props.channelKind ?? 'channel'])}
@@ -132,6 +134,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         type='button'
                         emphasis='tertiary'
                         onClick={this.onHide}
+                        data-testid='rename_channel_modal.cancel--button'
                     >
                         <FormattedMessage
                             id='generic_btn.cancel'
@@ -143,6 +146,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         emphasis='primary'
                         disabled={this.state.isSaving}
                         onClick={this.handleSave}
+                        data-testid='rename_channel_modal.save--button'
                     >
                         <FormattedMessage
                             id='generic_btn.save'

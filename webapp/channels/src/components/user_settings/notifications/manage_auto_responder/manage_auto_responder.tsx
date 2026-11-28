@@ -102,6 +102,8 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
 
         return (
             <SettingItemMax
+                testIdScope='settings.notifications.section'
+                testKey='autoResponder'
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.autoResponder'

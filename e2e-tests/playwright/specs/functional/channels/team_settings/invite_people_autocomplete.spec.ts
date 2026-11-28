@@ -1,159 +1,164 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {decomposeKorean, expect, koreanTestPhrase, test, typeHangulCharacterWithIme} from '@mattermost/playwright-lib';
+import type {UserProfile} from '@mattermost/types/users';
 
-async function openInvitePeopleModal(pw: any, adminUser: any, team: any) {
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+import {
+    decomposeKorean,
+    expect,
+    koreanTestPhrase,
+    test,
+    typeHangulCharacterWithIme,
+    type PlaywrightExtended,
+} from '@mattermost/playwright-lib';
 
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.teamMenu.toBeVisible();
-    await channelsPage.teamMenu.clickInvitePeople();
+/** Logs in as the admin and opens the Invite People dialog from the team menu. */
+async function openInvitePeopleModal(pw: PlaywrightExtended, adminUser: UserProfile, team: {name: string}) {
+    const {app} = await pw.testBrowser.login(adminUser);
+    await app.channelsPage.goto({team, channel: 'town-square'});
+    await app.lhs.header.openTeamMenuButton.clickTo(app.lhs.teamMenu);
+    await expect(app.lhs.teamMenu).toBeVisible();
+    await app.lhs.teamMenu.invitePeopleMenuItem.click();
+    const modal = app.invitationModal;
+    await expect(modal).toBeVisible();
+    await expect(modal.invite.users.inputCombobox).toBeVisible();
+    return {app, invite: modal.invite, modal};
+}
 
-    const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-    await inviteModal.toBeVisible();
+/** The ids of the suggested users, sorted (the suggestions' own order isn't under test here). */
+async function suggestedIds(users: {userList: {keys(): Promise<string[]>}}) {
+    return (await users.userList.keys()).sort();
+}
 
-    return inviteModal;
+/** The element's bounding box; fails the test when the element has none (it is not rendered). */
+async function boxOf(target: {boundingBox(): Promise<{x: number; y: number; width: number; height: number} | null>}) {
+    const box = await target.boundingBox();
+    if (!box) {
+        throw new Error('The element has no bounding box: it is not rendered');
+    }
+    return box;
+}
+
+/** Creates `count` users outside the team whose usernames start with `prefix` followed by a, b, c, … */
+async function createPrefixedUsers(pw: PlaywrightExtended, prefix: string, count: number) {
+    const {adminClient} = await pw.getAdminClient();
+    const letters = 'abcdefghijklmnopqrstuvwxyz'.slice(0, count).split('');
+    return Promise.all(
+        letters.map(async (letter) => adminClient.createUser(await pw.random.user(prefix + letter), '', '')),
+    );
 }
 
 test('MM-66937 Invite modal results match the current input state', async ({pw}) => {
-    const {adminUser, adminClient, team} = await pw.initSetup();
+    const {adminUser, team} = await pw.initSetup();
 
     // # Create two users not on the team whose usernames share a prefix but differ at the end
     const randomPrefix = pw.random.id(8);
-    const user1 = await adminClient.createUser(await pw.random.user(randomPrefix + 'a'), '', '');
-    const user2 = await adminClient.createUser(await pw.random.user(randomPrefix + 'b'), '', '');
-
-    // # Log in as admin
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const [user1, user2] = await createPrefixedUsers(pw, randomPrefix, 2);
 
     // # Open the Invite People modal
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.teamMenu.toBeVisible();
-    await channelsPage.teamMenu.clickInvitePeople();
-    const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-    await inviteModal.toBeVisible();
+    const {invite} = await openInvitePeopleModal(pw, adminUser, team);
+    const {users} = invite;
+    const input = users.inputCombobox;
 
     // # Type the prefix to filter out all users
-    await inviteModal.inviteInput.pressSequentially(randomPrefix);
+    await input.type(randomPrefix);
 
     // * Verify that both users appear in the results initially
-    const listbox = inviteModal.container.getByRole('listbox');
-    await expect(listbox.getByRole('option')).toHaveCount(2);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).toBeVisible();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+    await expect.poll(() => suggestedIds(users)).toEqual([user1.id, user2.id].sort());
+    await expect(users.emailOption).not.toBeAttached();
+    await expect(users.user(user1)).toBeVisible();
+    await expect(users.user(user2)).toBeVisible();
 
     // # Type an 'a' to filter the results
-    await inviteModal.inviteInput.press('a');
+    await input.press('a');
 
     // * Verify that only user1 is now listed
-    await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).toBeVisible();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).not.toBeAttached();
+    await expect.poll(() => suggestedIds(users)).toEqual([user1.id]);
+    await expect(users.emailOption).not.toBeAttached();
+    await expect(users.user(user1)).toBeVisible();
+    await expect(users.user(user2)).not.toBeAttached();
 
     // # Backspace that 'a'
-    await inviteModal.inviteInput.press('Backspace');
+    await input.press('Backspace');
 
     // * Verify that both users are listed again
-    await expect(listbox.getByRole('option')).toHaveCount(2);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).toBeVisible();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+    await expect.poll(() => suggestedIds(users)).toEqual([user1.id, user2.id].sort());
+    await expect(users.emailOption).not.toBeAttached();
+    await expect(users.user(user1)).toBeVisible();
+    await expect(users.user(user2)).toBeVisible();
 
     // # Type a 'b' to filter the results
-    await inviteModal.inviteInput.press('b');
+    await input.press('b');
 
     // * Verify that only user2 is now listed
-    await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).not.toBeAttached();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+    await expect.poll(() => suggestedIds(users)).toEqual([user2.id]);
+    await expect(users.emailOption).not.toBeAttached();
+    await expect(users.user(user1)).not.toBeAttached();
+    await expect(users.user(user2)).toBeVisible();
 });
 
 test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
-    const {adminUser, adminClient, team} = await pw.initSetup();
-
+    const {adminUser, team} = await pw.initSetup();
     const randomPrefix = pw.random.id(8);
-    const users = await Promise.all([
-        adminClient.createUser(await pw.random.user(randomPrefix + 'a'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'b'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'c'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'd'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'e'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'f'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'g'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'h'), '', ''),
-    ]);
+    const created = await createPrefixedUsers(pw, randomPrefix, 8);
 
-    const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
+    const {invite, modal} = await openInvitePeopleModal(pw, adminUser, team);
+    await invite.users.inputCombobox.type(randomPrefix);
+    await expect(invite.users.inputCombobox).toHaveValue(randomPrefix);
+    await expect(invite.users.userList).toHaveKeyCount(created.length);
+    await expect(invite.users.emailOption).not.toBeAttached();
 
-    await inviteModal.inviteInput.pressSequentially(randomPrefix);
-
-    const modalContent = inviteModal.container.locator('.modal-content');
-    const listbox = inviteModal.container.getByRole('listbox');
-    const options = listbox.getByRole('option');
-    await expect(options).toHaveCount(users.length);
-
-    const lastOption = options.last();
+    const lastOption = await invite.users.userList.last();
     await expect(lastOption).toBeVisible();
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the CSS overflow of `.modal-content` is under test, and react-bootstrap renders that element, so GenericModal cannot give it a test id
+    const modalContent = modal.locator.locator('.modal-content');
+    const modalContentBox = await boxOf(modalContent);
+    const lastOptionBox = await boxOf(lastOption.locator);
+    expect(lastOptionBox.y + lastOptionBox.height).toBeGreaterThan(modalContentBox.y + modalContentBox.height);
+    await expect(modalContent).toHaveCSS('overflow-x', 'visible');
+    await expect(modalContent).toHaveCSS('overflow-y', 'visible');
 
-    const geometry = await Promise.all([modalContent.boundingBox(), lastOption.boundingBox()]);
-    const [modalContentBox, lastOptionBox] = geometry;
-    expect(modalContentBox).not.toBeNull();
-    expect(lastOptionBox).not.toBeNull();
-    expect(lastOptionBox!.y + lastOptionBox!.height).toBeGreaterThan(modalContentBox!.y + modalContentBox!.height);
+    // Bounding boxes preserve the layout assertions; the driver has no geometry API.
+    // * The suggestions reach below the dialog's Send button, i.e. past the dialog's own content
+    const sendBox = await boxOf(invite.sendButton.locator);
+    const sendBottom = sendBox.y + sendBox.height;
+    const boxes = await Promise.all(created.map((user) => boxOf(invite.users.user(user).locator)));
+    const below = boxes
+        .map((box, i) => ({box, i}))
+        .filter(({box}) => box.y + box.height > sendBottom)
+        .sort((a, b) => a.box.y - b.box.y);
+    expect(below.length).toBeGreaterThan(0);
+    const firstBelow = below[0].i;
 
-    const modalContentOverflow = await modalContent.evaluate((element: HTMLElement) => {
-        const style = window.getComputedStyle(element);
-
-        return {
-            overflowX: style.overflowX,
-            overflowY: style.overflowY,
-        };
-    });
-
-    expect(modalContentOverflow.overflowX).toBe('visible');
-    expect(modalContentOverflow.overflowY).toBe('visible');
+    // * ...and the dialog doesn't clip them: `toBeInViewport` uses IntersectionObserver, which applies the clipping
+    // of overflowing ancestors. The first suggestion past the dialog's bottom is still on screen (later ones are
+    // clipped by the list's own scroll, which the next test checks).
+    await expect(invite.users.user(created[firstBelow])).toBeInViewport();
 });
 
 test('Invite modal results are visible outside the modal', async ({pw}) => {
-    const {adminUser, adminClient, team} = await pw.initSetup();
+    const {adminUser, team} = await pw.initSetup();
 
     // # Create enough users that the results will extend outside the modal until past when the result list is capped
     const randomPrefix = pw.random.id(8);
-    const users = await Promise.all([
-        adminClient.createUser(await pw.random.user(randomPrefix + 'a'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'b'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'c'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'd'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'e'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'f'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'g'), '', ''),
-        adminClient.createUser(await pw.random.user(randomPrefix + 'h'), '', ''),
-    ]);
+    const created = await createPrefixedUsers(pw, randomPrefix, 8);
 
-    // # Open the Invite People modal
-    const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
-
-    // # Type the prefix to filter out other users
-    await inviteModal.inviteInput.type(randomPrefix);
+    // # Open the Invite People modal and type the prefix to filter out other users
+    const {invite} = await openInvitePeopleModal(pw, adminUser, team);
+    await invite.users.inputCombobox.type(randomPrefix);
+    await expect(invite.users.inputCombobox).toHaveValue(randomPrefix);
 
     // At time of writing, 4 results are fully visible, the next is partly visible, and the rest are clipped
     const visibleCount = 5;
 
-    for (let i = 0; i < users.length; i++) {
-        const user = users[i];
-
-        const option = await inviteModal.container.getByRole('option', {name: user.username, exact: false});
+    for (const [i, user] of created.entries()) {
+        const option = invite.users.user(user);
+        await expect(option).toBeVisible();
         if (i < visibleCount) {
             // * Verify that this user is in the list and on the screen
-            await expect(option).toBeVisible();
             await expect(option).toBeInViewport();
         } else {
             // * Verify that this user is in the list but off the screen
-            await expect(option).toBeVisible();
             await expect(option).not.toBeInViewport();
         }
     }
@@ -161,30 +166,23 @@ test('Invite modal results are visible outside the modal', async ({pw}) => {
 
 test('Invite modal remains width-constrained with long unbroken input', async ({pw}) => {
     const {adminUser, team} = await pw.initSetup();
-    const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
+    const {invite, modal} = await openInvitePeopleModal(pw, adminUser, team);
 
-    const modalContent = inviteModal.container.locator('.modal-content');
-    const initialModalContentBox = await modalContent.boundingBox();
-    expect(initialModalContentBox).not.toBeNull();
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the width and CSS overflow of `.modal-content` are under test, and react-bootstrap renders that element, so GenericModal cannot give it a test id
+    const select = modal.locator.locator('.modal-content');
+    const initialBox = await boxOf(select);
 
-    await inviteModal.inviteInput.pressSequentially(
+    await invite.users.inputCombobox.type(
         'averyveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongunbrokeninviteinput@example.com',
     );
+    await expect(invite.users.inputCombobox).toHaveValue(/longunbrokeninviteinput@example\.com$/);
 
-    const modalContentMetrics = await modalContent.evaluate((element: HTMLElement) => {
-        const style = window.getComputedStyle(element);
-        const rect = element.getBoundingClientRect();
-
-        return {
-            width: Math.round(rect.width),
-            overflowX: style.overflowX,
-            overflowY: style.overflowY,
-        };
-    });
-
-    expect(modalContentMetrics.width).toBeLessThanOrEqual(Math.ceil(initialModalContentBox!.width));
-    expect(modalContentMetrics.overflowX).toBe('visible');
-    expect(modalContentMetrics.overflowY).toBe('visible');
+    // * The people input (and with it the dialog) doesn't grow wider to fit the text
+    const box = await boxOf(select);
+    expect(Math.round(box.width)).toBeLessThanOrEqual(Math.ceil(initialBox.width));
+    await expect(select).toHaveCSS('overflow-x', 'visible');
+    await expect(select).toHaveCSS('overflow-y', 'visible');
+    await expect(invite.sendButton).toBeInViewport();
 });
 
 test('MM-66937 Invite modal results match the current input state when typing in Korean', async ({browserName, pw}) => {
@@ -203,33 +201,24 @@ test('MM-66937 Invite modal results match the current input state when typing in
         '',
     );
 
-    // # Log in as admin
-    const {channelsPage, page} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    // # Open the Invite People modal
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.teamMenu.toBeVisible();
-    await channelsPage.teamMenu.clickInvitePeople();
-    const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-    await inviteModal.toBeVisible();
-
-    // # Type the prefix to filter out other users
-    await inviteModal.inviteInput.pressSequentially(randomPrefix);
+    // # Open the Invite People modal and type the prefix to filter out other users
+    const {app, invite} = await openInvitePeopleModal(pw, adminUser, team);
+    await invite.users.inputCombobox.type(randomPrefix);
+    await expect(invite.users.inputCombobox).toHaveValue(randomPrefix);
 
     // * Verify that the user appears in the results initially
-    const listbox = inviteModal.container.getByRole('listbox');
-    await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user.username}`})).toBeVisible();
+    await expect.poll(() => suggestedIds(invite.users)).toEqual([user.id]);
+    await expect(invite.users.emailOption).not.toBeAttached();
+    await expect(invite.users.user(user)).toBeVisible();
 
     // # Type all 3 keys that form a single Hangul character
-    const client = await page.context().newCDPSession(page);
+    const client = await app.page.context().newCDPSession(app.page);
     await typeHangulCharacterWithIme(client, decomposeKorean(koreanTestPhrase)[0], undefined);
 
     // * Verify that the user is still listed
-    await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user.username}`})).toBeVisible();
+    await expect.poll(() => suggestedIds(invite.users)).toEqual([user.id]);
+    await expect(invite.users.emailOption).not.toBeAttached();
+    await expect(invite.users.user(user)).toBeVisible();
 
     await client.detach();
 });

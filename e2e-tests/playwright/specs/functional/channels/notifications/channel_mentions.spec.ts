@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify disabling "Ignore mentions" counts @channel, @here, and @all as mentions.
+ *
+ * The channel menu, the notification preferences modal and the sidebar's mention badge are the generated page
+ * objects.
  */
 test('MM-T568 Channel Notifications turn off Ignore mentions for @channel, @here and @all', async ({pw}) => {
     const {adminClient, team, user} = await pw.initSetup();
@@ -16,20 +19,24 @@ test('MM-T568 Channel Notifications turn off Ignore mentions for @channel, @here
     await adminClient.addToChannel(sender.id, channelA.id);
 
     // # Open channel notification preferences and turn off ignore mentions
-    const {app, channelsPage} = await pw.testBrowser.login(user);
-    await app.channelsPage.goto({team, channel: channelA.name});
-    const notificationPreferences = await channelsPage.openChannelNotificationPreferences();
-    if (await notificationPreferences.ignoreMentionsCheckbox.isChecked()) {
-        await notificationPreferences.ignoreMentionsCheckbox.uncheck();
-    }
-    await notificationPreferences.save();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channelA});
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
+    const menu = app.channelHeader.menu;
+    const notificationPreferences = await menu.notificationPreferencesMenuItem.clickTo(app.channelNotificationsModal);
+    await notificationPreferences.ignoreMentionsCheckbox.set(false);
+    await expect(notificationPreferences.ignoreMentionsCheckbox).not.toBeChecked();
+    await settle(notificationPreferences.saveButton, {wait: Api.UpdateChannelNotifyProps}).click();
+    await expect(notificationPreferences).not.toBeVisible();
 
     // # Move away and post each channel-wide mention from another user. @here only mentions users who
-    // are currently online, so force the receiving user's status online first. Switch channels within
-    // the app: a full page load closes the websocket, which marks the user offline until it reconnects.
+    // are currently online, so force the receiving user's status online first. Switch channels within the app:
+    // a full page load closes the websocket, which marks the user offline until it reconnects. Post the next
+    // mention only once the server has counted the last one: back-to-back posts race the per-post async
+    // mention-count update.
     await adminClient.updateStatus({user_id: user.id, status: 'online'});
-    await channelsPage.sidebarLeft.goToItem(channelB.name);
-    await channelsPage.centerView.header.toHaveTitle(channelB.display_name);
+    await app.lhs.channelList.channel(channelB).container.click();
+    await expect(app.channelHeader.openMenuButton).toContainText(channelB.display_name);
     const mentionCount = async () => (await adminClient.getChannelMember(channelA.id, user.id)).mention_count;
     const messages = ['@all test', '@channel test', '@here test'];
     for (const [i, message] of messages.entries()) {
@@ -40,5 +47,5 @@ test('MM-T568 Channel Notifications turn off Ignore mentions for @channel, @here
     }
 
     // * Verify the channel's mention badge counts all 3 channel-wide mentions exactly
-    await expect(app.lhs.channelList.channel(channelA).mentionBadgeText.locator).toHaveText('3');
+    await expect(app.lhs.channelList.channel(channelA).mentionBadgeText).toHaveText('3');
 });

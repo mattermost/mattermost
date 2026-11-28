@@ -51,6 +51,7 @@ export default function UserAccountMenu(props: Props) {
             closeMenuOnTab={false}
             menuButton={{
                 id: ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON,
+                dataTestId: 'global_header.open_account_menu--button',
                 class: classNames('userAccountMenu_menuButton', {
                     withCustomStatus: isCustomStatusSet,
                 }),
@@ -66,6 +67,7 @@ export default function UserAccountMenu(props: Props) {
             }}
             menu={{
                 id: ELEMENT_ID_FOR_USER_ACCOUNT_MENU,
+                testId: 'global_header.account_menu',
                 width: '264px',
             }}
             anchorOrigin={{

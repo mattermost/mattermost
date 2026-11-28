@@ -116,6 +116,7 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                     <button
                         className='style--none color--link'
                         onClick={this.handleRegenToken}
+                        data-testid='integrations.commands.command.regen_token--button'
                     >
                         <FormattedMessage
                             id='installed_integrations.regenToken'
@@ -123,7 +124,10 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                         />
                     </button>
                     {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/commands/edit?id=${command.id}`}>
+                    <Link
+                        to={`/${this.props.team.name}/integrations/commands/edit?id=${command.id}`}
+                        data-testid='integrations.commands.command.edit--link'
+                    >
                         <FormattedMessage
                             id='installed_integrations.edit'
                             defaultMessage='Edit'
@@ -138,6 +142,7 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                             />
                         }
                         onDelete={this.handleDelete}
+                        testId='integrations.commands.command.delete'
                     />
                 </div>
             );
@@ -146,10 +151,16 @@ export default class InstalledCommand extends React.PureComponent<Props> {
         const commandToken = command.token;
 
         return (
-            <div className='backstage-list__item'>
+            <div
+                className='backstage-list__item'
+                data-testid={`integrations.commands.command:${command.id}`}
+            >
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <div className='item-details__name'>
+                        <div
+                            className='item-details__name'
+                            data-testid='integrations.commands.command.name'
+                        >
                             <strong>
                                 {name}
                             </strong>
@@ -161,7 +172,10 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                     </div>
                     {description}
                     <div className='item-details__row'>
-                        <span className='item-details__token'>
+                        <span
+                            className='item-details__token'
+                            data-testid='integrations.commands.command.token'
+                        >
                             <FormattedMessage
                                 id='installed_integrations.token'
                                 defaultMessage='Token: {token}'
@@ -175,6 +189,7 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                                     defaultMessage: 'Copy Token',
                                 })}
                                 value={commandToken}
+                                testId='integrations.commands.command.token.copy'
                             />
                         </span>
                     </div>

@@ -18,7 +18,8 @@ async function openGroup(app: App, members: Array<{id: string; username: string}
             }),
             modal.options.searchCombobox.fill(member.username),
         ]);
-        await modal.options.user(member).addButton.click();
+        // A user suggestion is exposed as a role-free row; choosing it requires its scoped locator.
+        await modal.options.user(member).locator.click();
         await expect(modal.options.remove(member.id)).toBeVisible();
     }
     await modal.options.saveButton.click();
@@ -50,16 +51,13 @@ test('MM-T475 Group Message Channel Preferences Mute channel', async ({pw}) => {
     await expect(app.center.composer.locator).toBeVisible();
     await app.channelHeader.openMenuButton.click();
     await expect(app.channelHeader.menu.notificationPreferencesMenuItem).toBeVisible();
-    await app.channelHeader.menu.notificationPreferencesMenuItem.click();
-    // The Notification Preferences dialog declares no scope here, so its dialog and controls are found by their accessible names.
-    const preferences = app.page.getByRole('dialog', {name: 'Notification Preferences'});
+    const preferences = await app.channelHeader.menu.notificationPreferencesMenuItem.clickTo(
+        app.channelNotificationsModal,
+    );
     await expect(preferences).toBeVisible();
-    await preferences.getByRole('checkbox', {name: /Mute channel/i}).check();
-    await expect(preferences.getByRole('checkbox', {name: /Mute channel/i})).toBeChecked();
-    await Promise.all([
-        waitForApi(page, Api.UpdateChannelNotifyProps),
-        preferences.getByRole('button', {name: 'Save', exact: true}).click(),
-    ]);
+    await preferences.muteCheckbox.check();
+    await expect(preferences.muteCheckbox).toBeChecked();
+    await Promise.all([waitForApi(page, Api.UpdateChannelNotifyProps), preferences.saveButton.click()]);
     await expect(preferences).not.toBeVisible();
 
     // # Post a normal message from another participant while away
@@ -144,7 +142,7 @@ test(
         await closeGroup(app, slug);
 
         // # Reopen the group message by jumping to the saved message
-        await app.globalHeader.savedMessagesButton.click();
+        await app.globalHeader.savedMessagesButton.clickTo(app.search.results.post(savedPostId).container);
         const result = await postWith(app.search.results, {text: token});
         await expect(result).toContainText(token);
         await result.container.hover();

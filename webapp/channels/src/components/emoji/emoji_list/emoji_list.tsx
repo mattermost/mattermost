@@ -177,7 +177,10 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                     className='backstage-list__item backstage-list__empty'
                 >
                     <td colSpan={4}>
-                        <LoadingScreen key='loading'/>
+                        <LoadingScreen
+                            key='loading'
+                            testId='emoji_list.loading_screen'
+                        />
                     </td>
                 </tr>,
             );
@@ -237,6 +240,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
 
                 nextButton = (
                     <SaveButton
+                        testId='emoji_list.next'
                         emphasis='tertiary'
                         extraClasses='pull-right'
                         onClick={this.nextPage}

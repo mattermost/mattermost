@@ -457,19 +457,19 @@ describe('components/integrations/bots/Bots', () => {
             renderList();
             await waitForLoaded();
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(replace).not.toHaveBeenCalled();
         });
 
         it('shows no banner when the query has no warnings', async () => {
             const {unmount} = renderList(listLocation());
             await waitForLoaded();
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             unmount();
 
             renderList({pathname: LIST_PATH, search: '?foo=1'});
             await waitForLoaded();
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(replace).not.toHaveBeenCalled();
         });
 
@@ -477,7 +477,7 @@ describe('components/integrations/bots/Bots', () => {
             renderList(listLocation({tokenFailed: true, attributesFailed: true}));
             await waitForLoaded();
 
-            const banner = screen.getByTestId('botCreateWarnings');
+            const banner = screen.getByTestId('integrations.bot_create_warnings');
             expect(within(banner).getByText(TITLE)).toBeInTheDocument();
             expect(within(banner).getByText(TOKEN)).toBeInTheDocument();
             expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
@@ -489,7 +489,7 @@ describe('components/integrations/bots/Bots', () => {
 
             expect(replace).toHaveBeenCalledTimes(1);
             expect(replace).toHaveBeenCalledWith(LIST_PATH);
-            expect(screen.getByTestId('botCreateWarnings')).toBeInTheDocument();
+            expect(screen.getByTestId('integrations.bot_create_warnings')).toBeInTheDocument();
         });
 
         it('keeps other query params when removing bot_warnings', async () => {
@@ -504,10 +504,10 @@ describe('components/integrations/bots/Bots', () => {
             renderList(listLocation({tokenFailed: true}));
             await waitForLoaded();
 
-            const banner = screen.getByTestId('botCreateWarnings');
+            const banner = screen.getByTestId('integrations.bot_create_warnings');
             await userEvent.click(within(banner).getByRole('button', {name: 'Close'}));
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
         });
 
         it('shows the warning once: it survives the cleanup rerender but not a fresh mount', async () => {
@@ -517,13 +517,13 @@ describe('components/integrations/bots/Bots', () => {
             expect(cleanedSearch).toBe('?foo=1');
 
             rerender(listElement({pathname: LIST_PATH, search: cleanedSearch}));
-            expect(within(screen.getByTestId('botCreateWarnings')).getByText(TOKEN)).toBeInTheDocument();
+            expect(within(screen.getByTestId('integrations.bot_create_warnings')).getByText(TOKEN)).toBeInTheDocument();
             expect(replace).toHaveBeenCalledTimes(1);
             unmount();
 
             renderList({pathname: LIST_PATH, search: cleanedSearch});
             await waitForLoaded();
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(replace).toHaveBeenCalledTimes(1);
         });
 
@@ -531,7 +531,7 @@ describe('components/integrations/bots/Bots', () => {
             renderList({pathname: LIST_PATH, search: `?foo=1&${BOT_CREATE_WARNINGS_PARAM}=foo`});
             await waitForLoaded();
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(replace).toHaveBeenCalledTimes(1);
             expect(replace).toHaveBeenCalledWith(`${LIST_PATH}?foo=1`);
         });
@@ -540,7 +540,7 @@ describe('components/integrations/bots/Bots', () => {
             renderList(listLocation({tokenFailed: true}), jest.fn().mockResolvedValue({error: {message: 'x'}}));
 
             const loadError = await screen.findByText('Bot accounts could not be loaded. Refresh the page to try again.');
-            const banner = screen.getByTestId('botCreateWarnings');
+            const banner = screen.getByTestId('integrations.bot_create_warnings');
             expect(banner.compareDocumentPosition(loadError) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
     });

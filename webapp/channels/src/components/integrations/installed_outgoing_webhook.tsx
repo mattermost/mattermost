@@ -164,6 +164,7 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                     <button
                         className='style--none color--link'
                         onClick={this.handleRegenToken}
+                        data-testid='integrations.outgoing_webhooks.hook.regen_token--button'
                     >
                         <FormattedMessage
                             id='installed_integrations.regenToken'
@@ -171,7 +172,10 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                         />
                     </button>
                     {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/outgoing_webhooks/edit?id=${outgoingWebhook.id}`}>
+                    <Link
+                        to={`/${this.props.team.name}/integrations/outgoing_webhooks/edit?id=${outgoingWebhook.id}`}
+                        data-testid='integrations.outgoing_webhooks.hook.edit--link'
+                    >
                         <FormattedMessage
                             id='installed_integrations.edit'
                             defaultMessage='Edit'
@@ -186,16 +190,23 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                             />
                         }
                         onDelete={this.handleDelete}
+                        testId='integrations.outgoing_webhooks.hook.delete'
                     />
                 </div>
             );
         }
 
         return (
-            <div className='backstage-list__item'>
+            <div
+                className='backstage-list__item'
+                data-testid={`integrations.outgoing_webhooks.hook:${outgoingWebhook.id}`}
+            >
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <strong className='item-details__name'>
+                        <strong
+                            className='item-details__name'
+                            data-testid='integrations.outgoing_webhooks.hook.name'
+                        >
                             {displayName}
                         </strong>
                         {actions}
@@ -225,7 +236,10 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                         </span>
                     </div>
                     <div className='item-details__row'>
-                        <span className='item-details__token'>
+                        <span
+                            className='item-details__token'
+                            data-testid='integrations.outgoing_webhooks.hook.token'
+                        >
                             <FormattedMessage
                                 id='installed_integrations.token'
                                 defaultMessage='Token: {token}'
@@ -239,6 +253,7 @@ export default class InstalledOutgoingWebhook extends React.PureComponent<Props>
                                     defaultMessage: 'Copy Token',
                                 })}
                                 value={outgoingWebhook.token}
+                                testId='integrations.outgoing_webhooks.hook.token.copy'
                             />
                         </span>
                     </div>

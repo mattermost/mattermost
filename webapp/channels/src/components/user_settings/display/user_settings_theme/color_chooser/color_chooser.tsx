@@ -7,6 +7,9 @@ import ColorInput from 'components/color_input';
 
 type Props = {
     id: string;
+
+    /** The chooser's position among the theme's elements. */
+    testKey: number;
     label: React.ReactNode;
     value: string;
     onChange?: (id: string, newColor: string) => void;
@@ -27,6 +30,8 @@ export default function ColorChooser(props: Props) {
             </label>
             <ColorInput
                 id={props.id}
+                testIdScope='settings.display.section.color'
+                testKey={props.testKey}
                 value={props.value}
                 onChange={handleChange}
             />

@@ -55,6 +55,7 @@ export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.product_menu.explore_enterprise--menuitem'
             className='globalHeader-leftControls-productSwitcherMenu-trialMenuItem'
             leadingElement={<ArrowUpBoldCircleOutlineIcon size={18}/>}
             labels={

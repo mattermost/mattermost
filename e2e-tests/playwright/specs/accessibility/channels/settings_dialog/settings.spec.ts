@@ -3,6 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {focusVisible} from '../focus_support';
+
+import {selectorOf} from './support';
+
 /**
  * @objective Verify that focus is properly managed when opening and closing settings modal using keyboard interactions
  */
@@ -11,42 +15,43 @@ test(
     {tag: ['@accessibility', '@settings']},
     async ({pw}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible and focus should be on the modal
-        await expect(settingsModal.container).toBeVisible();
-        await pw.toBeFocusedWithFocusVisible(settingsModal.container);
+        await expect(settingsModal).toBeVisible();
+        await expect.poll(() => focusVisible(settingsModal)).toBe(true);
 
         // # Press Tab and verify focus is on Close button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(settingsModal.closeButton);
+        await expect.poll(() => focusVisible(settingsModal.closeButton)).toBe(true);
 
         // # Press Enter and verify Settings modal is closed and focus is back on Settings button
         await page.keyboard.press('Enter');
-        await expect(settingsModal.container).not.toBeVisible();
-        await pw.toBeFocusedWithFocusVisible(globalHeader.settingsButton);
+        await expect(settingsModal).not.toBeVisible();
+        await expect.poll(() => focusVisible(globalHeader.settingsButton)).toBe(true);
 
         // # Open Settings modal again
         await page.keyboard.press('Enter');
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Press Escape and verify Settings modal is closed and focus is back on Settings button
         await page.keyboard.press('Escape');
-        await expect(settingsModal.container).not.toBeVisible();
-        await pw.toBeFocusedWithFocusVisible(globalHeader.settingsButton);
+        await expect(settingsModal).not.toBeVisible();
+        await expect.poll(() => focusVisible(globalHeader.settingsButton)).toBe(true);
     },
 );
 
@@ -55,64 +60,67 @@ test(
  */
 test('navigates between settings tabs using arrow keys', {tag: ['@accessibility', '@settings']}, async ({pw}) => {
     // # Create and sign in a new user
-    const {user} = await pw.initSetup();
+    const {user, team} = await pw.initSetup();
 
     // # Log in a user in new browser context
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    const settingsModal = channelsPage.settingsModal;
+    const {app, page} = await pw.testBrowser.login(user);
+    const settingsModal = app.userSettingsModal;
 
     // # Visit a default channel page
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    await app.teamPage.goto({team});
+    await expect(app.center.composer).toBeVisible();
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Set focus to Settings button and press Enter
-    await channelsPage.globalHeader.settingsButton.focus();
+    await app.globalHeader.settingsButton.focus();
     await page.keyboard.press('Enter');
 
     // * Settings modal should be visible and focus should be on the modal
-    await expect(settingsModal.container).toBeVisible();
-    await pw.toBeFocusedWithFocusVisible(settingsModal.container);
+    await expect(settingsModal).toBeVisible();
+    await expect.poll(() => focusVisible(settingsModal)).toBe(true);
 
     // # Press Tab twice and verify focus is on Notifications tab and Notifications Settings panel is visible
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-    await expect(settingsModal.notificationsTab).toBeVisible();
-    await pw.toBeFocusedWithFocusVisible(settingsModal.notificationsTab);
-    await expect(settingsModal.notificationsSettings.container).toBeVisible();
+    await settingsModal.container.press('Tab', 'Tab');
+    await expect(settingsModal.tabs.tab('notifications')).toBeVisible();
+    await expect.poll(() => focusVisible(settingsModal.tabs.tab('notifications'))).toBe(true);
+    await expect(app.settings.panel('notifications')).toBeVisible();
 
     // # Press arrow down key and verify focus is on Display tab and Display Settings panel is visible
     await page.keyboard.press('ArrowDown');
-    await pw.toBeFocusedWithFocusVisible(settingsModal.displayTab);
-    await expect(settingsModal.displaySettings.container).toBeVisible();
+    await expect.poll(() => focusVisible(settingsModal.tabs.tab('display'))).toBe(true);
+    await expect(app.settings.panel('display')).toBeVisible();
 
     // # Press arrow down key and verify focus is on Sidebar tab and Sidebar Settings panel is visible
     await page.keyboard.press('ArrowDown');
-    await expect(settingsModal.sidebarTab).toBeVisible();
-    await pw.toBeFocusedWithFocusVisible(settingsModal.sidebarTab);
-    await expect(settingsModal.sidebarSettings.container).toBeVisible();
+    await expect(settingsModal.tabs.tab('sidebar')).toBeVisible();
+    await expect.poll(() => focusVisible(settingsModal.tabs.tab('sidebar'))).toBe(true);
+    await expect(app.settings.panel('sidebar')).toBeVisible();
 
     // # Press Tab and verify focus is on Advanced tab and Advanced Settings panel is visible
     await page.keyboard.press('ArrowDown');
-    await pw.toBeFocusedWithFocusVisible(settingsModal.advancedTab);
-    await expect(settingsModal.advancedSettings.container).toBeVisible();
+    await expect.poll(() => focusVisible(settingsModal.tabs.tab('advanced'))).toBe(true);
+    await expect(app.settings.panel('advanced')).toBeVisible();
 
     // # Press arrow down through the tabs plugins add after Advanced, Calls among them
     const builtInTabs = 4;
-    const lastTab = settingsModal.tabs.last();
-    for (let i = 0; i < (await settingsModal.tabs.count()) - builtInTabs; i++) {
+    // Include both built-in and plugin tabs in their rendered order.
+    const allTabs = await settingsModal.tabs.tabList.locator.or(settingsModal.tabs.pluginList.locator).all();
+    const lastTab = allTabs[allTabs.length - 1];
+    for (const pluginTab of allTabs.slice(builtInTabs)) {
         await page.keyboard.press('ArrowDown');
+        await expect(pluginTab).toBeFocused();
     }
-    await pw.toBeFocusedWithFocusVisible(lastTab);
+    await expect.poll(() => focusVisible(lastTab)).toBe(true);
 
     // # Press arrow down key and verify focus is back on Notifications tab and Notifications Settings panel is visible
     await page.keyboard.press('ArrowDown');
-    await expect(settingsModal.notificationsTab).toBeVisible();
-    await pw.toBeFocusedWithFocusVisible(settingsModal.notificationsTab);
-    await expect(settingsModal.notificationsSettings.container).toBeVisible();
+    await expect(settingsModal.tabs.tab('notifications')).toBeVisible();
+    await expect.poll(() => focusVisible(settingsModal.tabs.tab('notifications'))).toBe(true);
+    await expect(app.settings.panel('notifications')).toBeVisible();
 
     // # Press arrow up key and verify focus wraps to the last tab
     await page.keyboard.press('ArrowUp');
-    await pw.toBeFocusedWithFocusVisible(lastTab);
+    await expect.poll(() => focusVisible(lastTab)).toBe(true);
 });
 
 /**
@@ -123,23 +131,24 @@ test(
     {tag: ['@accessibility', '@settings']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
-        await channelsPage.globalHeader.settingsButton.focus();
+        await app.globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal on notifications panel should be visible
-        await expect(settingsModal.container).toBeVisible();
-        await expect(settingsModal.notificationsSettings.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
+        await expect(app.settings.panel('notifications')).toBeVisible();
 
         // * Analyze the Settings modal with notifications panel
         const accessibilityScanResults = await axe
@@ -151,7 +160,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(`#${await settingsModal.getContainerId()}`)
+            .include(selectorOf(settingsModal.container))
             .analyze();
 
         // * Should have no violation
@@ -167,28 +176,31 @@ test(
     {tag: ['@accessibility', '@settings']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
-        await channelsPage.globalHeader.settingsButton.focus();
+        await app.globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings dialog should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Display tab
-        await settingsModal.openDisplayTab();
+        await settingsModal.tabs.tab('display').select();
+        await expect(settingsModal.tabs.tab('display')).toBeSelected();
+        await expect(app.settings.panel('display')).toBeVisible();
 
         // * Display Settings panel should be visible
-        await expect(settingsModal.displaySettings.container).toBeVisible();
+        await expect(app.settings.panel('display')).toBeVisible();
 
         // * Analyze the Settings modal with display panel
         const accessibilityScanResults = await axe
@@ -200,7 +212,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(`#${await settingsModal.getContainerId()}`)
+            .include(selectorOf(settingsModal.container))
             .analyze();
 
         // * Should have no violation
@@ -216,28 +228,31 @@ test(
     {tag: ['@accessibility', '@settings']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
-        await channelsPage.globalHeader.settingsButton.focus();
+        await app.globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings dialog should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Sidebar tab
-        await settingsModal.openSidebarTab();
+        await settingsModal.tabs.tab('sidebar').select();
+        await expect(settingsModal.tabs.tab('sidebar')).toBeSelected();
+        await expect(app.settings.panel('sidebar')).toBeVisible();
 
         // * Sidebar Settings panel should be visible
-        await expect(settingsModal.sidebarSettings.container).toBeVisible();
+        await expect(app.settings.panel('sidebar')).toBeVisible();
 
         // * Analyze the Settings modal with sidebar panel
         const accessibilityScanResults = await axe
@@ -249,7 +264,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(`#${await settingsModal.getContainerId()}`)
+            .include(selectorOf(settingsModal.container))
             .analyze();
 
         // * Should have no violation
@@ -265,28 +280,31 @@ test(
     {tag: ['@accessibility', '@settings']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
-        await channelsPage.globalHeader.settingsButton.focus();
+        await app.globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings dialog should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.openAdvancedTab();
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
+        await expect(app.settings.panel('advanced')).toBeVisible();
 
         // * Advanced Settings panel should be visible
-        await expect(settingsModal.advancedSettings.container).toBeVisible();
+        await expect(app.settings.panel('advanced')).toBeVisible();
 
         // * Analyze the Settings modal with advanced panel
         const accessibilityScanResults = await axe
@@ -298,7 +316,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(`#${await settingsModal.getContainerId()}`)
+            .include(selectorOf(settingsModal.container))
             .analyze();
 
         // * Should have no violation

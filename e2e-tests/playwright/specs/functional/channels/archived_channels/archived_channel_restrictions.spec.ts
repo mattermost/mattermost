@@ -27,7 +27,7 @@ test('MM-T1716 hides center and RHS message boxes in an archived channel', {tag:
 
     // # Archive the channel
     await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
-    const archiveModal = await app.channelHeader.menu.archiveChannelMenuItem.clickTo(app.archiveChannelModal);
+    const archiveModal = await app.channelHeader.menu.archiveChannelMenuItem.clickTo(app.deleteChannelModal);
     await settle(archiveModal.confirmButton, {wait: Api.DeleteChannel}).click();
     await expect(app.center.archivedNotice).toBeVisible();
 

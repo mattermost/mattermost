@@ -193,6 +193,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     >
                         <Radio
                             id='standardThemes'
+                            data-testid='settings.display.section.theme.option:premade--radio'
                             name='theme'
                             value='premade'
                             checked={!displayCustom}
@@ -205,6 +206,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                         </Radio>
                         <Radio
                             id='customThemes'
+                            data-testid='settings.display.section.theme.option:custom--radio'
                             name='theme'
                             value='custom'
                             checked={displayCustom}
@@ -225,6 +227,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                         <br/>
                         <ExternalLink
                             id='otherThemes'
+                            data-testid='settings.display.section.other_themes--link'
                             href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
                             location='user_settings_theme'
                         >
@@ -259,6 +262,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             themeUI = (
                 <SettingItemMax
+                    testIdScope='settings.display.section'
                     title={
                         <FormattedMessage
                             id='user.settings.display.theme.title'
@@ -285,6 +289,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     serverError={serverError}
                     isFullWidth={true}
                     updateSection={this.handleUpdateSection}
+                    testKey='theme'
                 />
             );
         } else {
@@ -303,6 +308,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                         />
                     }
                     section={'theme'}
+                    testId='settings.display.section'
+                    testKey={'theme'}
                     updateSection={this.handleUpdateSection}
                     ref={this.minRef}
                 />

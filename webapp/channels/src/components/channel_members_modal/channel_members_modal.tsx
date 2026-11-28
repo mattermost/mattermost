@@ -78,6 +78,7 @@ export default class ChannelMembersModal extends React.PureComponent<Props, Stat
                     role='none'
                     aria-labelledby='channelMembersModalLabel'
                     id='channelMembersModal'
+                    data-testid='channel_members_modal'
                 >
                     <Modal.Header closeButton={true}>
                         <Modal.Title
@@ -93,6 +94,7 @@ export default class ChannelMembersModal extends React.PureComponent<Props, Stat
                         {this.props.canManageChannelMembers && !channelIsArchived &&
                             <Button
                                 id='showInviteModal'
+                                data-testid='channel_members_modal.add_members--button'
                                 emphasis='primary'
                                 size='medium'
                                 onClick={this.onAddNewMembersButton}

@@ -61,6 +61,7 @@ export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.name--menuitem'
             className='userAccountMenu_nameMenuItem'
             leadingElement={
                 <Avatar

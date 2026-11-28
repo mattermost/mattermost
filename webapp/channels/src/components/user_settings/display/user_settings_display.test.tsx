@@ -127,7 +127,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {...requiredProps, updateSection, activeSection: 'clock'};
         renderWithContext(<UserSettingsDisplay {...props}/>);
 
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.display.section.save--button'));
         expect(updateSection).toHaveBeenCalledWith('');
     });
 
@@ -138,12 +138,12 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         renderWithContext(<UserSettingsDisplay {...props}/>);
 
         // Click Save → handleSubmit → updateSection('')
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.display.section.save--button'));
         expect(updateSection).toHaveBeenCalledWith('');
 
         // Click Cancel → updateSection is called again
         updateSection.mockClear();
-        await userEvent.click(screen.getByTestId('cancelButton'));
+        await userEvent.click(screen.getByTestId('settings.display.section.cancel--button'));
         expect(updateSection).toHaveBeenCalled();
     });
 
@@ -317,7 +317,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         await userEvent.click(radioOn);
         expect(radioOn).toBeChecked();
 
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.display.section.save--button'));
         expect(savePreferences).toHaveBeenCalledWith('user_id', expect.arrayContaining([{
             user_id: 'user_id',
             category: 'display_settings',

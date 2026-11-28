@@ -71,7 +71,7 @@ describe('Onboarding', () => {
 
         // # Invite two more users and close the modal
         inviteNewUser(emailTwo);
-        cy.findByTestId('invite-more').click();
+        cy.findByTestId('invitation_modal.result.invite_more--button').click();
         inviteNewUser(emailThree);
         cy.findByText('Done').should('be.visible').click();
 
@@ -103,6 +103,6 @@ describe('Onboarding', () => {
         cy.findByRole('textbox', {name: 'Invite People'}).
             typeWithForce(email).wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');
-        cy.findByTestId('inviteButton').click();
+        cy.findByTestId('invitation_modal.invite.send--button').click();
     }
 });

@@ -604,6 +604,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     key={option.id}
                     ref={isSelected ? selectedItemRef : undefined}
                     className={'more-modal__row clickable ' + rowSelected}
+                    data-testid={`channel_invite_modal.users.results.user:${option.id}`}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >
@@ -635,6 +636,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                                 )}
                                 <span
                                     className='channel-invite__user-mapping light'
+                                    data-testid='channel_invite_modal.users.results.user.membership--text'
                                 >
                                     {userMapping[option.id]}
                                 </span>
@@ -664,6 +666,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 rowSelected={rowSelected}
                 onMouseMove={onMouseMove}
                 selectedItemRef={selectedItemRef}
+                testId='channel_invite_modal.users.results.group'
             />
         );
     }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds, channelKind]);
@@ -811,6 +814,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     const content = (
         <MultiSelect
+            testId='channel_invite_modal.users'
             key='addUsersToChannelKey'
             options={groupAndUserOptions}
             optionRenderer={renderOption}
@@ -862,6 +866,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     return (
         <GenericModal
             id='addUsersToChannelModal'
+            testId='channel_invite_modal'
             className='channel-invite'
             show={show}
             onHide={onHide}

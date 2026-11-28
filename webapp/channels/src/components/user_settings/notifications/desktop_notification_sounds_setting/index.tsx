@@ -226,6 +226,8 @@ function DesktopNotificationSoundsSettings({
     if (active) {
         return (
             <SettingItemMax
+                testIdScope='settings.notifications.section'
+                testKey={UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.desktopNotificationSounds.title'
@@ -252,6 +254,8 @@ function DesktopNotificationSoundsSettings({
             }
             describe={getCollapsedText(isCallsRingingEnabled, desktopSound, desktopNotificationSound, callsDesktopSound, callsNotificationSound)}
             section={UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
+            testId='settings.notifications.section'
+            testKey={UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
             updateSection={handleChangeForMinSection}
         />
     );

@@ -59,7 +59,7 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
                 descriptionAboveContent={true}
                 inputFieldData={{
                     name: 'showAllowedDomains',
-                    dataTestId: 'allowedDomainsCheckbox',
+                    dataTestId: 'team_settings_modal.access.allowed_domains--checkbox',
                 }}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
@@ -67,6 +67,7 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
             {showAllowedDomains &&
             <SelectTextInput
                 id='allowedDomains'
+                testId='team_settings_modal.access.allowed_domains_input'
                 placeholder={formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
                 aria-label={formatMessage({id: 'general_tab.allowedDomains.ariaLabel', defaultMessage: 'Allowed Domains'})}
                 value={allowedDomains}

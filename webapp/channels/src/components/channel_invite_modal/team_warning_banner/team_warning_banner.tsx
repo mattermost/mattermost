@@ -181,6 +181,7 @@ const TeamWarningBanner = (props: Props) => {
                 (users.length > 0 || guests.length > 0) &&
                 <AlertBanner
                     id='teamWarningBanner'
+                    testId='channel_invite_modal.team_warning'
                     mode='warning'
                     variant='app'
                     title={

@@ -66,7 +66,7 @@ describe('Group Synced Team - Bot invitation flow', () => {
             click();
 
         // # Invite the bot
-        cy.findByTestId('inviteButton').click();
+        cy.findByTestId('invitation_modal.invite.send--button').click();
 
         // * Ensure that the response message was not an error
         cy.get('.InviteResultRow').find('.reason').should('not.contain', 'Error');
@@ -89,6 +89,6 @@ describe('Group Synced Team - Bot invitation flow', () => {
         });
 
         // * Ensure that the bot is no longer there
-        cy.findByTestId('noUsersFound').should('be.visible');
+        cy.findByTestId('team_members_modal.members.no_users--text').should('be.visible');
     });
 });

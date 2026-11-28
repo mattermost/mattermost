@@ -124,6 +124,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <CopyText
                     label={messages.copyToken}
                     value={commandToken}
+                    testId='integrations.confirm.copy_token'
                 />
             </p>
         );
@@ -167,6 +168,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <CopyText
                     label={messages.copyToken}
                     value={incomingHookToken}
+                    testId='integrations.confirm.copy_url'
                 />
             </p>
         );
@@ -210,6 +212,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <CopyText
                     label={messages.copyToken}
                     value={outgoingHookToken}
+                    testId='integrations.confirm.copy_token'
                 />
             </p>
         );
@@ -281,6 +284,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <CopyText
                     label={messages.copyClientId}
                     value={oauthAppToken}
+                    testId='integrations.confirm.copy_client_id'
                 />
                 {!isPublicClient && (
                     <>
@@ -296,6 +300,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         <CopyText
                             label={messages.copyClientSecret}
                             value={oauthAppSecret}
+                            testId='integrations.confirm.copy_client_secret'
                         />
                     </>
                 )}
@@ -389,6 +394,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     <CopyText
                         label={messages.copyUsername}
                         value={username || ''}
+                        testId='integrations.confirm.copy_username'
                     />
                     <br/>
                     <FormattedMessage
@@ -463,7 +469,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             </p>
         );
         tokenText = (
-            <p className='word-break--all'>
+            <p
+                className='word-break--all'
+                data-testid='integrations.confirm.token--text'
+            >
                 <FormattedMessage
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
@@ -475,6 +484,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <CopyText
                     label={messages.copyToken}
                     value={botToken.token}
+                    testId='integrations.confirm.copy_token'
                 />
                 <br/>
                 <br/>
@@ -510,10 +520,14 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     defaultMessage='Add'
                 />
             </BackstageHeader>
-            <div className='backstage-form backstage-form__confirmation'>
+            <div
+                className='backstage-form backstage-form__confirmation'
+                data-testid='integrations.confirm'
+            >
                 <h4
                     className='backstage-form__title'
                     id='formTitle'
+                    data-testid='integrations.confirm.title'
                 >
                     <FormattedMessage
                         id='integrations.successful'
@@ -534,7 +548,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         emphasis='primary'
                         id='doneButton'
                     >
-                        <Link to={'/' + team.name + '/integrations/' + type}>
+                        <Link
+                            to={'/' + team.name + '/integrations/' + type}
+                            data-testid='integrations.confirm.done--link'
+                        >
                             <FormattedMessage
                                 id='integrations.done'
                                 defaultMessage='Done'

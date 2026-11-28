@@ -53,7 +53,7 @@ describe('Team Settings', () => {
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
+                cy.findByTestId('team_settings_modal.access.allowed_domains--checkbox').should('not.be.checked').click();
             });
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save
@@ -69,7 +69,7 @@ describe('Team Settings', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // # Get the invite URL
-        cy.findByTestId('InviteView__copyInviteLink').should('be.visible').click();
+        cy.findByTestId('invitation_modal.invite.copy_link--button').should('be.visible').click();
         cy.get('@clipboard').its('contents').then((val) => {
             const inviteLink = val;
 
@@ -113,7 +113,7 @@ describe('Team Settings', () => {
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
+                cy.findByTestId('team_settings_modal.access.allowed_domains--checkbox').should('not.be.checked').click();
             });
 
             // # Set 'sample.mattermost.com' as the only allowed email domain and save

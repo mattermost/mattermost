@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test, testConfig} from '@mattermost/playwright-lib';
+import {duration, expect, test, testConfig, Api, settle} from '@mattermost/playwright-lib';
 
 async function postToWebhook(webhookId: string, payload: Record<string, unknown>) {
     const response = await fetch(`${testConfig.baseURL}/hooks/${webhookId}`, {
@@ -23,8 +23,12 @@ test(
     {tag: '@message_attachments'},
     async ({pw}) => {
         // # Post an attachment containing primary, danger, and default buttons
-        const {adminClient, team, user} = await pw.initSetup();
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {adminClient, team, user, townSquare: channel} = await pw.initSetup();
+        const actions = [
+            {id: 'primary', name: 'Primary action', type: 'button', style: 'primary'},
+            {id: 'danger', name: 'Danger action', type: 'button', style: 'danger'},
+            {id: 'default', name: 'Default action', type: 'button'},
+        ];
         const webhook = await adminClient.createIncomingWebhook({
             channel_id: channel.id,
             display_name: 'Theme buttons',
@@ -33,30 +37,36 @@ test(
             attachments: [
                 {
                     text: 'Theme button test',
-                    actions: [
-                        {id: 'primary', name: 'Primary action', type: 'button', style: 'primary'},
-                        {id: 'danger', name: 'Danger action', type: 'button', style: 'danger'},
-                        {id: 'default', name: 'Default action', type: 'button'},
-                    ],
+                    actions,
                 },
             ],
         });
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        const post = await channelsPage.getLastPost();
+        const {order} = await adminClient.getPosts(channel.id, 0, 1);
 
-        for (const theme of ['Indigo', 'Onyx', 'Denim'] as const) {
-            // # Select and save the premade theme
-            const settingsModal = await channelsPage.openSettings();
-            const displaySettings = await settingsModal.openDisplayTab();
-            await displaySettings.selectPremadeTheme(theme);
-            await settingsModal.close();
+        // # Open the channel
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
+        const post = app.center.postList.post({id: order[0]});
 
-            // * Verify all attachment buttons remain visible
-            await expect(post.container.getByRole('button', {name: 'Primary action'})).toBeVisible();
-            await expect(post.container.getByRole('button', {name: 'Danger action'})).toBeVisible();
-            await expect(post.container.getByRole('button', {name: 'Default action'})).toBeVisible();
+        for (const theme of ['indigo', 'onyx', 'denim'] as const) {
+            // # Switch to the premade theme in Settings > Display > Theme
+            await app.globalHeader.settingsButton.clickTo(app.userSettingsModal);
+            await app.userSettingsModal.tabs.tab('display').select();
+            await expect(app.userSettingsModal.tabs.tab('display')).toBeSelected();
+            const section = app.settings.display.section('theme');
+            await section.editButton.clickTo(section.premadeTheme(theme));
+            await section.premadeTheme(theme).click();
+            await expect(section.premadeTheme(theme)).toHaveClass(/active/);
+            await settle(section.saveButton, {wait: Api.UpdatePreferences}).click();
+            await app.userSettingsModal.closeButton.click();
+            await expect(app.userSettingsModal).not.toBeVisible();
+
+            // * Verify every attachment button is still shown with its label
+            for (const [index, action] of actions.entries()) {
+                await expect(post.action(index)).toBeVisible();
+                await expect(post.action(index)).toHaveText(action.name);
+            }
         }
     },
 );

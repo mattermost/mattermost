@@ -257,6 +257,8 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
 
         return (
             <SettingItemMax
+                testIdScope='settings.display.section'
+                testKey='languages'
                 title={
                     <FormattedMessage
                         id='user.settings.display.language'

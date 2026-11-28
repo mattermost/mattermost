@@ -70,6 +70,23 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         expect(screen.getByText('Test Plugin Item')).toBeInTheDocument();
     });
 
+    test('the help button, its links, keyboard shortcuts and plugin items have scoped testids', () => {
+        renderWithContext(
+            <UserGuideDropdown
+                {...baseProps}
+                pluginMenuItems={[{id: 'testId', pluginId: 'testPluginId', text: 'Test Plugin Item', action: () => {}}]}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('global_header.help--button'));
+
+        for (const name of ['user_guide', 'community', 'report_problem']) {
+            expect(screen.getByTestId(`global_header.help_menu.${name}--menuitem`)).toBeInTheDocument();
+        }
+        expect(screen.getByTestId('global_header.help_menu.keyboard_shortcuts--menuitem')).toBeInTheDocument();
+        expect(screen.getByTestId('global_header.help_menu.plugin:testPluginId--menuitem')).toHaveTextContent('Test Plugin Item');
+    });
+
     test('should only render Report a Problem link when its value is non-empty', () => {
         const {rerender} = renderWithContext(
             <UserGuideDropdown {...baseProps}/>,

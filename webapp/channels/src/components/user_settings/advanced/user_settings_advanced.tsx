@@ -260,6 +260,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (active) {
             max = (
                 <SettingItemMax
+                    testIdScope='settings.advanced.section'
+                    testKey='formatting'
                     title={
                         <FormattedMessage
                             id='user.settings.advance.formattingTitle'
@@ -277,6 +279,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             <div className='settings-radio-group'>
                                 <Radio
                                     id='postFormattingOn'
+                                    data-testid='settings.advanced.section.formatting.option:true--radio'
                                     name='formatting'
                                     checked={this.state.settings.formatting !== 'false'}
                                     onChange={this.updateSetting.bind(this, 'formatting', 'true')}
@@ -288,6 +291,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                 </Radio>
                                 <Radio
                                     id='postFormattingOff'
+                                    data-testid='settings.advanced.section.formatting.option:false--radio'
                                     name='formatting'
                                     checked={this.state.settings.formatting === 'false'}
                                     onChange={this.updateSetting.bind(this, 'formatting', 'false')}
@@ -316,6 +320,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         return (
             <SettingItem
+                testId='settings.advanced.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
@@ -338,6 +343,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (active) {
             max = (
                 <SettingItemMax
+                    testIdScope='settings.advanced.section'
+                    testKey={Preferences.UNREAD_SCROLL_POSITION}
                     title={
                         <FormattedMessage
                             id='user.settings.advance.unreadScrollPositionTitle'
@@ -355,6 +362,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             <div className='settings-radio-group'>
                                 <Radio
                                     id='unreadPositionStartFromLeftOff'
+                                    data-testid='settings.advanced.section.unread_scroll_position.option:start_from_left_off--radio'
                                     name='unreadScrollPosition'
                                     checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT}
                                     onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT)}
@@ -366,6 +374,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                 </Radio>
                                 <Radio
                                     id='unreadPositionStartFromNewest'
+                                    data-testid='settings.advanced.section.unread_scroll_position.option:start_from_newest--radio'
                                     name='unreadScrollPosition'
                                     checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST}
                                     onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST)}
@@ -394,6 +403,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         return (
             <SettingItem
+                testId='settings.advanced.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
@@ -416,6 +426,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (active) {
             max = (
                 <SettingItemMax
+                    testIdScope='settings.advanced.section'
+                    testKey={AdvancedSections.SYNC_DRAFTS}
                     title={
                         <FormattedMessage
                             id='user.settings.advance.syncDrafts.Title'
@@ -433,6 +445,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             <div className='settings-radio-group'>
                                 <Radio
                                     id='syncDraftsOn'
+                                    data-testid='settings.advanced.section.sync_drafts.option:true--radio'
                                     name='syncDrafts'
                                     checked={this.state.settings.sync_drafts !== 'false'}
                                     onChange={this.updateSetting.bind(this, 'sync_drafts', 'true')}
@@ -444,6 +457,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                 </Radio>
                                 <Radio
                                     id='syncDraftsOff'
+                                    data-testid='settings.advanced.section.sync_drafts.option:false--radio'
                                     name='syncDrafts'
                                     checked={this.state.settings.sync_drafts === 'false'}
                                     onChange={this.updateSetting.bind(this, 'sync_drafts', 'false')}
@@ -473,6 +487,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         return (
             <SettingItem
+                testId='settings.advanced.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
@@ -509,6 +524,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     <div className='settings-radio-group'>
                         <Radio
                             id='ctrlSendOn'
+                            data-testid='settings.advanced.section.advanced_ctrl_send.option:on--radio'
                             name='sendOnCtrlEnter'
                             checked={ctrlSendActive[0]}
                             onChange={(e) => {
@@ -524,6 +540,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         </Radio>
                         <Radio
                             id='ctrlSendOnForCode'
+                            data-testid='settings.advanced.section.advanced_ctrl_send.option:code_blocks--radio'
                             name='sendOnCtrlEnter'
                             checked={ctrlSendActive[1]}
                             onChange={(e) => {
@@ -539,6 +556,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                         </Radio>
                         <Radio
                             id='ctrlSendOff'
+                            data-testid='settings.advanced.section.advanced_ctrl_send.option:off--radio'
                             name='sendOnCtrlEnter'
                             checked={ctrlSendActive[2]}
                             onChange={(e) => {
@@ -561,6 +579,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             ];
             max = (
                 <SettingItemMax
+                    testIdScope='settings.advanced.section'
+                    testKey='advancedCtrlSend'
                     title={
                         <FormattedMessage {...ctrlSendTitle}/>
                     }
@@ -574,6 +594,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         }
         return (
             <SettingItem
+                testId='settings.advanced.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
@@ -605,6 +626,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             if (active) {
                 max = (
                     <SettingItemMax
+                        testIdScope='settings.advanced.section'
+                        testKey='deactivateAccount'
                         title={
                             <FormattedMessage
                                 id='user.settings.advance.deactivateAccountTitle'
@@ -634,6 +657,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             }
             deactivateAccountSection = (
                 <SettingItem
+                    testId='settings.advanced.section'
                     active={active}
                     areAllSectionsInactive={this.props.activeSection === ''}
                     title={
@@ -663,6 +687,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
             makeConfirmationModal = (
                 <ConfirmModal
+                    testId='deactivate_account_modal'
                     show={this.state.showDeactivateAccountModal}
                     title={
                         <FormattedMessage
@@ -702,6 +727,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <div
                 id='advancedSettings'
+                data-testid='settings.panel:advanced--tabpanel'
                 aria-labelledby='advancedButton'
                 role='tabpanel'
             >

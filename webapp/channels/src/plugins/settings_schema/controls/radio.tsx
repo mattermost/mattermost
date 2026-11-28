@@ -33,7 +33,8 @@ const Radio = ({
         <fieldset
             key={setting.name}
             className='radio-option-list'
-            data-testid={testIdScope ? `${testIdScope}.setting:${setting.name}` : undefined}
+            role='radiogroup'
+            data-testid={testIdScope ? `${testIdScope}.setting:${setting.name}--radiogroup` : undefined}
         >
             <legend className='form-legend hidden-label'>
                 {setting.title || setting.name}

@@ -38,6 +38,7 @@ export default function ProductSwitcherSystemConsoleMenuItem() {
     return (
         <SystemPermissionGate permissions={Permissions.SYSCONSOLE_READ_PERMISSIONS}>
             <Menu.Item
+                data-testid='global_header.product_menu.system_console--menuitem'
                 leadingElement={<ApplicationCogIcon size={18}/>}
                 labels={
                     <FormattedMessage
