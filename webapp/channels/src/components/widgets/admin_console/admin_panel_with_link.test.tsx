@@ -9,6 +9,7 @@ import AdminPanelWithLink from './admin_panel_with_link';
 
 describe('components/widgets/admin_console/AdminPanelWithLink', () => {
     const defaultProps = {
+        testId: 'fixture.admin_panel',
         className: 'test-class-name',
         id: 'test-id',
         title: {id: 'test-title-id', defaultMessage: 'test-title-default'},
@@ -37,7 +38,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();
 
-        const link = screen.getByTestId('test-id-link');
+        const link = screen.getByTestId('fixture.admin_panel.action--link');
         expect(link).toBeInTheDocument();
         expect(link.className).toMatch(/_button_/);
         expect(link.className).toMatch(/_button--emphasis-primary_/);
@@ -57,7 +58,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
             </AdminPanelWithLink>,
         );
 
-        const link = screen.getByTestId('test-id-link');
+        const link = screen.getByTestId('fixture.admin_panel.action--link');
         expect(link).toBeInTheDocument();
         expect(link.className).toMatch(/_button_/);
         expect(link.className).toMatch(/_button--emphasis-primary_/);
@@ -76,7 +77,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
             </AdminPanelWithLink>,
         );
 
-        const link = screen.getByTestId('test-id-link');
+        const link = screen.getByTestId('fixture.admin_panel.action--link');
 
         // Click the disabled link
         await userEvent.click(link);
@@ -97,7 +98,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
             </AdminPanelWithLink>,
         );
 
-        const link = screen.getByTestId('test-id-link');
+        const link = screen.getByTestId('fixture.admin_panel.action--link');
 
         // Link should be enabled
         expect(link.className).not.toMatch(/_button--disabled_/);

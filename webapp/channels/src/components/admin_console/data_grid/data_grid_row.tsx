@@ -41,7 +41,7 @@ const DataGridCell = ({row, column, testIdScope}: DataGridCellProps) => {
             key={column.field}
             className={classNames('DataGrid_cell', column.className)}
             role='cell'
-            data-testid={testIdScope ? `${testIdScope}.row.cell:${column.field}--text` : 'dataGrid-cell'}
+            data-testid={testIdScope ? `${testIdScope}.row.cell:${column.field}--text` : undefined}
             style={style}
         >
             {row.cells[column.field]}
@@ -62,7 +62,7 @@ const DataGridRow = ({row, columns, testIdScope, testKey}: DataGridRowProps) => 
         <div
             className='DataGrid_row'
             role='row'
-            data-testid={testIdScope ? (testKey && `${testIdScope}.row:${testKey}--row`) : 'dataGrid-row'}
+            data-testid={testIdScope && testKey ? `${testIdScope}.row:${testKey}--row` : undefined}
             onClick={row.onClick}
         >
             {cells}

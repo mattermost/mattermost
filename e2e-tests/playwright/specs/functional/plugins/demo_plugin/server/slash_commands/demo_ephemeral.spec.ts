@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand} from '../../helpers';
+import {centerPostWithText, sendDemoSlashCommand} from '../../helpers';
 
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
     // # Setup
@@ -11,23 +11,15 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await pw.ensureDemoPlugin();
 
     // # Login
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
 
     // # Navigate to Town Square — avoids noise from demo plugin's own ephemeral messages
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Send /ephemeral command
-    const ephemeralPost = channelsPage.centerView.container
-        .getByRole('listitem')
-        .filter({hasText: 'test ephemeral actions'})
-        .last();
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/ephemeral');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const ephemeralPost = centerPostWithText(app, 'test ephemeral actions');
+    await sendDemoSlashCommand(app, '/ephemeral');
     await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
 
     // * Verify ephemeral post appears with correct content and action buttons
@@ -38,10 +30,7 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
 
     // # Click Update
     // After clicking Update the text changes — re-find the post by its new content.
-    const updatedPost = channelsPage.centerView.container
-        .getByRole('listitem')
-        .filter({hasText: 'updated ephemeral action'})
-        .last();
+    const updatedPost = centerPostWithText(app, 'updated ephemeral action');
     await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
     await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible();
 
@@ -52,10 +41,7 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
 
     // # Click Delete
     // After delete the text changes again — re-find by the new content.
-    const deletedPost = channelsPage.centerView.container
-        .getByRole('listitem')
-        .filter({hasText: '(message deleted)'})
-        .last();
+    const deletedPost = centerPostWithText(app, '(message deleted)');
     await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
     await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible();
 
@@ -65,14 +51,8 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await expect(deletedPost.getByRole('button', {name: 'Delete', exact: true})).not.toBeVisible();
 
     // # Send /ephemeral_override command (still in Town Square)
-    const overridePost = channelsPage.centerView.container
-        .getByRole('listitem')
-        .filter({hasText: 'This is a demo of overriding an ephemeral post.'})
-        .last();
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/ephemeral_override');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
+    const overridePost = centerPostWithText(app, 'This is a demo of overriding an ephemeral post.');
+    await sendDemoSlashCommand(app, '/ephemeral_override');
     await expect(overridePost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
 
     // * Verify the override ephemeral post appears

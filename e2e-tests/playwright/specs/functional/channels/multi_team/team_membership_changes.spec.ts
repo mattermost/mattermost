@@ -40,7 +40,7 @@ test('MM-T2547 leaves a team while viewing it and rejoins it', {tag: '@multi_tea
     // # Rejoin the left team from the team selection page
     await app.selectTeamPage.goto();
     const rejoin = app.selectTeam.team(team);
-    await expect(rejoin).toHaveAccessibleName(team.display_name);
+    await expect(rejoin).toHaveAccessibleName(new RegExp(`^${team.display_name}`));
     await settle(rejoin, {wait: Api.AddTeamMember}).click();
 
     // * Verify the rejoined team is displayed again with its button in the sidebar

@@ -338,6 +338,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
 
         await row.value.container.clickTo(app.policyRuleValueMenu.search.container);
         await app.policyRuleValueMenu.search.container.fill('F-18');
+        await expect(app.policyRuleValueMenu.search.container).toHaveValue('F-18');
         await (await app.policyRuleValueMenu.nodeList.itemWith({text: f18Program})).click();
         await expect(row.value.container).toContainText(f18Program);
         await app.page.keyboard.press('Escape');
@@ -384,6 +385,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
         //   stays open on select (it is a multi-value picker), so close it before saving.
         await row.value.container.clickTo(app.policyRuleValueMenu.search.container);
         await app.policyRuleValueMenu.search.container.fill('F-18');
+        await expect(app.policyRuleValueMenu.search.container).toHaveValue('F-18');
         await (await app.policyRuleValueMenu.nodeList.itemWith({text: f18Program})).click();
         await expect(row.value.container).toContainText(f18Program);
         await app.page.keyboard.press('Escape');

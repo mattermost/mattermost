@@ -19,16 +19,19 @@ test.describe('Subpath - search', {tag: '@subpath'}, () => {
         await adminClient.addToChannel(user.id, targetChannel.id);
 
         const token = `subpathsearch${pw.random.id()}`;
-        await adminClient.createPost({channel_id: targetChannel.id, message: token});
+        const post = await adminClient.createPost({channel_id: targetChannel.id, message: token});
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: 'town-square'});
 
         // # Search for the message and jump to it
-        await channelsPage.searchFor(token);
-        await channelsPage.searchResultsPanel.toContainText(token);
-        await channelsPage.searchResultsPanel.jumpToResultWithText(token);
+        await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+        await app.searchBox.inputSearchbox.fill(token);
+        await app.searchBox.inputSearchbox.press('Enter');
+        const result = app.search.results.post(post);
+        await expect(result.message.container).toContainText(token);
+        await result.container.hover();
+        await result.menu.jumpLink.click();
 
         // * Verify navigation lands on the target channel under the subpath
         await expect

@@ -57,8 +57,10 @@ export async function showMonth(calendar: Calendar, target: Date): Promise<void>
     throw new Error(`The calendar did not reach ${wanted}`);
 }
 
-/** Shows `date`'s month and clicks its day. The calendar has to be open. */
+/** Shows `date`'s month and clicks its day, which closes the calendar. The calendar has to be open. */
 export async function pickDate(calendar: Calendar, date: Date): Promise<void> {
     await showMonth(calendar, date);
-    await monthDays(calendar.locator).getByText(String(date.getDate()), {exact: true}).click();
+    const day = monthDays(calendar.locator).getByText(String(date.getDate()), {exact: true});
+    await day.click();
+    await expect(day).not.toBeVisible();
 }

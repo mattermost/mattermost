@@ -4,7 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, test, waitForApi} from '@mattermost/playwright-lib';
 
 import {
     setupCustomProfileAttributeFields,
@@ -13,7 +13,12 @@ import {
 import {waitForAttributeViewToInclude} from '../../../channels/team_settings/helpers';
 import {createUserForABAC, ensureUserAttributes} from '../support';
 
-import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembershipPolicies} from './helpers';
+import {
+    assignTeamsToPolicy,
+    cleanUpCreated,
+    createTeamMembershipParentPolicy,
+    enableTeamMembershipPolicies,
+} from './helpers';
 
 /**
  * ABAC — Team directory hiding
@@ -43,18 +48,7 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         if (!client) {
             return;
         }
-        const base = client.getBaseRoute();
-        const headers = {Authorization: `Bearer ${client.getToken()}`};
-        for (const id of policyIds) {
-            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
-        }
-        for (const id of teamIds) {
-            await client.deleteTeam(id).catch(() => {});
-        }
-        // Hard user deletion requires server config; deactivating is the API-safe cleanup.
-        for (const id of userIds) {
-            await client.updateUserActive(id, false).catch(() => {});
-        }
+        await cleanUpCreated(client, {policyIds, teamIds, userIds});
     });
 
     test('MM-68846-T1 - omits a policy-governed team from the directory for non-qualifying users', async ({pw}) => {
@@ -211,34 +205,20 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         createdPolicyIds.push(policy.id);
         await assignTeamsToPolicy(adminClient, policy.id, [governed.id]);
 
-        const base = adminClient.getBaseRoute();
-        const headers = {Authorization: `Bearer ${adminClient.getToken()}`};
         const listDirectoryTeamIds = async (forDirectory: boolean): Promise<string[]> => {
-            const url = `${base}/teams?page=0&per_page=200${forDirectory ? '&for_directory=true' : ''}`;
-            const resp = await fetch(url, {headers});
-            const teams = (await resp.json()) as Team[];
+            const teams = (await adminClient.getTeams(0, 200, false, false, forDirectory)) as Team[];
             return teams.map((t) => t.id);
         };
 
         // The assignment becomes visible through a materialized attribute view and a
         // read replica, so poll the directory listing until the governed team drops
         // out for the admin (for_directory) rather than asserting on the first read.
-        // A transient fetch error counts as "not ready yet" so the poll keeps going.
         await expect
-            .poll(
-                async () => {
-                    try {
-                        return (await listDirectoryTeamIds(true)).includes(governed.id);
-                    } catch {
-                        return true;
-                    }
-                },
-                {
-                    timeout: 60_000,
-                    intervals: [1000, 2000, 5000, 5000, 5000],
-                    message: 'governed team should be hidden from the admin directory listing',
-                },
-            )
+            .poll(async () => (await listDirectoryTeamIds(true)).includes(governed.id), {
+                timeout: 60_000,
+                intervals: [1000, 2000, 5000, 5000, 5000],
+                message: 'governed team should be hidden from the admin directory listing',
+            })
             .toBe(false);
 
         // Without for_directory the admin stays exempt, so the System Console listing
@@ -247,10 +227,13 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
 
         // UI: with the backend confirmed above, the team-selection directory hides it
         // for the admin too.
-        const adminSession = await pw.testBrowser.login(adminUser);
-        await adminSession.page.goto('/select_team');
-        await adminSession.page.waitForLoadState('networkidle');
-        await expect(adminSession.page.getByText(governed.display_name, {exact: false})).toHaveCount(0);
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await Promise.all([
+            waitForApi(page, Api.GetAllTeams, {query: {for_directory: 'true'}}),
+            app.selectTeamPage.goto(),
+        ]);
+        await expect(app.selectTeam.titleText).toBeVisible();
+        await expect(app.selectTeam.team(governed)).toHaveCount(0);
     });
 
     test('MM-68846-T3 - keeps a public governed team visible to a non-qualifying user (advisory mode)', async ({
@@ -381,18 +364,12 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         // denies — exactly the state the join gate evaluates. Polling the
         // non-qualifying user's listing would be ambiguous (absent both before the
         // policy propagates and after it is hidden).
-        const base = adminClient.getBaseRoute();
-        const headers = {Authorization: `Bearer ${adminClient.getToken()}`};
         await expect
             .poll(
-                async () => {
-                    try {
-                        const resp = await fetch(`${base}/teams?page=0&per_page=200&for_directory=true`, {headers});
-                        return ((await resp.json()) as Team[]).map((t) => t.id).includes(privateGoverned.id);
-                    } catch {
-                        return true;
-                    }
-                },
+                async () =>
+                    ((await adminClient.getTeams(0, 200, false, false, true)) as Team[])
+                        .map((t) => t.id)
+                        .includes(privateGoverned.id),
                 {timeout: 60_000, intervals: [1000, 2000, 5000, 5000, 5000]},
             )
             .toBe(false);
@@ -414,12 +391,8 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
 
         // Strict: the same user is denied on the private team — directory visibility
         // never translates into join access, and no role bypasses the gate.
-        let denied = false;
-        try {
-            await adminClient.addToTeam(privateGoverned.id, nonQualUser.id);
-        } catch {
-            denied = true;
-        }
-        expect(denied).toBe(true);
+        await expect(adminClient.addToTeam(privateGoverned.id, nonQualUser.id)).rejects.toMatchObject({
+            status_code: 403,
+        });
     });
 });

@@ -147,6 +147,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                 isConfirmDisabled={this.isConfirmDisabled()}
             >
                 <QuickInput
+                    clearTestId='edit_category_modal.name.clear'
                     inputComponent={MaxLengthInput}
                     autoFocus={true}
                     className='form-control filter-textbox'

@@ -528,6 +528,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             await expect(regionSelect).toBeVisible();
             await regionSelect.focus();
             await regionSelect.fill('Nor');
+            await expect(regionSelect).toHaveValue('Nor');
             await (await regionSelectPicker.suggestions.suggestionList.itemWith({text: 'North'})).select();
             await expect(regionSelectPicker.suggestions.suggestionList).toHaveKeyCount(0);
 

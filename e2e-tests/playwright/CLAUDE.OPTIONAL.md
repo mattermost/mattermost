@@ -107,9 +107,10 @@ npm run show-report
     - Random data generators
     - Visual testing helpers
 
-4. **Page Object Model**: UI abstractions are organized in:
-    - `lib/src/ui/pages/` - Page objects (Login, Channels, etc.)
-    - `lib/src/ui/components/` - Component objects (Posts, Menus, etc.)
+4. **Page Object Model**: the page objects are generated from the web app's test ids into `lib/src/ui/generated`
+   (reached through `App`, `pw.testBrowser.login()` returns it as `app`) and are never written by hand. Short
+   sequences many specs share live in `lib/src/flows`. The one hand-written page is `lib/src/ui/pages/keycloak_login.ts`,
+   Keycloak's hosted login form, which is outside the web app.
 
 ### Test Flow
 

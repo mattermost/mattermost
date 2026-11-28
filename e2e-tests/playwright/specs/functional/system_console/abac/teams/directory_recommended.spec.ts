@@ -4,13 +4,18 @@
 import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, test, waitForApi} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {waitForAttributeViewToInclude} from '../../../channels/team_settings/helpers';
 import {createUserForABAC, ensureUserAttributes} from '../support';
 
-import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembershipPolicies} from './helpers';
+import {
+    assignTeamsToPolicy,
+    cleanUpCreated,
+    createTeamMembershipParentPolicy,
+    enableTeamMembershipPolicies,
+} from './helpers';
 
 /**
  * ABAC — Team directory "Recommended" tag
@@ -40,17 +45,7 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
         if (!client) {
             return;
         }
-        const base = client.getBaseRoute();
-        const headers = {Authorization: `Bearer ${client.getToken()}`};
-        for (const id of policyIds) {
-            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
-        }
-        for (const id of teamIds) {
-            await client.deleteTeam(id).catch(() => {});
-        }
-        for (const id of userIds) {
-            await client.updateUserActive(id, false).catch(() => {});
-        }
+        await cleanUpCreated(client, {policyIds, teamIds, userIds});
     });
 
     test('MM-69100-T1 - recommends a public governed team to a qualifying non-member only', async ({pw}) => {
@@ -257,15 +252,12 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
             })
             .toBe(true);
 
-        const {page} = await pw.testBrowser.login(qualUser);
-        await page.goto('/select_team');
-        await page.waitForLoadState('networkidle');
+        const {app, page} = await pw.testBrowser.login(qualUser);
+        await Promise.all([
+            waitForApi(page, Api.GetAllTeams, {query: {for_directory: 'true'}}),
+            app.selectTeamPage.goto(),
+        ]);
 
-        const chip = page
-            .locator('.signup-team-dir')
-            .filter({hasText: publicGoverned.display_name})
-            .getByLabel('Recommended based on your attributes');
-
-        await expect(chip).toBeVisible({timeout: 15000});
+        await expect(app.selectTeam.recommended(publicGoverned)).toBeVisible({timeout: 15000});
     });
 });

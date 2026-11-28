@@ -63,7 +63,7 @@ export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled, clas
     <button
         type='button'
         className={classNames('AttributeChip__remove', className)}
-        data-testid={testId ? `${testId}--button` : 'channel_attributes.chip.remove--button'}
+        data-testid={testId ? `${testId}--button` : undefined}
         data-menu-prevent-open={true}
         data-menu-prevent-close={true}
         aria-label={removeLabel}

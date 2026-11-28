@@ -95,7 +95,9 @@ describe('Keyboard Shortcuts', () => {
         cy.url().should('equal', `${Cypress.config('baseUrl')}/${testTeam.name}/threads`);
 
         // * Confirm the offtopic channel is selected in the suggestion list
-        cy.get('#suggestionList').findByTestId('off-topic').should('be.visible').and('have.class', 'suggestion--selected');
+        // The testid uses a channel id; match the scoped row by its visible name.
+        cy.get('#suggestionList').findByTestId((testId, element) => testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+            element?.querySelector('.suggestion-list__channel-name-text')?.textContent === 'Off-Topic').should('be.visible').and('have.class', 'suggestion--selected');
 
         // # Press up arrow
         cy.wait(TIMEOUTS.HALF_SEC);
@@ -105,7 +107,9 @@ describe('Keyboard Shortcuts', () => {
         cy.url().should('equal', `${Cypress.config('baseUrl')}/${testTeam.name}/threads`);
 
         // * Confirm the townsquare channel is selected in the suggestion list
-        cy.get('#suggestionList').findByTestId('town-square').should('be.visible').and('have.class', 'suggestion--selected');
+        // The testid uses a channel id; match the scoped row by its visible name.
+        cy.get('#suggestionList').findByTestId((testId, element) => testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+            element?.querySelector('.suggestion-list__channel-name-text')?.textContent === 'Town Square').should('be.visible').and('have.class', 'suggestion--selected');
 
         // # Press down arrow
         cy.wait(TIMEOUTS.HALF_SEC);
@@ -115,7 +119,9 @@ describe('Keyboard Shortcuts', () => {
         cy.url().should('equal', `${Cypress.config('baseUrl')}/${testTeam.name}/threads`);
 
         // * Confirm the offtopic channel is selected in the suggestion list
-        cy.get('#suggestionList').findByTestId('off-topic').should('be.visible').and('have.class', 'suggestion--selected');
+        // The testid uses a channel id; match the scoped row by its visible name.
+        cy.get('#suggestionList').findByTestId((testId, element) => testId.startsWith('quick_switch_modal.suggestions.suggestion:') &&
+            element?.querySelector('.suggestion-list__channel-name-text')?.textContent === 'Off-Topic').should('be.visible').and('have.class', 'suggestion--selected');
 
         // # Press ENTER
         cy.get('body').type('{enter}');

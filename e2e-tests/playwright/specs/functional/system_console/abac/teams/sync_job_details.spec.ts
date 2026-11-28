@@ -18,7 +18,7 @@ import {
 } from '../../../channels/team_settings/helpers';
 import {MEMBERSHIP_POLICIES_PATH} from '../surface';
 
-import {enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
+import {cleanUpCreated, enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
 
 /** Opens System Console > Membership Policies, waiting for its sync jobs section. */
 async function openSyncJobs(app: App) {
@@ -29,7 +29,7 @@ async function openSyncJobs(app: App) {
 /** The most recent sync job's row (the table lists newest first). */
 async function latestSyncJob(app: App) {
     const table = app.admin.jobs.table('access_control_sync');
-    await expect(await table.jobList.first()).toBeVisible();
+    await expect(table.jobList).not.toHaveKeyCount(0);
     return table.job({id: (await table.jobList.keys())[0]});
 }
 
@@ -44,27 +44,12 @@ async function openTeamsTab(job: Awaited<ReturnType<typeof latestSyncJob>>) {
 test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership']}, () => {
     test.setTimeout(duration.two_min);
 
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        for (const id of createdTeamIds) {
-            try {
-                await adminClient.deleteTeam(id);
-            } catch {
-                // ignore
-            }
-        }
-        createdTeamIds = [];
-        for (const id of createdUserIds) {
-            try {
-                await adminClient.updateUserActive(id, false);
-            } catch {
-                // ignore
-            }
-        }
-        createdUserIds = [];
+        await cleanUpCreated(adminClient, {teamIds: createdTeamIds.splice(0), userIds: createdUserIds.splice(0)});
     });
 
     test('MM-69100-T4 sync job details shows per-team member counts and section title', async ({pw}) => {

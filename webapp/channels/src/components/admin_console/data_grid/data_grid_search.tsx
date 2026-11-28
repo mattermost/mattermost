@@ -64,7 +64,7 @@ const DataGridSearch = ({
                         placeholder={defineMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
                         onChange={handleSearch}
                         value={termFromProps}
-                        data-testid={testIdScope ? `${testIdScope}.search--textbox` : 'searchInput'}
+                        data-testid={testIdScope ? `${testIdScope}.search--textbox` : undefined}
                         disabled={disabled}
                     />
                     <i

@@ -167,7 +167,7 @@ const GlobalThreads = () => {
             {isLoading || isEmptyList ? (
                 <div className='no-results__holder'>
                     {isLoading ? (
-                        <LoadingScreen/>
+                        <LoadingScreen testId='threads.loading'/>
                     ) : (
                         <NoResultsIndicator
                             expanded={true}

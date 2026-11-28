@@ -337,8 +337,13 @@ describe('SelectedValueChips', () => {
 
 describe('HierarchicalMenuStatus', () => {
     test('spinner on loading', () => {
-        renderWithContext(<HierarchicalMenuStatus kind='loading'/>);
-        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+        renderWithContext(
+            <HierarchicalMenuStatus
+                kind='loading'
+                testId='fixture.loading'
+            />,
+        );
+        expect(screen.getByTestId('fixture.loading')).toBeInTheDocument();
         expect(screen.getByText('Loading values…')).toBeInTheDocument();
     });
 
@@ -419,11 +424,11 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
         test('shows a spinner in the open menu while the walk runs', async () => {
             const walk = deferred<PropertyFieldOption[]>();
             mockPageAll.mockReturnValue(walk.promise);
-            renderMenu();
+            renderMenu({testIdScope: 'fixture.menu'});
 
             await openMenu();
 
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.getByTestId('fixture.menu.loading')).toBeInTheDocument();
             expect(everyRow()).toHaveLength(0);
         });
         test('shows error copy and Retry on a 403', async () => {

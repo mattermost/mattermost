@@ -120,7 +120,7 @@ function SaveChangesPanel({
         return (
             <div className='SaveChangesPanel__btn-ctr'>
                 <Button
-                    data-testid={testId ? `${testId}.cancel--button` : 'SaveChangesPanel__cancel-btn'}
+                    data-testid={testId ? `${testId}.cancel--button` : undefined}
                     emphasis='tertiary'
                     size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
@@ -135,7 +135,7 @@ function SaveChangesPanel({
                     )}
                 </Button>
                 <Button
-                    data-testid={testId ? `${testId}.save--button` : 'SaveChangesPanel__save-btn'}
+                    data-testid={testId ? `${testId}.save--button` : undefined}
                     emphasis='primary'
                     size='small'
                     className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}

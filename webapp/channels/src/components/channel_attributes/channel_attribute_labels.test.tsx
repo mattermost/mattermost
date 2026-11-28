@@ -804,6 +804,7 @@ describe('ChannelAttributeLabels', () => {
 
             renderWithContext(
                 <ChannelAttributeLabels
+                    testId={T}
                     channelId={CHANNEL_ID}
                     surface='header'
                     showMissingPlaceholders={true}
@@ -811,16 +812,16 @@ describe('ChannelAttributeLabels', () => {
                 missingState([requiredField('a'), requiredField('b'), requiredField('c')]),
             );
 
-            const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+            const overflow = await screen.findByTestId(`${T}.overflow--button`);
             await act(async () => {
                 overflow.click();
             });
 
-            const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
+            const popover = await screen.findByTestId(`${T}.overflow_popover`);
             await userEvent.click(within(popover).getByTestId('channelHeaderMissingAttributeChip-c'));
 
             expect(openEditor).toHaveBeenCalledWith(CHANNEL_ID, 'c');
-            await waitFor(() => expect(screen.queryByTestId('channelAttributeLabelsPopover-header')).not.toBeInTheDocument());
+            await waitFor(() => expect(screen.queryByTestId(`${T}.overflow_popover`)).not.toBeInTheDocument());
         });
     });
 });

@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
-import type {SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, openSystemConsoleSection, test, type App} from '@mattermost/playwright-lib';
 
-const SETTING_NAME = /Check for Security and Release Updates|Enable Security Alerts/;
+const SECURITY_UPDATES = 'ServiceSettings.EnableSecurityFixAlert';
 
-async function expectNotOnSmtpPage(systemConsolePage: SystemConsolePage) {
-    await systemConsolePage.page.goto('/admin_console/environment/smtp');
-    const container = systemConsolePage.page.locator('#adminConsoleWrapper');
-    await expect(container.getByRole('group', {name: /Skip Server Certificate Verification/})).toBeVisible();
-    await expect(container.getByRole('group', {name: SETTING_NAME})).toHaveCount(0);
+async function expectNotOnSmtpPage(app: App) {
+    await openSystemConsoleSection(app, 'environment/smtp');
+    await expect(app.admin.setting('EmailSettings.SkipServerCertificateVerification').container).toBeVisible();
+    await expect(app.admin.setting(SECURITY_UPDATES).container).toHaveCount(0);
 }
 
 /**
@@ -26,20 +24,21 @@ test(
         const {adminUser} = await pw.initSetup();
 
         // # Log in as a system admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
         // * Verify the setting is no longer on the SMTP page
-        await expectNotOnSmtpPage(systemConsolePage);
+        await expectNotOnSmtpPage(app);
 
         // # Open Site Configuration > Notices
-        await systemConsolePage.gotoNotices();
-        const setting = systemConsolePage.notices.checkForSecurityAndReleaseUpdates;
+        await openSystemConsoleSection(app, 'site_config/notices');
+        await expect(app.admin.screen('NoticesSettings')).toBeVisible();
+        const setting = app.admin.setting(SECURITY_UPDATES);
 
         // * Verify the setting is shown with the test baseline (off) and its help text covers both checks
-        await setting.toBeVisible();
-        await setting.toBeFalse();
-        await expect(setting.helpText!).toContainText('security bulletins');
-        await expect(setting.helpText!).toContainText('latest Mattermost release');
+        await expect(setting.container).toBeVisible();
+        await expect(setting.falseRadio).toBeChecked();
+        await expect(setting.setHelpText).toContainText('security bulletins');
+        await expect(setting.setHelpText).toContainText('latest Mattermost release');
     },
 );
 
@@ -61,11 +60,11 @@ test(
         await adminClient.updateUserRoles(user.id, 'system_user system_user_manager');
 
         // # Log in as that user
-        const {systemConsolePage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
         // * Verify the setting isn't on the SMTP page and Notices isn't in the sidebar
-        await expectNotOnSmtpPage(systemConsolePage);
-        await expect(systemConsolePage.sidebar.environment.smtp.link).toBeVisible();
-        await expect(systemConsolePage.sidebar.siteConfiguration.notices.link).toHaveCount(0);
+        await expectNotOnSmtpPage(app);
+        await expect(app.admin.sidebar.category('environment').section('smtp').titleLink).toBeVisible();
+        await expect(app.admin.sidebar.category('site').section('notices')).toHaveCount(0);
     },
 );

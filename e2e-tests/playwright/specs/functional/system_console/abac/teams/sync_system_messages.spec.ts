@@ -19,7 +19,7 @@ import {
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 
-import {enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
+import {cleanUpCreated, enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
 
 const SYSTEM_BOT_USERNAME = 'system-bot';
 
@@ -38,27 +38,12 @@ async function expectSystemMessage(app: App, team: {name: string}, dm: {name: st
 test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']}, () => {
     test.setTimeout(duration.two_min);
 
-    let createdTeamIds: string[] = [];
-    let createdUserIds: string[] = [];
+    const createdTeamIds: string[] = [];
+    const createdUserIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        for (const id of createdTeamIds) {
-            try {
-                await adminClient.deleteTeam(id);
-            } catch {
-                // ignore
-            }
-        }
-        createdTeamIds = [];
-        for (const id of createdUserIds) {
-            try {
-                await adminClient.updateUserActive(id, false);
-            } catch {
-                // ignore
-            }
-        }
-        createdUserIds = [];
+        await cleanUpCreated(adminClient, {teamIds: createdTeamIds.splice(0), userIds: createdUserIds.splice(0)});
     });
 
     test('MM-69100-T6 qualifying non-member receives an addition DM after a sync job', async ({pw}) => {

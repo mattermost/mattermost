@@ -126,6 +126,8 @@ test(
         await expect(input).toHaveValue('pineapple');
 
         // * Verify the "Your teams" section header is shown while a specific team is selected
+        // The menu closes once a team is chosen; wait for that before opening it again.
+        await expect(selector.menu.allTeamsMenuItemRadio).not.toBeVisible();
         await selector.openMenuButton.clickTo(selector.menu.allTeamsMenuItemRadio);
         const menu = selector.menu;
         await expect(menu.yourTeamsSeparator).toBeVisible();
@@ -135,6 +137,7 @@ test(
         await expect(selector.openMenuButton).toContainText('All Teams');
 
         // * Verify the "Your teams" section header is hidden once "All Teams" is selected
+        await expect(menu.allTeamsMenuItemRadio).not.toBeVisible();
         await selector.openMenuButton.clickTo(selector.menu.allTeamsMenuItemRadio);
         await expect(menu.allTeamsMenuItemRadio).toBeVisible();
         await expect(menu.yourTeamsSeparator).not.toBeVisible();

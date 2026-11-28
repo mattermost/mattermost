@@ -55,7 +55,7 @@ describe('Keyboard Shortcuts', () => {
             // # Verify that the list of users and channels suggestions is present
             cy.get('#suggestionList').should('be.visible').within(() => {
                 // * The channel the current user is not a member of should be there in the search list; click it
-                cy.findByTestId(testChannel.name).scrollIntoView().should('exist').click().wait(TIMEOUTS.HALF_SEC);
+                cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${testChannel.id}--option`).scrollIntoView().should('exist').click().wait(TIMEOUTS.HALF_SEC);
             });
 
             // # Verify that we are in the test channel

@@ -6,13 +6,24 @@
  * @reference MM-69100
  */
 
-import {Api, settle, duration, expect, Msg, newTestPassword, test} from '@mattermost/playwright-lib';
+import {
+    Api,
+    settle,
+    deleteAccessControlPolicyIfPresent,
+    duration,
+    expect,
+    ignoreMissing,
+    Msg,
+    newTestPassword,
+    test,
+} from '@mattermost/playwright-lib';
 
 import {
     enableTeamMembershipABACConfig,
     ensureDepartmentAttribute,
     createPrivateTeam,
     createTeamMembershipPolicy,
+    getTeamAccessControlPolicyIfPresent,
     createTeamAdmin,
     setUserAttribute,
     waitForAttributeViewToInclude,
@@ -30,16 +41,14 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
-        const base = adminClient.getBaseRoute();
-        const headers = {Authorization: `Bearer ${adminClient.getToken()}`};
         for (const id of createdPolicyIds.splice(0)) {
-            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
+            await deleteAccessControlPolicyIfPresent(adminClient, id);
         }
         for (const id of createdTeamIds.splice(0)) {
-            await adminClient.deleteTeam(id).catch(() => {});
+            await ignoreMissing(() => adminClient.deleteTeam(id));
         }
         for (const id of createdUserIds.splice(0)) {
-            await adminClient.updateUserActive(id, false).catch(() => {});
+            await ignoreMissing(() => adminClient.updateUserActive(id, false));
         }
     });
 
@@ -412,17 +421,9 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(selfExclusion).not.toBeVisible();
 
         // * Policy was NOT changed
-        try {
-            const policyResult: any = await (adminClient as any).doFetch(
-                `${adminClient.getBaseRoute()}/teams/${team.id}/access_control/policy`,
-                {method: 'GET'},
-            );
-            // Policy should be empty/not contain Engineering if no prior policy existed
-            const policyStr = JSON.stringify(policyResult ?? {});
-            expect(policyStr).not.toContain('"Engineering"');
-        } catch {
-            // No policy exists — self-exclusion correctly blocked the save
-        }
+        // No policy at all is fine: self-exclusion blocked the save.
+        const policyResult = await getTeamAccessControlPolicyIfPresent(adminClient, team.id);
+        expect(JSON.stringify(policyResult ?? {})).not.toContain('"Engineering"');
 
         await closeTeamSettings(teamSettings);
     });
@@ -646,9 +647,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await expect(teamSettings.savePanel.saveButton).not.toBeVisible();
 
         // * Policy is actually removed on the server
-        const policyResult: any = await (adminClient as any)
-            .doFetch(`${adminClient.getBaseRoute()}/teams/${team.id}/access_control/policy`, {method: 'GET'})
-            .catch(() => null);
+        const policyResult = await getTeamAccessControlPolicyIfPresent(adminClient, team.id);
         expect(JSON.stringify(policyResult ?? {})).not.toContain('Engineering');
 
         await closeTeamSettings(teamSettings);

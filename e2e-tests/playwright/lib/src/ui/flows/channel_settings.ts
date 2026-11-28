@@ -11,13 +11,11 @@ export type ChannelSettings = ChannelSettingsModal<ChannelSettingsModalMount>;
  * the second click closes it.
  */
 export async function closeChannelSettings(settings: ChannelSettings): Promise<void> {
-    await settings.closeButton.click();
-    try {
-        await expect(settings).not.toBeVisible({timeout: 1000});
-    } catch {
+    // The first click may only warn about unsaved changes and keep the modal open; the retry clicks again.
+    await expect(async () => {
         await settings.closeButton.click();
-        await expect(settings).not.toBeVisible({timeout: 10000});
-    }
+        await expect(settings).not.toBeVisible({timeout: 1000});
+    }).toPass({timeout: 15000});
 }
 
 /** Opens a tab of the Channel Settings modal and returns that tab's part of the modal. */
@@ -73,6 +71,7 @@ export async function clearBannerText(configuration: Configuration): Promise<voi
 export async function insertBannerToken(configuration: Configuration, field: {id: string} | string): Promise<void> {
     const {bannerText} = configuration;
     await bannerText.insertButton.click();
+    await expect(bannerText.insertMenu.attributeList).not.toHaveKeyCount(0);
     const item =
         typeof field === 'string'
             ? await bannerText.insertMenu.attributeList.itemWith({text: field})

@@ -54,7 +54,7 @@ describe('Autocomplete without Elasticsearch - Channel', () => {
             searchForChannel(channel.name);
 
             // * And it should not appear
-            cy.findByTestId(channel.name).
+            cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).
                 should('not.exist');
         });
     });
@@ -72,7 +72,7 @@ describe('Autocomplete without Elasticsearch - Channel', () => {
             cy.get('#suggestionList').should('be.visible');
 
             // * Channel should appear in the list
-            cy.findByTestId(channel.name).
+            cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).
                 should('be.visible');
         });
     });
@@ -104,7 +104,7 @@ describe('Autocomplete without Elasticsearch - Channel', () => {
                 searchForChannel(channel.name);
 
                 // * Channel should not appear in the search results
-                cy.findByTestId(channel.name).
+                cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).
                     should('not.exist');
             });
         });

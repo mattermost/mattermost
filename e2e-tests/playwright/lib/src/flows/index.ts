@@ -7,7 +7,9 @@
 export {calendarDayKey, monthDays, pickDate, showMonth, type Calendar} from './calendar';
 export {setCelExpression} from './access_control';
 export {removeChip} from './chips';
+export {comboboxChips, removeComboboxChip} from './combobox_chips';
 export {openChannel} from './channels';
+export {createChannelFromModal, openNewChannelModal} from './new_channel';
 export {lastPost, postsOf, postWith, type PostList} from './posts';
 export {closeTeamSettings, openChannelSettings, openTeamSettings} from './settings';
 export {openSystemConsoleSection, openSystemUsers, searchSystemUsers, systemConsolePath} from './system_console';

@@ -14,18 +14,16 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {comboboxChips, expect, generated, getRandomId, removeComboboxChip, test} from '@mattermost/playwright-lib';
 
 import {optionId} from '../../channels/channel_attributes/helpers';
 import {deleteCustomProfileAttributes} from '../../channels/custom_profile_attributes/helpers';
 
 async function openUserDetail(pw: PlaywrightExtended, admin: UserProfile, userId: string) {
-    const {systemConsolePage} = await pw.testBrowser.login(admin);
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-    await systemConsolePage.page.goto(`/admin_console/user_management/user/${userId}`);
-    await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${userId}`);
-    return systemConsolePage;
+    const {app} = await pw.testBrowser.login(admin);
+    await app.page.goto(`${generated.AdminConsolePage.path()}/user_management/user/${userId}`);
+    await app.page.waitForURL(`**/admin_console/user_management/user/${userId}`);
+    return app;
 }
 
 test.describe('System Console - Graph value picker', () => {
@@ -34,6 +32,13 @@ test.describe('System Console - Graph value picker', () => {
     let testUser: UserProfile;
     let field: UserPropertyField | undefined;
 
+    function createdField(): UserPropertyField {
+        if (!field) {
+            throw new Error('The graph attribute was not created');
+        }
+        return field;
+    }
+
     async function setUp(pw: PlaywrightExtended) {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
@@ -41,10 +46,13 @@ test.describe('System Console - Graph value picker', () => {
 
         const clientInfo = await pw.getAdminClient();
         adminClient = clientInfo.adminClient;
-        adminUser = clientInfo.adminUser!;
+        if (!clientInfo.adminUser) {
+            throw new Error('The admin user could not be read');
+        }
+        adminUser = clientInfo.adminUser;
 
         // # Create a graph attribute with two top-level values
-        field = await adminClient.createCustomProfileAttributeField({
+        const created = await adminClient.createCustomProfileAttributeField({
             name: `programs_${getRandomId()}`,
             type: 'graph',
             attrs: {
@@ -53,11 +61,12 @@ test.describe('System Console - Graph value picker', () => {
                 options: [{name: 'Alpha'}, {name: 'Beta'}],
             },
         } as any);
+        field = created;
 
         // # Create a target user and assign both values
         testUser = await pw.createNewUserProfile(adminClient, {prefix: 'graph-picker-target-'});
         await adminClient.updateUserCustomProfileAttributesValues(testUser.id, {
-            [field.id]: [optionId(field, 'Alpha'), optionId(field, 'Beta')],
+            [created.id]: [optionId(created, 'Alpha'), optionId(created, 'Beta')],
         });
     }
 
@@ -78,60 +87,60 @@ test.describe('System Console - Graph value picker', () => {
      */
     test('removes a chip without opening the menu and saves the rest', {tag: '@user_management'}, async ({pw}) => {
         await setUp(pw);
-        const label = field!.name;
+        const graphField = createdField();
+        const label = graphField.name;
 
         // # Log in as admin and open the target user's detail page
-        const systemConsolePage = await openUserDetail(pw, adminUser, testUser.id);
-        const {page} = systemConsolePage;
-        const {userDetail} = systemConsolePage.users;
-        const {userCard} = userDetail;
-        const chips = userCard.getCpaChips(label);
-        const trigger = page.getByTestId(`cpa-graph-select-${field!.id}`);
-        const menu = page.locator(`#cpa-graph-menu-${field!.id}`);
-        const row = (name: string) => menu.getByRole('menuitemcheckbox', {name, exact: true});
+        const app = await openUserDetail(pw, adminUser, testUser.id);
+        const {page} = app;
+        const userDetail = app.admin.user;
+        const attribute = userDetail.attribute(graphField);
+        const chips = comboboxChips(attribute);
+        const trigger = attribute.graphButton.locator;
+        const menu = app.userAttributeGraphMenu;
 
         // * The closed field shows both assigned values as chips and no menu
         await expect(chips).toHaveText(['Alpha', 'Beta'], {timeout: 30_000});
         await expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
         // # Remove the Alpha chip
-        await userCard.removeCpaChip(label, 'Alpha');
+        await removeComboboxChip(attribute, 'Alpha');
 
         // * Only Beta remains and the menu stays closed
         await expect(chips).toHaveText(['Beta']);
         await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-        await expect(menu).not.toBeVisible();
+        await expect(menu.nodeList).toHaveKeyCount(0);
 
         // # Open the menu by clicking the field
         await trigger.click();
 
         // * The menu opens with Beta checked and Alpha unchecked
         await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-        await expect(row('Alpha')).toHaveAttribute('aria-checked', 'false');
-        await expect(row('Beta')).toHaveAttribute('aria-checked', 'true');
+        await expect(await menu.nodeList.itemWith({text: 'Alpha'})).toHaveAttribute('aria-checked', 'false');
+        await expect(await menu.nodeList.itemWith({text: 'Beta'})).toHaveAttribute('aria-checked', 'true');
 
         // # Close the menu with Escape
         await page.keyboard.press('Escape');
 
         // * The menu closes, focus returns to the field and the chips are unchanged
         await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-        await expect(menu).not.toBeVisible();
+        await expect(menu.nodeList).toHaveKeyCount(0);
         await expect(trigger).toBeFocused();
         await expect(chips).toHaveText(['Beta']);
 
         // # Save and confirm
-        await userDetail.save();
-        await expect(userDetail.saveChangesModal.changesList).toContainText(`${label}: Alpha and Beta → Beta`);
-        await userDetail.saveChangesModal.confirm();
-        await expect(userDetail.errorMessage).not.toBeVisible();
-        await userDetail.waitForSaveComplete();
+        await userDetail.saveButton.click();
+        await expect(userDetail.saveModal.changesList.locator).toContainText(`${label}: Alpha and Beta → Beta`);
+        await userDetail.saveChangesModal.confirmButton.click();
+        await expect(userDetail.saveErrorText.locator).not.toBeVisible();
+        await expect(userDetail.saveButton.locator).toBeSaved();
 
         // * Only Beta persisted
         await expect
             .poll(async () => {
                 const values = await adminClient.getUserCustomProfileAttributesValues(testUser.id);
-                return values[field!.id];
+                return values[graphField.id];
             })
-            .toEqual([optionId(field!, 'Beta')]);
+            .toEqual([optionId(graphField, 'Beta')]);
     });
 });

@@ -9,15 +9,16 @@ import {
     createField,
     deleteFields,
     fieldName,
+    optionChip,
     optionId,
     purgeFields,
     setPostValues,
     skipIfNoPostAttributesLicense,
 } from './support';
 
-const CHIPS = 'post-attributes-chips';
-const OVERFLOW = 'post-attributes-overflow';
-const CARD = 'post-attributes-card';
+const SECRET = 'SECRET';
+const NOFORN = 'NOFORN';
+const NOTE = 'Third quarter planning';
 
 /**
  * @objective Verify hovering the chip row opens a card that reads every attribute the
@@ -31,7 +32,7 @@ test('reads every attribute from the hover card, overflow included', {tag: '@pos
 
     // # Provision four ordered fields and set all four on one post, so two of them
     // land in the row and two only exist behind the badge
-    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const {adminClient, user, userClient, team, townSquare: channel} = await pw.initSetup();
     const suffix = pw.random.id();
     const created: PropertyField[] = [];
 
@@ -39,11 +40,11 @@ test('reads every attribute from the hover card, overflow included', {tag: '@pos
         await purgeFields(adminClient);
 
         const classification = await createField(adminClient, fieldName('classification', suffix), {
-            options: ['SECRET'],
+            options: [SECRET],
             sortOrder: 1,
         });
         const caveat = await createField(adminClient, fieldName('caveat', suffix), {
-            options: ['NOFORN'],
+            options: [NOFORN],
             sortOrder: 2,
         });
         const owner = await createField(adminClient, fieldName('owner', suffix), {
@@ -55,59 +56,59 @@ test('reads every attribute from the hover card, overflow included', {tag: '@pos
             sortOrder: 4,
         });
         created.push(classification, caveat, owner, note);
-
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const post = await userClient.createTestPost({channel_id: channel.id, message: 'four attributes'});
         await setPostValues(adminClient, post.id, [
-            {field_id: classification.id, value: optionId(classification, 'SECRET')},
-            {field_id: caveat.id, value: optionId(caveat, 'NOFORN')},
+            {field_id: classification.id, value: optionId(classification, SECRET)},
+            {field_id: caveat.id, value: optionId(caveat, NOFORN)},
             {field_id: owner.id, value: user.id},
-            {field_id: note.id, value: 'Q3 planning'},
+            {field_id: note.id, value: NOTE},
         ]);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
 
-        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
-        const chips = postOnScreen.container.getByTestId(CHIPS);
+        const chips = app.center.postList.post(post).attributes;
 
         // * Verify the row drew the first two and reported the rest as a badge
-        await expect(chips.getByText('SECRET', {exact: true})).toBeVisible();
-        await expect(chips.getByText('NOFORN', {exact: true})).toBeVisible();
-        await expect(postOnScreen.container.getByTestId(OVERFLOW)).toHaveText('+2');
+        await expect(optionChip(chips, SECRET)).toBeVisible();
+        await expect(optionChip(chips, NOFORN)).toBeVisible();
+        await expect(chips.overflowImg.locator).toHaveText('+2');
 
         // * Verify the badge reads as a count rather than as the glyph "+2". It is
         // `role='img'` with a counted label, so assistive technology is told how many
         // attributes are hidden and never has to interpret the arithmetic.
-        await expect(postOnScreen.container.getByRole('img', {name: '2 more attributes'})).toBeVisible();
+        await expect(chips.overflowImg.locator).toBeVisible();
+        await expect(chips.overflowImg.locator).toHaveAttribute('role', 'img');
+        await expect(chips.overflowImg.locator).toHaveAccessibleName('2 more attributes');
 
         // # Hover the row
-        await chips.hover();
+        await chips.locator.hover();
 
         // * Verify the card opened
-        const card = page.getByTestId(CARD);
-        await expect(card).toBeVisible();
+        const card = app.postAttributesCard;
+        await expect(card.locator).toBeVisible();
 
         // * Verify the card lists all four attributes, named and valued — the two the
         // row drew and the two only the badge accounted for. This is what the card is
         // for: the row is a summary, and the badge is otherwise unreadable.
-        await expect(card.getByRole('listitem')).toHaveCount(4);
-        await expect(card.getByRole('listitem').nth(0)).toContainText('SECRET');
-        await expect(card.getByRole('listitem').nth(1)).toContainText('NOFORN');
-        await expect(card.getByRole('listitem').nth(2)).toContainText(user.username);
-        await expect(card.getByRole('listitem').nth(3)).toContainText('Q3 planning');
+        await expect(card.attributeList).toHaveKeyCount(4);
+        const rows = await card.attributeList.keys();
+        await expect(card.attribute(rows[0]).container).toContainText(SECRET);
+        await expect(card.attribute(rows[1]).container).toContainText(NOFORN);
+        await expect(card.attribute(rows[2]).container).toContainText(user.username);
+        await expect(card.attribute(rows[3]).container).toContainText(NOTE);
 
         // * Verify every row is named after its field, so the values are readable in
         // isolation rather than as a list of bare strings
         for (const field of created) {
-            await expect(card.getByText(field.name, {exact: true})).toBeVisible();
+            await expect(card.attribute(field).nameText.locator).toHaveText(field.name);
         }
 
         // * Verify the card's one control is reachable by name. `Edit` is the only
         // route from the card into the modal, and a card whose button has no
         // accessible name is a dead end for anything that is not a pointer.
-        await expect(card.getByRole('button', {name: 'Edit'})).toBeVisible();
+        await expect(card.editButton.locator).toBeVisible();
+        await expect(card.editButton.locator).toHaveAccessibleName('Edit');
     } finally {
         await deleteFields(adminClient, created);
     }
@@ -124,7 +125,7 @@ test('closes when the pointer leaves, and Edit opens the modal', {tag: '@post_at
     await pw.ensureFeatureFlag('PostAttributes', true);
 
     // # Provision a select field and set it on a post
-    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const {adminClient, user, userClient, team, townSquare: channel} = await pw.initSetup();
     const suffix = pw.random.id();
     const created: PropertyField[] = [];
 
@@ -136,37 +137,33 @@ test('closes when the pointer leaves, and Edit opens the modal', {tag: '@post_at
         });
         created.push(classification);
 
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const post = await userClient.createTestPost({channel_id: channel.id, message: 'card to modal'});
         await setPostValues(adminClient, post.id, [
             {field_id: classification.id, value: optionId(classification, 'SECRET')},
         ]);
 
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
 
-        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
-        const chips = postOnScreen.container.getByTestId(CHIPS);
-        const card = page.getByTestId(CARD);
+        const chips = app.center.postList.post(post).attributes;
+        const card = app.postAttributesCard;
 
         // # Hover the row, then move the pointer well away from it and from the card
-        await chips.hover();
-        await expect(card).toBeVisible();
-        await page.mouse.move(5, 5);
+        await chips.locator.hover();
+        await expect(card.locator).toBeVisible();
+        await app.page.mouse.move(5, 5);
 
         // * Verify the card closed
-        await expect(card).toBeHidden();
+        await expect(card.locator).toBeHidden();
 
         // # Open it again and press Edit
-        await chips.hover();
-        await expect(card).toBeVisible();
-        await card.getByRole('button', {name: 'Edit'}).click();
+        await chips.locator.hover();
+        await expect(card.locator).toBeVisible();
+        const modal = await card.editButton.clickTo(app.postAttributesModal);
 
         // * Verify the modal opened on this post's attribute and the card is gone
-        await expect(page.locator('#postAttributesModal')).toBeVisible();
-        await expect(page.getByTestId(`post-attribute-row-${classification.name}`)).toBeVisible();
-        await expect(card).toBeHidden();
+        await expect(modal.attribute(classification).locator).toBeVisible();
+        await expect(card.locator).toBeHidden();
     } finally {
         await deleteFields(adminClient, created);
     }

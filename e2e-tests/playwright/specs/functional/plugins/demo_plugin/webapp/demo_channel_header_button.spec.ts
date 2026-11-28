@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {demoPluginId, expect, test} from '@mattermost/playwright-lib';
 
 test('should open right-hand sidebar when demo plugin App Bar button is clicked', async ({pw}) => {
     // # Setup
@@ -9,14 +9,14 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     await pw.ensureDemoPlugin();
 
     // # Login and navigate to Town Square
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Click the App Bar button
-    const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
-    await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
-    await channelsPage.appBar.demoPluginButton.click();
+    const rhsPanel = app.page.getByRole('region', {name: 'Demo Plugin'});
+    await expect(app.appBar.plugin(demoPluginId)).toBeVisible();
+    await app.appBar.plugin(demoPluginId).click();
 
     // * Verify the RHS opens with expected content
     await expect(
@@ -41,12 +41,12 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     await rhsPanel.getByText('/plug/com.mattermost.demo-plugin/roottest').click();
 
     // * Verify the route page content
-    await expect(channelsPage.page).toHaveURL(/\/plug\/com\.mattermost\.demo-plugin\/roottest$/);
-    await expect(channelsPage.page.getByText('Demo plugin route.')).toBeVisible();
-    await channelsPage.page.goBack();
+    await expect(app.page).toHaveURL(/\/plug\/com\.mattermost\.demo-plugin\/roottest$/);
+    await expect(app.page.getByText('Demo plugin route.')).toBeVisible();
+    await app.page.goBack();
 
     // # Close the RHS
-    const rhsPanelAfterNav = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
+    const rhsPanelAfterNav = app.page.getByRole('region', {name: 'Demo Plugin'});
     await rhsPanelAfterNav.getByRole('button', {name: 'Close'}).click();
 
     // * Verify it dismisses
