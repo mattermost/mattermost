@@ -146,7 +146,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
@@ -180,7 +180,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
@@ -214,7 +214,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
@@ -248,7 +248,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
@@ -290,7 +290,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	r, _ := regexp.Compile("E([S|D]+)T")
 	zone := r.FindString(body)
@@ -346,7 +346,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	postTimeLine := text.String()
 	require.Contains(t, body, postTimeLine, fmt.Sprintf("Expected email text '%s'. Got %s", postTimeLine, body))
@@ -387,7 +387,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "2:30 PM", fmt.Sprintf("Expected email text '2:30 PM'. Got %s", body))
 }
@@ -427,7 +427,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "14:30", fmt.Sprintf("Expected email text '14:30'. Got %s", body))
 }
@@ -478,7 +478,7 @@ func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, expectedTimeFormat, fmt.Sprintf("Expected email text '%s'. Got %s", expectedTimeFormat, body))
 }
@@ -557,7 +557,7 @@ func TestGetNotificationEmailBodyFullNotificationWithMessageAttachments(t *testi
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "#FF0000")
 	require.Contains(t, body, "message attachment 1 pretext")
@@ -581,6 +581,83 @@ func TestGetNotificationEmailBodyFullNotificationWithMessageAttachments(t *testi
 	require.Contains(t, body, "message attachment 2 pretext")
 	require.Contains(t, body, "author name 2")
 	require.Contains(t, body, "message attachment 2 text")
+}
+
+func TestGetNotificationEmailBodyFullNotificationAttachmentOnlyPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			Title: "Attachment-only notification test",
+			Text:  "@recipient MM-EMAIL-ATTACHMENT-TEST",
+		},
+	})
+
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
+	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "", false)
+	require.NoError(t, err)
+	require.Contains(t, body, "Attachment-only notification test")
+	require.Contains(t, body, "MM-EMAIL-ATTACHMENT-TEST")
+}
+
+func TestGetNotificationEmailBodyGenericNotificationAttachmentOnlyPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EmailNotificationContentsType = model.EmailNotificationContentsGeneric
+	})
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			Title: "Attachment-only notification test",
+			Text:  "@recipient MM-EMAIL-ATTACHMENT-TEST",
+		},
+	})
+
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "", false)
+	require.NoError(t, err)
+	require.NotContains(t, body, "Attachment-only notification test")
+	require.NotContains(t, body, "MM-EMAIL-ATTACHMENT-TEST")
 }
 
 // from here
@@ -611,7 +688,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
 	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
@@ -644,7 +721,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
 	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
@@ -677,7 +754,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
 	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
@@ -710,7 +787,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
 	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
@@ -745,7 +822,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 
 	notification := buildTestPostNotification(post, ch, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 
 	assert.NotContains(t, body, message)
@@ -787,7 +864,7 @@ func TestGetNotificationEmailBodyFullNotificationFileOnlyPostEscapesFilenameHTML
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "", false)
 	require.NoError(t, err)
 
 	require.Contains(t, body, html.EscapeString(dangerousFilename))
@@ -841,7 +918,7 @@ func TestGetNotificationEmailBodyFullNotificationImageOnlyPostNormalizesAndEscap
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "", false)
 	require.NoError(t, err)
 
 	expectedFilenames := fmt.Sprintf("%s, %s", html.EscapeString(rawDangerousFilename), html.EscapeString(secondFilename))
@@ -895,7 +972,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 
 	notification := buildTestPostNotification(post, ch, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
@@ -963,7 +1040,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 
 	notification := buildTestPostNotification(post, ch, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	assert.Contains(t, body, expMessage)
 }
@@ -1012,7 +1089,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 
 	notification := buildTestPostNotification(post, ch, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
@@ -1169,7 +1246,7 @@ func TestLandingLink(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
@@ -1207,7 +1284,7 @@ func TestLandingLinkPermalink(t *testing.T) {
 
 	notification := buildTestPostNotification(post, channel, sender)
 	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 	require.NoError(t, err)
 	require.Contains(t, body, "/pl/"+post.Id, fmt.Sprintf("Expected email text to contain permalink '/pl/%s'. Got %s", post.Id, body))
 }
@@ -1322,7 +1399,7 @@ func TestMarkdownConversion(t *testing.T) {
 			}
 			notification := buildTestPostNotification(post, channel, sender)
 			emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
-			got, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+			got, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png", false)
 			require.NoError(t, err)
 			require.Contains(t, got, tt.want)
 		})
@@ -1405,4 +1482,77 @@ func TestSendNotificationEmailDeliveryRecordFollowsSentContent(t *testing.T) {
 			return len(capture.records()) > 0
 		}, 2*time.Second, 100*time.Millisecond, "the email carried no post content, so nothing may be recorded")
 	})
+}
+
+func TestSendNotificationEmailKeepsPluginRemovalOfAttachmentOnlyPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableEmailBatching = false
+	})
+
+	// The plugin replaces the content and leaves MessageHTML empty to keep the post out of the email.
+	const pluginSubject = "Subject set by plugin"
+	pluginCode := fmt.Sprintf(hookEmailNotificationWillBeSentTmpl,
+		`return &model.EmailNotificationContent{Subject: "`+pluginSubject+`"}, ""`)
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+	t.Cleanup(tearDown)
+
+	type sentMail struct{ subject, body string }
+	sentMails := make(chan sentMail, 100)
+	realEmailService := th.App.Srv().EmailService
+	emailServiceMock := &emailmocks.ServiceInterface{}
+	emailServiceMock.On("GetMessageForNotification", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(func(post *model.Post, teamName, siteURL string, translateFunc i18n.TranslateFunc) string {
+			return realEmailService.GetMessageForNotification(post, teamName, siteURL, translateFunc)
+		})
+	emailServiceMock.On("NewEmailTemplateData", mock.Anything).
+		Return(func(locale string) templates.Data {
+			return realEmailService.NewEmailTemplateData(locale)
+		})
+	emailServiceMock.On("SendMailWithEmbeddedFiles", mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Run(func(args mock.Arguments) {
+			select {
+			case sentMails <- sentMail{subject: args.String(1), body: args.String(2)}:
+			default:
+			}
+		}).Return(nil)
+	emailServiceMock.On("InitEmailBatching").Return().Maybe()
+	emailServiceMock.On("Stop").Return().Maybe()
+	th.App.Srv().EmailService = emailServiceMock
+
+	post := &model.Post{
+		Id:        model.NewId(),
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		CreateAt:  model.GetMillis(),
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			Title: "Attachment-only notification test",
+			Text:  "MM-EMAIL-ATTACHMENT-TEST",
+		},
+	})
+	notification := buildTestPostNotification(post, th.BasicChannel, th.BasicUser)
+
+	// Retry until the plugin is active and its content is the one being sent.
+	require.Eventually(t, func() bool {
+		emailNotification, err := th.App.sendNotificationEmail(th.Context, notification, th.BasicUser2, th.BasicTeam, nil)
+		return err == nil && emailNotification != nil && emailNotification.Subject == pluginSubject
+	}, 5*time.Second, 100*time.Millisecond)
+
+	for {
+		select {
+		case mail := <-sentMails:
+			if mail.subject != pluginSubject {
+				continue
+			}
+			require.NotContains(t, mail.body, "Attachment-only notification test")
+			require.NotContains(t, mail.body, "MM-EMAIL-ATTACHMENT-TEST")
+			return
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "the email with the plugin's content was not sent")
+		}
+	}
 }
