@@ -31,6 +31,7 @@ jobs:
     outputs:
       build-server-tag: ${{ steps.calculate.outputs.BUILD_SERVER_TAG }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
+      test-group-matrix: ${{ steps.test-groups.outputs.matrix }}
       # Individual jobs below use this to skip via `if:` rather
       # than the workflow being skipped entirely,
       # so required status checks always get reported.
@@ -46,6 +47,11 @@ jobs:
         run: |
           tag=$(./build/buildenv-tag.sh)
           echo "BUILD_SERVER_TAG=${tag}" >> "${GITHUB_OUTPUT}"
+      - name: Compute server test group matrix
+        id: test-groups
+        run: |
+          node server/scripts/test-groups.js check-codecov .github/codecov.yml
+          echo "matrix=$(node server/scripts/test-groups.js matrix)" >> "${GITHUB_OUTPUT}"
       - name: Check for go.mod changes
         id: changed-files
         uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323  # v47.0.5
@@ -175,15 +181,15 @@ jobs:
   # (runs Monday 1am EST / 5am UTC). Low regression risk doesn't justify
   # consuming 8-core runners on every push.
 
-  # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
+  # -- One job per server sub-component group, heavy groups sharded within --
+  # Groups, shard counts and runners are defined in server/scripts/test-groups.js.
   test-postgres-normal:
-    name: Postgres (shard ${{ matrix.shard }})
+    name: Postgres (${{ matrix.group }} shard ${{ matrix.shard }})
     needs: buildenv
     if: needs.buildenv.outputs.relevant-changed == 'true'
     strategy:
       fail-fast: false  # Let all shards complete so we get full test results
-      matrix:
-        shard: [0, 1, 2, 3]
+      matrix: ${{ fromJSON(needs.buildenv.outputs.test-group-matrix) }}
     permissions:
       contents: read
       actions: write
@@ -191,16 +197,18 @@ jobs:
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
-      name: "Postgres (shard ${{ matrix.shard }})"
+      name: "Postgres (${{ matrix.group }} shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      # Each shard gets a unique artifact name so they don't collide
-      logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
+      # Keep the -shard- prefix: the merge job downloads postgres-server-test-logs-shard-*
+      logsartifact: "postgres-server-test-logs-shard-${{ matrix.group }}-${{ matrix.shard }}"
       enablecoverage: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
       build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
       fips-enabled: false
+      test-group: ${{ matrix.group }}
       shard-index: ${{ matrix.shard }}
-      shard-total: 4
+      shard-total: ${{ matrix.shards }}
+      runner: ${{ matrix.runner }}
   # -- Merge test results (handles both single-run and future sharded runs) --
   merge-postgres-test-results:
     name: Merge Postgres Test Results
