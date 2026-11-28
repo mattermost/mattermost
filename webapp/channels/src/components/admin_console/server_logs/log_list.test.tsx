@@ -7,8 +7,11 @@ import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {Preferences} from 'mattermost-redux/constants';
 
+import ModalController from 'components/modal_controller';
+
 import {fakeNow} from 'tests/helpers/date';
 import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import LogList, {loadPrefs} from './log_list';
@@ -486,6 +489,20 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(screen.getByText('The search on node-c stopped at its limit.')).toBeInTheDocument();
             expect(screen.queryByText(/node-b/, {selector: '.LogViewer__notice-line'})).not.toBeInTheDocument();
             expect(screen.getByText("Older entries weren't searched.")).toBeInTheDocument();
+        });
+
+        test('should keep the notice and the partial download when the scan stopped before the time range', () => {
+            // Entries can be logged out of order, so the last line read doesn't bound the unread ones
+            renderListWith({
+                logs: [makeLog('in range', '2026-03-12T10:06:00.000Z')],
+                timeRange: 5,
+                timeRangeStart: Date.parse('2026-03-12T10:05:00.000Z'),
+                scanLimitedNodes: [{node: 'default', scannedBackTo: '2026-03-12 10:00:00.000 Z'}],
+            });
+            expect(screen.getByText('The search stopped before reaching older entries')).toBeInTheDocument();
+
+            fireEvent.click(screen.getByLabelText('Open menu to download the logs'));
+            expect(screen.getByText('Only the loaded entries are included')).toBeInTheDocument();
         });
 
         test('should only show the notice for the selected node', () => {
@@ -1379,5 +1396,200 @@ describe('components/admin_console/server_logs/LogList plugin filter', () => {
 
         fireEvent.click(pluginMenuItem('GitHub'), {ctrlKey: true});
         expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
+    });
+
+    describe('download menu', () => {
+        const originalCreate = URL.createObjectURL;
+        const originalRevoke = URL.revokeObjectURL;
+        let createObjectURL: jest.Mock;
+        let revokeObjectURL: jest.Mock;
+        let clickSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            createObjectURL = jest.fn(() => 'blob:test');
+            revokeObjectURL = jest.fn();
+            URL.createObjectURL = createObjectURL;
+            URL.revokeObjectURL = revokeObjectURL;
+            clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            URL.createObjectURL = originalCreate;
+            URL.revokeObjectURL = originalRevoke;
+            jest.restoreAllMocks();
+        });
+
+        function openDownloadMenu() {
+            fireEvent.click(screen.getByLabelText('Open menu to download the logs'));
+        }
+
+        test('should offer the full file and the filtered entries with their count', () => {
+            renderListWith({logs: makeLogs(3), downloadUrl: '/api/v4/logs/download'});
+            openDownloadMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Full log file'})).toHaveAttribute('href', '/api/v4/logs/download');
+            expect(screen.getByRole('menuitem', {name: /^Filtered entries \(3\)/})).toBeInTheDocument();
+            expect(screen.queryByText('Only the loaded entries are included')).not.toBeInTheDocument();
+        });
+
+        test('should say only the loaded entries are included when the list is truncated', () => {
+            renderListWith({logs: makeLogs(3), truncatedNodes: ['']});
+            openDownloadMenu();
+
+            expect(screen.getByText('Only the loaded entries are included')).toBeInTheDocument();
+        });
+
+        test('should download the filtered entries as JSON Lines', async () => {
+            renderListWith({logs: [
+                ...makeLogs(2),
+                makeLog('noisy', '2026-03-12T10:00:30.000Z', LogLevelEnum.DEBUG),
+            ]});
+
+            // Entries of a level that's turned off aren't on screen, so they aren't downloaded
+            openLevelsMenu();
+            fireEvent.click(levelMenuItem('Debug'));
+            fireEvent.keyDown(document.activeElement ?? document.body, {key: 'Escape'});
+            openDownloadMenu();
+            fireEvent.click(screen.getByRole('menuitem', {name: /^Filtered entries/}));
+
+            // The menu closes first, and the click handler runs after
+            await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+            const blob = createObjectURL.mock.calls[0][0] as Blob;
+            const text = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsText(blob);
+            });
+            const entries = text.split('\n').map((line) => JSON.parse(line));
+            expect(entries.map((entry) => entry.msg)).toEqual(['msg 1', 'msg 2']);
+            await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:test'));
+
+            expect(clickSpy).toHaveBeenCalledTimes(1);
+            const anchor = clickSpy.mock.contexts[0] as HTMLAnchorElement;
+            expect(anchor.href).toBe('blob:test');
+            expect(anchor.download).toMatch(/^mattermost-logs-filtered-\d{8}-\d{6}\.jsonl$/);
+        });
+
+        test('should keep file order for entries with the same time when sorted newest first (the default)', async () => {
+            const sameTime = '2026-03-12T10:00:01.000Z';
+            renderListWith({logs: [makeLog('first', sameTime), makeLog('second', sameTime), makeLog('later', '2026-03-12T10:00:05.000Z')]});
+
+            openDownloadMenu();
+            fireEvent.click(screen.getByRole('menuitem', {name: /^Filtered entries/}));
+
+            await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+            const text = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsText(createObjectURL.mock.calls[0][0] as Blob);
+            });
+            expect(text.split('\n').map((line) => JSON.parse(line).msg)).toEqual(['first', 'second', 'later']);
+        });
+
+        test('should say only the loaded entries are included when a node failed', () => {
+            renderListWith({logs: [...makeLogs(2), makeFailedNodeLog('node-b')]});
+            openDownloadMenu();
+
+            expect(screen.getByText('Only the loaded entries are included')).toBeInTheDocument();
+        });
+
+        test('should download the rows shown when the item was activated, not ones that arrive as the menu closes', async () => {
+            const setLogsRef: {current?: (logs: LogObjectWithAdditionalInfo[]) => void} = {};
+            function Harness() {
+                const [logs, set] = useState(makeLogs(2));
+                setLogsRef.current = set;
+                return (
+                    <StatefulLogList
+                        {...baseProps}
+                        logs={logs}
+                    />
+                );
+            }
+            renderWithContext(<Harness/>);
+            openDownloadMenu();
+            fireEvent.click(screen.getByRole('menuitem', {name: /^Filtered entries \(2\)/}));
+
+            // A poll lands while the menu is closing
+            act(() => setLogsRef.current?.([makeLog('older', '2026-03-12T09:00:00.000Z'), ...makeLogs(2)]));
+
+            await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+            const text = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsText(createObjectURL.mock.calls[0][0] as Blob);
+            });
+            expect(text.split('\n').map((line) => JSON.parse(line).msg)).toEqual(['msg 1', 'msg 2']);
+        });
+
+        test('should not count failed-node entries', () => {
+            renderListWith({logs: [...makeLogs(2), makeFailedNodeLog('node-b')]});
+            openDownloadMenu();
+
+            expect(screen.getByRole('menuitem', {name: /^Filtered entries \(2\)/})).toBeInTheDocument();
+        });
+
+        test('should disable the filtered entries while they may be stale', async () => {
+            renderListWith({logs: makeLogs(3), filteredDownloadReady: false});
+            openDownloadMenu();
+
+            const item = screen.getByRole('menuitem', {name: /^Filtered entries \(3\)/});
+            expect(item).toHaveAttribute('aria-disabled', 'true');
+            fireEvent.click(item);
+            await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Full log file'})).not.toBeInTheDocument());
+            expect(createObjectURL).not.toHaveBeenCalled();
+        });
+
+        test('should keep the count current in the mobile menu while it is open', async () => {
+            const mobileState = {views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}}};
+
+            // Updating state in place, as a poll does, rather than remounting the list
+            const setLogsRef: {current?: (logs: LogObjectWithAdditionalInfo[]) => void} = {};
+            function Harness() {
+                const [logs, set] = useState(makeLogs(2));
+                setLogsRef.current = set;
+                return (
+                    <>
+                        <StatefulLogList
+                            {...baseProps}
+                            logs={logs}
+                        />
+                        <ModalController/>
+                    </>
+                );
+            }
+            renderWithContext(<Harness/>, mobileState);
+            openDownloadMenu();
+            expect(await screen.findByRole('menuitem', {name: /^Filtered entries \(2\)/})).toBeInTheDocument();
+
+            // An older entry arrives while the modal is open (a newer one would be held back behind the new-entries notice)
+            act(() => setLogsRef.current?.([makeLog('older', '2026-03-12T09:00:00.000Z'), ...makeLogs(2)]));
+            expect(await screen.findByRole('menuitem', {name: /^Filtered entries \(3\)/})).toBeInTheDocument();
+        });
+
+        test('should disable the item in a mobile menu that outlives the list', async () => {
+            const mobileState = {views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}}};
+            const setShownRef: {current?: (shown: boolean) => void} = {};
+            function Harness() {
+                const [shown, set] = useState(true);
+                setShownRef.current = set;
+                return (
+                    <>
+                        {shown && (
+                            <StatefulLogList
+                                {...baseProps}
+                                logs={makeLogs(2)}
+                            />
+                        )}
+                        <ModalController/>
+                    </>
+                );
+            }
+            renderWithContext(<Harness/>, mobileState);
+            openDownloadMenu();
+            expect(await screen.findByRole('menuitem', {name: /^Filtered entries \(2\)/})).not.toHaveAttribute('aria-disabled', 'true');
+
+            act(() => setShownRef.current?.(false));
+            await waitFor(() => expect(screen.getByRole('menuitem', {name: /^Filtered entries \(0\)/})).toHaveAttribute('aria-disabled', 'true'));
+        });
     });
 });

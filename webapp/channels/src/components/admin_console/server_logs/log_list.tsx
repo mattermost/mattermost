@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import omit from 'lodash/omit';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -20,14 +21,15 @@ import {logEntryKey, logEntryTime, parseLogTimestamp} from 'mattermost-redux/uti
 
 import {isUseMilitaryTime} from 'selectors/preferences';
 
-import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useLatest} from 'hooks/useLatest';
 
 import CustomRangeModal from './custom_range_modal';
+import FilteredDownloadItem, {createFilteredDownloadStore} from './filtered_download_item';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, ScanLimitedLogNode, TimeRange} from './types';
@@ -42,6 +44,9 @@ type TimePreset = {
 
 type Props = {
     loading: boolean;
+
+    // False while the logs may not match the filters: a reload is pending, or the last one failed
+    filteredDownloadReady?: boolean;
     logs: LogObjectWithAdditionalInfo[];
 
     // Nodes that returned a full page, leaving out their older entries, so the total is a lower bound
@@ -229,10 +234,23 @@ function savePrefs(prefs: StoredPrefs) {
     }
 }
 
+const DownloadMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>(({children, ...props}, ref) => (
+    <Button
+        {...omit(props, 'count')}
+        ref={ref}
+        emphasis='primary'
+        size='medium'
+        leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
+    >
+        {children}
+    </Button>
+));
+DownloadMenuTrigger.displayName = 'DownloadMenuTrigger';
+
 const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
 
 export default function LogList({
-    loading, logs, truncatedNodes, scanLimitedNodes = NO_SCAN_LIMITED_NODES, onSearchChange, search,
+    loading, filteredDownloadReady = true, logs, truncatedNodes, scanLimitedNodes = NO_SCAN_LIMITED_NODES, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     nodes, selectedNode, onSelectedNodeChange,
     plugins, selectedPlugins, onSelectedPluginsChange,
@@ -357,6 +375,12 @@ export default function LogList({
 
     const allLevelsEnabled = useMemo(() => LEVEL_GROUPS.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
+    // The entries a filtered download holds, in file order. Sorting for the viewer would reverse same-time ties
+    const exportLogs = useMemo(
+        () => filterLogs(scopedLogs, enabledLevels).filter((log) => log.failed_node !== true),
+        [scopedLogs, enabledLevels],
+    );
+
     const processedLogs = useMemo(() => {
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
@@ -402,6 +426,18 @@ export default function LogList({
     const matchCount = search ? processedLogs.length : null;
     const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
     const scanLimited = scanLimitedNodes.filter(({node}) => !selectedNode || node === selectedNode);
+
+    // The menu item reads this rather than props, since on mobile the menu shows a copy made when it opened.
+    // Search and plugin filters were applied by the server
+    // A node that couldn't be reached is left out of the file too
+    const partialExport = truncated || scanLimited.length > 0 || scopedLogs.some((log) => log.failed_node === true);
+    const [downloadStore] = useState(() => createFilteredDownloadStore({rows: exportLogs, partial: partialExport, ready: filteredDownloadReady}));
+    useLayoutEffect(() => {
+        downloadStore.set({rows: exportLogs, partial: partialExport, ready: filteredDownloadReady});
+    }, [downloadStore, exportLogs, partialExport, filteredDownloadReady]);
+
+    // A mobile menu modal can outlive this list (Logs remounts it with viewKey), so it must see nothing to download
+    useEffect(() => () => downloadStore.set({rows: [], partial: false, ready: false}), [downloadStore]);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -983,22 +1019,37 @@ export default function LogList({
                     defaultMessage='Reload'
                 />
             </Button>
-            <Button
-                asChild={true}
-                emphasis='primary'
-                size='medium'
-                leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
+            <Menu.Container
+                menuButton={{
+                    id: 'serverLogsDownloadMenuButton',
+                    as: DownloadMenuTrigger,
+                    'aria-label': intl.formatMessage({id: 'admin.logs.download.menuButtonAriaLabel', defaultMessage: 'Open menu to download the logs'}),
+                    children: (
+                        <FormattedMessage
+                            id='admin.logs.DownloadLogs'
+                            defaultMessage='Download'
+                        />
+                    ),
+                }}
+                menu={{
+                    id: 'serverLogsDownloadMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.download.dropdownAriaLabel', defaultMessage: 'Download menu'}),
+                }}
             >
-                <ExternalLink
+                <Menu.ItemExternalLink
+                    id='serverLogsDownloadFull'
                     location='download_logs'
                     href={downloadUrl}
-                >
-                    <FormattedMessage
-                        id='admin.logs.DownloadLogs'
-                        defaultMessage='Download'
-                    />
-                </ExternalLink>
-            </Button>
+                    forceCloseOnSelect={true}
+                    labels={
+                        <FormattedMessage
+                            id='admin.logs.download.fullFile'
+                            defaultMessage='Full log file'
+                        />
+                    }
+                />
+                <FilteredDownloadItem store={downloadStore}/>
+            </Menu.Container>
         </div>
     );
 
@@ -1125,6 +1176,7 @@ export default function LogList({
                             values={{
                                 clearLink: (
                                     <button
+                                        key='clearFilters'
                                         className='btn btn-link'
                                         onClick={() => {
                                             clearSearch();
