@@ -2752,7 +2752,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "Cho phép webhook đến đăng bài vào bất kỳ kênh nào mà không yêu cầu kênh mặc định bị khóa.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Bỏ qua khóa kênh",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Chuyển đổi kênh riêng tư thành công khai",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "Chuyển đổi kênh",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "Chuyển thành công khai",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Chuyển đổi kênh công khai thành riêng tư",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Chuyển đổi kênh",
   "admin.permissions.permission.create_custom_group.description": "Tạo nhóm tuỳ chỉnh.",

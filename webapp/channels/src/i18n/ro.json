@@ -2752,7 +2752,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "Permiteți webhook-urilor de intrare să posteze în orice canal, fără a necesita un canal implicit blocat.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Ocoliți blocarea canalului",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Convertiți canalele private în publice",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "Conversia canalelor",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "Convertiți în public",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Convertiți canalele publice în private",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Conversia canalelor",
   "admin.permissions.permission.create_custom_group.description": "Creați grupuri personalizate.",

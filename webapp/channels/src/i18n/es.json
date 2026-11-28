@@ -2752,7 +2752,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "Permitir que los webhooks de entrada publiquen en cualquier canal sin requerir un canal predeterminado bloqueado.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Omitir el Bloqueo de Canal",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Convertir canales privados a públicos",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "Convertir canales",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "Convertir a público",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Convertir canales públicos a privados",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Convertir canales",
   "admin.permissions.permission.create_custom_group.description": "Crea grupos personalizados.",
