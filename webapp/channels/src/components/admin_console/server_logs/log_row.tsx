@@ -108,7 +108,14 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
 
 const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
-function CopyButton({value}: {value: string}) {
+type CopyButtonProps = {
+    value: string;
+
+    // Names what's copied where the generic label isn't enough
+    label?: string;
+};
+
+function CopyButton({value, label}: CopyButtonProps) {
     const intl = useIntl();
     const [status, copy] = useClipboardCopy();
 
@@ -123,10 +130,39 @@ function CopyButton({value}: {value: string}) {
             type='button'
             className='LogRow__copy-btn btn btn-icon btn-xs btn-compact'
             onClick={handleCopy}
-            aria-label={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
+            aria-label={label ?? intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
             <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
         </button>
+    );
+}
+
+// Keeps a press from moving focus, which would otherwise go to the row summary around the shortcut
+function preventFocus(e: React.MouseEvent) {
+    e.preventDefault();
+}
+
+// The row's copy icon for the node: a pointer shortcut for the labelled button in the details. It isn't a control,
+// as it sits inside the row summary, which is a button itself; being a span it can't take focus, and it's hidden
+// from assistive tech, which reaches the same action in the details
+function NodeCopyShortcut({value}: {value: string}) {
+    const [status, copy] = useClipboardCopy();
+
+    const handleCopy = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        copy(value);
+    }, [copy, value]);
+
+    return (
+        <span
+            className='LogRow__copy-btn LogRow__node-copy-btn btn btn-icon btn-xs btn-compact'
+            aria-hidden='true'
+            onMouseDown={preventFocus}
+            onClick={handleCopy}
+        >
+            <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
+        </span>
     );
 }
 
@@ -201,6 +237,9 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
     const copyJsonSuccess = copyJsonStatus === 'copied';
     const copyLineSuccess = copyLineStatus === 'copied';
     const levelConfig = LEVEL_CONFIG[log.level];
+    const intl = useIntl();
+    const node = showNode ? log[LogNodeKey] : undefined;
+    const copyNodeLabel = intl.formatMessage({id: 'admin.logs.copyNode', defaultMessage: 'Copy node name'});
 
     // Levels such as fatal or trace keep their own name but take their group's color
     const group = levelGroup(log.level);
@@ -290,11 +329,14 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                     {formatLogRowTime(log, timezone, timeFormat)}
                 </span>
                 {showNode && (
-                    <span
-                        className='LogRow__node'
-                        title={log[LogNodeKey]}
-                    >
-                        {log[LogNodeKey]}
+                    <span className='LogRow__node'>
+                        <span
+                            className='LogRow__node-text'
+                            title={log[LogNodeKey]}
+                        >
+                            {log[LogNodeKey]}
+                        </span>
+                        {node && <NodeCopyShortcut value={node}/>}
                     </span>
                 )}
                 <span className='LogRow__message'>
@@ -316,7 +358,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                     className='LogRow__details'
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className='LogRow__details-core'>
+                    <div className={`LogRow__details-core${node ? ' LogRow__details-core--with-node' : ''}`}>
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
                                 <FormattedMessage
@@ -326,6 +368,23 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                             </span>
                             <span className='LogRow__detail-value LogRow__detail-value--mono'>{log.timestamp}</span>
                         </div>
+                        {node && (
+                            <div className='LogRow__detail-item'>
+                                <span className='LogRow__detail-label'>
+                                    <FormattedMessage
+                                        id='admin.logs.detail.node'
+                                        defaultMessage='Node'
+                                    />
+                                </span>
+                                <span className='LogRow__detail-value LogRow__detail-value--mono'>
+                                    {node}
+                                    <CopyButton
+                                        value={node}
+                                        label={copyNodeLabel}
+                                    />
+                                </span>
+                            </div>
+                        )}
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
                                 <FormattedMessage

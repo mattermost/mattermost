@@ -27,6 +27,8 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useLatest} from 'hooks/useLatest';
 
+import ColumnResizeHandle, {COLUMN_WIDTH_BOUNDS, clampColumnWidth} from './column_resize_handle';
+import type {ColumnWidths, ResizableColumn} from './column_resize_handle';
 import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
@@ -115,6 +117,8 @@ const messages = defineMessages({
     plugin: {id: 'admin.logs.plugin', defaultMessage: 'Plugin'},
 });
 
+const RESIZABLE_COLUMNS: ResizableColumn[] = ['timestamp', 'node', 'caller'];
+
 const PREFS_KEY = 'mm_admin_logs_prefs';
 
 const LIVE_TAIL_UNAVAILABLE_ID = 'serverLogsLiveTailUnavailable';
@@ -125,6 +129,7 @@ type StoredPrefs = {
     enabledLevels: string[];
     sortAsc: boolean;
     node: string;
+    columnWidths: ColumnWidths;
 };
 
 const DEFAULT_PREFS: StoredPrefs = {
@@ -133,6 +138,7 @@ const DEFAULT_PREFS: StoredPrefs = {
     enabledLevels: [...LEVEL_GROUPS],
     sortAsc: false,
     node: '',
+    columnWidths: {},
 };
 
 // Stored prefs may predate the current shape, so every field is validated
@@ -154,12 +160,24 @@ export function loadPrefs(): StoredPrefs {
         (level): level is string => LEVEL_GROUPS.includes(level as typeof LEVEL_GROUPS[number]),
     ) : [];
 
+    const columnWidths: ColumnWidths = {};
+    const storedWidths = stored.columnWidths as Record<string, unknown> | null | undefined;
+    if (storedWidths && typeof storedWidths === 'object') {
+        for (const column of RESIZABLE_COLUMNS) {
+            const width = storedWidths[column];
+            if (typeof width === 'number' && Number.isFinite(width)) {
+                columnWidths[column] = clampColumnWidth(column, width);
+            }
+        }
+    }
+
     return {
         pageSize: PAGE_SIZES.includes(stored.pageSize as typeof PAGE_SIZES[number]) ? stored.pageSize! : DEFAULT_PREFS.pageSize,
         wrapText: typeof stored.wrapText === 'boolean' ? stored.wrapText : DEFAULT_PREFS.wrapText,
         enabledLevels: levels.length > 0 ? levels : DEFAULT_PREFS.enabledLevels,
         sortAsc: typeof stored.sortAsc === 'boolean' ? stored.sortAsc : DEFAULT_PREFS.sortAsc,
         node: typeof stored.node === 'string' ? stored.node : DEFAULT_PREFS.node,
+        columnWidths,
     };
 }
 
@@ -221,11 +239,29 @@ function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<stri
     });
 }
 
-function savePrefs(prefs: StoredPrefs) {
+// Width changes a failed save left unwritten, null for a reset. Kept outside the list, as the viewer remounts it
+// on reload, and replayed over the stored widths until a save succeeds
+let pendingColumnWidths: Partial<Record<ResizableColumn, number | null>> = {};
+
+function withPendingColumnWidths(stored: ColumnWidths): ColumnWidths {
+    const next = {...stored};
+    for (const column of RESIZABLE_COLUMNS) {
+        const pending = pendingColumnWidths[column];
+        if (pending === null) {
+            delete next[column];
+        } else if (pending !== undefined) {
+            next[column] = pending;
+        }
+    }
+    return next;
+}
+
+function savePrefs(prefs: StoredPrefs): boolean {
     try {
         localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+        return true;
     } catch {
-        // ignore
+        return false;
     }
 }
 
@@ -257,6 +293,10 @@ export default function LogList({
     // Tracked by content so a reload keeps the selection on the same entry
     const [focusedKey, setFocusedKey] = useState<string | null>(null);
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
+
+    // Only committed widths are saved; a drag keeps its live width apart so each pointer move doesn't write
+    const [columnWidths, setColumnWidths] = useState<ColumnWidths>(initialPrefs.columnWidths);
+    const [liveWidths, setLiveWidths] = useState<ColumnWidths | null>(null);
 
     // Kept local so typing repaints the input without waiting for the debounced query
     const [searchInput, setSearchInput] = useState(search);
@@ -295,8 +335,72 @@ export default function LogList({
             enabledLevels: Array.from(enabledLevels),
             sortAsc,
             node: selectedNode,
+
+            // Widths are saved per column on commit, so another tab's widths aren't overwritten with this tab's copy
+            columnWidths: loadPrefs().columnWidths,
         });
     }, [pageSize, wrapText, enabledLevels, sortAsc, selectedNode]);
+
+    const handleColumnResize = useCallback((column: ResizableColumn, width: number) => {
+        setLiveWidths((prev) => ({...prev, [column]: width}));
+    }, []);
+
+    // A commit clears only its own column's live width, so another column's drag carries on
+    const clearLiveWidth = useCallback((column: ResizableColumn) => {
+        setLiveWidths((prev) => {
+            if (!prev || !(column in prev)) {
+                return prev;
+            }
+            const rest = {...prev};
+            delete rest[column];
+            return Object.keys(rest).length ? rest : null;
+        });
+    }, []);
+
+    // Saved on the spot, as a list that's replaced (the viewer remounts it on reload) wouldn't run its save effect
+    const columnWidthsRef = useLatest(columnWidths);
+
+    const updateColumnWidths = useCallback((column: ResizableColumn, value: number | undefined) => {
+        pendingColumnWidths[column] = value ?? null;
+
+        // Applied to the stored widths, as another tab may have changed its other columns since this one loaded
+        const next = withPendingColumnWidths(loadPrefs().columnWidths);
+
+        // Set now, as useLatest only catches up after render, and a key press and a release can commit in one batch
+        columnWidthsRef.current = next;
+        setColumnWidths(next);
+        if (savePrefs({...loadPrefs(), columnWidths: next})) {
+            pendingColumnWidths = {};
+        }
+    }, [columnWidthsRef]);
+
+    // A replacement list (the viewer remounts it on reload) reads the prefs while rendering, before the old list's
+    // handle saves a drag in progress when it unmounts. Passive unmount cleanups run before mount effects, so the
+    // saved width, or the pending one if that save failed, is there to be read here, and a pending one is retried
+    useEffect(() => {
+        const next = withPendingColumnWidths(loadPrefs().columnWidths);
+        if (RESIZABLE_COLUMNS.some((column) => next[column] !== columnWidthsRef.current[column])) {
+            columnWidthsRef.current = next;
+            setColumnWidths(next);
+        }
+        if (Object.keys(pendingColumnWidths).length > 0 && savePrefs({...loadPrefs(), columnWidths: next})) {
+            pendingColumnWidths = {};
+        }
+    }, [columnWidthsRef]);
+
+    const handleColumnCommit = useCallback((column: ResizableColumn, width: number) => {
+        clearLiveWidth(column);
+        if (columnWidthsRef.current[column] !== width || loadPrefs().columnWidths[column] !== width) {
+            updateColumnWidths(column, width);
+        }
+    }, [clearLiveWidth, columnWidthsRef, updateColumnWidths]);
+
+    const handleColumnReset = useCallback((column: ResizableColumn) => {
+        clearLiveWidth(column);
+        if (columnWidthsRef.current[column] !== undefined || loadPrefs().columnWidths[column] !== undefined) {
+            updateColumnWidths(column, undefined);
+        }
+    }, [clearLiveWidth, columnWidthsRef, updateColumnWidths]);
 
     // Live tail entries newer than `shown` are held back until the admin is ready for them, and
     // those newer than `highlight` just arrived on that page. Null during a full load, which is shown as is
@@ -1021,12 +1125,32 @@ export default function LogList({
         );
     }
 
+    // A dragged column's live width wins over its saved one
+    const widths = liveWidths ? {...columnWidths, ...liveWidths} : columnWidths;
+    const nodeWidth = widths.node ?? COLUMN_WIDTH_BOUNDS.node.fallback;
+    const callerWidth = widths.caller ?? COLUMN_WIDTH_BOUNDS.caller.fallback;
+    const viewerStyle: Record<string, string | number> = {
+
+        // Sizes the time column to the longest time this format gives
+        '--log-timestamp-chars': logRowTimeLength(timeFormat),
+
+        // CSS can't divide lengths, so the share of the row's shortfall the node column takes is passed as a number
+        '--log-node-share': Math.round((nodeWidth / (nodeWidth + callerWidth)) * 10000) / 10000,
+    };
+    if (widths.timestamp !== undefined) {
+        viewerStyle['--log-timestamp-width'] = `${widths.timestamp}px`;
+    }
+    if (widths.node !== undefined) {
+        viewerStyle['--log-node-width'] = `${widths.node}px`;
+    }
+    if (widths.caller !== undefined) {
+        viewerStyle['--log-caller-width'] = `${widths.caller}px`;
+    }
+
     return (
         <div
-            className='LogViewer'
-
-            // Sizes the time column to the longest time this format gives
-            style={{'--log-timestamp-chars': logRowTimeLength(timeFormat)} as React.CSSProperties}
+            className={classNames('LogViewer', {'LogViewer--resizing': liveWidths !== null})}
+            style={viewerStyle as React.CSSProperties}
             onKeyDown={handleKeyDown}
         >
             {filters}
@@ -1071,33 +1195,61 @@ export default function LogList({
                 />
             )}
 
-            <div className='LogViewer__header'>
+            {/* The rows don't scroll sideways, so neither may the header. It stays overflow: hidden, as scrollbar-gutter needs it */}
+            <div
+                className='LogViewer__header'
+                onScroll={(e) => {
+                    e.currentTarget.scrollLeft = 0;
+                }}
+            >
                 <span className='LogViewer__header-level'>
                     <FormattedMessage
                         id='admin.logs.header.level'
                         defaultMessage='Level'
                     />
                 </span>
-                <button
-                    className='LogViewer__header-timestamp'
-                    onClick={toggleSort}
-                    type='button'
-                    aria-sort={sortAsc ? 'ascending' : 'descending'}
-                >
-                    <FormattedMessage
-                        id='admin.logs.header.time'
-                        defaultMessage='Time'
+                <span className='LogViewer__header-timestamp'>
+                    <button
+                        className='LogViewer__header-sort'
+                        onClick={toggleSort}
+                        type='button'
+                        aria-sort={sortAsc ? 'ascending' : 'descending'}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.header.time'
+                            defaultMessage='Time'
+                        />
+                        <i
+                            className={`icon ${sortAsc ? 'icon-arrow-up' : 'icon-arrow-down'}`}
+                            aria-hidden='true'
+                        />
+                    </button>
+                    <ColumnResizeHandle
+                        column='timestamp'
+                        label={intl.formatMessage({id: 'admin.logs.header.time', defaultMessage: 'Time'})}
+                        width={widths.timestamp}
+                        edge='end'
+                        onResize={handleColumnResize}
+                        onCommit={handleColumnCommit}
+                        onReset={handleColumnReset}
+                        onCancel={clearLiveWidth}
                     />
-                    <i
-                        className={`icon ${sortAsc ? 'icon-arrow-up' : 'icon-arrow-down'}`}
-                        aria-hidden='true'
-                    />
-                </button>
+                </span>
                 {showNodes && (
                     <span className='LogViewer__header-node'>
                         <FormattedMessage
                             id='admin.logs.header.node'
                             defaultMessage='Node'
+                        />
+                        <ColumnResizeHandle
+                            column='node'
+                            label={intl.formatMessage({id: 'admin.logs.header.node', defaultMessage: 'Node'})}
+                            width={widths.node}
+                            edge='end'
+                            onResize={handleColumnResize}
+                            onCommit={handleColumnCommit}
+                            onReset={handleColumnReset}
+                            onCancel={clearLiveWidth}
                         />
                     </span>
                 )}
@@ -1111,6 +1263,18 @@ export default function LogList({
                     <FormattedMessage
                         id='admin.logs.header.caller'
                         defaultMessage='Caller'
+                    />
+
+                    {/* Right-aligned, so its edge toward the message is the left one */}
+                    <ColumnResizeHandle
+                        column='caller'
+                        label={intl.formatMessage({id: 'admin.logs.header.caller', defaultMessage: 'Caller'})}
+                        width={widths.caller}
+                        edge='start'
+                        onResize={handleColumnResize}
+                        onCommit={handleColumnCommit}
+                        onReset={handleColumnReset}
+                        onCancel={clearLiveWidth}
                     />
                 </span>
             </div>

@@ -9899,6 +9899,10 @@
     "defaultMessage": "Copy log line",
     "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the raw log line to the clipboard."
   },
+  "admin.logs.copyNode": {
+    "defaultMessage": "Copy node name",
+    "description": "Accessible label for the icon button that copies the cluster node name of a log entry, in the entry's row and in its expanded details, on the System Console Server Logs page."
+  },
   "admin.logs.copyToClipboard": {
     "defaultMessage": "Copy to clipboard",
     "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."
@@ -9930,6 +9934,10 @@
   "admin.logs.detail.caller": {
     "defaultMessage": "Caller",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
+  },
+  "admin.logs.detail.node": {
+    "defaultMessage": "Node",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the name of the cluster node that wrote the entry follows."
   },
   "admin.logs.detail.timestamp": {
     "defaultMessage": "Timestamp",
@@ -9982,6 +9990,14 @@
   "admin.logs.header.node": {
     "defaultMessage": "Node",
     "description": "Column header on the System Console Server Logs page; the cluster node each log entry came from."
+  },
+  "admin.logs.header.resizeColumn": {
+    "defaultMessage": "Resize {column} column",
+    "description": "Accessible label for the draggable divider beside a column header on the System Console Server Logs page; {column} is the column's header name, such as Time, Node or Caller."
+  },
+  "admin.logs.header.resizeHint": {
+    "defaultMessage": "Drag or use the arrow keys to resize. Double-click or press Enter to reset.",
+    "description": "Tooltip and accessible description on the draggable divider beside a column header on the System Console Server Logs page; explains how to resize the column and reset it to its default width."
   },
   "admin.logs.header.time": {
     "defaultMessage": "Time",

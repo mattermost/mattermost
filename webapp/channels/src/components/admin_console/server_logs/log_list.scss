@@ -132,10 +132,17 @@
         flex-shrink: 0;
     }
 
+    // Holds the sort button and the resize handle, as a handle can't sit inside a button
     &__header-timestamp {
-        display: inline-flex;
+        position: relative;
+        display: flex;
         width: log_viewer.$timestamp-column-width;
         flex-shrink: 0;
+        align-items: center;
+    }
+
+    &__header-sort {
+        display: inline-flex;
         align-items: center;
         padding: 0;
         border: none;
@@ -159,6 +166,8 @@
     // Must flex like the row cells so the columns line up
     &__header-node {
         @include log_viewer.node-column;
+
+        position: relative;
     }
 
     &__header-message {
@@ -168,9 +177,62 @@
     &__header-caller {
         @include log_viewer.caller-column;
 
+        position: relative;
+
         // Stands in for the gap and the expand chevron beside the row's caller
         margin-inline-end: log_viewer.$column-gap + log_viewer.$expand-indicator-width;
         text-align: right;
+    }
+
+    // Spans the header's height (its vertical padding is the -12px), centered on the gap beside the column so it's easy to grab
+    &__resize-handle {
+        position: absolute;
+        z-index: 1;
+        top: -12px;
+        bottom: -12px;
+        width: log_viewer.$column-gap;
+        cursor: col-resize;
+        outline: none;
+        touch-action: none;
+
+        &::after {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: calc((#{log_viewer.$column-gap} - 4px) / 2);
+            width: 4px;
+            border-radius: var(--radius-xs);
+            background: var(--button-bg);
+            content: '';
+            opacity: 0;
+        }
+
+        &:hover::after,
+        &:focus-visible::after {
+            opacity: 1;
+        }
+
+        &--end {
+            right: -1 * log_viewer.$column-gap;
+        }
+
+        &--start {
+            left: -1 * log_viewer.$column-gap;
+        }
+    }
+
+    // Keeps the pointer from selecting text or flickering cursors while a handle is dragged
+    &--resizing {
+        cursor: col-resize;
+        user-select: none;
+
+        .LogViewer__resize-handle::after {
+            opacity: 1;
+        }
+
+        * {
+            cursor: col-resize !important;
+        }
     }
 
     // ---------------------
@@ -379,11 +441,31 @@
     &__node {
         @include log_viewer.node-column;
 
+        display: flex;
         overflow: hidden;
+        align-items: center;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
+        gap: 2px;
+    }
+
+    &__node-text {
+        overflow: hidden;
+        min-width: 0;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    // Out of the layout until the row is hovered or focused, so it takes no room from the node name the rest of the time.
+    // btn-compact is already 20px, which fits the row's line height. The extra class beats .btn's display
+    &__node &__node-copy-btn {
+        display: none;
+    }
+
+    &__main:hover &__node-copy-btn,
+    &__main:focus-within &__node-copy-btn,
+    &--focused &__node &__node-copy-btn {
+        display: inline-flex;
     }
 
     &__message {
@@ -446,6 +528,10 @@
         display: grid;
         gap: 12px 24px;
         grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+
+        &--with-node {
+            grid-template-columns: minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr);
+        }
     }
 
     &__details-grid {

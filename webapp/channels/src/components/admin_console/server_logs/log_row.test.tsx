@@ -547,7 +547,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
             const node = document.querySelector('.LogRow__node');
             expect(node).toHaveTextContent('node-a');
-            expect(node).toHaveAttribute('title', 'node-a');
+            expect(document.querySelector('.LogRow__node-text')).toHaveAttribute('title', 'node-a');
             expect(getRow()).toHaveClass('LogRow--with-node');
         });
 
@@ -564,6 +564,90 @@ describe('components/admin_console/server_logs/LogRow', () => {
             const extraKeys = Array.from(document.querySelectorAll('.LogRow__details-grid .LogRow__detail-label')).
                 map((el) => el.textContent);
             expect(extraKeys).toEqual(['job_id', 'worker']);
+        });
+
+        test('should show the node in the details with a copy button', async () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const label = screen.getByText('Node');
+            const value = label.nextElementSibling as HTMLElement;
+            expect(value).toHaveTextContent('node-a');
+            expect(document.querySelector('.LogRow__details-core')).toHaveClass('LogRow__details-core--with-node');
+
+            await userEvent.click(value.querySelector('.LogRow__copy-btn')!);
+
+            expect(writeText).toHaveBeenCalledWith('node-a');
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
+        });
+
+        test('should not move focus when the row copy shortcut is pressed', () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const shortcut = document.querySelector('.LogRow__node-copy-btn')!;
+            const detailsButton = screen.getByRole('button', {name: 'Copy node name'});
+
+            // fireEvent returns false when the default was prevented
+            expect(fireEvent.mouseDown(shortcut)).toBe(false);
+            expect(fireEvent.mouseDown(detailsButton)).toBe(true);
+        });
+
+        test('should expose only the details copy button to assistive tech', () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const buttons = screen.getAllByRole('button', {name: 'Copy node name'});
+            expect(buttons).toHaveLength(1);
+            expect(buttons[0].closest('.LogRow__details')).not.toBeNull();
+        });
+
+        test('should copy the node from the details with the keyboard without toggling the row', async () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            // The row's own button is hidden from assistive technology, so this is the details one
+            const button = screen.getByRole('button', {name: 'Copy node name'});
+            expect(button.closest('.LogRow__details')).not.toBeNull();
+            act(() => {
+                screen.getByRole('button', {expanded: true}).focus();
+            });
+
+            // The node copy button is the first control after the summary
+            await userEvent.tab();
+            expect(button).toHaveFocus();
+
+            await userEvent.keyboard('{Enter}');
+
+            expect(writeText).toHaveBeenCalledWith('node-a');
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
+        });
+
+        test('should not show a node detail without showNode', () => {
+            renderLogRow({log: nodeLog, isExpanded: true});
+
+            expect(screen.queryByText('Node')).not.toBeInTheDocument();
+            expect(document.querySelector('.LogRow__details-core')).not.toHaveClass('LogRow__details-core--with-node');
+        });
+
+        test('should not show a node detail when the log has no node', () => {
+            renderLogRow({showNode: true, isExpanded: true});
+
+            expect(screen.queryByText('Node')).not.toBeInTheDocument();
+            expect(document.querySelector('.LogRow__node .LogRow__copy-btn')).not.toBeInTheDocument();
+            expect(document.querySelector('.LogRow__details-core')).not.toHaveClass('LogRow__details-core--with-node');
+        });
+
+        test('should copy the node from the row without expanding it', async () => {
+            renderLogRow({log: nodeLog, showNode: true});
+
+            // A non-focusable decoration hidden from assistive tech, not a control nested in the row summary
+            const shortcut = document.querySelector('.LogRow__node .LogRow__copy-btn') as HTMLElement;
+            expect(shortcut.tagName).toBe('SPAN');
+            expect(shortcut).not.toHaveAttribute('tabindex');
+            expect(shortcut).toHaveAttribute('aria-hidden', 'true');
+            expect(document.querySelector('.LogRow__node-text')).toHaveAttribute('title', 'node-a');
+
+            await userEvent.click(shortcut);
+
+            expect(writeText).toHaveBeenCalledWith('node-a');
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });
 
         test('should copy the log as JSON without the node', async () => {
