@@ -102,15 +102,31 @@ func getMemoryDiagnostics(cgroupV2Info) (memoryDiagnostics, error) {
 	// which the kernel can reclaim without swapping.
 	var availablePages uint64
 	for _, name := range availablePageSysctls {
-		pages, err := unix.SysctlUint32(name)
+		raw, err := unix.SysctlRaw(name)
 		if err != nil {
 			return diagnostics, fmt.Errorf("failed to get %s: %w", name, err)
 		}
-		availablePages += uint64(pages)
+		pages, err := decodePageCount(raw)
+		if err != nil {
+			return diagnostics, fmt.Errorf("decode %s: %w", name, err)
+		}
+		availablePages += pages
 	}
 	diagnostics.AvailableMemoryMB = new(availablePages * uint64(pageSize) / (1024 * 1024))
 
 	return diagnostics, nil
+}
+
+// decodePageCount accepts 4 or 8 bytes, since some page counts are 64-bit on newer macOS.
+func decodePageCount(raw []byte) (uint64, error) {
+	switch len(raw) {
+	case 4:
+		return uint64(binary.NativeEndian.Uint32(raw)), nil
+	case 8:
+		return binary.NativeEndian.Uint64(raw), nil
+	default:
+		return 0, fmt.Errorf("unexpected length %d", len(raw))
+	}
 }
 
 func decodeSwapUsage(raw []byte) (xswUsage, error) {

@@ -133,6 +133,29 @@ func TestDecodeSwapUsage(t *testing.T) {
 	})
 }
 
+func TestDecodePageCount(t *testing.T) {
+	t.Run("decodes 32-bit counts", func(t *testing.T) {
+		raw := binary.NativeEndian.AppendUint32(nil, math.MaxUint32)
+		pages, err := decodePageCount(raw)
+		require.NoError(t, err)
+		assert.Equal(t, uint64(math.MaxUint32), pages)
+	})
+
+	t.Run("decodes 64-bit counts", func(t *testing.T) {
+		raw := binary.NativeEndian.AppendUint64(nil, math.MaxUint32+1)
+		pages, err := decodePageCount(raw)
+		require.NoError(t, err)
+		assert.Equal(t, uint64(math.MaxUint32+1), pages)
+	})
+
+	t.Run("rejects other lengths", func(t *testing.T) {
+		for _, n := range []int{0, 2, 6, 16} {
+			_, err := decodePageCount(make([]byte, n))
+			require.Error(t, err, "length %d", n)
+		}
+	})
+}
+
 func TestGetCPUStats(t *testing.T) {
 	before := sysctlLoadAvg(t)
 	stats, err := getCPUStats(cgroupV2Info{})
