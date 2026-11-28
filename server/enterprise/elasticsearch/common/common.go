@@ -302,6 +302,14 @@ func BuildPostIndexName(aggregateAfterDays int, unaggregatedBase string, aggrega
 	return fmt.Sprintf("%v_%d_%02d_%02d", unaggregatedBase, postTime.Year(), postTime.Month(), postTime.Day())
 }
 
+// BulkRequestTimeoutFloor is the least time a _bulk request may take.
+const BulkRequestTimeoutFloor = 120 * time.Second
+
+// BulkRequestTimeout returns the bulk timeout for the configured seconds.
+func BulkRequestTimeout(seconds int) time.Duration {
+	return max(time.Duration(seconds)*time.Second, BulkRequestTimeoutFloor)
+}
+
 func NumIndexWorkers() int {
 	const maxCPU = 4
 	if runtime.NumCPU() > maxCPU {

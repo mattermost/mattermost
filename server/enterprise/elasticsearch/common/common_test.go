@@ -674,3 +674,20 @@ func TestGetMatchesForHit(t *testing.T) {
 		require.ElementsMatch(t, []string{"deployment", "deploy", "release", "rollback", "café", "日本語", "🚀"}, actual)
 	})
 }
+
+func TestBulkRequestTimeout(t *testing.T) {
+	tests := []struct {
+		name    string
+		seconds int
+		want    time.Duration
+	}{
+		{"below floor is raised", 30, 120 * time.Second},
+		{"at floor is kept", 120, 120 * time.Second},
+		{"above floor is kept", 300, 300 * time.Second},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, BulkRequestTimeout(tc.seconds))
+		})
+	}
+}
