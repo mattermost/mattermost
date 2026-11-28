@@ -13,7 +13,7 @@ import (
 // Based off of extensions/autolink.c from https://github.com/github/cmark
 
 var (
-	DefaultURLSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
+	DefaultURLSchemes = []string{"http", "https", "ftp", "mailto", "tel", "gemini"}
 	wwwAutoLinkRegex  = regexp.MustCompile(`^www\d{0,3}\.`)
 )
 
