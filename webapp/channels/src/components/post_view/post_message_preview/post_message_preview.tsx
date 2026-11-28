@@ -150,21 +150,23 @@ const PostMessagePreview = (props: Props) => {
         >
             <div className='post-preview'>
                 <div className='post-preview__header'>
-                    <div className='col col__name'>
-                        <div className='post__img'>
-                            <span className='profile-icon'>
-                                {
-                                    user &&
-                                    <PreviewPostAvatar
-                                        post={previewPost}
-                                        user={user}
-                                        enablePostIconOverride={props.enablePostIconOverride}
-                                        hasImageProxy={props.hasImageProxy}
-                                    />
-                                }
-                            </span>
+                    {!compactDisplay && (
+                        <div className='col col__name'>
+                            <div className='post__img'>
+                                <span className='profile-icon'>
+                                    {
+                                        user &&
+                                        <PreviewPostAvatar
+                                            post={previewPost}
+                                            user={user}
+                                            enablePostIconOverride={props.enablePostIconOverride}
+                                            hasImageProxy={props.hasImageProxy}
+                                        />
+                                    }
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                     <div className={classNames('col col__name', 'permalink--username')}>
                         <UserProfileComponent
                             userId={user?.id ?? ''}

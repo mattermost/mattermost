@@ -196,6 +196,37 @@ describe('PostMessagePreview', () => {
         expect(permalink).not.toBeInTheDocument();
     });
 
+    describe('avatar column', () => {
+        test('should render the avatar column in the header with standard message display', () => {
+            const {container} = renderWithContext(
+                <PostMessagePreview
+                    {...baseProps}
+                    compactDisplay={false}
+                />,
+                baseState,
+            );
+
+            const header = container.querySelector('.post-preview__header');
+            expect(header?.querySelector('.post__img')).toBeInTheDocument();
+            expect(header?.querySelectorAll('.col__name')).toHaveLength(2);
+        });
+
+        test('should not render the avatar column in the header with compact message display', () => {
+            const {container} = renderWithContext(
+                <PostMessagePreview
+                    {...baseProps}
+                    compactDisplay={true}
+                />,
+                baseState,
+            );
+
+            const header = container.querySelector('.post-preview__header');
+            expect(header?.querySelector('.post__img')).not.toBeInTheDocument();
+            expect(header?.firstElementChild).toHaveClass('permalink--username');
+            expect(screen.getByText('username1')).toBeInTheDocument();
+        });
+    });
+
     describe('redacted files placeholder', () => {
         test('should render placeholder when permissionPoliciesEnabled and redacted_file_count > 0', () => {
             const postPreview = {
