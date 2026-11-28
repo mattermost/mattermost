@@ -15,6 +15,10 @@ import (
 
 const detailKeyUnreachableNode = "unreachable_node"
 
+// MessageNodeLeft is the message of a node-scoped finding resolved because its node left the
+// deployment. Such a finding carries model.HealthFindingResolvedReasonNodeLeft.
+var MessageNodeLeft = TranslationId("health.resolved.node_left")
+
 // DefaultFindingRetention is how long a finding is kept after it was last seen; once it lapses,
 // GCFindings hard-deletes the finding along with any mute state attached to it.
 const DefaultFindingRetention = 30 * 24 * time.Hour
@@ -66,7 +70,11 @@ type Transition struct {
 	To      State
 }
 
-func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
+// Reconcile applies one run's evaluations to the stored findings. nodes lists the hostnames of
+// the nodes that make up the deployment in this run; a node-scoped finding whose scope is not
+// among them belongs to a node that has left. Empty nodes means the inventory is unknown, as
+// [Snapshot.Hostnames] reports when it cannot name every node, never that every node left.
+func (r *Reconciler) Reconcile(evals []Evaluation, nodes []string) ([]Transition, error) {
 	if r == nil {
 		return nil, fmt.Errorf("reconciler is nil")
 	}
@@ -153,8 +161,14 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		existingByFingerprint[next.Fingerprint] = next
 	}
 
-	// Step 4: age findings that were NOT evaluated this cycle (and aren't already unknown) to
-	// unknown once they have gone unevaluated longer than their rule's UnknownAfter.
+	// Step 4: resolve the findings of nodes that have left, and age other findings that were NOT
+	// evaluated this cycle (and aren't already unknown) to unknown once they have gone
+	// unevaluated longer than their rule's UnknownAfter.
+	inventoryKnown := len(nodes) > 0
+	current := make(map[string]bool, len(nodes))
+	for _, hostname := range nodes {
+		current[hostname] = true
+	}
 	for _, finding := range allFindings {
 		if finding == nil || finding.Fingerprint == "" {
 			continue
@@ -162,7 +176,26 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		if _, ok := cycleSeen[finding.Fingerprint]; ok {
 			continue
 		}
+		// Unknown would claim the check failed, and a plain resolve that a problem was fixed, when
+		// the node is simply gone. The row and its mute stay until retention removes them.
+		if inventoryKnown && finding.Scope != "" && !current[finding.Scope] {
+			if finding.State != string(StateResolved) {
+				left := nodeLeftFinding(finding, nowUnixMilli)
+				pending[left.Fingerprint] = left
+				transitions = append(transitions, Transition{
+					Finding: left,
+					From:    findingState(finding),
+					To:      StateResolved,
+				})
+			}
+			continue
+		}
 		if finding.State == string(StateUnknown) {
+			continue
+		}
+		// Without a node inventory the departure cannot be re-checked, and aging would turn the
+		// departure into a check failure; a later run with the inventory settles it.
+		if !inventoryKnown && finding.IsNodeLeft() {
 			continue
 		}
 		// The node-down finding already represents this scope; aging its dependents to unknown
@@ -300,6 +333,18 @@ func upsertableFinding(previous *model.HealthFinding, eval Evaluation, rule Rule
 	}
 
 	return finding
+}
+
+// nodeLeftFinding keeps LastSeenAt, so retention still counts from when the node was last evaluated.
+func nodeLeftFinding(finding *model.HealthFinding, now int64) *model.HealthFinding {
+	left := *finding
+	left.State = string(StateResolved)
+	left.StateSince = now
+	left.MessageID = MessageNodeLeft
+	left.Details = make(map[string]string, len(finding.Details)+1)
+	maps.Copy(left.Details, finding.Details)
+	left.Details[model.HealthFindingDetailResolvedReason] = model.HealthFindingResolvedReasonNodeLeft
+	return &left
 }
 
 func timestampForEval(eval Evaluation, fallback int64) int64 {

@@ -123,6 +123,37 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(screen.getByRole('button', {name: /Resolved 2 hours ago/})).toBeInTheDocument();
     });
 
+    test('a finding resolved because its node left says so instead of claiming it was fixed', () => {
+        renderRow(makeFinding({
+            scope: 'node-3',
+            state: 'resolved',
+            state_since: now - (2 * 60 * 60000),
+            last_seen_at: now - (3 * 60 * 60000),
+            message: 'No running server reports this hostname any more, for example because the server was renamed, replaced or removed.',
+            message_id: 'health.resolved.node_left',
+            details: {url: 'http://push.example.com', resolved_reason: 'node_left'},
+        }), {expanded: true});
+
+        const row = screen.getByTestId('healthFinding-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        expect(row).toHaveClass('HealthFinding--nodeLeft');
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Server no longer present$/);
+        expect(screen.getByText('No running server reports this hostname any more, for example because the server was renamed, replaced or removed.')).toBeInTheDocument();
+
+        const toggle = screen.getByRole('button', {name: /Push notification server is not HTTPS on node-3/});
+        expect(toggle).toHaveAccessibleName(/Last seen 3 hours ago/);
+        expect(toggle).not.toHaveAccessibleName(/Resolved/);
+
+        expect(detailTerms(expandedDetail())).toEqual(['Severity', 'Node', 'url']);
+    });
+
+    test('a resolved finding with no resolved reason is not shown as a node that left', () => {
+        renderRow(makeFinding({state: 'resolved', scope: 'node-3', state_since: now - (2 * 60 * 60000)}));
+
+        expect(screen.getByTestId('healthFinding-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).not.toHaveClass('HealthFinding--nodeLeft');
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Resolved$/);
+        expect(screen.getByRole('button', {name: /Resolved 2 hours ago/})).toBeInTheDocument();
+    });
+
     test('a node-scoped finding names its node', () => {
         renderRow(makeFinding({scope: 'node-3'}));
 

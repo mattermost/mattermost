@@ -252,6 +252,10 @@ func newFinding(finding *model.HealthFinding, T i18n.TranslateFunc, siteURL stri
 
 	details := make([]Field, 0, len(finding.Details))
 	for _, key := range slices.Sorted(maps.Keys(finding.Details)) {
+		// The node-left message already says why the finding resolved.
+		if key == model.HealthFindingDetailResolvedReason {
+			continue
+		}
 		details = append(details, Field{Label: key, Value: finding.Details[key]})
 	}
 

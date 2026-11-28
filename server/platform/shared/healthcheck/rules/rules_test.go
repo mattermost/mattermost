@@ -226,7 +226,7 @@ func TestNodeNotRespondingSuppressesNodeUnknowns(t *testing.T) {
 
 	store := healthcheck.NewMemoryStore()
 	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Now: func() time.Time { return now }})
-	_, err := reconciler.Reconcile(evaluations)
+	_, err := reconciler.Reconcile(evaluations, s.Hostnames())
 	require.NoError(t, err)
 
 	findings, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})

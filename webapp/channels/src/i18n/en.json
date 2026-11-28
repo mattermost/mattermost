@@ -7731,6 +7731,10 @@
     "defaultMessage": "Print / Save as PDF",
     "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
   },
+  "admin.health_dashboard.finding.node_left": {
+    "defaultMessage": "Server no longer present",
+    "description": "Badge on a finding row of the System Console Site health page, in place of 'Resolved', when the finding was resolved because no running Mattermost server reports its hostname any more (the server was renamed, replaced or removed), not because the problem was fixed. Applies to single servers and clusters alike."
+  },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
     "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
@@ -7862,6 +7866,10 @@
   "admin.health_dashboard.trend.firing": {
     "defaultMessage": "Firing for {duration}",
     "description": "Meta line on a finding row of the System Console Site health page; {duration} is a compact duration such as \"3d 4h\"."
+  },
+  "admin.health_dashboard.trend.node_left": {
+    "defaultMessage": "Last seen {time}",
+    "description": "Meta line on a finding row of the System Console Site health page, in place of 'Resolved {time}', when no running Mattermost server reports the finding's hostname any more; {time} is when that server last reported, as a relative time such as \"2 hours ago\"."
   },
   "admin.health_dashboard.trend.resolved": {
     "defaultMessage": "Resolved {time}",

@@ -14,6 +14,8 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
+import {HEALTH_FINDING_RESOLVED_REASON} from 'mattermost-redux/utils/health_utils';
+
 import ExternalLink from 'components/external_link';
 import Timestamp from 'components/timestamp';
 
@@ -29,7 +31,9 @@ const iconProps = {size: 18, color: 'currentColor', 'aria-hidden': true} as cons
 
 const FindingDetail = ({id, finding, hidden}: Props) => {
     const history = useHistory();
-    const details = Object.entries(finding.details ?? {}).sort(([a], [b]) => a.localeCompare(b));
+    const details = Object.entries(finding.details ?? {}).
+        filter(([key]) => key !== HEALTH_FINDING_RESOLVED_REASON).
+        sort(([a], [b]) => a.localeCompare(b));
     const consolePath = finding.console_path;
     const actionable = finding.state === 'firing' || finding.state === 'unknown';
     const hasLinks = Boolean(consolePath || finding.docs_url);

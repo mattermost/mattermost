@@ -51,8 +51,22 @@ type HealthFinding struct {
 	MutedBy string `json:"muted_by,omitempty"`
 }
 
+const (
+	// HealthFindingDetailResolvedReason records why a finding was resolved when it was not
+	// because its check passed.
+	HealthFindingDetailResolvedReason = "resolved_reason"
+	// HealthFindingResolvedReasonNodeLeft marks a node-scoped finding whose node is no longer
+	// part of the deployment, so its check no longer runs.
+	HealthFindingResolvedReasonNodeLeft = "node_left"
+)
+
 func (f *HealthFinding) IsMuted() bool {
 	return f != nil && f.MutedAt > 0
+}
+
+// IsNodeLeft reports whether the finding was resolved because its node left the deployment.
+func (f *HealthFinding) IsNodeLeft() bool {
+	return f != nil && f.State == "resolved" && f.Details[HealthFindingDetailResolvedReason] == HealthFindingResolvedReasonNodeLeft
 }
 
 // PreSave normalizes mute state before persistence. Mute is owned by Mute/Unmute,

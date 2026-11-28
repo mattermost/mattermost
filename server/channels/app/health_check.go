@@ -97,7 +97,7 @@ func (a *App) runHealthCheck(rctx request.CTX, svc *HealthCheckService) error {
 		return fmt.Errorf("failed to build health snapshot: %w", err)
 	}
 
-	transitions, err := svc.reconciler.Reconcile(svc.engine.Evaluate(snapshot))
+	transitions, err := svc.reconciler.Reconcile(svc.engine.Evaluate(snapshot), snapshot.Hostnames())
 	if err != nil {
 		return fmt.Errorf("failed to reconcile health findings: %w", err)
 	}

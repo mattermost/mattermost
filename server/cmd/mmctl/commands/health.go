@@ -255,7 +255,7 @@ func evaluateHealthPacket(ctx context.Context, packetPath string, filter model.H
 	store := healthcheck.NewMemoryStore()
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Now: now})
 	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Registry: registry, Now: now})
-	if _, err = reconciler.Reconcile(engine.Evaluate(p.Snapshot)); err != nil {
+	if _, err = reconciler.Reconcile(engine.Evaluate(p.Snapshot), p.Snapshot.Hostnames()); err != nil {
 		return nil, report.Options{}, fmt.Errorf("failed to evaluate Support Packet: %w", err)
 	}
 

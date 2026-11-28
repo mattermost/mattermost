@@ -7,6 +7,8 @@ import type {IntlShape} from 'react-intl';
 
 import type {HealthFinding} from '@mattermost/types/health';
 
+import {isHealthFindingNodeLeft} from 'mattermost-redux/utils/health_utils';
+
 import RelativeTime from './relative_time';
 
 const durationMessages = defineMessages({
@@ -41,6 +43,16 @@ type Props = {
 
 const Trend = ({finding, now}: Props) => {
     const {formatMessage} = useIntl();
+
+    if (isHealthFindingNodeLeft(finding)) {
+        return (
+            <FormattedMessage
+                id='admin.health_dashboard.trend.node_left'
+                defaultMessage='Last seen {time}'
+                values={{time: <RelativeTime value={finding.last_seen_at}/>}}
+            />
+        );
+    }
 
     if (finding.state === 'resolved') {
         return (

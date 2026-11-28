@@ -9,6 +9,8 @@
     --health-resolved-rgb: var(--sys-online-indicator-rgb);
     --health-unknown: rgba(var(--sys-center-channel-color-rgb), 0.64);
     --health-unknown-rgb: var(--sys-center-channel-color-rgb);
+    --health-nodeLeft: rgba(var(--sys-center-channel-color-rgb), 0.8);
+    --health-nodeLeft-rgb: var(--sys-center-channel-color-rgb);
 
     .admin-console__content {
         max-width: 1000px;
@@ -384,7 +386,7 @@
     box-shadow: var(--elevation-1);
     transition: box-shadow 150ms ease, border-color 150ms ease;
 
-    @each $tone in critical, warning, info, resolved, unknown {
+    @each $tone in critical, warning, info, resolved, unknown, nodeLeft {
         &--#{$tone} {
             --health-tone: var(--health-#{$tone});
             --health-tone-rgb: var(--health-#{$tone}-rgb);
@@ -401,6 +403,15 @@
 
     &--muted &__header {
         opacity: 0.72;
+    }
+
+    // Dimming the whole header would push the badge text below 4.5:1 contrast.
+    &--nodeLeft &__icon {
+        opacity: 0.72;
+    }
+
+    &--nodeLeft &__title {
+        opacity: 0.75;
     }
 
     &--expanded {

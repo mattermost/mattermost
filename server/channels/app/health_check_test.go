@@ -164,6 +164,54 @@ func TestRunHealthCheckCloudScope(t *testing.T) {
 	})
 }
 
+func TestRunHealthCheckResolvesFindingsOfNodesThatLeft(t *testing.T) {
+	th, _ := setupHealthCheck(t, true)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	svc := newTestHealthCheckService(th, healthcheck.Rule{
+		Code:       "TEST_NODE_FIRING",
+		Area:       model.AreaCluster,
+		Severity:   healthcheck.SeverityWarning,
+		Surface:    healthcheck.SurfaceProduct,
+		Volatility: healthcheck.VolatilityStable,
+		Subject:    "node",
+		EvalNode: func(_ *healthcheck.Snapshot, _ *healthcheck.NodeSnapshot) []healthcheck.Result {
+			return []healthcheck.Result{healthcheck.Firing("test.message.node_firing")}
+		},
+	})
+
+	seenAt := model.GetMillis()
+	gone := &model.HealthFinding{
+		Fingerprint: healthcheck.Fingerprint("TEST_NODE_FIRING", "node", "replaced-pod"),
+		Code:        "TEST_NODE_FIRING",
+		Subject:     "node",
+		Scope:       "replaced-pod",
+		Severity:    string(healthcheck.SeverityWarning),
+		State:       string(healthcheck.StateFiring),
+		Area:        model.AreaCluster,
+		Surface:     string(healthcheck.SurfaceProduct),
+		MessageID:   "test.message.node_firing",
+		FirstSeenAt: seenAt,
+		LastSeenAt:  seenAt,
+		StateSince:  seenAt,
+	}
+	require.NoError(t, th.App.Srv().Store().HealthFinding().Upsert([]*model.HealthFinding{gone}))
+
+	require.NoError(t, th.App.runHealthCheck(th.Context, svc))
+
+	byScope := map[string]*model.HealthFinding{}
+	for _, finding := range listHealthFindings(t, th) {
+		byScope[finding.Scope] = finding
+	}
+	require.Len(t, byScope, 2)
+	left := byScope["replaced-pod"]
+	assert.True(t, left.IsNodeLeft())
+	assert.Equal(t, healthcheck.MessageNodeLeft, left.MessageID)
+	delete(byScope, "replaced-pod")
+	for scope, current := range byScope {
+		assert.Equal(t, string(healthcheck.StateFiring), current.State, "the current node's finding on %q", scope)
+	}
+}
+
 func TestRunHealthCheckStableAcrossCycles(t *testing.T) {
 	th, svc := setupHealthCheck(t, true)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))

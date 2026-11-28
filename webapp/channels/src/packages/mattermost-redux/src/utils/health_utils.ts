@@ -33,6 +33,14 @@ export function isHealthFindingOpen(finding: HealthFinding) {
     return finding.state === 'firing' || finding.state === 'unknown';
 }
 
+export const HEALTH_FINDING_RESOLVED_REASON = 'resolved_reason';
+export const HEALTH_FINDING_RESOLVED_REASON_NODE_LEFT = 'node_left';
+
+// Resolved because no running server reports its hostname any more, not because the problem cleared.
+export function isHealthFindingNodeLeft(finding: HealthFinding) {
+    return finding.state === 'resolved' && finding.details?.[HEALTH_FINDING_RESOLVED_REASON] === HEALTH_FINDING_RESOLVED_REASON_NODE_LEFT;
+}
+
 // A check that passed on its first run is stored as resolved without ever having changed state.
 export function isRecentlyResolved(finding: HealthFinding, now: number) {
     return finding.state === 'resolved' &&
