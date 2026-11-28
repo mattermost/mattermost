@@ -3,17 +3,25 @@
 
 import React from 'react';
 
+import type {WebSocketMessage} from '@mattermost/client';
+import {WebSocketEvents} from '@mattermost/client';
 import type {ExperimentalSettings, PluginSettings} from '@mattermost/types/config';
+import type {PluginManifest} from '@mattermost/types/plugins';
 
+import {Client4} from 'mattermost-redux/client';
+import {Permissions} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import AdminDefinition from 'components/admin_console/admin_definition';
+import ConnectedAdminSidebar from 'components/admin_console/admin_sidebar';
 import AdminSidebar from 'components/admin_console/admin_sidebar/admin_sidebar';
 import type {Props as OriginalProps} from 'components/admin_console/admin_sidebar/admin_sidebar';
 
+import WebSocketClient from 'client/web_websocket_client';
 import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {generateIndex} from 'utils/admin_console_index';
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');
@@ -213,6 +221,143 @@ describe('components/AdminSidebar', () => {
 
         expect(attributeManagementIndex).toBeGreaterThan(-1);
         expect(sessionAttributesIndex).toBe(attributeManagementIndex + 1);
+    });
+
+    describe('syncing plugins changed outside this tab', () => {
+        const manifest = (id: string, name: string): PluginManifest => ({
+            id,
+            name,
+            version: '1.0.0',
+            description: '',
+            min_server_version: '',
+            settings_schema: {header: '', footer: '', settings: []},
+        });
+        const pluginA = manifest('com.example.a', 'Plugin A');
+        const pluginB = manifest('com.example.b', 'Plugin B');
+
+        let messageListener: (msg: WebSocketMessage) => void;
+        let reconnectListener: () => void;
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.spyOn(WebSocketClient, 'addMessageListener').mockImplementation((listener) => {
+                messageListener = listener;
+            });
+            jest.spyOn(WebSocketClient, 'addReconnectListener').mockImplementation((listener) => {
+                reconnectListener = listener;
+            });
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+            jest.restoreAllMocks();
+        });
+
+        const renderConnectedSidebar = (pluginsEnabled = true) => {
+            return renderWithContext(
+                <ConnectedAdminSidebar onSearchChange={jest.fn()}/>,
+                {
+                    entities: {
+                        admin: {config: {PluginSettings: {Enable: pluginsEnabled}}},
+                        users: {
+                            currentUserId: 'admin',
+                            profiles: {admin: TestHelper.getUserMock({id: 'admin', roles: 'system_admin'})},
+                        },
+                        roles: {
+                            roles: {
+                                system_admin: TestHelper.getRoleMock({name: 'system_admin', permissions: [Permissions.SYSCONSOLE_READ_PLUGINS]}),
+                            },
+                        },
+                    },
+                },
+            );
+        };
+
+        const flushDebounce = async () => {
+            await act(async () => {
+                jest.advanceTimersByTime(500);
+            });
+        };
+
+        test('replaces the plugin entries when the server reports that plugins changed', async () => {
+            const getPlugins = jest.spyOn(Client4, 'getPlugins').
+                mockResolvedValueOnce({active: [pluginA], inactive: []}).
+                mockResolvedValueOnce({active: [pluginB], inactive: []});
+
+            renderConnectedSidebar();
+            expect(await screen.findByText('Plugin A')).toBeInTheDocument();
+
+            act(() => {
+                messageListener({event: WebSocketEvents.PluginStatusesChanged} as WebSocketMessage);
+                messageListener({event: WebSocketEvents.PluginStatusesChanged} as WebSocketMessage);
+            });
+            await flushDebounce();
+
+            expect(getPlugins).toHaveBeenCalledTimes(2);
+            expect(screen.getByText('Plugin B')).toBeInTheDocument();
+            expect(screen.queryByText('Plugin A')).not.toBeInTheDocument();
+        });
+
+        test('refetches the plugins on websocket reconnect', async () => {
+            jest.spyOn(Client4, 'getPlugins').
+                mockResolvedValueOnce({active: [], inactive: []}).
+                mockResolvedValueOnce({active: [], inactive: [pluginB]});
+
+            renderConnectedSidebar();
+            await flushDebounce();
+            expect(screen.queryByText('Plugin B')).not.toBeInTheDocument();
+
+            act(() => {
+                reconnectListener();
+            });
+            await flushDebounce();
+
+            expect(screen.getByText('Plugin B')).toBeInTheDocument();
+        });
+
+        test('ignores other websocket events', async () => {
+            const getPlugins = jest.spyOn(Client4, 'getPlugins').mockResolvedValue({active: [], inactive: []});
+
+            renderConnectedSidebar();
+            await flushDebounce();
+
+            act(() => {
+                messageListener({event: WebSocketEvents.Posted} as WebSocketMessage);
+            });
+            await flushDebounce();
+
+            expect(getPlugins).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not fetch plugins when plugins are disabled', async () => {
+            const getPlugins = jest.spyOn(Client4, 'getPlugins').mockResolvedValue({active: [pluginA], inactive: []});
+
+            renderConnectedSidebar(false);
+
+            act(() => {
+                messageListener({event: WebSocketEvents.PluginStatusesChanged} as WebSocketMessage);
+            });
+            await flushDebounce();
+
+            expect(getPlugins).not.toHaveBeenCalled();
+        });
+
+        test('stops listening and cancels a pending refetch on unmount', async () => {
+            const getPlugins = jest.spyOn(Client4, 'getPlugins').mockResolvedValue({active: [], inactive: []});
+            const removeReconnectListener = jest.spyOn(WebSocketClient, 'removeReconnectListener');
+
+            const {unmount} = renderConnectedSidebar();
+            await flushDebounce();
+
+            act(() => {
+                messageListener({event: WebSocketEvents.PluginStatusesChanged} as WebSocketMessage);
+            });
+            unmount();
+            await flushDebounce();
+
+            expect(removeReconnectListener).toHaveBeenCalledWith(reconnectListener);
+            expect(getPlugins).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('generateIndex', () => {

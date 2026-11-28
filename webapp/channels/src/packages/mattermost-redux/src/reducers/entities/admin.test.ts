@@ -12,6 +12,36 @@ import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 type ReducerState = ReturnType<typeof reducer>;
 
 describe('reducers.entities.admin', () => {
+    describe('plugins', () => {
+        const manifest = (id: string, version = '1.0.0') => ({
+            id,
+            name: id,
+            version,
+            description: '',
+            min_server_version: '',
+        });
+
+        it('RECEIVED_PLUGINS replaces the stored plugins with the response', () => {
+            const state = deepFreezeAndThrowOnMutation({
+                removed: {...manifest('removed'), active: true},
+                kept: {...manifest('kept', '1.0.0'), active: true},
+            });
+            const action = {
+                type: AdminTypes.RECEIVED_PLUGINS,
+                data: {
+                    active: [manifest('added')],
+                    inactive: [manifest('kept', '2.0.0')],
+                },
+            };
+
+            const actualState = reducer({plugins: state} as ReducerState, action);
+            expect(actualState.plugins).toEqual({
+                added: {...manifest('added'), active: true},
+                kept: {...manifest('kept', '2.0.0'), active: false},
+            });
+        });
+    });
+
     describe('pluginStatuses', () => {
         it('initial state', () => {
             const state = {};

@@ -581,11 +581,30 @@ export function installPluginFromUrl(url: string, force = false): ActionFuncAsyn
     };
 }
 
-export function getPlugins() {
-    return bindClientFunc({
-        clientFunc: Client4.getPlugins,
-        onSuccess: [AdminTypes.RECEIVED_PLUGINS],
-    });
+let pluginsRequestSeq = 0;
+let pluginsAppliedSeq = 0;
+
+// Each response replaces the stored plugin list, so a slower, older request must not overwrite a newer one.
+export function getPlugins(): ActionFuncAsync<Awaited<ReturnType<typeof Client4.getPlugins>>> {
+    return async (dispatch, getState) => {
+        const seq = ++pluginsRequestSeq;
+
+        let data;
+        try {
+            data = await Client4.getPlugins();
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        if (seq > pluginsAppliedSeq) {
+            pluginsAppliedSeq = seq;
+            dispatch({type: AdminTypes.RECEIVED_PLUGINS, data});
+        }
+
+        return {data};
+    };
 }
 
 let pluginStatusesRequestSeq = 0;

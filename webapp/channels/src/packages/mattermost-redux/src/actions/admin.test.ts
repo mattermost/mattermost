@@ -836,6 +836,73 @@ describe('Actions.Admin', () => {
         expect(!plugins[testPlugin2.id].active).toBeTruthy();
     });
 
+    describe('getPlugins with overlapping requests', () => {
+        const pluginsResponse = (...ids: string[]) => ({
+            active: ids.map((id) => ({id, webapp: {bundle_path: '/static/somebundle.js'}})),
+            inactive: [],
+        });
+
+        function deferPluginsRequests() {
+            const resolvers: Array<(value: unknown) => void> = [];
+            const rejecters: Array<(reason: unknown) => void> = [];
+            jest.spyOn(Client4, 'getPlugins').mockImplementation(() => new Promise((resolve, reject) => {
+                resolvers.push(resolve as (value: unknown) => void);
+                rejecters.push(reject);
+            }) as ReturnType<typeof Client4.getPlugins>);
+            return {resolvers, rejecters};
+        }
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('ignores an older response that resolves after a newer one', async () => {
+            const {resolvers} = deferPluginsRequests();
+
+            const older = store.dispatch(Actions.getPlugins());
+            const newer = store.dispatch(Actions.getPlugins());
+
+            resolvers[1](pluginsResponse('testplugin', 'testplugin2'));
+            await newer;
+            resolvers[0](pluginsResponse('testplugin'));
+            const olderResult = await older;
+
+            expect(Object.keys(store.getState().entities.admin.plugins)).toEqual(['testplugin', 'testplugin2']);
+            expect(olderResult.data).toEqual(pluginsResponse('testplugin'));
+        });
+
+        it('applies both responses when they resolve in order', async () => {
+            const {resolvers} = deferPluginsRequests();
+
+            const older = store.dispatch(Actions.getPlugins());
+            const newer = store.dispatch(Actions.getPlugins());
+
+            resolvers[0](pluginsResponse('testplugin'));
+            await older;
+            expect(Object.keys(store.getState().entities.admin.plugins)).toEqual(['testplugin']);
+
+            resolvers[1](pluginsResponse('testplugin', 'testplugin2'));
+            await newer;
+            expect(Object.keys(store.getState().entities.admin.plugins)).toEqual(['testplugin', 'testplugin2']);
+        });
+
+        it('returns the error and still applies an older response when the newer request fails', async () => {
+            const {resolvers, rejecters} = deferPluginsRequests();
+
+            const older = store.dispatch(Actions.getPlugins());
+            const newer = store.dispatch(Actions.getPlugins());
+
+            rejecters[1](new Error('failed'));
+            const newerResult = await newer;
+            resolvers[0](pluginsResponse('testplugin'));
+            await older;
+
+            expect(newerResult.error).toBeTruthy();
+            expect(newerResult.data).toBeUndefined();
+            expect(Object.keys(store.getState().entities.admin.plugins)).toEqual(['testplugin']);
+        });
+    });
+
     it('getPluginStatuses', async () => {
         const testPluginStatus = {
             plugin_id: 'testplugin',

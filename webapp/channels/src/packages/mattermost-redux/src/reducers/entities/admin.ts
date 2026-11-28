@@ -442,7 +442,7 @@ function userAccessTokensByUser(state: RelationOneToOne<UserProfile, Record<stri
 function plugins(state: Record<string, PluginRedux> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_PLUGINS: {
-        const nextState = {...state};
+        const nextState: Record<string, PluginRedux> = {};
         const activePlugins = action.data.active;
         for (const plugin of activePlugins) {
             nextState[plugin.id] = {...plugin, active: true};
