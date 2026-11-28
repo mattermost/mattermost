@@ -97,13 +97,18 @@ The JSON payload can contain the following parameters:
 <tbody>
 <tr>
 <td><code>text</code></td>
-<td>Yes (if <code>props.mm_blocks</code> is not set)</td>
+<td>Yes, unless <code>attachments</code> or supported interactive message <code>props</code> provide content</td>
 <td><a href={useBaseUrl('/end-user-guide/collaborate/format-messages')}>Markdown-formatted</a> message. Use <code>@&lt;username&gt;</code>, <code>@channel</code>, and <code>@here</code> for notifications.</td>
 </tr>
 <tr>
 <td><code>channel</code></td>
 <td>No</td>
 <td>Overrides the default channel. Use the channel's name (e.g., <code>town-square</code>), not the display name. Use <code>@&lt;username&gt;</code> to send a Direct Message. The webhook can post to any public channel, and any private channel the creator is a member of.</td>
+</tr>
+<tr>
+<td><code>attachments</code></td>
+<td>No</td>
+<td>An array of <a href={useBaseUrl('/developers/integrate/reference/message-attachments')}>message attachments</a> for Slack-compatible formatting. Each attachment needs a <code>fallback</code> summary.</td>
 </tr>
 <tr>
 <td><code>username</code></td>
@@ -169,6 +174,21 @@ Using the `card` property inside `props` will display an info icon on the post. 
 ```
 
 ![Example of a post with a card property displaying more information in the sidebar.](/images/card-prop-example.png)
+
+### Example with Attachments
+
+An attachment can supply the message content without a top-level `text` field:
+
+```json
+{
+  "attachments": [
+    {
+      "fallback": "Build #42 passed.",
+      "text": "**Build #42** passed."
+    }
+  ]
+}
+```
 
 ## Slack Compatibility
 
