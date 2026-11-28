@@ -1,0 +1,3 @@
+src/graphql/generated
+dist
+node_modules
