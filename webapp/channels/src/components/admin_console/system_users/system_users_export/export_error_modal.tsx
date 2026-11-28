@@ -51,6 +51,7 @@ export function ExportErrorModal({error, onExited}: Props) {
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.export_error_modal'
             title={title}
             message={message}
             confirmButtonText={

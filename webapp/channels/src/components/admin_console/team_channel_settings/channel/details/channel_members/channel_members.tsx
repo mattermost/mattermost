@@ -239,6 +239,7 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addChannelMembers'
+                        testId='admin.channel.add_members'
                         emphasis='primary'
                         modalId={ModalIdentifiers.CHANNEL_INVITE}
                         dialogType={ChannelInviteModal}

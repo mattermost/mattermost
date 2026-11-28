@@ -50,7 +50,7 @@ describe('Search channels', () => {
         });
 
         // * Check that channel is in search results.
-        cy.findAllByTestId('channel-display-name').contains(displayName);
+        cy.findAllByTestId('admin.channels.row.name--text').contains(displayName);
     });
 
     it('results are paginated', () => {
@@ -66,7 +66,7 @@ describe('Search channels', () => {
         });
 
         // * Check that the first page of results is full.
-        cy.findAllByTestId('channel-display-name').should('have.length', PAGE_SIZE);
+        cy.findAllByTestId('admin.channels.row.name--text').should('have.length', PAGE_SIZE);
 
         // # Click the next pagination arrow.
         cy.get('.DataGrid_footer').should('have.text', '1 - 10 of 12').within(() => {
@@ -74,7 +74,7 @@ describe('Search channels', () => {
         });
 
         // * Check that the 2nd page of results has the expected amount.
-        cy.findAllByTestId('channel-display-name').should('have.length', 2);
+        cy.findAllByTestId('admin.channels.row.name--text').should('have.length', 2);
     });
 
     it('clears the results when "x" is clicked', () => {
@@ -88,7 +88,7 @@ describe('Search channels', () => {
         });
 
         // * Check that the list of channels is in search results mode.
-        cy.findAllByTestId('channel-display-name').should('have.length', 1);
+        cy.findAllByTestId('admin.channels.row.name--text').should('have.length', 1);
 
         // # Click the x in the search input.
         cy.findByTestId('data_grid.search.clear--button').click();
@@ -97,7 +97,7 @@ describe('Search channels', () => {
         cy.get('@searchInput').should('be.visible').and('have.text', '');
 
         // * Check that the search results are reset to the default page-load list.
-        cy.findAllByTestId('channel-display-name').should('have.length', PAGE_SIZE);
+        cy.findAllByTestId('admin.channels.row.name--text').should('have.length', PAGE_SIZE);
     });
 
     it('clears the results when the search term is deleted with backspace', () => {
@@ -111,12 +111,12 @@ describe('Search channels', () => {
         });
 
         // * Check that the list of teams is in search results mode.
-        cy.findAllByTestId('channel-display-name').should('have.length', 1);
+        cy.findAllByTestId('admin.channels.row.name--text').should('have.length', 1);
 
         // # Clear the search input by deleting the search text.
         cy.get('@searchInput').type('{selectall}{del}');
 
         // * Check that the search results are reset to the default page-load list.
-        cy.findAllByTestId('channel-display-name').should('have.length', PAGE_SIZE);
+        cy.findAllByTestId('admin.channels.row.name--text').should('have.length', PAGE_SIZE);
     });
 });

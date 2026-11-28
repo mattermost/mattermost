@@ -37,22 +37,22 @@ describe('Guest Account - Verify Guest Access UI', () => {
 
     it('MM-18046 Verify Guest Access Screen', () => {
         // * Verify Enable Guest Access field
-        cy.findByTestId('GuestAccountsSettings.Enable').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:GuestAccountsSettings.Enable--group').should('be.visible').within(() => {
             cy.get('.control-label').should('be.visible').and('have.text', 'Enable Guest Access: ');
         });
-        cy.findByTestId('GuestAccountsSettings.Enablehelp-text').should('be.visible').and('have.text', 'When true, external guests can be invited to channels within teams. Please see Permissions Schemes for which roles can invite guests.');
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.set_help--text"]').should('be.visible').and('have.text', 'When true, external guests can be invited to channels within teams. Please see Permissions Schemes for which roles can invite guests.');
 
         // * Verify Whitelisted Guest Domains field
-        cy.findByTestId('GuestAccountsSettings.RestrictCreationToDomains').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:GuestAccountsSettings.RestrictCreationToDomains--group').should('be.visible').within(() => {
             cy.get('.control-label').should('be.visible').and('have.text', 'Whitelisted Guest Domains:');
         });
-        cy.findByTestId('GuestAccountsSettings.RestrictCreationToDomainshelp-text').should('be.visible').and('have.text', '(Optional) Guest accounts can be created at the system level from this list of allowed guest domains.');
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.RestrictCreationToDomains--group"] [data-testid="admin.setting.help--text"]').should('be.visible').and('have.text', '(Optional) Guest accounts can be created at the system level from this list of allowed guest domains.');
 
         // * Verify Guest MFA field when System MFA is not enabled
-        cy.findByTestId('GuestAccountsSettings.EnforceMultifactorAuthentication').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:GuestAccountsSettings.EnforceMultifactorAuthentication--group').should('be.visible').within(() => {
             cy.get('.control-label').should('be.visible').and('have.text', 'Enforce Multi-factor Authentication: ');
         });
-        cy.findByTestId('GuestAccountsSettings.EnforceMultifactorAuthenticationhelp-text').should('be.visible').and('have.text', 'Multi-factor authentication is currently not enabled.');
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.EnforceMultifactorAuthentication--group"] [data-testid="admin.setting.set_help--text"]').should('be.visible').and('have.text', 'Multi-factor authentication is currently not enabled.');
 
         // # Enable GuestAccountSettings
         cy.apiUpdateConfig({
@@ -65,12 +65,12 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.visit('/admin_console/authentication/guest_access');
 
         // * Verify Guest MFA field when System MFA is enabled
-        cy.findByTestId('GuestAccountsSettings.EnforceMultifactorAuthenticationhelp-text').should('be.visible').and('have.text', 'Multi-factor authentication is currently not enforced.');
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.EnforceMultifactorAuthentication--group"] [data-testid="admin.setting.set_help--text"]').should('be.visible').and('have.text', 'Multi-factor authentication is currently not enforced.');
     });
 
     it('MM-T1410 Confirmation Modal when Guest Access is disabled', () => {
         // # Disable Guest Access and save
-        cy.findByTestId('GuestAccountsSettings.Enablefalse').click();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.false--radio"]').click();
 
         // * Verify the warning message
         cy.get('.error-message').should('be.visible').within(() => {

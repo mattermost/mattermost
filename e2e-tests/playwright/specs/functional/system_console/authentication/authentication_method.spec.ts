@@ -1,7 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import type {App} from '@mattermost/playwright-lib';
+import {expect, generated, test} from '@mattermost/playwright-lib';
+
+/** Opens a user's System Console profile and checks its authentication method. */
+async function expectAuthMethod(app: App, userId: string, method: string) {
+    await app.page.goto(`${generated.AdminConsolePage.path()}/user_management/user/${userId}`);
+    await expect(app.admin.user.authMethodText).toHaveText(method);
+}
 
 /**
  * @objective Verify a basic-auth user's System Console profile shows Authentication Method Email.
@@ -18,13 +25,11 @@ test(
 
         const {adminUser, adminClient} = await pw.initSetup();
         const user = await pw.createNewUserProfile(adminClient);
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // # Log in as admin and open the user's System Console profile
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # Open the user's System Console profile
-        await systemConsolePage.gotoUser(user.id);
-
-        // * Verify the authentication method is Email
-        await systemConsolePage.users.userDetail.userCard.expectAuthenticationMethod('Email');
+        // * The user's System Console profile shows the authentication method
+        await expectAuthMethod(app, user.id, 'Email');
     },
 );
 
@@ -46,13 +51,10 @@ test('MM-T953_2 shows Email, MFA when multifactor authentication is active', {ta
     try {
         await pw.enableUserMfa(adminClient, user.id);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # Open the user's System Console profile
-        await systemConsolePage.gotoUser(user.id);
-
-        // * Verify the authentication method includes MFA
-        await systemConsolePage.users.userDetail.userCard.expectAuthenticationMethod('Email, MFA');
+        // * The user's System Console profile shows the authentication method
+        await expectAuthMethod(app, user.id, 'Email, MFA');
     } finally {
         await restore();
     }

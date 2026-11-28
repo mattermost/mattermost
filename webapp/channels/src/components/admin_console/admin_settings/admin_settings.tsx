@@ -50,6 +50,7 @@ const AdminSettings = ({
                 {renderSettings()}
                 <div className='admin-console-save'>
                     <SaveButton
+                        testId='admin.save'
                         saving={saving}
                         disabled={isDisabled || !saveNeeded}
                         onClick={handleSubmit}

@@ -11,6 +11,7 @@ type Props = {
     icon: string;
     count?: number;
     id?: string;
+    testId?: string;
     children?: React.ReactNode;
     status?: 'warning' | 'error';
     formatter?: (value: number) => string;
@@ -21,10 +22,12 @@ const StatisticCount = ({
     icon,
     count,
     id,
+    testId = 'admin.statistics.stat',
     children,
     status,
     formatter,
 }: Props) => {
+    const titleId = React.useId();
     const loading = (
         <FormattedMessage
             id='analytics.chart.loading'
@@ -37,7 +40,9 @@ const StatisticCount = ({
 
     return (
         <div
-            data-testid={id ? `${id}Card` : undefined}
+            role='group'
+            aria-labelledby={titleId}
+            data-testid={id ? `${testId}:${id}--group` : undefined}
             className='grid-statistics__card'
         >
             <div
@@ -47,7 +52,8 @@ const StatisticCount = ({
                 })}
             >
                 <div
-                    data-testid={`${id}Title`}
+                    id={titleId}
+                    data-testid={id ? `${testId}.title--text` : undefined}
                     className={classNames({
                         title: true,
                         'team_statistics--warning': status === 'warning',
@@ -58,7 +64,7 @@ const StatisticCount = ({
                     <i className={'fa ' + icon}/>
                 </div>
                 <div
-                    data-testid={id}
+                    data-testid={id ? `${testId}.value--text` : undefined}
                     className={classNames({
                         content: true,
                         'team_statistics--warning': status === 'warning',

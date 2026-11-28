@@ -27,14 +27,14 @@ const createTeamOverrideSchemeWithPermission = (name: string, team: Cypress.Team
     cy.visit('/admin_console/user_management/permissions');
 
     // # Click `New Team Override Scheme`
-    cy.findByTestId('team-override-schemes-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+    cy.findByTestId('admin.permission_schemes.team_overrides.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
     // # Type Name and Description
     cy.get('#scheme-name').should('be.visible').type(name);
     cy.get('#scheme-description').type('Description');
 
     // # Click `Add Teams`
-    cy.findByTestId('add-teams').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+    cy.findByTestId('admin.permission_scheme.teams.add--button').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
     // # Find and select testTeam
     cy.get('#selectItems input').typeWithForce(team.display_name).wait(TIMEOUTS.HALF_SEC);
@@ -44,7 +44,7 @@ const createTeamOverrideSchemeWithPermission = (name: string, team: Cypress.Team
     cy.get('#saveItems').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
     // # Modify the permissions scheme
-    cy.findByTestId(permissionId).then((el) => {
+    cy.get(permissionId).then((el) => {
         if ((!el.hasClass('checked') && permissionValue) || (el.hasClass('checked') && !permissionValue)) {
             el.click();
         }
@@ -85,7 +85,7 @@ describe('Team Permissions', () => {
     });
 
     it('MM-T2871 Member cannot add members to the team', () => {
-        createTeamOverrideSchemeWithPermission(schemeName, testTeam, 'all_users-teams_team_scope-send_invites-checkbox', false);
+        createTeamOverrideSchemeWithPermission(schemeName, testTeam, '[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:send_invites--checkbox"] [data-testid="admin.permissions.group.checkbox"]', false);
         cy.apiLogin(testUser);
 
         // # Go to main channel
@@ -108,7 +108,7 @@ describe('Team Permissions', () => {
     });
 
     it('MM-T2876 Member cannot add or remove other members from private channel', () => {
-        createTeamOverrideSchemeWithPermission(schemeName, testTeam, 'all_users-private_channel-manage_private_channel_members_and_read_groups-checkbox', false);
+        createTeamOverrideSchemeWithPermission(schemeName, testTeam, '[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:manage_private_channel_members_and_read_groups--checkbox"] [data-testid="admin.permissions.group.checkbox"]', false);
         cy.apiLogin(testUser);
 
         // # Go to private channel
@@ -135,7 +135,7 @@ describe('Team Permissions', () => {
     });
 
     it('MM-T2878 Member cannot create a private channel', () => {
-        createTeamOverrideSchemeWithPermission(schemeName, testTeam, 'all_users-private_channel-create_private_channel-checkbox', false);
+        createTeamOverrideSchemeWithPermission(schemeName, testTeam, '[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_private_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]', false);
         cy.apiLogin(testUser);
 
         // # Go to main channel

@@ -95,7 +95,7 @@ describe('SAML Guest', () => {
         cy.visit('/admin_console/authentication/saml');
 
         // # Turn on Guest Attribute Filter
-        cy.findByTestId('SamlSettings.GuestAttributeinput').clear().type('username=e2etest.one');
+        cy.get('[data-testid="admin.setting:SamlSettings.GuestAttribute--group"] [data-testid="admin.setting.value--textbox"]').clear().type('username=e2etest.one');
 
         // # Save SAML Settings
         cy.findByText('Save').click().wait(TIMEOUTS.ONE_SEC);
@@ -104,7 +104,7 @@ describe('SAML Guest', () => {
         cy.visit('/admin_console/authentication/guest_access');
 
         // # Turn off Guest Access
-        cy.findByTestId('GuestAccountsSettings.Enablefalse').check();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.false--radio"]').check();
 
         // # Save Guest Access Settings
         cy.findByText('Save').click().wait(TIMEOUTS.ONE_SEC);
@@ -116,7 +116,7 @@ describe('SAML Guest', () => {
         cy.visit('/admin_console/authentication/saml');
 
         // * verify Guest Attribute is disabled.
-        cy.findByTestId('SamlSettings.GuestAttributeinput').should('be.disabled');
+        cy.get('[data-testid="admin.setting:SamlSettings.GuestAttribute--group"] [data-testid="admin.setting.value--textbox"]').should('be.disabled');
     });
 
     it('MM-T1423_2 - SAML User will login as member', () => {

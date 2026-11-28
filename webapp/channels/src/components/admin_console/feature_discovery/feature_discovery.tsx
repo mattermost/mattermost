@@ -102,7 +102,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             <ExternalLink
                 location='feature_discovery'
                 href={this.props.learnMoreURL}
-                data-testid='featureDiscovery_secondaryCallToAction'
+                data-testid='admin.feature_discovery.secondary--link'
             >
                 <FormattedMessage
                     id='admin.ldap_feature_discovery.call_to_action.secondary'
@@ -115,7 +115,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
     renderContactSalesPrimaryAction = (size: ButtonProps['size'] = 'medium'): PanelButtonProps => ({
         emphasis: 'primary',
         size,
-        'data-testid': 'featureDiscovery_primaryCallToAction',
+        'data-testid': 'admin.feature_discovery.contact_sales--button',
         onClick: () => {
             this.contactSalesFunc();
         },
@@ -131,7 +131,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         emphasis: 'primary',
         size,
         id: 'start_trial_btn',
-        'data-testid': 'featureDiscovery_primaryCallToAction',
+        'data-testid': 'admin.feature_discovery.primary--button',
         onClick: () => {
             this.props.openTrialForm?.();
         },
@@ -212,7 +212,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         } = this.props;
 
         if (isCloud && !isSubscriptionLoaded) {
-            return (<LoadingSpinner/>);
+            return (<LoadingSpinner testId='admin.feature_discovery.loading_spinner'/>);
         }
 
         let gettingTrialError: React.ReactNode = '';
@@ -261,7 +261,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                                     id='admin.featureDiscovery.WarningDescription'
                                     defaultMessage='Your License is being updated to give you full access to all the Enterprise Features. This page will automatically refresh once the license update is complete. Please wait '
                                 />
-                                <LoadingSpinner/>
+                                <LoadingSpinner testId='admin.feature_discovery.trial.loading_spinner'/>
                             </>
                         }
                     />
@@ -290,13 +290,13 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         return (
             <div
                 className='FeatureDiscovery'
-                data-testid='featureDiscovery'
+                data-testid='admin.feature_discovery'
             >
                 <FeatureDiscoveryPanel
                     className='FeatureDiscovery_panel'
                     skuLabel={skuLabel}
                     title={
-                        <span data-testid='featureDiscovery_title'>
+                        <span data-testid='admin.feature_discovery.title--text'>
                             <FormattedMessage
                                 {...title}
                             />

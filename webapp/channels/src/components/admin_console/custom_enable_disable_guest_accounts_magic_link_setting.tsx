@@ -85,6 +85,7 @@ const CustomEnableDisableGuestAccountsMagicLinkSetting = ({
                 disabled={disabled}
             />
             <ConfirmModal
+                testId='admin.guest_access.disable_magic_link_modal'
                 show={showConfirm && (enableGuestMagicLink && value === false)}
                 title={memoizedTexts.title}
                 message={memoizedTexts.message}

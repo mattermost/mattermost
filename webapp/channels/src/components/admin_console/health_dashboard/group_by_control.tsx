@@ -43,6 +43,7 @@ const GroupByControl = ({value, onChange}: Props) => {
                         key={option}
                         type='button'
                         aria-pressed={option === value}
+                        data-testid={`admin.health.group_by:${option}--togglebutton`}
                         className={classNames('HealthDashboard__segment', {'HealthDashboard__segment--active': option === value})}
                         onClick={() => onChange(option)}
                     >

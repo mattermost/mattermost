@@ -51,7 +51,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         // * Title, subtitle, and the create action all live inside the AdminHeader
         // bar (not a separate boxed section below it) — the page has one title,
         // not a repeated one, and the button sits top-right of that header.
-        const header = within(screen.getByTestId('admin-console-header'));
+        const header = within(screen.getByTestId('admin.header'));
         expect(header.getByText('Attribute Management')).toBeInTheDocument();
         expect(header.getByText('Define an attribute once, then choose which resources can use it.')).toBeInTheDocument();
         expect(header.getByRole('button', {name: 'New attribute'})).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         expect(await screen.findByText('Clearance')).toBeInTheDocument();
         expect(screen.getByText('Department')).toBeInTheDocument();
 
-        const header = within(screen.getByTestId('admin-console-header'));
+        const header = within(screen.getByTestId('admin.header'));
         expect(header.getByTestId('newAttributeButton')).toBeInTheDocument();
         expect(header.queryByTestId('global-attributes-search')).not.toBeInTheDocument();
 

@@ -23,17 +23,17 @@ const TableChart = ({
 }: Props) => (
     <div className='col-sm-6'>
         <div
-            data-testid={id ? id + 'Chart' : undefined}
+            data-testid={id ? `admin.statistics.table:${id}` : undefined}
             className='total-count recent-active-users'
         >
             <div
-                data-testid={id ? id + 'Title' : undefined}
+                data-testid={id ? 'admin.statistics.table.title--text' : undefined}
                 className='title'
             >
                 {title}
             </div>
             <div
-                data-testid={id ? id + 'Content' : undefined}
+                data-testid={id ? 'admin.statistics.table.content' : undefined}
                 className='content'
             >
                 <table>

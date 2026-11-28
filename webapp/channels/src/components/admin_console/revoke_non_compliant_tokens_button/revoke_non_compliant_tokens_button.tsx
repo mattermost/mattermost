@@ -101,6 +101,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
             <Button
                 type='button'
                 emphasis='tertiary'
+                data-testid='admin.revoke_tokens.revoke--button'
                 disabled={disabled || busy || nothingToRevoke}
                 onClick={openConfirm}
             >
@@ -112,6 +113,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
             {error && (
                 <AlertBanner
                     mode='danger'
+                    testId='admin.revoke_tokens.error'
                     message={(
                         <FormattedMessage
                             id='admin.service.revokeNonCompliantTokens.error'
@@ -124,6 +126,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
             {!error && revokedCount !== null && (
                 <AlertBanner
                     mode='success'
+                    testId='admin.revoke_tokens.revoked'
                     message={(
                         <FormattedMessage
                             id='admin.service.revokeNonCompliantTokens.success'
@@ -136,6 +139,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
             {!error && revokedCount === null && count !== null && (
                 <AlertBanner
                     mode={count > 0 ? 'danger' : 'success'}
+                    testId='admin.revoke_tokens.status'
                     message={count > 0 ? (
                         <FormattedMessage
                             id='admin.service.revokeNonCompliantTokens.count'
@@ -151,6 +155,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
                 />
             )}
             <ConfirmModal
+                testId='admin.revoke_non_compliant_tokens_modal'
                 show={showConfirm}
                 title={(
                     <FormattedMessage

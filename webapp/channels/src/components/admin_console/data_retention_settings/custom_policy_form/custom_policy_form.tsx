@@ -363,6 +363,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                         >
                             <div className='CustomPolicy__fields'>
                                 <Input
+                                    testId='admin.data_retention.custom_policy.name'
                                     name='policyName'
                                     type='text'
                                     value={this.state.policyName}
@@ -454,6 +455,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 </div>
                 <div className='admin-console-save'>
                     <SaveButton
+                        testId='admin.save'
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}

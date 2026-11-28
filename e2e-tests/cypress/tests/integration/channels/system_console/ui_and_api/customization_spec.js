@@ -34,7 +34,7 @@ describe('Customization', () => {
         // # Set Enable Custom Branding to true to be able to upload custom brand image
         cy.get('[id="TeamSettings.EnableCustomBrandtrue"]').check();
 
-        cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:CustomBrandImage--group').should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
             cy.get('legend').should('be.visible').and('have.text', 'Custom Brand Image:');
 
@@ -50,43 +50,43 @@ describe('Customization', () => {
         saveSetting();
 
         cy.reload();
-        cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:CustomBrandImage--group').should('be.visible').within(() => {
             // * Verify that after page reload image exist
             cy.get('img').should('have.attr', 'src').and('include', '/api/v4/brand/image?t=');
 
             // * Verify that there's an option to delete the image.
-            cy.findByTestId('remove-image__btn').should('be.visible');
+            cy.findByTestId('admin.brand_image.remove--button').should('be.visible');
 
             // # delete the image
-            cy.findByTestId('remove-image__btn').click();
+            cy.findByTestId('admin.brand_image.remove--button').click();
         });
 
         // # Save setting
         saveSetting();
 
         cy.reload();
-        cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:CustomBrandImage--group').should('be.visible').within(() => {
             // * Verify that after page reload, the image doesn't exist.
             cy.findByAltText('brand image').should('not.exist');
 
             // * Verify there's no option to delete the image.
-            cy.findByTestId('remove-image__btn').should('not.exist');
+            cy.findByTestId('admin.brand_image.remove--button').should('not.exist');
         });
     });
 
     it('MM-T1204 - Can change Site Name setting', () => {
         // * Verify site name's setting name for is visible and matches the text
-        cy.findByTestId('TeamSettings.SiteNamelabel').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
 
         // * Verify the site name input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('TeamSettings.SiteNameinput').should('have.value', origConfig.TeamSettings.SiteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.TeamSettings.SiteName);
 
         // * Verify the site name's help text is visible and matches the text
-        cy.findByTestId('TeamSettings.SiteNamehelp-text').should('be.visible').and('have.text', 'Name of service shown in login screens and UI. When not specified, it defaults to "Mattermost".');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.help--text"]').should('be.visible').and('have.text', 'Name of service shown in login screens and UI. When not specified, it defaults to "Mattermost".');
 
         // # Generate and enter a random site name
         const siteName = 'New site name';
-        cy.findByTestId('TeamSettings.SiteNameinput').clear().type(siteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteName);
 
         // # Save setting
         saveSetting();
@@ -100,17 +100,17 @@ describe('Customization', () => {
 
     it('MM-T1205 - Can change Site Description setting', () => {
         // * Verify site description label is visible and matches the text
-        cy.findByTestId('TeamSettings.CustomDescriptionTextlabel').should('be.visible').and('have.text', 'Site Description: ');
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomDescriptionText--group"] [data-testid="admin.setting.label--text"]').should('be.visible').and('have.text', 'Site Description: ');
 
         // * Verify the site description input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('TeamSettings.CustomDescriptionTextinput').should('have.value', origConfig.TeamSettings.CustomDescriptionText);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomDescriptionText--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.TeamSettings.CustomDescriptionText);
 
         // * Verify the site description help text is visible and matches the text
-        cy.findByTestId('TeamSettings.CustomDescriptionTexthelp-text').find('span').should('be.visible').and('have.text', 'Displays as a title above the login form. When not specified, the phrase "Log in" is displayed.');
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomDescriptionText--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text', 'Displays as a title above the login form. When not specified, the phrase "Log in" is displayed.');
 
         // # Generate and enter a random site description
         const siteDescription = 'New site description';
-        cy.findByTestId('TeamSettings.CustomDescriptionTextinput').clear().type(siteDescription);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomDescriptionText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteDescription);
 
         // # Save setting
         saveSetting();
@@ -124,20 +124,20 @@ describe('Customization', () => {
 
     it('MM-T1208 - Can change Custom Brand Text setting', () => {
         // * Verify custom brand text label is visible and matches the text
-        cy.findByTestId('TeamSettings.CustomBrandTextlabel').scrollIntoView().should('be.visible').and('have.text', 'Custom Brand Text:');
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Custom Brand Text:');
 
         // * Verify the custom brand input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('TeamSettings.CustomBrandTextinput').should('have.value', origConfig.TeamSettings.CustomBrandText);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.TeamSettings.CustomBrandText);
 
         // * Verify the custom brand help text is visible and matches the text
-        cy.findByTestId('TeamSettings.CustomBrandTexthelp-text').find('span').should('be.visible').and('have.text', 'Text that will appear below your custom brand image on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.');
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text', 'Text that will appear below your custom brand image on your login screen. Supports Markdown-formatted text. Maximum 500 characters allowed.');
 
         //Enable custom branding
-        cy.findByTestId('TeamSettings.EnableCustomBrandtrue').check({force: true});
+        cy.get('[data-testid="admin.setting:TeamSettings.EnableCustomBrand--group"] [data-testid="admin.setting.true--radio"]').check({force: true});
 
         // # Enter a custom brand text
         const customBrandText = 'Random brand text';
-        cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(customBrandText);
 
         // # Save setting
         saveSetting();
@@ -154,7 +154,7 @@ describe('Customization', () => {
         cy.apiUpdateConfig({TeamSettings: {EnableCustomBrand: false}});
         cy.reload();
 
-        cy.findByTestId('TeamSettings.EnableCustomBrand').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:TeamSettings.EnableCustomBrand--group').should('be.visible').within(() => {
             // * Verify that setting is visible and matches text content
             cy.get('legend:contains("Enable Custom Branding: ")').should('be.visible');
 
@@ -163,7 +163,7 @@ describe('Customization', () => {
             cy.get('.help-text').should('be.visible').and('have.text', content);
 
             // # Set Enable Custom Branding to true
-            cy.findByTestId('TeamSettings.EnableCustomBrandtrue').check();
+            cy.findByTestId('admin.setting.true--radio').check();
         });
 
         // # Save setting
@@ -175,7 +175,7 @@ describe('Customization', () => {
         });
 
         // # Set Enable Custom Branding to false
-        cy.findByTestId('TeamSettings.EnableCustomBrandfalse').check();
+        cy.get('[data-testid="admin.setting:TeamSettings.EnableCustomBrand--group"] [data-testid="admin.setting.false--radio"]').check();
 
         // # Save setting
         saveSetting();

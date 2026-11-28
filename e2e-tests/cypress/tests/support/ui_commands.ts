@@ -539,7 +539,7 @@ function checkRunLDAPSync() {
             cy.findByText('AD/LDAP Synchronize Now').click().wait(TIMEOUTS.ONE_SEC);
 
             // * Get the First row
-            cy.findByTestId('jobTable').
+            cy.findByTestId('admin.jobs.table:ldap_sync').
                 find('tbody > tr').
                 eq(0).
                 as('firstRow');

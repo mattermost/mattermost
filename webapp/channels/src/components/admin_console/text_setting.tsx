@@ -30,6 +30,8 @@ const AdminTextSetting: React.FunctionComponent<Props> = (props: Props): JSX.Ele
         }
     }
 
+    const testIdScope = props.testIdScope ?? 'admin.setting';
+
     return (
         <TextSetting
             {...sharedProps}
@@ -38,6 +40,8 @@ const AdminTextSetting: React.FunctionComponent<Props> = (props: Props): JSX.Ele
             disabled={isTextDisabled}
             footer={setByEnv ? <SetByEnv/> : footer}
             placeholder={placeholderToUse}
+            testIdScope={testIdScope}
+            testKey={props.testKey ?? props.id}
         />
     );
 };

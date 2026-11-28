@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {SystemConsolePage} from '@mattermost/playwright-lib';
 import {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
@@ -12,6 +11,7 @@ import {
     openChannelSettingsConfigurationTab,
     Api,
     settle,
+    type App,
 } from '@mattermost/playwright-lib';
 
 test(
@@ -31,16 +31,10 @@ test(
         // The Edit Scheme link stays disabled until the permissions migration finishes
         await pw.ensurePhase2MigrationCompleted();
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await gotoSystemSchemePage(app);
 
-        await gotoSystemSchemePage(systemConsolePage);
-
-        const scheme = systemConsolePage.permissionsSystemScheme;
-        await scheme.toBeVisible();
-
-        await scheme.expectManageChannelAutoTranslationChecked(scheme.channelAdministratorsSection);
+        await expectManageChannelAutoTranslationChecked(app, 'channel_admin');
     },
 );
 
@@ -61,16 +55,10 @@ test(
         // The Edit Scheme link stays disabled until the permissions migration finishes
         await pw.ensurePhase2MigrationCompleted();
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await gotoSystemSchemePage(app);
 
-        await gotoSystemSchemePage(systemConsolePage);
-
-        const scheme = systemConsolePage.permissionsSystemScheme;
-        await scheme.toBeVisible();
-
-        await scheme.expectManageChannelAutoTranslationChecked(scheme.systemAdministratorsSection);
+        await expectManageChannelAutoTranslationChecked(app, 'system_admin');
     },
 );
 
@@ -261,12 +249,10 @@ test.describe('autotranslation configuration tests', () => {
             const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
                 app.channelSettingsModal,
             );
-            // The tabs render with the modal, and the test branches on whether this role is offered the tab at all
-            const configTabVisible = await channelSettingsModal.tabs.tab('configuration').locator.isVisible();
-            if (configTabVisible) {
-                const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
-                await expect(configurationTab.autotranslationSwitch.locator).not.toBeVisible();
-            }
+
+            // * A member can manage the channel's properties, so the Configuration tab is offered, without the switch
+            const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
+            await expect(configurationTab.autotranslationSwitch).not.toBeVisible();
 
             // Restore autotranslation to disabled via patchConfig (race-safe)
             await disableAutotranslationConfig(adminClient);
@@ -274,10 +260,23 @@ test.describe('autotranslation configuration tests', () => {
     );
 });
 
-async function gotoSystemSchemePage(systemConsolePage: SystemConsolePage) {
-    await systemConsolePage.sidebar.userManagement.permissions.click();
-    await systemConsolePage.page.waitForURL(/\/admin_console\/user_management\/permissions/);
+async function gotoSystemSchemePage(app: App) {
+    // The Edit Scheme link leads here; the route is opened directly once the permissions migration has finished.
+    const path = `${app.adminConsolePage.pathFor()}/user_management/permissions/system_scheme`;
+    await app.page.goto(path);
+    await expect(app.page).toHavePath(path);
+    await expect(app.admin.permissions.system.cancelLink).toBeVisible();
+}
 
-    await systemConsolePage.page.getByRole('link', {name: 'Edit Scheme'}).click();
-    await expect(systemConsolePage.page).toHaveURL(/\/admin_console\/user_management\/permissions\/system_scheme/);
+/**
+ * Asserts that "Manage Channel Auto Translation" is checked (ON) for the role: its permission tree holds one row in
+ * the public channels group and one in the private channels group. The rows carry the same test ids in every role's
+ * tree, and the generated lists are rooted at the page, so each row is looked up inside the role's own tree.
+ */
+async function expectManageChannelAutoTranslationChecked(app: App, roleName: string) {
+    const tree = app.admin.permissions.role(roleName).locator;
+    for (const permission of ['manage_public_channel_auto_translation', 'manage_private_channel_auto_translation']) {
+        // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the same row id exists in every role's tree and the generated row list is rooted at the page, so a row can only be scoped to one role this way
+        await expect(tree.getByTestId(`admin.permissions.group.row:${permission}--checkbox`)).toBeChecked();
+    }
 }

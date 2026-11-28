@@ -206,6 +206,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                             <div>
                                 <CheckboxSetting
                                     id='admin.password.lowercase'
+                                    testId='admin.password.lowercase'
                                     label={
                                         <FormattedMessage {...messages.lowercase}/>
                                     }
@@ -218,6 +219,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                             <div>
                                 <CheckboxSetting
                                     id='admin.password.uppercase'
+                                    testId='admin.password.uppercase'
                                     label={
                                         <FormattedMessage {...messages.uppercase}/>
                                     }
@@ -230,6 +232,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                             <div>
                                 <CheckboxSetting
                                     id='admin.password.number'
+                                    testId='admin.password.number'
                                     label={
                                         <FormattedMessage {...messages.number}/>
                                     }
@@ -242,6 +245,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                             <div>
                                 <CheckboxSetting
                                     id='admin.password.symbol'
+                                    testId='admin.password.symbol'
                                     label={
                                         <FormattedMessage {...messages.symbol}/>
                                     }
@@ -252,7 +256,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                                 />
                             </div>
                         </ul>
-                        <div>
+                        <div data-testid='admin.password.preview--text'>
                             <br/>
                             <div className='password-settings__preview-heading'>
                                 <FormattedMessage {...messages.preview}/>

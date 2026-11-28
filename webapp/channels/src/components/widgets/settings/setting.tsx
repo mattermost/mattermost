@@ -15,8 +15,8 @@ type Props = {
     /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`); without it the row keeps its input-id based ids. */
     testIdScope?: string;
 
-    /** The row's own testid when it isn't the scope (a keyed row: `admin.setting:<key>`). */
-    testId?: string;
+    /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
+    testKey?: string;
 };
 
 const Setting: React.FC<Props> = ({
@@ -28,11 +28,17 @@ const Setting: React.FC<Props> = ({
     footer,
     helpText,
     testIdScope,
-    testId,
+    testKey,
 }: Props) => {
+    let rootTestId = inputId;
+    if (testIdScope) {
+        rootTestId = testKey ? `${testIdScope}:${testKey}--group` : `${testIdScope}--group`;
+    }
+
     return (
         <div
-            data-testid={testIdScope ? testId ?? testIdScope : inputId}
+            role='group'
+            data-testid={rootTestId}
             className='form-group'
         >
             {label && (

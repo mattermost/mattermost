@@ -57,7 +57,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
-            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
+            expect(screen.getByTestId('admin.feature_discovery.title--text').tagName).toBe('SPAN');
 
             expect(screen.getByRole('button', {name: 'Start trial'})).toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Start trial'}));
@@ -67,7 +67,7 @@ describe('components/feature_discovery', () => {
             //cloud option
             expect(screen.queryByRole('button', {name: 'Try free for 30 days'})).not.toBeInTheDocument();
 
-            const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
+            const featureLink = screen.getByTestId('admin.feature_discovery.secondary--link');
 
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
@@ -119,18 +119,18 @@ describe('components/feature_discovery', () => {
             });
 
             // subscription is loaded, so loadingSpinner should not be visible
-            expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.feature_discovery.loading_spinner')).not.toBeInTheDocument();
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
-            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
+            expect(screen.getByTestId('admin.feature_discovery.title--text').tagName).toBe('SPAN');
 
             //this option is visible only when it is cloud environment
             expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
 
-            expect(screen.getByTestId('featureDiscovery_secondaryCallToAction')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
+            expect(screen.getByTestId('admin.feature_discovery.secondary--link')).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
 
-            const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
+            const featureLink = screen.getByTestId('admin.feature_discovery.secondary--link');
 
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
@@ -180,7 +180,7 @@ describe('components/feature_discovery', () => {
             );
 
             // when is cloud and subscription is not loaded yet, then only loading spinner is visible
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.feature_discovery.loading_spinner')).toBeInTheDocument();
 
             expect(screen.queryByText('Bar')).not.toBeInTheDocument();
             expect(screen.queryByText('Foo')).not.toBeInTheDocument();
@@ -188,7 +188,7 @@ describe('components/feature_discovery', () => {
             //this option is visible only when subscription is loaded and is cloud environment
             expect(screen.queryByRole('button', {name: 'Try free for 30 days'})).not.toBeInTheDocument();
 
-            expect(screen.queryByTestId('featureDiscovery_secondaryCallToAction')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.feature_discovery.secondary--link')).not.toBeInTheDocument();
 
             expect(getPrevTrialLicense).toHaveBeenCalled();
             expect(getCloudSubscription).not.toHaveBeenCalled();
@@ -235,7 +235,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
-            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
+            expect(screen.getByTestId('admin.feature_discovery.title--text').tagName).toBe('SPAN');
 
             // Should show Contact Sales button instead of Start Trial when Team Edition
             const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
@@ -244,7 +244,7 @@ describe('components/feature_discovery', () => {
             expect(contactSalesButton.className).not.toMatch(/size-large/);
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
 
-            const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
+            const featureLink = screen.getByTestId('admin.feature_discovery.secondary--link');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
@@ -296,7 +296,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
-            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
+            expect(screen.getByTestId('admin.feature_discovery.title--text').tagName).toBe('SPAN');
 
             // Should show Contact Sales button when previous trial license exists
             const contactSalesButton = screen.getByRole('button', {name: 'Contact sales'});
@@ -305,7 +305,7 @@ describe('components/feature_discovery', () => {
             expect(contactSalesButton.className).not.toMatch(/size-large/);
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
 
-            const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
+            const featureLink = screen.getByTestId('admin.feature_discovery.secondary--link');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');
@@ -359,7 +359,7 @@ describe('components/feature_discovery', () => {
 
             expect(screen.queryByText('Bar')).toBeInTheDocument();
             expect(screen.queryByText('Foo')).toBeInTheDocument();
-            expect(screen.getByTestId('featureDiscovery_title').tagName).toBe('SPAN');
+            expect(screen.getByTestId('admin.feature_discovery.title--text').tagName).toBe('SPAN');
 
             // Should show Start Trial button when Enterprise Ready and no previous trial
             const startTrialButton = screen.getByRole('button', {name: 'Start trial'});
@@ -368,7 +368,7 @@ describe('components/feature_discovery', () => {
             expect(startTrialButton.className).toMatch(/size-medium/);
             expect(screen.queryByRole('button', {name: 'Contact sales'})).not.toBeInTheDocument();
 
-            const featureLink = screen.getByTestId('featureDiscovery_secondaryCallToAction');
+            const featureLink = screen.getByTestId('admin.feature_discovery.secondary--link');
             expect(featureLink).toBeInTheDocument();
             expect(featureLink).toHaveAttribute('href', 'https://test.mattermost.com/secondary/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_discovery&uid=&sid=&edition=team&server_version=');
             expect(featureLink).toHaveTextContent('Learn more');

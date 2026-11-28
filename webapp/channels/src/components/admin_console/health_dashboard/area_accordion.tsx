@@ -29,11 +29,20 @@ const AreaAccordion = ({area, findings, expandAll, now, expanded, onToggle, onMu
     const [open, setOpen] = useState(expandAll || counts.critical > 0);
 
     return (
-        <section className={classNames('HealthDashboard__area', {'HealthDashboard__area--open': open})}>
-            <h3 className='HealthDashboard__areaHeading'>
+        <section
+            className={classNames('HealthDashboard__area', {'HealthDashboard__area--open': open})}
+            role='group'
+            aria-labelledby={`${panelId}-heading`}
+            data-testid={`admin.health.area:${area}--group`}
+        >
+            <h3
+                className='HealthDashboard__areaHeading'
+                id={`${panelId}-heading`}
+            >
                 <button
                     type='button'
                     className='HealthDashboard__areaToggle'
+                    data-testid='admin.health.area.toggle--button'
                     aria-expanded={open}
                     aria-controls={panelId}
                     onClick={() => setOpen(!open)}
@@ -48,7 +57,10 @@ const AreaAccordion = ({area, findings, expandAll, now, expanded, onToggle, onMu
                         <span className='HealthDashboard__areaTitle'>
                             <AreaLabel area={area}/>
                         </span>
-                        <span className='HealthDashboard__areaCount'>
+                        <span
+                            className='HealthDashboard__areaCount'
+                            data-testid='admin.health.area.count--text'
+                        >
                             <FormattedMessage
                                 id='admin.health_dashboard.area.count'
                                 defaultMessage='{count, plural, one {# finding} other {# findings}}'

@@ -25,29 +25,29 @@ describe('Environment', () => {
         cy.visit('/admin_console/environment/elasticsearch');
 
         // * Verify the ElasticSearch fields are disabled
-        cy.findByTestId('connectionUrlinput').should('be.disabled');
-        cy.findByTestId('skipTLSVerificationfalse').should('be.disabled');
-        cy.findByTestId('usernameinput').should('be.disabled');
-        cy.findByTestId('passwordinput').should('be.disabled');
-        cy.findByTestId('snifftrue').should('be.disabled');
-        cy.findByTestId('snifffalse').should('be.disabled');
-        cy.findByTestId('enableSearchingtrue').should('be.disabled');
-        cy.findByTestId('enableSearchingfalse').should('be.disabled');
-        cy.findByTestId('enableAutocompletetrue').should('be.disabled');
-        cy.findByTestId('enableAutocompletefalse').should('be.disabled');
+        cy.get('[data-testid="admin.setting:connectionUrl--group"] [data-testid="admin.setting.value--textbox"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:skipTLSVerification--group"] [data-testid="admin.setting.false--radio"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:username--group"] [data-testid="admin.setting.value--textbox"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:password--group"] [data-testid="admin.setting.value--textbox"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:sniff--group"] [data-testid="admin.setting.true--radio"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:sniff--group"] [data-testid="admin.setting.false--radio"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:enableSearching--group"] [data-testid="admin.setting.true--radio"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:enableSearching--group"] [data-testid="admin.setting.false--radio"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:enableAutocomplete--group"] [data-testid="admin.setting.true--radio"]').should('be.disabled');
+        cy.get('[data-testid="admin.setting:enableAutocomplete--group"] [data-testid="admin.setting.false--radio"]').should('be.disabled');
 
         cy.visit('/admin_console/environment/elasticsearch');
 
         // # Enable Elasticsearch
-        cy.findByTestId('enableIndexingtrue').check();
+        cy.get('[data-testid="admin.setting:enableIndexing--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // * Verify the ElasticSearch fields are enabled
-        cy.findByTestId('connectionUrlinput').should('not.be.disabled');
-        cy.findByTestId('skipTLSVerificationfalse').should('not.be.disabled');
-        cy.findByTestId('usernameinput').should('not.be.disabled');
-        cy.findByTestId('passwordinput').should('not.be.disabled');
-        cy.findByTestId('snifftrue').should('not.be.disabled');
-        cy.findByTestId('snifffalse').should('not.be.disabled');
+        cy.get('[data-testid="admin.setting:connectionUrl--group"] [data-testid="admin.setting.value--textbox"]').should('not.be.disabled');
+        cy.get('[data-testid="admin.setting:skipTLSVerification--group"] [data-testid="admin.setting.false--radio"]').should('not.be.disabled');
+        cy.get('[data-testid="admin.setting:username--group"] [data-testid="admin.setting.value--textbox"]').should('not.be.disabled');
+        cy.get('[data-testid="admin.setting:password--group"] [data-testid="admin.setting.value--textbox"]').should('not.be.disabled');
+        cy.get('[data-testid="admin.setting:sniff--group"] [data-testid="admin.setting.true--radio"]').should('not.be.disabled');
+        cy.get('[data-testid="admin.setting:sniff--group"] [data-testid="admin.setting.false--radio"]').should('not.be.disabled');
 
         cy.get('.sidebar-section').first().click();
 

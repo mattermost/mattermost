@@ -92,6 +92,7 @@ const ConvertConfirmModal = ({show, onConfirm, onCancel, displayName, toPublic}:
 
     return (
         <ConfirmModal
+            testId='admin.convert_modal'
             show={show}
             title={title}
             message={message}

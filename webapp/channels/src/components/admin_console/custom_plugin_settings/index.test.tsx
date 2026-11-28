@@ -13,7 +13,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 
-import {screen, renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
 
 Client4.setUrl('http://localhost:8065');
 
@@ -108,10 +108,10 @@ describe('custom plugin sections and settings', () => {
     };
 
     const expectPluginPageTitle = (pluginName: string, pluginId: string) => {
-        expect(screen.getByTestId('admin-console-header')).toHaveTextContent(pluginName);
-        expect(screen.getByTestId('plugin-metadata-id')).toHaveTextContent(pluginId);
-        expect(document.querySelector('.PluginMetadataPanel__actionsPanel')).toContainElement(screen.getByTestId('plugin-metadata-id'));
-        expect(screen.queryByTestId('plugin-metadata-name')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.header')).toHaveTextContent(pluginName);
+        expect(screen.getByTestId('admin.plugin.metadata.id--button')).toHaveTextContent(pluginId);
+        expect(document.querySelector('.PluginMetadataPanel__actionsPanel')).toContainElement(screen.getByTestId('admin.plugin.metadata.id--button'));
+        expect(screen.queryByTestId('admin.plugin.metadata.name')).not.toBeInTheDocument();
     };
 
     const expectPluginActionsInMetadataPanel = () => {
@@ -133,10 +133,10 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
-        const runningBadge = screen.getByTestId('plugin-metadata-status');
+        const runningBadge = screen.getByTestId('admin.plugin.status--text');
         expect(runningBadge).toHaveTextContent('Running');
         expect(runningBadge).toHaveClass('PluginMetadataPanel__statusBadge--running');
-        expect(screen.getByTestId('admin-console-header')).toContainElement(runningBadge);
+        expect(screen.getByTestId('admin.header')).toContainElement(runningBadge);
         expect(screen.queryByText('This is the header')).not.toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
@@ -181,11 +181,11 @@ describe('custom plugin sections and settings', () => {
             },
         );
 
-        const badge = screen.getByTestId('plugin-metadata-status');
+        const badge = screen.getByTestId('admin.plugin.status--text');
         expect(badge).toHaveTextContent('Failed to start');
         expect(badge).not.toHaveTextContent(error);
-        expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
-        expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
+        expect(screen.getByTestId('admin.header')).toContainElement(badge);
+        expect(screen.getByTestId('admin.plugin.status_error')).toHaveTextContent(error);
         expect(document.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
     });
 
@@ -219,9 +219,9 @@ describe('custom plugin sections and settings', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('plugin-metadata-status')).toHaveTextContent('Failed to start');
+            expect(screen.getByTestId('admin.plugin.status--text')).toHaveTextContent('Failed to start');
         });
-        expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
+        expect(screen.getByTestId('admin.plugin.status_error')).toHaveTextContent(error);
     });
 
     describe('server logs', () => {
@@ -260,7 +260,7 @@ describe('custom plugin sections and settings', () => {
             renderFailed(true);
 
             expect(screen.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', '/admin_console/reporting/server_logs?levels=all&node=&field.plugin_id=testplugin');
-            expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent('Check your system logs for errors.');
+            expect(screen.getByTestId('admin.plugin.status_error')).toHaveTextContent('Check your system logs for errors.');
         });
 
         it.each([
@@ -363,7 +363,7 @@ describe('custom plugin sections and settings', () => {
             state,
         );
 
-        expect(screen.getByTestId('PluginSettings.Plugins.testplugin.sectionsettinginput')).not.toBeDisabled();
+        expect(within(screen.getByTestId('admin.setting:PluginSettings.Plugins.testplugin.sectionsetting--group')).getByTestId('admin.setting.value--textbox')).not.toBeDisabled();
     });
 
     it('keeps section settings editable when the enabled plugin has a footer', () => {
@@ -405,7 +405,7 @@ describe('custom plugin sections and settings', () => {
             state,
         );
 
-        expect(screen.getByTestId('PluginSettings.Plugins.testplugin.sectionsettinginput')).not.toBeDisabled();
+        expect(within(screen.getByTestId('admin.setting:PluginSettings.Plugins.testplugin.sectionsetting--group')).getByTestId('admin.setting.value--textbox')).not.toBeDisabled();
     });
 
     it('keeps top-level settings editable for an enabled flat-settings plugin', () => {
@@ -442,7 +442,7 @@ describe('custom plugin sections and settings', () => {
             state,
         );
 
-        expect(screen.getByTestId('PluginSettings.Plugins.testplugin.toplevelsettinginput')).not.toBeDisabled();
+        expect(within(screen.getByTestId('admin.setting:PluginSettings.Plugins.testplugin.toplevelsetting--group')).getByTestId('admin.setting.value--textbox')).not.toBeDisabled();
     });
 
     it('renders warnings for top-level custom settings when plugin activation failed', () => {
@@ -678,8 +678,7 @@ describe('custom plugin sections and settings', () => {
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.setting:PluginSettings.PluginStates.testplugin.Enable--group')).not.toBeInTheDocument();
         expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
         expect(screen.queryByText('When true, this plugin is enabled.')).not.toBeInTheDocument();
         expect(screen.getByText('In order to view and configure plugin settings, enable the plugin.')).toBeInTheDocument();
@@ -767,8 +766,7 @@ describe('custom plugin sections and settings', () => {
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.setting:PluginSettings.PluginStates.testplugin.Enable--group')).not.toBeInTheDocument();
         expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
         expect(screen.queryByText('When true, this plugin is enabled.')).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
@@ -857,7 +855,7 @@ describe('custom plugin sections and settings', () => {
         expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.setting:PluginSettings.PluginStates.testplugin.Enable--group')).not.toBeInTheDocument();
     });
 
     it('mixed custom section fallback with plugin disabled keeps fallback sections visible', () => {
@@ -927,7 +925,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.plugin.enable--switch')).toBeInTheDocument();
 
         // The single collapse warning must not replace the whole page when at least one section allows a fallback.
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
@@ -1115,8 +1113,7 @@ describe('custom plugin sections and settings', () => {
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.setting:PluginSettings.PluginStates.testplugin.Enable--group')).not.toBeInTheDocument();
         expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();
@@ -1157,17 +1154,13 @@ describe('custom plugin sections and settings', () => {
 
         it('hides every enable control and explains why when the license lacks the add-on', () => {
             renderAddOnPlugin({IsLicensed: 'true'});
-
-            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.plugin.enable--switch')).not.toBeInTheDocument();
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
         });
 
         it('hides every enable control on an unlicensed server', () => {
             renderAddOnPlugin({IsLicensed: 'false'});
-
-            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.plugin.enable--switch')).not.toBeInTheDocument();
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
         });
 
@@ -1181,7 +1174,7 @@ describe('custom plugin sections and settings', () => {
         it('shows the enable control when the license grants the add-on', () => {
             renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard'});
 
-            expect(screen.getByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.plugin.enable--switch')).toBeInTheDocument();
             expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
         });
 
@@ -1195,13 +1188,13 @@ describe('custom plugin sections and settings', () => {
             );
 
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
-            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.plugin.enable--switch')).not.toBeInTheDocument();
         });
 
         it('does not match an add-on on a substring', () => {
             renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard-premium'});
 
-            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.plugin.enable--switch')).not.toBeInTheDocument();
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
         });
 
@@ -1220,7 +1213,7 @@ describe('custom plugin sections and settings', () => {
                 },
             );
 
-            expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.plugin.enable--switch')).not.toBeInTheDocument();
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
         });
 
@@ -1239,7 +1232,7 @@ describe('custom plugin sections and settings', () => {
                 },
             );
 
-            expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.plugin.enable--switch')).toBeInTheDocument();
             expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
         });
     });

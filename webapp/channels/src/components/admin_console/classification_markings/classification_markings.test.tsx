@@ -800,7 +800,7 @@ describe('ClassificationMarkings component', () => {
         await screen.findByTestId('clearanceAttributeCheckbox');
         await waitForClearanceNameListing();
 
-        expect(screen.getByTestId('clearanceAttributehelp-text')).toHaveTextContent(
+        expect(within(screen.getByTestId('admin.setting:clearanceAttribute--group')).getByTestId('admin.setting.help--text')).toHaveTextContent(
             'Creates a ranked "Classification clearance" user attribute linked to these classification levels. ' +
             'Channel membership can then be managed with a corresponding membership policy.',
         );
@@ -837,7 +837,7 @@ describe('ClassificationMarkings component', () => {
 
         await screen.findByText('Classification preset');
 
-        const classificationTrueRadio = screen.getByTestId('classificationEnabledtrue') as HTMLInputElement;
+        const classificationTrueRadio = within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.true--radio') as HTMLInputElement;
         expect(classificationTrueRadio.checked).toBe(true);
 
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
@@ -1112,7 +1112,7 @@ describe('GlobalClassificationIndicators section', () => {
         await screen.findByText('Banner visibility');
 
         // top_and_bottom placement: the "false" radio (top_and_bottom side) should be selected
-        expect(screen.getByTestId('globalBannerPlacementfalse')).toBeChecked();
+        expect(within(screen.getByTestId('admin.setting:globalBannerPlacement--group')).getByTestId('admin.setting.false--radio')).toBeChecked();
 
         expect(screen.getByText('UNCLASSIFIED')).toBeInTheDocument();
     });
@@ -1154,7 +1154,7 @@ describe('GlobalClassificationIndicators section', () => {
         const user = userEvent.setup();
 
         // Enable the global banner without selecting a level
-        await user.click(screen.getByTestId('globalBannerEnabledtrue'));
+        await user.click(within(screen.getByTestId('admin.setting:globalBannerEnabled--group')).getByTestId('admin.setting.true--radio'));
         await user.click(screen.getByText('Save'));
 
         await screen.findByText(/A global classification level must be selected/);
@@ -1272,7 +1272,7 @@ describe('GlobalClassificationIndicators section', () => {
         await user.tab();
 
         // Change banner placement to top_and_bottom.
-        await user.click(screen.getByTestId('globalBannerPlacementfalse'));
+        await user.click(within(screen.getByTestId('admin.setting:globalBannerPlacement--group')).getByTestId('admin.setting.false--radio'));
 
         const saveButton = await screen.findByText('Save');
         await user.click(saveButton);
@@ -1408,7 +1408,7 @@ describe('GlobalClassificationIndicators section', () => {
             const user = userEvent.setup();
 
             await act(async () => {
-                await user.click(screen.getByTestId('classificationEnabledfalse'));
+                await user.click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.false--radio'));
             });
 
             await act(async () => {
@@ -1794,7 +1794,7 @@ describe('Channel classification linked field branches', () => {
             const user = userEvent.setup();
 
             await act(async () => {
-                await user.click(screen.getByTestId('classificationEnabledfalse'));
+                await user.click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.false--radio'));
             });
 
             await act(async () => {
@@ -1847,7 +1847,7 @@ describe('Channel classification linked field branches', () => {
             const user = userEvent.setup();
 
             await act(async () => {
-                await user.click(screen.getByTestId('classificationEnabledfalse'));
+                await user.click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.false--radio'));
             });
             await act(async () => {
                 await user.click(screen.getByText('Save'));
@@ -1897,7 +1897,7 @@ describe('Channel classification linked field branches', () => {
             const user = userEvent.setup();
 
             await act(async () => {
-                await user.click(screen.getByTestId('classificationEnabledfalse'));
+                await user.click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.false--radio'));
             });
             await act(async () => {
                 await user.click(screen.getByText('Save'));
@@ -2186,16 +2186,16 @@ describe('Conflicting same-named fields', () => {
         expect(screen.getByText(/An attribute named "classification" already exists with a different type/)).toBeInTheDocument();
 
         // Adopting it would show the feature enabled with an empty levels table.
-        const enabledFalse = screen.getByTestId('classificationEnabledfalse') as HTMLInputElement;
+        const enabledFalse = within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.false--radio') as HTMLInputElement;
         expect(enabledFalse.checked).toBe(true);
         expect(screen.queryByText('Classification levels')).not.toBeInTheDocument();
 
         // Read-only: the toggle cannot be moved, so the teardown that would delete
         // the foreign field can never run.
-        expect(screen.getByTestId('classificationEnabledtrue')).toBeDisabled();
+        expect(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.true--radio')).toBeDisabled();
         expect(enabledFalse).toBeDisabled();
 
-        await userEvent.setup().click(screen.getByTestId('classificationEnabledtrue'));
+        await userEvent.setup().click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.true--radio'));
         expect(enabledFalse.checked).toBe(true);
         expect(screen.getByText('Save').closest('button')).toBeDisabled();
     });
@@ -2216,7 +2216,7 @@ describe('Conflicting same-named fields', () => {
         // Save stays inert rather than committing the template and system field
         // and then failing on the channel one.
         const user = userEvent.setup();
-        await user.click(screen.getByTestId('classificationEnabledtrue'));
+        await user.click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.true--radio'));
         expect(screen.getByText('Save').closest('button')).toBeDisabled();
 
         await user.click(screen.getByText('Save'));
@@ -2286,7 +2286,7 @@ describe('Clearance name shared with another attribute', () => {
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         await screen.findByTestId('clearanceAttributeCheckbox');
         await waitForClearanceNameListing();
-        return within(screen.getByTestId('clearanceAttribute'));
+        return within(screen.getByTestId('admin.setting:clearanceAttribute--group'));
     }
 
     test('should name the other attribute without disabling the clearance checkbox', async () => {
@@ -2439,7 +2439,7 @@ describe('Clearance name listing failures', () => {
     function expectPageFullyUsable() {
         // Configured, not never-configured: the levels that came back are on
         // screen and the feature reads as enabled.
-        expect(screen.getByTestId('classificationEnabledtrue')).toBeChecked();
+        expect(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.true--radio')).toBeChecked();
         expect(screen.getByRole('textbox', {name: /Classification level name/i})).toHaveValue('UNCLASSIFIED');
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
         expect(screen.getByText('Add level')).toBeInTheDocument();
@@ -2564,7 +2564,7 @@ describe('Save conflict error mapping', () => {
         }));
 
         const user = await renderConfiguredPage();
-        await user.click(screen.getByTestId('classificationEnabledfalse'));
+        await user.click(within(screen.getByTestId('admin.setting:classificationEnabled--group')).getByTestId('admin.setting.false--radio'));
         await user.click(await screen.findByText('Save'));
 
         expect(await screen.findByText(/Cannot disable classification markings while channel classifications exist/)).toBeInTheDocument();

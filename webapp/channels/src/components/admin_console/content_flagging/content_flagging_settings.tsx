@@ -232,6 +232,8 @@ export default function ContentFlaggingSettings() {
             </div>
 
             <SaveChangesPanel
+
+                testId='admin.content_flagging.save_panel'
                 saveNeeded={saveNeeded}
                 saving={saving}
                 onClick={onSave}

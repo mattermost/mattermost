@@ -80,7 +80,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
         test('should not render the edit control when no upload handler is provided', () => {
             renderWithContext(<AdminUserCard {...defaultProps}/>);
 
-            expect(screen.queryByTestId('adminUserCardPictureButton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.user.card.picture--button')).not.toBeInTheDocument();
         });
 
         test('should call onUploadPicture with the selected file', () => {
@@ -93,7 +93,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
             );
 
             const file = new File(['image-bytes'], 'avatar.png', {type: 'image/png'});
-            fireEvent.change(screen.getByTestId('adminUserCardPictureInput'), {target: {files: [file]}});
+            fireEvent.change(screen.getByTestId('admin.user.card.picture_input'), {target: {files: [file]}});
 
             expect(onUploadPicture).toHaveBeenCalledTimes(1);
             expect(onUploadPicture).toHaveBeenCalledWith(file);
@@ -109,7 +109,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('adminUserCardPictureButton'));
+            await userEvent.click(screen.getByTestId('admin.user.card.picture--button'));
 
             expect(screen.getByText('Upload Picture')).toBeInTheDocument();
             expect(screen.queryByText('Remove Picture')).not.toBeInTheDocument();
@@ -126,7 +126,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('adminUserCardPictureButton'));
+            await userEvent.click(screen.getByTestId('admin.user.card.picture--button'));
             await userEvent.click(await screen.findByText('Remove Picture'));
 
             await waitFor(() => {
@@ -143,8 +143,8 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 />,
             );
 
-            expect(screen.getByTestId('adminUserCardPictureButton')).toBeDisabled();
-            expect(screen.getByTestId('adminUserCardPictureInput')).toBeDisabled();
+            expect(screen.getByTestId('admin.user.card.picture--button')).toBeDisabled();
+            expect(screen.getByTestId('admin.user.card.picture_input')).toBeDisabled();
             expect(screen.getByTitle('Loading Icon')).toBeInTheDocument();
         });
     });

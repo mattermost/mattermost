@@ -45,6 +45,7 @@ const RadioSetting = ({
         return (
             <Radio
                 key={optionValue}
+                data-testid={`admin.setting.option:${optionValue}--radio`}
                 className={radioClassName}
                 name={id}
                 value={optionValue}

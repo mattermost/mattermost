@@ -255,14 +255,14 @@ function SystemUsers(props: Props) {
                             <div className='profilePictureContainer'>
                                 <img
                                     className='profilePicture'
-                                    data-testid='profilePicture'
+                                    data-testid='admin.users.table.row.picture'
                                     src={imageURLForUser(info.row.original.id)}
                                     aria-hidden='true'
                                 />
                             </div>
                             <div
                                 className='displayName'
-                                data-testid='displayName'
+                                data-testid='admin.users.table.row.display_name--text'
                                 title={getDisplayName(info.row.original)}
                             >
                                 {getDisplayName(info.row.original) || ''}
@@ -278,7 +278,7 @@ function SystemUsers(props: Props) {
                             </div>
                             <div
                                 className='userName'
-                                data-testid='userName'
+                                data-testid='admin.users.table.row.username--text'
                                 title={info.row.original.username}
                             >
                                 {info.row.original.username}
@@ -287,6 +287,7 @@ function SystemUsers(props: Props) {
                             <div
                                 className='error'
                                 title={info.row.original.error.message}
+                                data-testid='admin.users.table.row.error--text'
                             >
                                 {info.row.original.error.message}
                             </div>}
@@ -484,7 +485,7 @@ function SystemUsers(props: Props) {
     return (
         <div
             className='wrapper--fixed SystemUsers'
-            data-testid='systemUsersSection'
+            data-testid='admin.users'
         >
             <AdminHeader>
                 <FormattedMessage
@@ -526,6 +527,7 @@ function SystemUsers(props: Props) {
                     </div>
                     <AdminConsoleListTable<UserReport>
                         table={table}
+                        testIdScope='admin.users.table'
                     />
                 </AdminPanel>
             </div>

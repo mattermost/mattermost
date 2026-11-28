@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo} from 'react';
-import type {OnChangeValue} from 'react-select';
-import ReactSelect from 'react-select';
+import type {InputProps, MultiValueRemoveProps, OnChangeValue} from 'react-select';
+import ReactSelect, {components} from 'react-select';
 
 import FormError from 'components/form_error';
 
@@ -27,6 +27,25 @@ interface Props {
 }
 
 const getOptionLabel = ({text}: {text: string}) => text;
+
+// The setting's parts inside its row (`admin.setting:<key>`): the search box `admin.setting.values--combobox`, and each
+// chosen value's remove button `admin.setting.remove:<value>--button`. react-select passes extra props through to its
+// <input>; the remove button's styles arrive in innerProps, so its testid goes in there too.
+const SettingInput = (props: InputProps<Option, true>) => (
+    <components.Input
+        {...props}
+        data-testid='admin.setting.values--combobox'
+    />
+);
+
+const SettingMultiValueRemove = (props: MultiValueRemoveProps<Option>) => (
+    <components.MultiValueRemove
+        {...props}
+        innerProps={{...props.innerProps, 'data-testid': `admin.setting.remove:${props.data.value}--button`} as MultiValueRemoveProps<Option>['innerProps']}
+    />
+);
+
+const selectComponents = {Input: SettingInput, MultiValueRemove: SettingMultiValueRemove};
 
 const MultiSelectSetting: React.FC<Props> = ({
     id,
@@ -85,6 +104,7 @@ const MultiSelectSetting: React.FC<Props> = ({
                 noOptionsMessage={() => noOptionsMessage}
                 onChange={handleChange}
                 value={calculatedValue}
+                components={selectComponents}
             />
             <FormError error={error}/>
         </Setting>

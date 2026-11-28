@@ -578,7 +578,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
 
     render = () => {
         if (!this.isLoaded(this.props)) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='admin.permissions.team_scheme.loading_screen'/>;
         }
         const roles = this.getStateRoles();
         const teams = this.state.teams || this.props.teams || [];
@@ -691,6 +691,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             title={defineMessage({id: 'admin.permissions.teamScheme.selectTeamsTitle', defaultMessage: 'Select teams to override permissions'})}
                             subtitle={defineMessage({id: 'admin.permissions.teamScheme.selectTeamsDescription', defaultMessage: 'Select teams where permission exceptions are required.'})}
                             onButtonClick={this.openAddTeam}
+                            buttonTestId='admin.permission_scheme.teams.add'
                             buttonText={defineMessage({id: 'admin.permissions.teamScheme.addTeams', defaultMessage: 'Add Teams'})}
                             disabled={this.props.isDisabled}
                         >
@@ -807,6 +808,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
 
                 <div className='admin-console-save'>
                     <SaveButton
+                        testId='admin.save'
                         saving={this.state.saving}
                         disabled={this.props.isDisabled || !this.state.saveNeeded}
                         onClick={this.handleSubmit}
@@ -820,9 +822,11 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                     <Button
                         asChild={true}
                         emphasis='tertiary'
-                        data-testid='permission-scheme-cancel-button'
                     >
-                        <BlockableLink to='/admin_console/user_management/permissions'>
+                        <BlockableLink
+                            to='/admin_console/user_management/permissions'
+                            data-testid='admin.permissions.team.cancel--link'
+                        >
                             <FormattedMessage
                                 id='admin.permissions.permissionSchemes.cancel'
                                 defaultMessage='Cancel'

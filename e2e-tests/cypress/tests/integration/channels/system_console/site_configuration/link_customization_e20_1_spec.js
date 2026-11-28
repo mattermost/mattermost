@@ -38,12 +38,12 @@ describe('SupportSettings', () => {
 
     it('MM-T1031 - Customization Change all links', () => {
         // # Edit links in the TOS, Privacy, About, Help, Report fields
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkinput').clear().type(tosLink);
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinkinput').clear().type(privacyLink);
-        cy.findByTestId('SupportSettings.AboutLinkinput').clear().type(aboutLink);
-        cy.findByTestId('SupportSettings.HelpLinkinput').clear().type(helpLink);
-        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').select('Custom link');
-        cy.findByTestId('SupportSettings.ReportAProblemLinkinput').clear().type(problemLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(tosLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(privacyLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.AboutLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(aboutLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(helpLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemType--group"] [data-testid="admin.setting.choice--combobox"]').select('Custom link');
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(problemLink);
 
         // # Save setting then back to team view
         saveSetting();
@@ -96,7 +96,7 @@ describe('SupportSettings', () => {
 
     it('MM-T1033 - Customization: Blank TOS link field (login page)', () => {
         // # Empty the "terms of services" field
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkinput').type('any').clear();
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.value--textbox"]').type('any').clear();
 
         // # Save setting
         saveSetting();
@@ -114,8 +114,8 @@ describe('SupportSettings', () => {
 
     it('MM-T1036 - Customization: Blank Help and Report a Problem hides options from help menu', () => {
         // # Change help and report links to blanks
-        cy.findByTestId('SupportSettings.HelpLinkinput').type('any').clear();
-        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').select('Hide link');
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.value--textbox"]').type('any').clear();
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemType--group"] [data-testid="admin.setting.choice--combobox"]').select('Hide link');
 
         // # Save setting and back to team view
         saveSetting();
@@ -135,7 +135,7 @@ describe('SupportSettings', () => {
 
         // # Edit links in the support email field
         const link = 'https://github.com/mattermost/desktop/releases';
-        cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').clear().type(link);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(link);
 
         // # Save setting then back to team view
         saveSetting();
@@ -150,10 +150,10 @@ describe('SupportSettings', () => {
 
     it('MM-T3289_1 - Help (Ask community link setting)', () => {
         // * Verify enable ask community link to be true by default
-        cy.findByTestId('SupportSettings.EnableAskCommunityLinktrue').should('be.checked');
+        cy.get('[data-testid="admin.setting:SupportSettings.EnableAskCommunityLink--group"] [data-testid="admin.setting.true--radio"]').should('be.checked');
 
         // * Verify the help text
-        cy.findByTestId('SupportSettings.EnableAskCommunityLinkhelp-text').should('contain', 'When true, "Ask the community" link appears on the Mattermost user interface and Help Menu, which allows users to join the Mattermost Community to ask questions and help others troubleshoot issues. When false, the link is hidden from users.');
+        cy.get('[data-testid="admin.setting:SupportSettings.EnableAskCommunityLink--group"] [data-testid="admin.setting.set_help--text"]').should('contain', 'When true, "Ask the community" link appears on the Mattermost user interface and Help Menu, which allows users to join the Mattermost Community to ask questions and help others troubleshoot issues. When false, the link is hidden from users.');
 
         // # Back to team view
         backToTeam();
@@ -182,12 +182,12 @@ describe('SupportSettings', () => {
 
     it('MM-T3289_2 - Help (Ask community link setting)', () => {
         // Disable setting for ask community
-        cy.findByTestId('SupportSettings.EnableAskCommunityLinkfalse').click();
+        cy.get('[data-testid="admin.setting:SupportSettings.EnableAskCommunityLink--group"] [data-testid="admin.setting.false--radio"]').click();
 
         // Edit help link and report a problem link
-        cy.findByTestId('SupportSettings.HelpLinkinput').clear().type(helpLink);
-        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').select('Custom link');
-        cy.findByTestId('SupportSettings.ReportAProblemLinkinput').clear().type(problemLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(helpLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemType--group"] [data-testid="admin.setting.choice--combobox"]').select('Custom link');
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(problemLink);
 
         // # Save setting and back to team view
         saveSetting();

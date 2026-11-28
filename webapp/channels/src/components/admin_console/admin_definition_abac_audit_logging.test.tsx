@@ -185,8 +185,8 @@ describe('AdminDefinition - ABAC audit logging toggle', () => {
         expect(screen.getByRole('heading', {name: 'Session Attributes'})).toBeInTheDocument();
         expect(screen.getByText('Configure how device identity is trusted and validated for session attributes.')).toBeInTheDocument();
 
-        expect(container.querySelector('[data-testid="admin.accesscontrol.settings"].AdminPanel')).toBeInTheDocument();
-        expect(container.querySelector('[data-testid="admin.accesscontrol.session_attributes"].AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('[data-testid="admin.section:admin.accesscontrol.settings--region"].AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('[data-testid="admin.section:admin.accesscontrol.session_attributes--region"].AdminPanel')).toBeInTheDocument();
         expect(container.querySelectorAll('.AdminPanel.AdminSectionPanel')).toHaveLength(2);
 
         const sectionStack = container.querySelector('.admin-console__schema-sections');

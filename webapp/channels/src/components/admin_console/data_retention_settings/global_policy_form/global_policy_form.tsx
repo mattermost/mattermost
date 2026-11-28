@@ -253,6 +253,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                 </div>
                 <div className='admin-console-save'>
                     <SaveButton
+                        testId='admin.save'
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}

@@ -209,7 +209,10 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         }
 
         return (
-            <div className='manage-roles-modal__delegated-roles'>
+            <div
+                className='manage-roles-modal__delegated-roles'
+                data-testid='manage_roles_modal.delegated_roles'
+            >
                 <p>
                     <strong>
                         <FormattedMessage
@@ -244,6 +247,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                                 type='checkbox'
                                 checked={Boolean(this.state.delegatedRoles[name])}
                                 onChange={this.handleDelegatedRoleChange(name)}
+                                data-testid={`manage_roles_modal.role:${name}--checkbox`}
                             />
                             <strong>
                                 <FormattedMessage {...rolesStrings[name].name}/>
@@ -432,6 +436,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                                 <input
                                     name='systemadmin'
                                     type='radio'
+                                    data-testid='manage_roles_modal.system_admin--radio'
                                     checked={this.state.isSystemAdmin}
                                     onChange={this.handleSystemAdminChange}
                                 />
@@ -446,6 +451,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                                 <input
                                     name='systemmember'
                                     type='radio'
+                                    data-testid='manage_roles_modal.member--radio'
                                     checked={!this.state.isSystemAdmin}
                                     onChange={this.handleSystemAdminChange}
                                 />
@@ -473,6 +479,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 role='none'
                 aria-labelledby='manageRolesModalLabel'
                 id='manageRolesModal'
+                data-testid='manage_roles_modal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
@@ -494,6 +501,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                         type='button'
                         emphasis='tertiary'
                         onClick={this.onHide}
+                        data-testid='manage_roles_modal.cancel--button'
                     >
                         <FormattedMessage
                             id='admin.manage_roles.cancel'
@@ -504,6 +512,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                         type='button'
                         emphasis='primary'
                         onClick={this.handleSave}
+                        data-testid='manage_roles_modal.save--button'
                     >
                         <FormattedMessage
                             id='admin.manage_roles.save'

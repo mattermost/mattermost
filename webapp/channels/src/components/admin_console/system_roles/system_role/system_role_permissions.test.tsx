@@ -30,7 +30,7 @@ describe('admin_console/system_role_permissions', () => {
         );
 
         // Count the permission sections rendered
-        const getSectionCount = () => screen.getAllByTestId(/^permission_section_/).length;
+        const getSectionCount = () => screen.getAllByTestId(/^admin\.role\.section:/).length;
 
         const expectedLength = getSectionCount();
 

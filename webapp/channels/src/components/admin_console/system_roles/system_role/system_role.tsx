@@ -252,9 +252,9 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                         <BlockableLink
                             to='/admin_console/user_management/system_roles'
                             className='fa fa-angle-left back'
-                            data-testid='adminHeader-backLink'
+                            data-testid='admin.role.back--link'
                         />
-                        <span data-testid='adminHeader-roleName'>{name}</span>
+                        <span data-testid='admin.role.name--text'>{name}</span>
                     </div>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
@@ -280,6 +280,8 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                 </div>
 
                 <SaveChangesPanel
+
+                    testId='admin.role.save_panel'
                     saving={saving}
                     cancelLink='/admin_console/user_management/system_roles'
                     saveNeeded={saveNeeded}

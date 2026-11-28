@@ -52,8 +52,10 @@ const LicensedSectionContainer: React.FC<Props> = ({
 
     if (canAccessFeature) {
         // Render settings panel with optional license badge for trial users
+        // Schema sections wrap custom components in `admin.custom_section:<key>`, so the panel's parts are unkeyed.
         return (
             <AdminSectionPanel
+                testId='admin.section'
                 title={sectionTitle}
                 description={sectionDescription}
                 licenseSku={isEntryLicense ? requiredSku : undefined}

@@ -132,6 +132,179 @@
                     "value": "plugin",
                     "freeForm": true,
                     "reason": "A plugin registers its user settings under its plugin id, which identifies the plugin's panel."
+                },
+                {
+                    "entity": "Permission",
+                    "module": "components/admin_console/permission_schemes_settings/permissions_tree/types",
+                    "field": "id",
+                    "value": "permission",
+                    "freeForm": true,
+                    "reason": "A combined permission in the permission schemes page is identified by the id its permissions tree declares, unique within its group."
+                },
+                {
+                    "entity": "LDAPAdminDefinitionConfigSchemaSettings",
+                    "module": "components/admin_console/ldap_wizard/ldap_wizard",
+                    "field": "id",
+                    "value": "setting",
+                    "freeForm": true,
+                    "reason": "The LDAP wizard's screen is identified by the id of its admin definition."
+                },
+                {
+                    "entity": "AdminDefinitionSubSectionSchema",
+                    "module": "components/admin_console/types",
+                    "field": "id",
+                    "value": "setting",
+                    "freeForm": true,
+                    "reason": "A system console screen is identified by the id of the schema its admin definition declares."
+                },
+                {
+                    "entity": "State",
+                    "module": "components/analytics/system_analytics/system_analytics",
+                    "field": "pluginSiteStats",
+                    "keys": true,
+                    "value": "plugin_stat",
+                    "freeForm": true,
+                    "reason": "A statistic a plugin registers is identified by the key of its row in the plugin site stats."
+                },
+                {
+                    "entity": "Permission",
+                    "module": "components/admin_console/permission_schemes_settings/permissions_tree/types",
+                    "field": "permissions",
+                    "value": "permission",
+                    "freeForm": true,
+                    "reason": "A permission in the permission schemes page is identified by its name, the string in its group's permissions."
+                },
+                {
+                    "entity": "Props",
+                    "module": "components/admin_console/server_logs/log_list",
+                    "field": "nodes",
+                    "value": "node",
+                    "freeForm": true,
+                    "reason": "A cluster node is identified by its name: the names are stable for the life of the page, host names can hold dots and dashes."
+                },
+                {
+                    "entity": "Team",
+                    "module": "components/admin_console/group_settings/group_details/group_teams_and_channels",
+                    "field": "id",
+                    "value": "entry",
+                    "reason": "The mixed display row copies its id from GroupTeam.team_id or GroupChannel.channel_id."
+                },
+                {
+                    "entity": "AdminDefinitionSection",
+                    "module": "components/admin_console/types",
+                    "field": "subsections",
+                    "keys": true,
+                    "value": "admin_subsection",
+                    "freeForm": true,
+                    "reason": "A subsection of the system console sidebar is identified by the key it has in its section: plugins add subsections, so the set is not fixed."
+                },
+                {
+                    "entity": "Props",
+                    "module": "components/admin_console/admin_sidebar/admin_sidebar",
+                    "field": "adminDefinition",
+                    "keys": true,
+                    "value": "admin_section",
+                    "freeForm": true,
+                    "reason": "A section of the system console sidebar is identified by its key in the admin definition: plugins add sections, so the set is not fixed."
+                },
+                {
+                    "entity": "HealthFinding",
+                    "module": "@mattermost/types/health",
+                    "field": "fingerprint",
+                    "value": "finding",
+                    "reason": "The health API identifies a finding by its stable 32-character fingerprint of code, subject and scope; title and message are localized separately."
+                },
+                {
+                    "entity": "ChannelModeration",
+                    "module": "@mattermost/types/channels",
+                    "field": "name",
+                    "value": "permission",
+                    "reason": "A moderation row is identified by the fixed permission name in the channel moderation API, such as create_post or manage_members."
+                },
+                {
+                    "entity": "Role",
+                    "module": "@mattermost/types/roles",
+                    "field": "name",
+                    "value": "role",
+                    "reason": "Role names are unique in the roles store and are how the API addresses system, team and channel roles, such as all_users, channel_admin or team_admin."
+                },
+                {
+                    "entity": "HealthFinding",
+                    "field": "area",
+                    "value": "health_area",
+                    "freeForm": true,
+                    "reason": "A health dashboard area is identified by the area its findings are grouped under: the server names it."
+                },
+                {
+                    "entity": "AdminDefinitionSettingBase",
+                    "module": "components/admin_console/types",
+                    "field": "key",
+                    "value": "setting",
+                    "freeForm": true,
+                    "reason": "A system console setting is identified by the key its admin definition declares: the definition is data, a literal in admin_definition, typed as a string."
+                },
+                {
+                    "entity": "AdminDefinitionConfigSchemaSection",
+                    "module": "components/admin_console/types",
+                    "field": "key",
+                    "value": "section",
+                    "freeForm": true,
+                    "reason": "A system console section is identified by the key its admin definition declares."
+                },
+                {
+                    "entity": "AdminDefinitionSettingDropdownOption",
+                    "module": "components/admin_console/types",
+                    "field": "value",
+                    "value": "option",
+                    "freeForm": true,
+                    "reason": "A system console radio or dropdown option is identified by the value its admin definition declares."
+                },
+                {
+                    "entity": "Column",
+                    "module": "components/admin_console/data_grid/data_grid",
+                    "field": "field",
+                    "value": "column",
+                    "reason": "A data grid column is identified by the field name each mount declares: columns are reordered or hidden, so its position does not identify it."
+                },
+                {
+                    "entity": "Column",
+                    "module": "@tanstack/react-table",
+                    "field": "id",
+                    "value": "column",
+                    "freeForm": true,
+                    "reason": "A table column is identified by the id each mount declares for it: columns are reordered or hidden, so its position does not identify it."
+                },
+                {
+                    "entity": "Header",
+                    "module": "@tanstack/react-table",
+                    "field": "id",
+                    "value": "column",
+                    "freeForm": true,
+                    "reason": "A table column header is identified by its column's id."
+                },
+                {
+                    "entity": "Option",
+                    "module": "components/admin_console/multiselect_settings",
+                    "field": "value",
+                    "value": "option",
+                    "freeForm": true,
+                    "reason": "A selected value in a system console multiselect is identified by the value the setting stores."
+                },
+                {
+                    "entity": "PluginStatus",
+                    "module": "components/admin_console/plugin_management/plugin_management",
+                    "field": "id",
+                    "value": "plugin",
+                    "freeForm": true,
+                    "reason": "A plugin in the plugin management list is identified by its plugin id."
+                },
+                {
+                    "entity": "SystemSection",
+                    "module": "components/admin_console/system_roles/system_role/types",
+                    "field": "name",
+                    "value": "section",
+                    "freeForm": true,
+                    "reason": "A system role section or permission is identified by the permission name its definition declares."
                 }
             ]
         }
@@ -168,6 +341,7 @@
         }
     ],
     "pluginSlots": {
+        "admin_sidebar_plugin_category": {"template": "admin.sidebar.category.plugin:{key}--listitem"},
         "app_bar_button": {
             "template": "app_bar.plugin:{key}--button",
             "registry": ["registerAppBarComponent", "registerChannelHeaderButtonAction"]
@@ -211,6 +385,7 @@
         }
     },
     "pageReady": {
+        "AdminConsolePage": ["admin.sidebar"],
         "ChannelsPage": ["center.composer", "center.archived_notice"],
         "ChannelPopoutPage": ["center.composer", "center.archived_notice"],
         "DraftsPage": ["drafts.header"],

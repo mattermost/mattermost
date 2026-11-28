@@ -15,7 +15,7 @@ export function enableGroupMention(groupName: string, groupID: string, userEmail
     cy.get('#group_profile').scrollIntoView().wait(TIMEOUTS.TWO_SEC);
 
     // # Enable group mentions if not already on
-    cy.findByTestId('allowReferenceSwitch-button').then(($input) => {
+    cy.findByTestId('admin.group.allow_reference--switch').then(($input) => {
         if (!$input.prop('checked')) {
             cy.wrap($input).click({force: true});
         }

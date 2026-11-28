@@ -343,6 +343,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
             const appliedToId = `customAppliedTo-${policy.id}`;
             const menuWrapperId = `customWrapper-${policy.id}`;
             return {
+                testKey: policy.id,
                 cells: {
                     description: (
                         <div id={desciptionId}>
@@ -553,6 +554,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                         >
                             <div id='global_policy_table'>
                                 <DataGrid
+                                    testIdScope='admin.data_retention.global_policy'
                                     columns={this.getGlobalPolicyColumns()}
                                     rows={this.getGlobalPolicyRows()}
                                     loading={false}
@@ -576,6 +578,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                         >
                             <div id='custom_policy_table'>
                                 <DataGrid
+                                    testIdScope='admin.data_retention.custom_policies'
                                     columns={this.getCustomPolicyColumns()}
                                     rows={this.getCustomPolicyRows(startCount, endCount)}
                                     loading={this.state.customPoliciesLoading}

@@ -190,10 +190,11 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                 <ChannelIcon
                     channel={channel}
                     className='channel-icon'
-                    data-testid={`${channel.name}-archive-icon`}
+                    data-testid='admin.data_retention.policy.channels.row.icon'
                 />
             );
             return {
+                testKey: channel.id,
                 cells: {
                     id: channel.id,
                     name: (
@@ -344,6 +345,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         return (
             <div className='PolicyChannelsList'>
                 <DataGrid
+                    testIdScope='admin.data_retention.policy.channels'
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

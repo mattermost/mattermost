@@ -26,13 +26,13 @@ describe('AdminSettings', () => {
         props.saveNeeded = false;
         const {rerender} = renderWithContext(<AdminSettings {...props}/>);
 
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
         props.saveNeeded = true;
 
         rerender(<AdminSettings {...props}/>);
 
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 
     it('save button should be disabled if the component is disabled', () => {
@@ -41,13 +41,13 @@ describe('AdminSettings', () => {
         props.isDisabled = true;
         const {rerender} = renderWithContext(<AdminSettings {...props}/>);
 
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
         props.isDisabled = false;
 
         rerender(<AdminSettings {...props}/>);
 
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 
     it('should call doSubmit when the save button is pressed', () => {
@@ -57,14 +57,14 @@ describe('AdminSettings', () => {
         const {rerender} = renderWithContext(<AdminSettings {...props}/>);
 
         expect(props.doSubmit).not.toHaveBeenCalled();
-        screen.getByTestId('saveSetting').click();
+        screen.getByTestId('admin.save--button').click();
         expect(props.doSubmit).toHaveBeenCalled();
 
         props.doSubmit = jest.fn();
         rerender(<AdminSettings {...props}/>);
 
         expect(props.doSubmit).not.toHaveBeenCalled();
-        screen.getByTestId('saveSetting').click();
+        screen.getByTestId('admin.save--button').click();
         expect(props.doSubmit).toHaveBeenCalled();
     });
 

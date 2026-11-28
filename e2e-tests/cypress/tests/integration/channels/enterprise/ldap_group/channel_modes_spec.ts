@@ -35,7 +35,7 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             assert(channel.type === 'O');
             cy.visit(`/admin_console/user_management/channels/${channel.id}`);
             cy.get('#channel_profile').contains(channel.display_name);
-            cy.findByTestId('allow-all-toggle-private').click({force: true});
+            cy.findByTestId('admin.channel.private--togglebutton').click({force: true});
             cy.get('#saveSetting').click();
             cy.get('#confirmModalButton').click();
             return cy.apiGetChannel(channel.id);
@@ -43,7 +43,7 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             assert(channel.type === 'P');
             cy.visit(`/admin_console/user_management/channels/${channel.id}`);
             cy.get('#channel_profile').contains(channel.display_name);
-            cy.findByTestId('allow-all-toggle-public').click({force: true});
+            cy.findByTestId('admin.channel.public--togglebutton').click({force: true});
             cy.get('#saveSetting').click();
             cy.get('#confirmModalButton').click();
             return cy.apiGetChannel(channel.id);
@@ -57,20 +57,20 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             assert(channel.type === 'O');
             cy.visit(`/admin_console/user_management/channels/${channel.id}`);
             cy.get('#channel_profile').contains(channel.display_name);
-            cy.findByTestId('syncGroupSwitch-button').click({force: true});
-            cy.findByTestId('syncGroupSwitch-button').click({force: true});
-            cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByTestId('admin.channel.sync_groups--switch').click({force: true});
+            cy.findByTestId('admin.channel.sync_groups--switch').click({force: true});
+            cy.findByTestId('admin.channel.visibility').within(() => {
                 cy.findByText('Public channel or private channel').should('be.visible');
             });
-            cy.findByTestId('allow-all-toggle-public').should('have.attr', 'aria-pressed', 'true');
-            cy.findByTestId('allow-all-toggle-private').click({force: true});
-            cy.findByTestId('syncGroupSwitch-button').click({force: true});
-            cy.findByTestId('syncGroupSwitch-button').click({force: true});
-            cy.findByTestId('allow-all-toggle').within(() => {
+            cy.findByTestId('admin.channel.public--togglebutton').should('have.attr', 'aria-pressed', 'true');
+            cy.findByTestId('admin.channel.private--togglebutton').click({force: true});
+            cy.findByTestId('admin.channel.sync_groups--switch').click({force: true});
+            cy.findByTestId('admin.channel.sync_groups--switch').click({force: true});
+            cy.findByTestId('admin.channel.visibility').within(() => {
                 cy.findByText('Public channel or private channel').should('be.visible');
             });
-            cy.findByTestId('allow-all-toggle-public').should('have.attr', 'aria-pressed', 'false');
-            cy.findByTestId('allow-all-toggle-private').should('have.attr', 'aria-pressed', 'true');
+            cy.findByTestId('admin.channel.public--togglebutton').should('have.attr', 'aria-pressed', 'false');
+            cy.findByTestId('admin.channel.private--togglebutton').should('have.attr', 'aria-pressed', 'true');
         });
     });
 
@@ -80,14 +80,14 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             cy.visit(`/admin_console/user_management/channels/${id}`);
             cy.get('#channel_profile').contains('Town Square');
             cy.get('#channel_manage').scrollIntoView().should('be.visible').within(() => {
-                cy.findByTestId('syncGroupSwitch').within(() => {
+                cy.findByTestId('admin.channel.sync_groups.row--group').within(() => {
                     cy.findByText('Sync Group Members').should('be.visible');
-                    cy.findByTestId('syncGroupSwitch-button').should('be.disabled');
+                    cy.findByTestId('admin.channel.sync_groups--switch').should('be.disabled');
                 });
-                cy.findByTestId('allow-all-toggle').within(() => {
+                cy.findByTestId('admin.channel.visibility').within(() => {
                     cy.findByText('Public channel or private channel').should('be.visible');
-                    cy.findByTestId('allow-all-toggle-public').should('be.disabled');
-                    cy.findByTestId('allow-all-toggle-private').should('be.disabled');
+                    cy.findByTestId('admin.channel.public--togglebutton').should('be.disabled');
+                    cy.findByTestId('admin.channel.private--togglebutton').should('be.disabled');
                 });
             });
         });

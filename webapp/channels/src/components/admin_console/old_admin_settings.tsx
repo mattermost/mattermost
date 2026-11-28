@@ -228,6 +228,7 @@ export default abstract class OLDAdminSettings <Props extends BaseProps, State e
                     {this.renderSettings()}
                     <div className='admin-console-save'>
                         <SaveButton
+                            testId='admin.save'
                             saving={this.state.saving}
                             disabled={this.props.isDisabled || !this.state.saveNeeded || (this.canSave && !this.canSave())}
                             onClick={this.handleSubmit}
@@ -243,6 +244,7 @@ export default abstract class OLDAdminSettings <Props extends BaseProps, State e
                         >
                             <div
                                 className='error-message'
+                                data-testid='admin.save_error'
                             >
                                 <FormError error={this.state.serverError}/>
                             </div>

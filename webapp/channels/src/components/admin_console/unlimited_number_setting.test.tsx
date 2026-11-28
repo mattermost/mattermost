@@ -30,8 +30,8 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber') as HTMLInputElement;
-        const checkbox = screen.getByTestId('test.setting.idcheckbox') as HTMLInputElement;
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton') as HTMLInputElement;
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox') as HTMLInputElement;
 
         expect(numberInput).toHaveValue(10);
         expect(numberInput).not.toBeDisabled();
@@ -48,8 +48,8 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber') as HTMLInputElement;
-        const checkbox = screen.getByTestId('test.setting.idcheckbox') as HTMLInputElement;
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton') as HTMLInputElement;
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox') as HTMLInputElement;
 
         expect(checkbox).toBeChecked();
         expect(numberInput).toBeDisabled();
@@ -66,7 +66,7 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const checkbox = screen.getByTestId('test.setting.idcheckbox');
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox');
         fireEvent.click(checkbox);
 
         expect(onChange).toHaveBeenCalledTimes(1);
@@ -84,7 +84,7 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const checkbox = screen.getByTestId('test.setting.idcheckbox');
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox');
         fireEvent.click(checkbox);
 
         expect(onChange).toHaveBeenCalledTimes(1);
@@ -101,7 +101,7 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const checkbox = screen.getByTestId('test.setting.idcheckbox');
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox');
         fireEvent.click(checkbox);
 
         expect(onChange).toHaveBeenCalledWith('test.setting.id', 1);
@@ -117,7 +117,7 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber');
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton');
         fireEvent.change(numberInput, {target: {value: '25'}});
 
         expect(onChange).toHaveBeenCalledTimes(1);
@@ -133,8 +133,8 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber') as HTMLInputElement;
-        const checkbox = screen.getByTestId('test.setting.idcheckbox') as HTMLInputElement;
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton') as HTMLInputElement;
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox') as HTMLInputElement;
 
         expect(numberInput).toBeDisabled();
         expect(checkbox).toBeDisabled();
@@ -149,8 +149,8 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber') as HTMLInputElement;
-        const checkbox = screen.getByTestId('test.setting.idcheckbox') as HTMLInputElement;
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton') as HTMLInputElement;
+        const checkbox = screen.getByTestId('admin.setting.unlimited--checkbox') as HTMLInputElement;
 
         expect(numberInput).toBeDisabled();
         expect(checkbox).toBeDisabled();
@@ -180,7 +180,7 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber') as HTMLInputElement;
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton') as HTMLInputElement;
         expect(numberInput).toHaveAttribute('placeholder', 'Enter a number');
     });
 
@@ -193,7 +193,7 @@ describe('components/admin_console/UnlimitedNumberSetting', () => {
             />,
         );
 
-        const numberInput = screen.getByTestId('test.setting.idnumber') as HTMLInputElement;
+        const numberInput = screen.getByTestId('admin.setting.limit--spinbutton') as HTMLInputElement;
         expect(numberInput).toHaveAttribute('placeholder', 'No Limit');
     });
 });

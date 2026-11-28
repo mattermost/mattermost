@@ -26,12 +26,12 @@ describe('System Scheme', () => {
 
     it('MM-T2862 Default permissions set inherited from system scheme', () => {
         // # Click on `Edit Scheme` under `System Scheme`
-        cy.findByTestId('systemScheme-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permission_schemes.system_scheme.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Make a few scheme changes
-        cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('have.class', 'checked').click();
-        cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('have.class', 'checked').click();
-        cy.findByTestId('all_users-teams-invite_guest-checkbox').should('not.have.class', 'checked').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_public_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_private_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:invite_guest--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('not.have.class', 'checked').click();
 
         // # Save scheme
         cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);
@@ -40,28 +40,28 @@ describe('System Scheme', () => {
         cy.visit('/admin_console/user_management/permissions');
 
         // # Click `New Team Override Scheme`
-        cy.findByTestId('team-override-schemes-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permission_schemes.team_overrides.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify scheme settings modified earlier are reflected in this section
-        cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('not.have.class', 'checked');
-        cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('not.have.class', 'checked');
-        cy.findByTestId('all_users-teams_team_scope-invite_guest-checkbox').should('have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_public_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_private_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:invite_guest--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked');
     });
 
     it('MM-T2863 Reset system scheme defaults will revert permissions to defaults', () => {
         // # Click on `Edit Scheme` under `System Scheme`
-        cy.findByTestId('systemScheme-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permission_schemes.system_scheme.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click on `Reset to defaults`
-        cy.findByTestId('resetPermissionsToDefault').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permissions.reset--button').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Confirm the dialog
         cy.get('#confirmModalButton').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Make a few changes to the scheme
-        cy.findByTestId('guests-guest_create_private_channel-checkbox').should('not.have.class', 'checked').click();
-        cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('have.class', 'checked').click();
-        cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('have.class', 'checked').click();
+        cy.get('[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_create_private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').should('not.have.class', 'checked').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_public_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_private_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked').click();
 
         // # Save changes
         cy.get('#saveSetting').click().wait(TIMEOUTS.HALF_SEC);
@@ -70,15 +70,15 @@ describe('System Scheme', () => {
         cy.visit('/admin_console/user_management/permissions');
 
         // # Click on `Edit Scheme` under `System Scheme`
-        cy.findByTestId('systemScheme-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permission_schemes.system_scheme.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify previous scheme changes have been saved
-        cy.findByTestId('guests-guest_create_private_channel-checkbox').should('have.class', 'checked');
-        cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('not.have.class', 'checked');
-        cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_create_private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').should('have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_public_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_private_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('not.have.class', 'checked');
 
         // # Click on `Reset to defaults`
-        cy.findByTestId('resetPermissionsToDefault').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permissions.reset--button').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Confirm the dialog
         cy.get('#confirmModalButton').scrollIntoView().click().wait(TIMEOUTS.HALF_SEC);
@@ -90,8 +90,8 @@ describe('System Scheme', () => {
         cy.reload();
 
         // * Verify scheme settings have been reset to defaults
-        cy.findByTestId('guests-guest_create_private_channel-checkbox').should('not.have.class', 'checked');
-        cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('have.class', 'checked');
-        cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_create_private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_public_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_private_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('have.class', 'checked');
     });
 });

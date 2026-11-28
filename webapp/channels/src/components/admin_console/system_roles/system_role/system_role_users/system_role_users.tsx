@@ -170,9 +170,15 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
 
         return usersToDisplay.map((user) => {
             return {
+                testKey: user.id,
                 cells: {
                     id: user.id,
-                    name: <UserGridName user={user}/>,
+                    name: (
+                        <UserGridName
+                            user={user}
+                            testId='admin.role.users.row'
+                        />
+                    ),
                     new: usersToAdd[user.id] ? (
                         <Tag
                             variant={'info'}
@@ -190,6 +196,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                             user={user}
                             removeUser={this.onRemoveCallback}
                             isDisabled={readOnly}
+                            testId='admin.role.users.row'
                         />
                     ),
                 },
@@ -247,6 +254,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                 subtitle={defineMessage({id: 'admin.permissions.system_role_users.description', defaultMessage: 'List of people assigned to this system role.'})}
                 button={
                     <ToggleModalButton
+                        testId='admin.role.add_people'
                         id='addRoleMembers'
                         emphasis='primary'
                         modalId={ModalIdentifiers.ADD_USER_TO_ROLE}
@@ -268,6 +276,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                 }
             >
                 <DataGrid
+                    testIdScope='admin.role.users'
                     rows={this.getRows()}
                     columns={this.getColumns()}
                     nextPage={this.nextPage}

@@ -1,75 +1,90 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {openSystemConsoleSection, Api, expect, Msg, settle, test, type App} from '@mattermost/playwright-lib';
+
+/** Opens System Console > AD/LDAP, once its Test Connection button shows. */
+async function openAdLdap(app: App) {
+    await openSystemConsoleSection(app, 'authentication/ldap');
+    await expect(app.admin.setting('LdapSettings.TestConnection').requestButton).toBeVisible();
+}
 
 /**
- * @objective Verify the AD/LDAP Test Connection button succeeds against the configured directory.
+ * @objective Verify AD/LDAP Test Connection succeeds against the configured directory.
  *
  * @precondition
- * An LDAP directory reachable at the configured LdapSettings.LdapServer/LdapPort.
+ * A licensed server with OpenLDAP.
  */
 test('MM-T2699 AD/LDAP test connection succeeds against the configured directory', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+
     const {adminUser} = await pw.initSetup();
     await pw.ensureOpenldap();
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Open AD/LDAP settings and test the connection
-    await systemConsolePage.gotoAdLdap();
-    await systemConsolePage.adLdap.testConnectionButton.click();
+    const {app} = await pw.testBrowser.login(adminUser);
+    await openAdLdap(app);
 
-    // * Verify the connection succeeds
-    await expect(systemConsolePage.adLdap.testConnectionSuccess).toBeVisible();
-    await expect(systemConsolePage.adLdap.successIcon).toBeVisible();
+    // # Test the connection
+    const testConnection = app.admin.setting('LdapSettings.TestConnection');
+    await testConnection.requestButton.click();
+
+    // * Verify the connection test succeeds
+    await expect(testConnection.requestSuccessText).toHaveMessage(Msg.admin.ldap.testConnectionSuccess);
 });
 
 /**
- * @objective Verify saving AD/LDAP settings without a Username Attribute is blocked.
+ * @objective Verify AD/LDAP settings can't be saved without a Username Attribute.
  *
  * @precondition
- * An LDAP directory reachable at the configured LdapSettings.LdapServer/LdapPort.
+ * A licensed server with OpenLDAP.
  */
 test('MM-T2700 requires Username Attribute before saving AD/LDAP settings', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+
     const {adminUser} = await pw.initSetup();
     await pw.ensureOpenldap();
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    const {app} = await pw.testBrowser.login(adminUser);
+    await openAdLdap(app);
+    const usernameAttribute = app.admin.setting('LdapSettings.UsernameAttribute').valueTextbox;
 
     // # Clear Username Attribute and save
-    await systemConsolePage.gotoAdLdap();
-    await systemConsolePage.adLdap.usernameAttribute.clear();
-    await systemConsolePage.adLdap.save();
+    await usernameAttribute.clear();
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
-    // * Verify the required-field error is shown
-    await expect(systemConsolePage.adLdap.usernameAttributeRequiredError).toBeVisible();
+    // * Verify the save is refused
+    await expect(app.admin.saveError).toContainText('AD/LDAP field "Username Attribute" is required.');
 
-    // # Restore Username Attribute and save
-    await systemConsolePage.adLdap.usernameAttribute.fill('uid');
-    await systemConsolePage.adLdap.save();
-    await systemConsolePage.adLdap.expectSaveComplete();
+    // # Set it again and save
+    await usernameAttribute.fill('uid');
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+
+    // * Verify the save completes
+    await expect(app.admin.saveButton).toBeSaved();
 });
 
 /**
- * @objective Verify saving AD/LDAP settings without a Login ID Attribute is blocked.
+ * @objective Verify AD/LDAP settings can't be saved without a Login ID Attribute.
  *
  * @precondition
- * An LDAP directory reachable at the configured LdapSettings.LdapServer/LdapPort.
+ * A licensed server with OpenLDAP.
  */
 test('MM-T2701 requires Login ID Attribute before saving AD/LDAP settings', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+
     const {adminUser} = await pw.initSetup();
     await pw.ensureOpenldap();
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    const {app} = await pw.testBrowser.login(adminUser);
+    await openAdLdap(app);
 
     // # Clear Login ID Attribute and save
-    await systemConsolePage.gotoAdLdap();
-    await systemConsolePage.adLdap.loginIdAttribute.clear();
-    await systemConsolePage.adLdap.save();
+    await app.admin.setting('LdapSettings.LoginIdAttribute').valueTextbox.clear();
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
-    // * Verify the required-field error is shown
-    await expect(systemConsolePage.adLdap.loginIdAttributeRequiredError).toBeVisible();
+    // * Verify the save is refused
+    await expect(app.admin.saveError).toContainText('AD/LDAP field "Login ID Attribute" is required.');
 });

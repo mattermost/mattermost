@@ -10,7 +10,41 @@
  * AT-SC-07: Target languages multi-select is visible and usable.
  */
 
-import {expect, test, hasAutotranslationLicense} from '@mattermost/playwright-lib';
+import {
+    openSystemConsoleSection,
+    systemConsolePath,
+    expect,
+    test,
+    hasAutotranslationLicense,
+    type App,
+    Msg,
+} from '@mattermost/playwright-lib';
+
+/** Opens System Console > Site Configuration > Localization through the sidebar. */
+async function openLocalization(app: App) {
+    await openSystemConsoleSection(app);
+    await app.admin.sidebar.category('site').section('localization').titleLink.click();
+    await expect(app.page).toHavePath(systemConsolePath('site_config/localization'));
+}
+
+/**
+ * The section's enable switch. It's compass AdminPanel's built-in header switch, which takes no testid, so it's
+ * the one switch in the generated header.
+ */
+function enableSwitch(app: App) {
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- compass AdminPanel renders the header switch itself and takes no testid
+    return app.admin.autoTranslation.header.locator.getByRole('switch');
+}
+
+/** Opens Localization and turns auto-translation on (staged, not saved). */
+async function openWithAutoTranslation(app: App) {
+    await openLocalization(app);
+    const at = app.admin.autoTranslation;
+    // compass's switch input is hidden under a sibling <label for>, which takes the pointer: click the input itself
+    await enableSwitch(app).dispatchEvent('click');
+    await expect(enableSwitch(app)).toBeChecked();
+    return at;
+}
 
 test.describe('System Console - Autotranslation (Localization)', () => {
     test(
@@ -27,15 +61,16 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - this test requires non-Entry/Advanced license to see feature discovery',
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
 
-            await systemConsolePage.sidebar.siteConfiguration.localization.click();
-            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await openLocalization(app);
 
-            await expect(systemConsolePage.localization.featureDiscoveryBlock).toBeVisible();
-            await expect(systemConsolePage.localization.autoTranslationSection).not.toBeVisible();
+            // * The feature discovery block shows instead of the auto-translation settings
+            await expect(app.admin.featureDiscovery).toBeVisible();
+            await expect(app.admin.featureDiscovery).toContainMessage(
+                Msg.admin.auto_translation_feature_discovery.title,
+            );
+            await expect(app.admin.autoTranslation.header).not.toBeVisible();
         },
     );
 
@@ -53,18 +88,15 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
 
-            await systemConsolePage.sidebar.siteConfiguration.localization.click();
-            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await openLocalization(app);
 
-            await expect(systemConsolePage.localization.autoTranslationSection).toBeVisible();
-            await expect(systemConsolePage.localization.autoTranslationToggle).toBeVisible();
-            // Check toggle state directly (not via unscoped text search which is flaky)
-            const isOn = await systemConsolePage.localization.isToggleOn();
-            expect(isOn).toBe(false);
+            // * The auto-translation section shows, with its toggle off
+            const at = app.admin.autoTranslation;
+            await expect(at.header).toBeVisible();
+            await expect(enableSwitch(app)).toBeVisible();
+            await expect(enableSwitch(app)).not.toBeChecked();
         },
     );
 
@@ -82,17 +114,13 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
 
-            await systemConsolePage.sidebar.siteConfiguration.localization.click();
-            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            const at = await openWithAutoTranslation(app);
 
-            await systemConsolePage.localization.turnOnAutoTranslation();
-
-            await expect(systemConsolePage.localization.providerDropdown).toBeVisible();
-            await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
+            // * The provider and target language settings show
+            await expect(at.providerCombobox).toBeVisible();
+            await expect(app.admin.setting('TargetLanguages').valuesCombobox).toBeVisible();
         },
     );
 
@@ -110,20 +138,16 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
 
-            await systemConsolePage.sidebar.siteConfiguration.localization.click();
-            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            const at = await openWithAutoTranslation(app);
+            await at.providerCombobox.choose('LibreTranslate');
 
-            await systemConsolePage.localization.turnOnAutoTranslation();
-
-            await systemConsolePage.localization.selectTranslationProvider('LibreTranslate');
-
-            await expect(systemConsolePage.localization.libreTranslateUrlInput).toBeVisible();
-            await expect(systemConsolePage.localization.libreTranslateApiKeyInput).toBeVisible();
-            await expect(systemConsolePage.localization.container.getByText(/LibreTranslate docs/i)).toBeVisible();
+            // * The LibreTranslate endpoint and API key fields show, with the API key docs linked
+            await expect(app.admin.setting('URL').valueTextbox).toBeVisible();
+            await expect(app.admin.setting('APIKey').valueTextbox).toBeVisible();
+            await expect(app.admin.setting('APIKey').helpText).toContainText(/LibreTranslate docs/i);
+            await expect(app.admin.autoTranslation.apiKeyDocsLink).toBeVisible();
         },
     );
 
@@ -141,28 +165,25 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
+            // # Make the Agents plugin report unavailable: the AI bridge mock is server-wide, so an earlier AI spec on the
+            // same server can leave it available, and this spec expects the inactive-plugin guidance
+            await pw.enableAIBridgeTestMode(adminClient);
+            await pw.configureAIBridgeMock(adminClient, {status: {available: false, reason: 'plugin not active'}});
 
-            // # Open Localization settings in the System Console
-            await systemConsolePage.sidebar.siteConfiguration.localization.click();
-            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            const {app} = await pw.testBrowser.login(adminUser);
 
-            // # Enable auto-translation and switch the provider to Mattermost Agents
-            await systemConsolePage.localization.turnOnAutoTranslation();
-            await systemConsolePage.localization.selectTranslationProvider('Mattermost Agents');
+            // # Open Localization, turn auto-translation on and switch the provider to Mattermost Agents
+            const at = await openWithAutoTranslation(app);
+            await at.providerCombobox.choose('Mattermost Agents');
 
             // * Verify Mattermost Agents guidance is shown for the inactive plugin
-            await expect(systemConsolePage.localization.mattermostAgentsInactiveNotice).toBeVisible();
-            await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toBeVisible();
-            await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toHaveHrefPath(
-                '/admin_console/plugins/plugin_mattermost-ai',
-            );
+            await expect(at.agentsErrorText).toBeVisible();
+            await expect(at.agentsConfigLink).toBeVisible();
+            await expect(at.agentsConfigLink).toHaveHrefPath('/admin_console/plugins/plugin_mattermost-ai');
 
             // * Verify LibreTranslate-specific inputs are hidden for the Mattermost Agents provider
-            await expect(systemConsolePage.localization.libreTranslateUrlInput).not.toBeVisible();
-            await expect(systemConsolePage.localization.libreTranslateApiKeyInput).not.toBeVisible();
+            await expect(app.admin.setting('URL').valueTextbox).not.toBeVisible();
+            await expect(app.admin.setting('APIKey').valueTextbox).not.toBeVisible();
         },
     );
 
@@ -180,42 +201,25 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
 
-            await systemConsolePage.sidebar.siteConfiguration.localization.click();
-            await systemConsolePage.page.waitForURL(/\/admin_console\/site_config\/localization/);
+            await openWithAutoTranslation(app);
+            const languages = app.admin.setting('TargetLanguages');
 
-            // Enable autotranslation first
-            await systemConsolePage.localization.turnOnAutoTranslation();
+            // * The target languages setting shows
+            await expect(languages.valuesCombobox).toBeVisible();
+            await expect(languages).toContainMessage(Msg.admin.site.localization.targetLanguagesTitle);
 
-            // Verify multiselect is visible
-            await expect(systemConsolePage.localization.targetLanguagesMultiSelect).toBeVisible();
-            await expect(systemConsolePage.localization.container.getByText('Languages allowed')).toBeVisible();
+            // # Choose Spanish and French (the list closes after each choice)
+            await languages.valuesCombobox.choose(/Español/);
+            await expect(languages.remove('es')).toBeVisible();
+            await languages.valuesCombobox.choose(/Français/);
+            await expect(languages.remove('fr')).toBeVisible();
+            await languages.valuesCombobox.press('Escape');
 
-            // Select multiple languages (Spanish and French)
-            const multiSelect = systemConsolePage.localization.targetLanguagesMultiSelect;
-            const multiSelectInput = multiSelect.locator('input');
-            const languageOptions = multiSelect.getByRole('option');
-
-            // Open dropdown and select Spanish
-            await multiSelectInput.click();
-            await languageOptions.filter({hasText: /Español/}).click();
-
-            // Dropdown closes after each selection — reopen it, then select French
-            await multiSelectInput.click();
-            await languageOptions.filter({hasText: /Français/}).click();
-
-            // Close multiselect
-            await multiSelect.press('Escape');
-
-            // Verify both languages are selected by checking for their remove buttons in the multiselect
-            const spanishChip = multiSelect.getByRole('button', {name: /Remove Español/});
-            const frenchChip = multiSelect.getByRole('button', {name: /Remove Français/});
-
-            await expect(spanishChip).toBeVisible();
-            await expect(frenchChip).toBeVisible();
+            // * Both are chosen: each has its remove button
+            await expect(languages.remove('es')).toBeVisible();
+            await expect(languages.remove('fr')).toBeVisible();
         },
     );
 });

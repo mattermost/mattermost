@@ -60,6 +60,7 @@ export default function DemoteToGuestModal({user, onExited, onSuccess, onError}:
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.demote_modal'
             title={title}
             message={message}
             destructive={true}

@@ -10,7 +10,7 @@ import type {Job} from '@mattermost/types/jobs';
 import MessageExportSettingsDefault, {MessageExportSettings} from 'components/admin_console/message_export_settings';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, within} from 'tests/react_testing_utils';
 
 describe('components/MessageExportSettings', () => {
     test('should render the custom header fields with their configured values for the CUSTOM customer type', () => {
@@ -41,9 +41,9 @@ describe('components/MessageExportSettings', () => {
             />,
         );
 
-        expect(screen.getByTestId('globalRelayCustomHeaderNameinput')).toHaveValue('X-ProofpointArchiveMediaType');
-        expect(screen.getByTestId('globalRelayCustomHeaderValueinput')).toHaveValue('Message');
-        expect(screen.getByTestId('globalRelaySenderAddressinput')).toHaveValue('compliance-export@mattermost.com');
+        expect(within(screen.getByTestId('admin.setting:globalRelayCustomHeaderName--group')).getByTestId('admin.setting.value--textbox')).toHaveValue('X-ProofpointArchiveMediaType');
+        expect(within(screen.getByTestId('admin.setting:globalRelayCustomHeaderValue--group')).getByTestId('admin.setting.value--textbox')).toHaveValue('Message');
+        expect(within(screen.getByTestId('admin.setting:globalRelaySenderAddress--group')).getByTestId('admin.setting.value--textbox')).toHaveValue('compliance-export@mattermost.com');
     });
 
     test('should render the sender address field for non-CUSTOM customer types', () => {
@@ -72,7 +72,7 @@ describe('components/MessageExportSettings', () => {
             />,
         );
 
-        expect(screen.getByTestId('globalRelaySenderAddressinput')).toHaveValue('compliance-export@mattermost.com');
+        expect(within(screen.getByTestId('admin.setting:globalRelaySenderAddress--group')).getByTestId('admin.setting.value--textbox')).toHaveValue('compliance-export@mattermost.com');
     });
 
     test('should not render the custom header fields for non-CUSTOM customer types', () => {
@@ -103,8 +103,8 @@ describe('components/MessageExportSettings', () => {
             />,
         );
 
-        expect(screen.queryByTestId('globalRelayCustomHeaderNameinput')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('globalRelayCustomHeaderValueinput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.setting:globalRelayCustomHeaderName--group')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.setting:globalRelayCustomHeaderValue--group')).not.toBeInTheDocument();
     });
 
     test('should carry edited custom header values into the saved config', () => {
@@ -138,9 +138,9 @@ describe('components/MessageExportSettings', () => {
             />,
         );
 
-        fireEvent.change(screen.getByTestId('globalRelayCustomHeaderNameinput'), {target: {value: 'X-ProofpointArchiveMediaType'}});
-        fireEvent.change(screen.getByTestId('globalRelayCustomHeaderValueinput'), {target: {value: 'Message'}});
-        fireEvent.change(screen.getByTestId('globalRelaySenderAddressinput'), {target: {value: 'compliance-export@mattermost.com'}});
+        fireEvent.change(within(screen.getByTestId('admin.setting:globalRelayCustomHeaderName--group')).getByTestId('admin.setting.value--textbox'), {target: {value: 'X-ProofpointArchiveMediaType'}});
+        fireEvent.change(within(screen.getByTestId('admin.setting:globalRelayCustomHeaderValue--group')).getByTestId('admin.setting.value--textbox'), {target: {value: 'Message'}});
+        fireEvent.change(within(screen.getByTestId('admin.setting:globalRelaySenderAddress--group')).getByTestId('admin.setting.value--textbox'), {target: {value: 'compliance-export@mattermost.com'}});
 
         const savedConfig = ref.current!.getConfigFromState(config);
         expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderName).toBe('X-ProofpointArchiveMediaType');

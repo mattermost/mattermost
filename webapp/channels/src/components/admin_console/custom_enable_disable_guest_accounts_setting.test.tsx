@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 
@@ -40,7 +40,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 />,
             );
 
-            const trueRadio = screen.getByTestId('MySettingtrue');
+            const trueRadio = within(screen.getByTestId('admin.setting:MySetting--group')).getByTestId('admin.setting.true--radio');
             await userEvent.click(trueRadio);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, true, false, false, '');
@@ -60,7 +60,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 />,
             );
 
-            const falseRadio = screen.getByTestId('MySettingfalse');
+            const falseRadio = within(screen.getByTestId('admin.setting:MySetting--group')).getByTestId('admin.setting.false--radio');
             await userEvent.click(falseRadio);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, false, true, false, warningMessage);
@@ -79,7 +79,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 />,
             );
 
-            const falseRadio = screen.getByTestId('MySettingfalse');
+            const falseRadio = within(screen.getByTestId('admin.setting:MySetting--group')).getByTestId('admin.setting.false--radio');
             await userEvent.click(falseRadio);
 
             const confirmButton = screen.getByText('Save and Disable Guest Access');

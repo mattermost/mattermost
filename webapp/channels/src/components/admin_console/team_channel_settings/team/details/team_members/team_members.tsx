@@ -240,6 +240,7 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addTeamMembers'
+                        testId='admin.team.add_members'
                         emphasis='primary'
                         modalId={ModalIdentifiers.ADD_USER_TO_TEAM}
                         dialogType={AddUsersToTeamModal}

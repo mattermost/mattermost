@@ -49,13 +49,16 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
         >
             {finding.remediation && (
                 <section className='HealthFinding__detailSection'>
-                    <h4 className='HealthFinding__detailTitle'>
+                    <h4
+                        className='HealthFinding__detailTitle'
+                        data-testid='admin.health.finding.remediation_title--text'
+                    >
                         <FormattedMessage
                             id='admin.health_dashboard.detail.remediation'
                             defaultMessage='How to fix it'
                         />
                     </h4>
-                    <p>{finding.remediation}</p>
+                    <p data-testid='admin.health.finding.remediation--text'>{finding.remediation}</p>
                 </section>
             )}
             {hasLinks && (
@@ -70,6 +73,7 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                         <Link
                             to={consolePath}
                             className='HealthFinding__link'
+                            data-testid='admin.health.finding.open_setting--link'
                         >
                             <span className='HealthFinding__linkIcon'>
                                 <CogOutlineIcon {...iconProps}/>
@@ -88,6 +92,7 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                             href={finding.docs_url}
                             location='health_dashboard_finding_detail'
                             className='HealthFinding__link'
+                            data-testid='admin.health.finding.docs--link'
                         >
                             <span className='HealthFinding__linkIcon'>
                                 <BookOutlineIcon {...iconProps}/>
@@ -120,7 +125,7 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                                         defaultMessage='Severity'
                                     />
                                 </dt>
-                                <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
+                                <dd data-testid='admin.health.finding.detail_severity--text'><FormattedMessage {...severityMessages[finding.severity]}/></dd>
                             </>
                         )}
                         {seenEarlier && (
@@ -131,7 +136,7 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                                         defaultMessage='First detected'
                                     />
                                 </dt>
-                                <dd>
+                                <dd data-testid='admin.health.finding.detail_first_seen--text'>
                                     <Timestamp
                                         value={finding.first_seen_at}
                                         useRelative={false}
@@ -166,6 +171,7 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                     <button
                         type='button'
                         className='btn btn-primary'
+                        data-testid='admin.health.finding.go_to_setting--button'
                         onClick={() => history.push(consolePath)}
                     >
                         <FormattedMessage

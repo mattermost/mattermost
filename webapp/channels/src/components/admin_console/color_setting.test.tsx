@@ -22,7 +22,7 @@ describe('components/ColorSetting', () => {
             />,
         );
         expect(screen.getByText('helptext')).toBeInTheDocument();
-        expect(screen.getByTestId('color-inputColorValue')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.setting.color.value--textbox')).not.toBeDisabled();
     });
 
     test('should render no help text', () => {
@@ -52,7 +52,7 @@ describe('components/ColorSetting', () => {
                 disabled={true}
             />,
         );
-        expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+        expect(screen.getByTestId('admin.setting.color.value--textbox')).toBeDisabled();
         expect(screen.queryByText('helptext')).not.toBeInTheDocument();
     });
 
@@ -69,7 +69,7 @@ describe('components/ColorSetting', () => {
                 disabled={false}
             />,
         );
-        expect(screen.getByTestId('color-inputColorValue')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.setting.color.value--textbox')).not.toBeDisabled();
         expect(screen.queryByText('helptext')).toBeInTheDocument();
     });
 });

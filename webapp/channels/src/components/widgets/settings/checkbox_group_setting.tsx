@@ -23,8 +23,8 @@ type Props = {
     /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row keeps its input-id based ids. */
     testIdScope?: string;
 
-    /** The row's own testid when it isn't the scope (a keyed row: `admin.setting:<key>--region`). */
-    testId?: string;
+    /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
+    testKey?: string;
 };
 
 const CheckboxGroupSetting = ({
@@ -39,7 +39,7 @@ const CheckboxGroupSetting = ({
     labelPosition = 'after',
     disabled,
     testIdScope,
-    testId,
+    testKey,
 }: Props) => {
     const selected = value || [];
 
@@ -68,7 +68,7 @@ const CheckboxGroupSetting = ({
             helpText={helpText}
             inputId={id}
             testIdScope={testIdScope}
-            testId={testId}
+            testKey={testKey}
         >
             <fieldset>
                 <legend className='form-legend hidden-label'>{label}</legend>

@@ -91,6 +91,7 @@ const ManageTeamsDropdown = (props: Props) => {
         <Menu.Container
             menuButton={{
                 id: `manageTeamsDropdown_${team.id}`,
+                dataTestId: 'manage_teams_modal.team.role--button',
                 class: 'dropdown-toggle theme color--link style--none',
                 children: (
                     <>
@@ -115,6 +116,7 @@ const ManageTeamsDropdown = (props: Props) => {
             {showMakeTeamAdmin ? (
                 <Menu.Item
                     id='makeTeamAdmin'
+                    data-testid='manage_teams_role_menu.make_admin--menuitem'
                     onClick={makeTeamAdmin}
                     labels={
                         <FormattedMessage
@@ -127,6 +129,7 @@ const ManageTeamsDropdown = (props: Props) => {
             {isTeamAdmin ? (
                 <Menu.Item
                     id='makeTeamMember'
+                    data-testid='manage_teams_role_menu.make_member--menuitem'
                     onClick={makeMember}
                     labels={
                         <FormattedMessage
@@ -139,6 +142,7 @@ const ManageTeamsDropdown = (props: Props) => {
             {showRemoveFromTeam ? (
                 <Menu.Item
                     id='removeFromTeam'
+                    data-testid='manage_teams_role_menu.remove--menuitem'
                     onClick={removeFromTeam}
                     labels={
                         <FormattedMessage

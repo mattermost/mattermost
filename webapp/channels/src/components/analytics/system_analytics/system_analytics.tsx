@@ -448,6 +448,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     >
                         <LineChart
                             id={key}
+                            testId='admin.statistics.plugin_chart'
                             title={stat.name}
                             data={stat.value}
                             width={740}
@@ -476,6 +477,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                 pluginCounts.push((
                     <StatisticCount
                         id={key}
+                        testId='admin.statistics.plugin_stat'
                         key={'pluginstat.' + key}
                         title={stat.name}
                         icon={stat.icon!}
@@ -553,7 +555,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                         {pluginLineCharts}
                         <details
                             onToggle={this.handleLineChartsToggle}
-                            data-testid='details-expander'
+                            data-testid='admin.statistics.details'
                         >
                             <summary>
                                 <FormattedMessage

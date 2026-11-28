@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, within} from 'tests/react_testing_utils';
 
 import AdminTextSetting from './text_setting';
 
@@ -24,7 +24,7 @@ describe('components/admin_console/TextSetting', () => {
         );
 
         screen.getByText('some label', {exact: false});
-        expect(screen.getByTestId('some.idinput')).toHaveProperty('id', 'some.id');
-        expect(screen.getByTestId('some.idinput')).toHaveValue('some value');
+        expect(within(screen.getByTestId('admin.setting:some.id--group')).getByTestId('admin.setting.value--textbox')).toHaveProperty('id', 'some.id');
+        expect(within(screen.getByTestId('admin.setting:some.id--group')).getByTestId('admin.setting.value--textbox')).toHaveValue('some value');
     });
 });

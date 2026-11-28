@@ -122,6 +122,7 @@ const ConvertAndRemoveConfirmModal = ({
 
     return (
         <ConfirmModal
+            testId='admin.convert_and_remove_modal'
             show={show}
             title={title}
             message={message}

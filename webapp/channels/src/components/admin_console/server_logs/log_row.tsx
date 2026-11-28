@@ -269,22 +269,28 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
             className={rowClasses}
             onFocus={handleFocus}
             role='listitem'
+            data-testid='admin.server_logs.entry'
             data-level={log.level}
         >
             {/* The row summary is the disclosure control for the details below it */}
             <div
                 className='LogRow__main'
+                data-testid='admin.server_logs.entry.toggle--button'
                 onClick={handleClick}
                 onKeyDown={handleKeyDown}
                 role='button'
                 tabIndex={0}
                 aria-expanded={isExpanded}
             >
-                <span className={`LogRow__level ${levelClassName}`}>
+                <span
+                    className={`LogRow__level ${levelClassName}`}
+                    data-testid='admin.server_logs.entry.level--text'
+                >
                     {levelConfig ? <FormattedMessage {...levelConfig.label}/> : log.level}
                 </span>
                 <span
                     className='LogRow__timestamp'
+                    data-testid='admin.server_logs.entry.timestamp--text'
                     title={log.timestamp}
                 >
                     {formatLogRowTime(log, timezone, timeFormat)}
@@ -292,16 +298,21 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                 {showNode && (
                     <span
                         className='LogRow__node'
+                        data-testid='admin.server_logs.entry.node--text'
                         title={log[LogNodeKey]}
                     >
                         {log[LogNodeKey]}
                     </span>
                 )}
-                <span className='LogRow__message'>
+                <span
+                    className='LogRow__message'
+                    data-testid='admin.server_logs.entry.message--text'
+                >
                     {highlightSearchTerm(log.msg || '', searchTerm)}
                 </span>
                 <span
                     className='LogRow__caller'
+                    data-testid='admin.server_logs.entry.caller--text'
                     title={log.caller}
                 >
                     {log.caller}

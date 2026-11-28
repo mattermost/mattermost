@@ -1,186 +1,162 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {type PlaywrightExtended, expect, test} from '@mattermost/playwright-lib';
+import {
+    Api,
+    expect,
+    openSystemUsers,
+    searchSystemUsers,
+    settle,
+    test,
+    type PlaywrightExtended,
+} from '@mattermost/playwright-lib';
 
 test('MM-T5520-1 should activate and deactivate users', async ({pw}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
+    const {app, getUser, row} = await setupAndGetRandomUser(pw);
 
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
-
-    // # Open menu and deactivate the user
-    const actionMenu = await userRow.openActionMenu();
-    await actionMenu.clickDeactivate();
-
-    // # Press confirm on the modal
-    await systemConsolePage.users.confirmModal.confirm();
+    // # Open menu and deactivate the user, confirming the dialog
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.deactivateMenuItem);
+    const confirm = await app.adminUserActionsMenu.deactivateMenuItem.clickTo(app.admin.users.deactivateModal);
+    await settle(confirm.confirmButton, {wait: Api.UpdateUserActive}).click();
 
     // * Verify user is deactivated
-    await expect(userRow.container.getByText('Deactivated')).toBeVisible();
-    expect((await getUser()).delete_at).toBeGreaterThan(0);
+    await expect(row).toContainText('Deactivated');
+    await expect.poll(async () => (await getUser()).delete_at).toBeGreaterThan(0);
 
     // # Open menu and reactivate the user
-    const actionMenu2 = await userRow.openActionMenu();
-    await actionMenu2.clickActivate();
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.activateMenuItem);
+    await settle(app.adminUserActionsMenu.activateMenuItem, {wait: Api.UpdateUserActive}).click();
 
     // * Verify user is activated
-    await expect(userRow.container.getByText('Member')).toBeVisible();
+    await expect(row).toContainText('Member');
+    await expect(row).not.toContainText('Deactivated');
 });
 
 test('MM-T5520-2 should change user roles', async ({pw}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
-
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+    const {app, getUser, row} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Manage roles
-    const actionMenu = await userRow.openActionMenu();
-    await actionMenu.clickManageRoles();
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.manageRolesMenuItem);
+    let roles = await app.adminUserActionsMenu.manageRolesMenuItem.clickTo(app.manageRolesModal);
 
     // # Change to System Admin and click Save
-    const systemAdmin = systemConsolePage.page.locator('input[name="systemadmin"]');
-    await systemAdmin.waitFor();
-    await systemAdmin.click();
-    await systemConsolePage.users.manageRolesModal.save();
+    await roles.systemAdminRadio.check();
+    await expect(roles.systemAdminRadio).toBeChecked();
+    await settle(roles.saveButton, {wait: Api.UpdateUserRoles}).click();
 
     // * Verify that the role was updated
-    await expect(userRow.container.getByText('System Admin')).toBeVisible();
-    expect((await getUser()).roles).toContain('system_admin');
+    await expect(row).toContainText('System Admin');
+    await expect.poll(async () => (await getUser()).roles).toContain('system_admin');
 
     // # Open menu and click Manage roles
-    const actionMenu2 = await userRow.openActionMenu();
-    await actionMenu2.clickManageRoles();
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.manageRolesMenuItem);
+    roles = await app.adminUserActionsMenu.manageRolesMenuItem.clickTo(app.manageRolesModal);
 
     // # Change to Member and click Save
-    const systemMember = systemConsolePage.page.locator('input[name="systemmember"]');
-    await systemMember.waitFor();
-    await systemMember.click();
-    await systemConsolePage.users.manageRolesModal.save();
+    await roles.memberRadio.check();
+    await expect(roles.memberRadio).toBeChecked();
+    await settle(roles.saveButton, {wait: Api.UpdateUserRoles}).click();
 
     // * Verify that the role was updated
-    await expect(userRow.container.getByText('Member')).toBeVisible();
-    expect((await getUser()).roles).toContain('system_user');
+    await expect(row).toContainText('Member');
+    await expect(row).not.toContainText('System Admin');
+    await expect.poll(async () => (await getUser()).roles).toContain('system_user');
 });
 
 test('MM-T5520-3 should be able to manage teams', async ({pw}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw);
-    const {page} = systemConsolePage;
-
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+    const {app, row, team} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Manage teams
-    const actionMenu = await userRow.openActionMenu();
-    await actionMenu.clickManageTeams();
-
-    // The role dropdown renders its menu in a portal (MUI Popover), so the menu
-    // items live at the page level rather than inside the team row.
-    const team = page.locator('div.manage-teams__team');
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.manageTeamsMenuItem);
+    await app.adminUserActionsMenu.manageTeamsMenuItem.clickTo(app.manageTeamsModal);
+    const teamRow = app.manageTeamsModal.team(team);
 
     // # Open the role dropdown and click Make Team Admin
-    await team.getByRole('button', {name: 'Team Member'}).click();
-    await page.getByRole('menuitem', {name: 'Make Team Admin'}).click();
+    await expect(teamRow.roleButton).toHaveText('Team Member');
+    await teamRow.roleButton.clickTo(app.manageTeamsRoleMenu.removeMenuItem);
+    await settle(app.manageTeamsRoleMenu.makeAdminMenuItem, {wait: Api.UpdateTeamMemberSchemeRoles}).click();
 
     // * Verify role is updated
-    await expect(team.getByText('Team Admin')).toBeVisible();
+    await expect(teamRow.roleButton).toHaveText('Team Admin');
 
     // # Change back to Team Member
-    await team.getByRole('button', {name: 'Team Admin'}).click();
-    await page.getByRole('menuitem', {name: 'Make Team Member'}).click();
+    await teamRow.roleButton.clickTo(app.manageTeamsRoleMenu.removeMenuItem);
+    await settle(app.manageTeamsRoleMenu.makeMemberMenuItem, {wait: Api.UpdateTeamMemberSchemeRoles}).click();
 
     // * Verify role is updated
-    await expect(team.getByText('Team Member')).toBeVisible();
+    await expect(teamRow.roleButton).toHaveText('Team Member');
 
     // # Click Remove from Team
-    await team.getByRole('button', {name: 'Team Member'}).click();
-    await page.getByRole('menuitem', {name: 'Remove from Team'}).click();
+    await teamRow.roleButton.clickTo(app.manageTeamsRoleMenu.removeMenuItem);
+    await settle(app.manageTeamsRoleMenu.removeMenuItem, {wait: Api.RemoveTeamMember}).click();
 
-    // * The team should be detached
-    await team.waitFor({state: 'detached'});
-    await expect(team).not.toBeVisible();
+    // * The team row is gone
+    await expect(teamRow).toHaveCount(0);
 });
 
 test('MM-T5520-4 should reset the users password', async ({pw}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw);
-
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+    const {app, row} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Reset Password
-    const actionMenu = await userRow.openActionMenu();
-    await actionMenu.clickResetPassword();
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.resetPasswordMenuItem);
+    const modal = await app.adminUserActionsMenu.resetPasswordMenuItem.clickTo(app.resetPasswordModal);
 
     // # Enter a random password and click Reset
-    await systemConsolePage.users.resetPasswordModal.fillPassword(pw.newTestPassword());
-    await systemConsolePage.users.resetPasswordModal.reset();
+    await modal.newPassword.container.fill(pw.newTestPassword());
+    await settle(modal.confirmButton, {wait: Api.UpdateUserPassword}).click();
+
+    // * The dialog closes
+    await expect(modal.newPassword.container).not.toBeVisible();
 });
 
 test('MM-T5520-5 should change the users email', async ({pw}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
+    const {app, getUser, row} = await setupAndGetRandomUser(pw);
     const newEmail = `${pw.random.id()}@example.com`;
 
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
-
     // # Open menu and click Update Email
-    const actionMenu = await userRow.openActionMenu();
-    await actionMenu.clickUpdateEmail();
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.updateEmailMenuItem);
+    const modal = await app.adminUserActionsMenu.updateEmailMenuItem.clickTo(app.admin.users.resetEmailModal);
 
     // # Enter new email and click Update
-    await systemConsolePage.users.updateEmailModal.fillEmail(newEmail);
-    await systemConsolePage.users.updateEmailModal.update();
+    await modal.newEmail.container.fill(newEmail);
+    await settle(modal.confirmButton, {wait: Api.PatchUser}).click();
 
     // * Verify that the email updated
-    await expect(userRow.container.getByText(newEmail)).toBeVisible();
-    expect((await getUser()).email).toEqual(newEmail);
+    await expect(row.cell('emailColumn')).toHaveText(newEmail);
+    await expect.poll(async () => (await getUser()).email).toEqual(newEmail);
 });
 
 test('MM-T5520-6 should revoke sessions', async ({pw}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw);
+    const {app, row} = await setupAndGetRandomUser(pw);
 
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
-
-    // # Open menu and revoke sessions
-    const actionMenu = await userRow.openActionMenu();
-    await actionMenu.clickRevokeSessions();
-
-    // # Press confirm on the modal
-    await systemConsolePage.users.confirmModal.confirm();
+    // # Open menu and revoke sessions, confirming the dialog
+    await row.actionsButton.clickTo(app.adminUserActionsMenu.revokeSessionsMenuItem);
+    const confirm = await app.adminUserActionsMenu.revokeSessionsMenuItem.clickTo(app.admin.users.revokeSessionsModal);
+    await settle(confirm.confirmButton, {wait: Api.RevokeAllSessions}).click();
+    await expect(confirm.confirmButton).not.toBeVisible();
 
     // * Verify no error is displayed
-    await expect(userRow.container.locator('.error')).not.toBeVisible();
+    await expect(row).toBeVisible();
+    await expect(row.errorText).not.toBeVisible();
 });
 
 /**
- * Setup a new random user, and search for it such that it's the first row in the list
- * @param pw
- * @returns A function to get the refreshed user, and the System Console page for navigation
+ * Sets up a new random user in a new team, and searches the System Console's users for it.
+ * @returns The app, the user's row, a function to get the refreshed user, and the team
  */
 async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     const {adminUser, adminClient} = await pw.initSetup();
-
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a random user to edit
     const user = await adminClient.createUser(await pw.random.user(), '', '');
     const team = await adminClient.createTeam(await pw.random.team());
     await adminClient.addToTeam(team.id, user.id);
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // # Log in as admin, open System Console > Users and search for the user
+    const app = await openSystemUsers(pw, adminUser);
+    await searchSystemUsers(app, user.email, user);
+    const row = app.admin.users.table.row(user.id);
+    await expect(row.cell('emailColumn')).toHaveText(user.email);
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
-
-    // # Search for the user
-    await systemConsolePage.users.searchUsers(user.email);
-
-    // Wait for search results
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
-    await expect(userRow.container.getByText(user.email)).toBeVisible();
-
-    return {getUser: () => adminClient.getUser(user.id), systemConsolePage};
+    return {app, getUser: () => adminClient.getUser(user.id), row, team};
 }

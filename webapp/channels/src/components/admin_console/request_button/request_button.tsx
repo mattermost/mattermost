@@ -201,7 +201,10 @@ export default class RequestButton extends React.PureComponent<Props, State> {
             );
             message = (
                 <div>
-                    <div className='alert alert-warning'>
+                    <div
+                        className='alert alert-warning'
+                        data-testid='admin.setting.request_error--text'
+                    >
                         <WarningIcon/>
                         {text}
                     </div>
@@ -213,7 +216,10 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                 (<FormattedMessage {...this.props.successMessage}/>);
             message = (
                 <div>
-                    <div className='alert alert-success'>
+                    <div
+                        className='alert alert-success'
+                        data-testid='admin.setting.request_success--text'
+                    >
                         <SuccessIcon/>
                         {text}
                     </div>
@@ -240,12 +246,15 @@ export default class RequestButton extends React.PureComponent<Props, State> {
             <div
                 className='form-group'
                 id={this.props.id}
+                role='group'
+                data-testid={this.props.id ? `admin.setting:${this.props.id}--group` : undefined}
             >
                 {label}
                 <div className={widgetClassNames}>
                     <div>
                         <Button
                             type='button'
+                            data-testid='admin.setting.request--button'
                             emphasis={this.props.buttonEmphasis || 'tertiary'}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
