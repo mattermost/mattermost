@@ -239,7 +239,7 @@ export function searchCustomEmojis(term: string, options: any = {}, loadUsers = 
     };
 }
 
-export function autocompleteCustomEmojis(name: string): ActionFuncAsync {
+export function autocompleteCustomEmojis(name: string): ActionFuncAsync<CustomEmoji[]> {
     return async (dispatch, getState) => {
         let data;
         try {
