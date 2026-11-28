@@ -15,12 +15,11 @@
  *
  * @reference Channel-scoped permission policies (v0.4)
  *
- * These tests skip themselves at runtime when the PermissionPolicies umbrella
- * OR the ChannelPermissionPolicies sub-flag is not enabled on the server —
- * the tab is invisible in either case and the workflow is not exercised.
- * Run with `MM_FEATUREFLAGS_PERMISSIONPOLICIES=true` AND
- * `MM_FEATUREFLAGS_CHANNELPERMISSIONPOLICIES=true`. The "Simulate rules"
- * button additionally requires `MM_FEATUREFLAGS_POLICYSIMULATION=true`.
+ * `beforeEach` turns the PermissionPolicies umbrella and ChannelPermissionPolicies
+ * sub-flag on via pw.ensureFeatureFlag() — against a server with no mock Split
+ * service to push the change through, that self-skips instead, since the tab is
+ * invisible either way and the workflow is not exercised. The "Simulate rules"
+ * button additionally requires the PolicySimulation flag, which defaults on.
  */
 
 import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';

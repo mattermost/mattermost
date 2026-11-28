@@ -7,7 +7,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, getRandomId} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeValuesForUser} from '../../../channels/custom_profile_attributes/helpers';
 import {
@@ -17,23 +16,6 @@ import {
     getPolicyIdByName,
     getUserAttributeFieldByName,
 } from '../support';
-
-/**
- * Require a feature flag to be on, in whichever mode the suite is running.
- *
- * FeatureFlags cannot be changed on a running server — with no Split key configured the
- * config store's readOnlyFF handling reverts a FeatureFlags patch before it is persisted,
- * so /config/patch returns 200 and changes nothing. Only a boot-time MM_FEATUREFLAGS_*
- * env var takes effect.
- *
- * ensureFeatureFlag already covers both modes: in testcontainers mode it restarts the
- * server with the flag set (so these flags do not need adding to SERVER_ENV_BASELINE);
- * against an external server there is nothing to restart, so it skips unless the flag is
- * already on, and a dev server booted with the flag still runs the tests.
- */
-export async function requireFeatureFlag(pw: PlaywrightExtended, name: string): Promise<void> {
-    await pw.ensureFeatureFlag(name, true);
-}
 
 /**
  * Department value the grant policy matches on. Arbitrary, but distinct enough that no

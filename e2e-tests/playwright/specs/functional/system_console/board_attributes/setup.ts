@@ -50,9 +50,6 @@ export async function setupBoardAttributesTest(pw: PlaywrightExtended): Promise<
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
-    // Feature flags are read at server start from MM_FEATUREFLAGS_* env,
-    // not from runtime config patches — CI sets it in server.generate.sh;
-    // locally, export it before running the server.
     await pw.ensureFeatureFlag('IntegratedBoards', true);
 
     const {adminUser, adminClient} = await pw.initSetup();
