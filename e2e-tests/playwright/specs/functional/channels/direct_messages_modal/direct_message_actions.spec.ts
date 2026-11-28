@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that mentioning a user inside a different pair of users' direct message does not notify the mentioned user.
  */
-test('MM-T448 does not notify a user mentioned in a different DM', {tag: '@direct_messages'}, async ({pw}) => {
+test('MM-T448 does not notify a user mentioned in a different DM', {tag: ['@direct_messages', '@core']}, async ({pw}) => {
     // # Create the test user plus two more users on the team
     const {user, team, adminClient} = await pw.initSetup();
     const [partner, mentioned] = await adminClient.createUsers(team.id, 2, 'dmuser');
@@ -40,7 +40,7 @@ test('MM-T448 does not notify a user mentioned in a different DM', {tag: '@direc
  */
 test(
     'MM-T454 deletes a parent post in a direct message from the reply thread',
-    {tag: '@direct_messages'},
+    {tag: ['@direct_messages', '@core']},
     async ({pw}) => {
         // # Create the test user plus another user to direct message
         const {user, team, adminClient} = await pw.initSetup();
@@ -83,7 +83,7 @@ test(
 /**
  * @objective Verify that a direct message can be opened from a user's profile popover on their post.
  */
-test('MM-T455 opens a direct message from a profile popover', {tag: '@direct_messages'}, async ({pw}) => {
+test('MM-T455 opens a direct message from a profile popover', {tag: ['@direct_messages', '@core']}, async ({pw}) => {
     // # Create the test user plus another user who posts in a shared channel
     const {user, team, adminClient} = await pw.initSetup();
     const [author] = await adminClient.createUsers(team.id, 1, 'author');
