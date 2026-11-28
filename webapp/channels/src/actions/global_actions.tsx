@@ -21,7 +21,7 @@ import {logout, loadMe} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFirstAdminSetupComplete, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
@@ -395,7 +395,7 @@ export async function redirectUserToDefaultTeam(searchParams?: URLSearchParams) 
     let myTeams = getMyTeams(state);
     const teams = getActiveTeamsList(state);
     if (teams.length === 0) {
-        if (isUserFirstAdmin && onboardingFlowEnabled) {
+        if (isUserFirstAdmin && onboardingFlowEnabled && !getFirstAdminSetupComplete(state)) {
             historyPushWithQueryParams('/preparing-workspace', searchParams);
             return;
         }
