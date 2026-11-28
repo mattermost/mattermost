@@ -5,6 +5,7 @@ package cache
 
 import (
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -50,37 +51,39 @@ func TestNewCache(t *testing.T) {
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
-		p := NewProvider()
+		synctest.Test(t, func(t *testing.T) {
+			p := NewProvider()
 
-		size := 1
-		expiry := 1 * time.Second
-		event := model.ClusterEvent("clusterEvent")
-		c, err := p.NewCache(&CacheOptions{
-			Size:                   size,
-			Name:                   "name",
-			DefaultExpiry:          expiry,
-			InvalidateClusterEvent: event,
+			size := 1
+			expiry := 1 * time.Second
+			event := model.ClusterEvent("clusterEvent")
+			c, err := p.NewCache(&CacheOptions{
+				Size:                   size,
+				Name:                   "name",
+				DefaultExpiry:          expiry,
+				InvalidateClusterEvent: event,
+			})
+			require.NoError(t, err)
+
+			require.Equal(t, event, c.GetInvalidateClusterEvent())
+
+			err = c.SetWithDefaultExpiry("key1", "val1")
+			require.NoError(t, err)
+			err = c.SetWithDefaultExpiry("key2", "val2")
+			require.NoError(t, err)
+			err = c.SetWithDefaultExpiry("key3", "val3")
+			require.NoError(t, err)
+
+			time.Sleep(expiry + 1*time.Second)
+
+			var v string
+			err = c.Get("key1", &v)
+			require.Equal(t, ErrKeyNotFound, err)
+			err = c.Get("key2", &v)
+			require.Equal(t, ErrKeyNotFound, err)
+			err = c.Get("key3", &v)
+			require.Equal(t, ErrKeyNotFound, err)
 		})
-		require.NoError(t, err)
-
-		require.Equal(t, event, c.GetInvalidateClusterEvent())
-
-		err = c.SetWithDefaultExpiry("key1", "val1")
-		require.NoError(t, err)
-		err = c.SetWithDefaultExpiry("key2", "val2")
-		require.NoError(t, err)
-		err = c.SetWithDefaultExpiry("key3", "val3")
-		require.NoError(t, err)
-
-		time.Sleep(expiry + 1*time.Second)
-
-		var v string
-		err = c.Get("key1", &v)
-		require.Equal(t, ErrKeyNotFound, err)
-		err = c.Get("key2", &v)
-		require.Equal(t, ErrKeyNotFound, err)
-		err = c.Get("key3", &v)
-		require.Equal(t, ErrKeyNotFound, err)
 	})
 }
 
@@ -126,39 +129,41 @@ func TestNewCache_Striped(t *testing.T) {
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
-		p := NewProvider()
+		synctest.Test(t, func(t *testing.T) {
+			p := NewProvider()
 
-		size := 1
-		expiry := 1 * time.Second
-		event := model.ClusterEvent("clusterEvent")
-		c, err := p.NewCache(&CacheOptions{
-			Size:                   size,
-			Name:                   "name",
-			DefaultExpiry:          expiry,
-			InvalidateClusterEvent: event,
-			Striped:                true,
-			StripedBuckets:         1,
+			size := 1
+			expiry := 1 * time.Second
+			event := model.ClusterEvent("clusterEvent")
+			c, err := p.NewCache(&CacheOptions{
+				Size:                   size,
+				Name:                   "name",
+				DefaultExpiry:          expiry,
+				InvalidateClusterEvent: event,
+				Striped:                true,
+				StripedBuckets:         1,
+			})
+			require.NoError(t, err)
+
+			require.Equal(t, event, c.GetInvalidateClusterEvent())
+
+			err = c.SetWithDefaultExpiry("key1", "val1")
+			require.NoError(t, err)
+			err = c.SetWithDefaultExpiry("key2", "val2")
+			require.NoError(t, err)
+			err = c.SetWithDefaultExpiry("key3", "val3")
+			require.NoError(t, err)
+
+			time.Sleep(expiry + 1*time.Second)
+
+			var v string
+			err = c.Get("key1", &v)
+			require.Equal(t, ErrKeyNotFound, err)
+			err = c.Get("key2", &v)
+			require.Equal(t, ErrKeyNotFound, err)
+			err = c.Get("key3", &v)
+			require.Equal(t, ErrKeyNotFound, err)
 		})
-		require.NoError(t, err)
-
-		require.Equal(t, event, c.GetInvalidateClusterEvent())
-
-		err = c.SetWithDefaultExpiry("key1", "val1")
-		require.NoError(t, err)
-		err = c.SetWithDefaultExpiry("key2", "val2")
-		require.NoError(t, err)
-		err = c.SetWithDefaultExpiry("key3", "val3")
-		require.NoError(t, err)
-
-		time.Sleep(expiry + 1*time.Second)
-
-		var v string
-		err = c.Get("key1", &v)
-		require.Equal(t, ErrKeyNotFound, err)
-		err = c.Get("key2", &v)
-		require.Equal(t, ErrKeyNotFound, err)
-		err = c.Get("key3", &v)
-		require.Equal(t, ErrKeyNotFound, err)
 	})
 }
 
