@@ -23,8 +23,6 @@ export default class LandingLoginPage {
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
-
         if (this.isMobile) {
             await expect(this.viewInAppButton).toBeVisible();
         } else {

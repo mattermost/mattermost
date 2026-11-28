@@ -62,7 +62,6 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
         return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
     });
     await systemConsolePage.page.reload();
-    await systemConsolePage.page.waitForLoadState('networkidle');
 
     // * Verify we're on the correct page
     const abacSection = systemConsolePage.page.getByTestId('sysconsole_section_AttributeBasedAccessControl');
@@ -79,8 +78,11 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     // # Test enable ABAC
     await enableRadio.click();
     await expect(enableRadio).toBeChecked();
+    const enabled = systemConsolePage.page.waitForResponse(
+        (r) => r.url().includes('/api/v4/config') && r.request().method() === 'PUT',
+    );
     await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    await enabled;
 
     // * Verify the Attribute-Based Access page only has the toggle — no policy management here
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();
@@ -94,30 +96,32 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
         return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
     });
     await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies');
-    await systemConsolePage.page.waitForLoadState('networkidle');
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();
 
     // * Verify Permission Policies page shows "Add policy" when ABAC is enabled
     // This section is only testable when the PermissionPolicies feature flag is on.
     if (await isPermissionPoliciesEnabled(adminClient)) {
         await systemConsolePage.page.goto('/admin_console/system_attributes/permission_policies');
-        await systemConsolePage.page.waitForLoadState('networkidle');
         await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();
     }
 
     // # Navigate back to Attribute-Based Access to test disable
     await systemConsolePage.page.goto('/admin_console/system_attributes/attribute_based_access_control');
-    await systemConsolePage.page.waitForLoadState('networkidle');
 
     // # Test disable ABAC
     await disableRadio.click();
     await expect(disableRadio).toBeChecked();
+    const disabled = systemConsolePage.page.waitForResponse(
+        (r) => r.url().includes('/api/v4/config') && r.request().method() === 'PUT',
+    );
     await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    await disabled;
 
     // * Verify Membership Policies no longer shows "Add policy" when ABAC is disabled
-    await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies');
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies', {
+        waitUntil: 'domcontentloaded',
+    });
+    await expect(systemConsolePage.page.locator('.admin-console').first()).toBeVisible();
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();
 
     // # Re-enable ABAC for subsequent tests via API — avoids the race where a concurrent

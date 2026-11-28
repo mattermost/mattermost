@@ -77,8 +77,12 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: false},
         });
+        const clientConfigLoaded = page.waitForResponse((response) => {
+            const status = response.status();
+            return response.url().includes('/api/v4/config/client') && status >= 200 && status < 400;
+        });
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await clientConfigLoaded;
         await channelsPage.toBeVisible();
         // Re-apply once more after the page has settled to prevent a WebSocket
         // CONFIG_CHANGED event (from a concurrent initSetup()) from flipping it back.

@@ -31,12 +31,24 @@ test.describe('Single-channel guests', () => {
         return previous;
     }
 
+    async function expectGuestAdminPageReady(page: any, url: string) {
+        if (url.includes('/admin_console/reporting/system_analytics')) {
+            await expect(page.getByTestId('admin-console-header')).toHaveText('System Statistics');
+            // Licensed stat cards and the guest card are rendered together from config.
+            await expect(page.getByTestId('totalTeams')).toBeVisible();
+            return;
+        }
+
+        await expect(page.getByTestId('admin-console-header')).toHaveText('Edition and License');
+        await expect(page.getByTestId('EnterpriseEditionLeftPanel')).toBeVisible();
+    }
+
     async function navigateWithGuestPatch(page: any, adminClient: any, url: string, guestEnabled: boolean) {
         await page.goto(url);
-        await page.waitForLoadState('networkidle');
+        await expectGuestAdminPageReady(page, url);
         await patchGuestEnabled(adminClient, guestEnabled);
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await expectGuestAdminPageReady(page, url);
     }
 
     /**
@@ -96,11 +108,9 @@ test.describe('Single-channel guests', () => {
                         // hide the card and make the textContent call return null.
                         await patchGuestEnabled(adminClient, true);
                         await systemConsolePage.page.reload();
-                        await systemConsolePage.page.waitForLoadState('networkidle');
-                        const text = await systemConsolePage.page
-                            .getByTestId('singleChannelGuests')
-                            .textContent()
-                            .catch(() => '');
+                        const card = systemConsolePage.page.getByTestId('singleChannelGuests');
+                        await expect(card).toHaveText(/\d+/);
+                        const text = await card.textContent();
                         return Number(text?.match(/(\d+)/)?.[1] ?? 0);
                     },
                     {timeout: 180000, intervals: [3000, 5000, 8000, 12000]},
@@ -289,8 +299,12 @@ test.describe('Single-channel guests', () => {
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await patchGuestEnabled(adminClient, true);
+        const limitsLoaded = systemConsolePage.page.waitForResponse((resp) => {
+            return resp.url().includes('/api/v4/limits/server');
+        });
         await systemConsolePage.page.reload();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await limitsLoaded;
+        await systemConsolePage.toBeVisible();
 
         // * Verify the guest limit banner is not visible (count is within limit)
         await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
@@ -438,8 +452,8 @@ test.describe('Single-channel guests', () => {
             const readGuestCount = async () => {
                 await patchGuestEnabled(adminClient, true);
                 await systemConsolePage.page.reload();
-                await systemConsolePage.page.waitForLoadState('networkidle');
-                const text = await singleChannelGuestsCard.textContent().catch(() => '');
+                await expect(singleChannelGuestsCard).toHaveText(/\d+/);
+                const text = await singleChannelGuestsCard.textContent();
                 return Number(text?.match(/(\d+)/)?.[1] ?? NaN);
             };
             let singleChannelGuestCount = NaN;

@@ -217,6 +217,9 @@ test('does not offer to quote in an archived channel', TAGS, async ({pw}) => {
 
     // * Verify the text is selected but no quote button is shown
     await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe('Diam sapien pellentesque');
+
+    // The quote button is scheduled on mouseup and committed on a later task. Absence is only
+    // meaningful after that task has had time to render a button that should not appear.
     await page.waitForTimeout(500);
     await expect(page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
 });

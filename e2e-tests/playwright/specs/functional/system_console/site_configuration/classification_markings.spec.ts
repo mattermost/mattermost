@@ -255,7 +255,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // * Global Classification Indicators section should NOT be visible before enabling
             await expect(page.getByText('Global Classification Indicators')).not.toBeVisible();
@@ -285,7 +285,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // # Enable classification markings and select NATO preset
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -314,8 +314,8 @@ test.describe('System Console - Classification markings', () => {
 
             // Wait for the save to fully complete: the button becomes disabled once
             // the async persistLevels flow finishes and hasChanges resets to false.
-            // networkidle alone is unreliable because there is a JS processing gap
-            // between the re-fetch GETs and the subsequent POST/PATCH calls.
+            // That disabled state is the completion signal; re-fetch GETs and the
+            // subsequent POST/PATCH calls leave a gap with no single response to await.
             await expect(saveButton).toBeDisabled({timeout: 30000});
 
             // * No save error
@@ -323,7 +323,6 @@ test.describe('System Console - Classification markings', () => {
 
             // # Reload the page
             await page.reload();
-            await page.waitForLoadState('networkidle');
 
             // * Banner configuration persisted: enabled, top_and_bottom, NATO UNCLASSIFIED selected.
             // The linked field + property value fetch is async; wait for the level dropdown
@@ -357,7 +356,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // * No locked notice should be present
             await expect(page.getByText(/Global classification placement and level are locked/)).not.toBeVisible();
@@ -379,7 +378,6 @@ test.describe('System Console - Classification markings', () => {
 
             // # Reload and verify the new placement persisted
             await page.reload();
-            await page.waitForLoadState('networkidle');
             await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked({
                 timeout: 30000,
             });
@@ -411,7 +409,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // # Delete the level used by the banner (first row)
             await page.getByRole('button', {name: 'Delete level'}).first().click();
@@ -459,7 +457,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // # Enable classification markings and select NATO preset
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -523,7 +521,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // # Enable classification markings, select NATO preset (provides levels)
             await page.locator('input[name="classificationEnabled"][value="true"]').click();

@@ -516,11 +516,18 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        // # Navigate and wait for all API calls to settle (custom profile attributes
-        // must be fetched before the self-inclusion check can validate the admin's Department)
+        // # Navigate and wait for custom profile attributes to be fetched
+        // (must be loaded before the self-inclusion check can validate the admin's Department)
+        const attributesLoaded = page.waitForResponse((response) => {
+            return (
+                response.request().method() === 'GET' &&
+                response.url().includes('/api/v4/custom_profile_attributes/fields') &&
+                response.ok()
+            );
+        });
         await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
+        await attributesLoaded;
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -872,9 +879,17 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Log in as team admin and open policy editor
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
+        // # Custom profile attributes must be loaded before the self-inclusion check
+        const attributesLoaded = page.waitForResponse((response) => {
+            return (
+                response.request().method() === 'GET' &&
+                response.url().includes('/api/v4/custom_profile_attributes/fields') &&
+                response.ok()
+            );
+        });
         await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
+        await attributesLoaded;
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();

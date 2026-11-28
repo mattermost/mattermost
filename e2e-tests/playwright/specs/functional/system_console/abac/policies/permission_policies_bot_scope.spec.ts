@@ -324,7 +324,6 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             // # Reopen the policy
             await row.locator('.policy-name').click();
             await expect(page).toHaveURL(new RegExp(`/permission_policies/edit_policy/${policyId}`));
-            await page.waitForLoadState('networkidle');
 
             // * Verify the details page shows the Bot accounts scope and the rule in table mode
             await expect(page.locator('#pp-role-selector-btn')).toContainText('Bot accounts');

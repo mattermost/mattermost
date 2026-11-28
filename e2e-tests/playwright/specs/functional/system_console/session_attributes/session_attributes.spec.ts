@@ -260,10 +260,12 @@ test.describe('System Console - Session Attributes', () => {
 
             // # Open a new permission policy and add an attribute row
             await page.goto('/admin_console/system_attributes/permission_policies');
-            await page.waitForLoadState('networkidle');
-            await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
-            await page.getByPlaceholder('Add a unique policy name').fill(`PP Session ${pw.random.id()}`);
+            const addPermissionPolicy = page.getByRole('button', {name: 'Add policy'});
+            await expect(addPermissionPolicy).toBeVisible();
+            await addPermissionPolicy.click();
+            const permissionPolicyName = page.getByPlaceholder('Add a unique policy name');
+            await expect(permissionPolicyName).toBeVisible();
+            await permissionPolicyName.fill(`PP Session ${pw.random.id()}`);
 
             await openAttributePicker(page);
 
@@ -284,12 +286,13 @@ test.describe('System Console - Session Attributes', () => {
 
             // # Open a new membership policy and add an attribute row
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
-            await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
-            await page
-                .locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName')
-                .fill(`MP Session ${pw.random.id()}`);
+            await systemConsolePage.membershipPolicies.toBeVisible();
+            const addMembershipPolicy = page.getByRole('button', {name: 'Add policy'});
+            await expect(addMembershipPolicy).toBeVisible();
+            await addMembershipPolicy.click();
+            const membershipPolicyName = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+            await expect(membershipPolicyName).toBeVisible();
+            await membershipPolicyName.fill(`MP Session ${pw.random.id()}`);
 
             await openAttributePicker(page);
 
@@ -310,10 +313,12 @@ test.describe('System Console - Session Attributes', () => {
 
             // # Open a fresh permission policy, pick the session attribute, set a value
             await page.goto('/admin_console/system_attributes/permission_policies');
-            await page.waitForLoadState('networkidle');
-            await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
-            await page.getByPlaceholder('Add a unique policy name').fill(`PP CEL ${pw.random.id()}`);
+            const addCelPolicy = page.getByRole('button', {name: 'Add policy'});
+            await expect(addCelPolicy).toBeVisible();
+            await addCelPolicy.click();
+            const celPolicyName = page.getByPlaceholder('Add a unique policy name');
+            await expect(celPolicyName).toBeVisible();
+            await celPolicyName.fill(`PP CEL ${pw.random.id()}`);
 
             await openAttributePicker(page);
 

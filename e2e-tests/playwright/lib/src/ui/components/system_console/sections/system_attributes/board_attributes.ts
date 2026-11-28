@@ -42,7 +42,7 @@ export default class BoardAttributes {
         await expect(this.container).toBeVisible();
         // Wait for the seeded rows to render so name-based lookups work
         // reliably immediately after navigation — the property-fields fetch
-        // can complete just after waitForLoadState('networkidle') returns.
+        // can complete just after navigation returns.
         await expect(this.nameInputByValue('status')).toBeVisible();
         await expect(this.nameInputByValue('assignee')).toBeVisible();
     }

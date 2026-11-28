@@ -79,7 +79,6 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             const advancedBtn = page.getByRole('button', {name: /advanced/i});
             await expect(advancedBtn).toBeVisible();
             await advancedBtn.click();
-            await page.waitForTimeout(1000);
             const monacoEditor = page.locator('.monaco-editor').first();
             await expect(monacoEditor).toBeVisible();
             const ariaReadOnly = await monacoEditor.getAttribute('aria-readonly');
@@ -123,27 +122,25 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await enableABAC(page);
 
             // Navigate to New Policy form
-            await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
+            await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'domcontentloaded'});
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
+            const addAttributeBtn = page.getByRole('button', {name: /add attribute/i});
+            await expect(addAttributeBtn).toBeVisible();
 
             // A fresh editor must show no masked chip and no warning banner
             await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
             await expect(page.locator('text="This policy contains restricted values"')).not.toBeVisible();
 
             // Add a rule row
-            const addAttributeBtn = page.getByRole('button', {name: /add attribute/i});
-            await expect(addAttributeBtn).toBeVisible();
             await expect(addAttributeBtn).toBeEnabled();
             await addAttributeBtn.click();
-            await page.waitForTimeout(500);
+            const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+            await expect(attributeSelector).toBeVisible();
 
             // Still no masked chip after adding a blank row
             await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
 
             // Attribute selector is NOT locked on a new row
-            const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
             await expect(attributeSelector).not.toHaveClass(/disabled/);
         } finally {
             for (const id of fieldIds) {

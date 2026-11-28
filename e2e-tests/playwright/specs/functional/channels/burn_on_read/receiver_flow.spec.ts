@@ -183,8 +183,10 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         const message = `Timer test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
-        // # Login as receiver
+        // # Login as receiver. Install the clock before navigation so the countdown
+        // ticker (setTimeout + Date.now) is fake and can be advanced without wall time.
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
+        await receiverPage.page.clock.install();
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
@@ -202,20 +204,29 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         // * Verify time format is correct (MM:SS or M:SS)
         expect(initialTime).toMatch(/^\d+:\d{2}$/);
 
-        // # Wait 2 seconds
-        await receiverPage.page.waitForTimeout(2000);
+        // # Advance the client countdown (setTimeout aligned to Date.now) by two seconds
+        await receiverPage.page.clock.runFor(2000);
 
-        // * Get updated time
-        const updatedTime = await borPost.burnOnReadTimerChip.getTimeRemaining();
-
-        // * Verify time has decreased
-        expect(updatedTime).toMatch(/^\d+:\d{2}$/);
-        // Parse times to compare
+        // * Get updated time once the chip has re-rendered
         const parseTime = (t: string) => {
             const [m, s] = t.split(':').map(Number);
             return m * 60 + s;
         };
-        expect(parseTime(updatedTime)).toBeLessThan(parseTime(initialTime));
+        const initialSeconds = parseTime(initialTime);
+        let updatedTime = initialTime;
+        await expect
+            .poll(async () => {
+                updatedTime = await borPost.burnOnReadTimerChip.getTimeRemaining();
+                if (!/^\d+:\d{2}$/.test(updatedTime)) {
+                    return initialSeconds;
+                }
+                return parseTime(updatedTime);
+            })
+            .toBeLessThan(initialSeconds);
+
+        // * Verify time has decreased
+        expect(updatedTime).toMatch(/^\d+:\d{2}$/);
+        expect(parseTime(updatedTime)).toBeLessThan(initialSeconds);
     });
 
     test('MM-66742_13 message auto-deletes after timer expires', {tag: [BOR_TAG]}, async ({pw}, testInfo) => {
