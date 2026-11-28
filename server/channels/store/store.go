@@ -205,7 +205,7 @@ type TeamStore interface {
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
 	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
-}
+} 
 
 // ChannelMemberRoles holds the fields of a channel membership that decide the member's role in
 // the channel, resolved the same way GetMember resolves them: role names left in Roles by an
@@ -1577,10 +1577,11 @@ type ThreadMembershipOpts struct {
 // PostReminderMetadata contains some info needed to send
 // the reminder message to the user.
 type PostReminderMetadata struct {
-	ChannelID  string
-	TeamName   string
-	UserLocale string
-	Username   string
+    ChannelID   string
+    TeamName    string
+    UserLocale  string
+    Username    string
+    DefaultTeam string
 }
 
 type ThreadMembershipImportData struct {
