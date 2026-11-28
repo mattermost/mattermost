@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -145,6 +146,127 @@ func TestExecuteCommand(t *testing.T) {
 		}
 		_, err := th.App.ExecuteCommand(th.Context, argsMissingSlashCharacter)
 		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
+	})
+}
+
+func TestExecuteCommandEnableCommandsSetting(t *testing.T) {
+	th := setup(t).initBasic(t)
+
+	var customHits atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		customHits.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		_, err := io.WriteString(w, `{"text": "custom response"}`)
+		assert.NoError(t, err)
+	}))
+	t.Cleanup(server.Close)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableCommands = new(true)
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.SiteURL = new("http://localhost:8065")
+	})
+
+	newCustomCommand := func(trigger string) *model.Command {
+		return &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			URL:       server.URL,
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+	}
+
+	_, appErr := th.App.CreateCommand(newCustomCommand("customtrigger"))
+	require.Nil(t, appErr)
+
+	// CreateCommand rejects built-in triggers, but custom commands saved before that validation existed can still override built-ins.
+	_, err := th.App.Srv().Store().Command().Save(newCustomCommand("shrug"))
+	require.NoError(t, err)
+
+	execute := func(command string) (*model.CommandResponse, *model.AppError) {
+		return th.App.ExecuteCommand(th.Context, &model.CommandArgs{
+			Command:   command,
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			T:         func(s string, args ...any) string { return s },
+		})
+	}
+
+	setEnableCommands := func(t *testing.T, enable bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = new(enable) })
+		customHits.Store(0)
+	}
+
+	t.Run("custom commands disabled", func(t *testing.T) {
+		setEnableCommands(t, false)
+
+		t.Run("built-in command executes", func(t *testing.T) {
+			resp, appErr := execute("/code built in")
+			require.Nil(t, appErr)
+			require.NotNil(t, resp)
+			assert.Equal(t, "    built in", resp.Text)
+		})
+
+		t.Run("custom command does not execute", func(t *testing.T) {
+			resp, appErr := execute("/customtrigger hello")
+			require.NotNil(t, appErr)
+			assert.Nil(t, resp)
+			assert.Equal(t, "api.command.disabled.app_error", appErr.Id)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+			assert.Zero(t, customHits.Load())
+		})
+
+		t.Run("custom command overriding a built-in does not execute", func(t *testing.T) {
+			resp, appErr := execute("/shrug hello")
+			require.Nil(t, appErr)
+			require.NotNil(t, resp)
+			assert.Equal(t, `hello ¯\\\_(ツ)\_/¯`, resp.Text)
+			assert.Zero(t, customHits.Load())
+		})
+
+		t.Run("unknown command returns disabled error", func(t *testing.T) {
+			_, appErr := execute("/doesnotexist")
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.command.disabled.app_error", appErr.Id)
+		})
+	})
+
+	t.Run("custom commands enabled", func(t *testing.T) {
+		setEnableCommands(t, true)
+
+		t.Run("built-in command executes", func(t *testing.T) {
+			resp, appErr := execute("/code built in")
+			require.Nil(t, appErr)
+			require.NotNil(t, resp)
+			assert.Equal(t, "    built in", resp.Text)
+		})
+
+		t.Run("custom command executes", func(t *testing.T) {
+			customHits.Store(0)
+			resp, appErr := execute("/customtrigger hello")
+			require.Nil(t, appErr)
+			require.NotNil(t, resp)
+			assert.Equal(t, "custom response", resp.Text)
+			assert.EqualValues(t, 1, customHits.Load())
+		})
+
+		t.Run("custom command overrides a built-in", func(t *testing.T) {
+			customHits.Store(0)
+			resp, appErr := execute("/shrug hello")
+			require.Nil(t, appErr)
+			require.NotNil(t, resp)
+			assert.Equal(t, "custom response", resp.Text)
+			assert.EqualValues(t, 1, customHits.Load())
+		})
+
+		t.Run("unknown command returns not found", func(t *testing.T) {
+			_, appErr := execute("/doesnotexist")
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.command.execute_command.not_found.app_error", appErr.Id)
+		})
 	})
 }
 
