@@ -43,7 +43,7 @@ This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a clien
 
 6.  Under the **Signature and Encryption** section, update the following values:
 
-> - **Sign Documents**: **Off**
+> - **Sign Documents**: **On**
 > - **Sign Assertions**: **On**
 > - **Signature Algorithm**: `RSA_SHA256`
 > - **SAML signature key name**: `NONE`
@@ -51,6 +51,8 @@ This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a clien
 > - **Encryption Algorithm**: `AES_256_GCM`
 > - **Key Transport Algorithm**: `RSA_OAEP_MGF1P`
 > - **Digest method for RSA-OAEP**: `SHA1`
+>
+> **Sign Documents** must be **On**. With **Verify Signature** enabled in Mattermost, which this guide requires, Mattermost only accepts SAML responses whose whole document is signed by Keycloak, and login fails if Keycloak signs only the assertion. The screenshot below shows an older configuration with **Sign Documents** off; use the values listed above.
 >
 > ![In Keycloak, configure the Signature and Encryption settings for the Mattermost client.](/images/keycloak_1_client_signature_encryption.png)
 >
@@ -206,11 +208,13 @@ Once done your Mappers should look like this:
 
 3.  Set the below fields:
 
-    - **Verify Signature**: **false**
+    - **Verify Signature**: **true**
     - **Service Provider Login URL**: `http://your-mattermost-url.com/login/sso/saml`
     - **Service Provider Identifier**: `mattermost`
 
     The Service Provider Identifier will match the **Client ID** that you configured in the second Keycloak step.
+
+    Keep **Verify Signature** set to **true** in production. Setting it to **false** turns off the check that SAML responses were signed by Keycloak, and is meant for testing only. See [Verify signature](/administration-guide/configure/authentication-configuration-settings#verify-signature). If logins fail with a signature error, check that **Sign Documents** is **On** in the Keycloak client. The screenshot below shows an older configuration with **Verify Signature** set to **false**; use the values listed above.
 
     ![In the System Console, configure SAML as documented, where the Service Provider Identifier matches the Client ID you configured in Keycloak.](/images/keycloak_7_mattermost_config.png)
 
