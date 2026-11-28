@@ -221,7 +221,7 @@ jobs:
             SHOULD_RUN_FIPS="true"
           fi
 
-          if echo "$CHANGED_FILES" | grep -qE '^server/build/Dockerfile\.buildenv-fips$'; then
+          if echo "$CHANGED_FILES" | grep -qE '^server/build/Dockerfile\.(buildenv-)?fips$'; then
             echo "Found FIPS Dockerfile changes"
             SHOULD_RUN_FIPS="true"
           fi

@@ -2,9 +2,20 @@
 
 This folder contains some files that we use to build the `mattermost-server` and other files like privacy policy and licenses.
 
-The `Dockerfile` in this folder (`Dockerfile.buildenv`) is the build environment for our current builds you can find the docker image to download [here](https://hub.docker.com/r/mattermost/mattermost-build-server/tags/) or build your own.
+`Dockerfile.buildenv` is the build environment for our current builds; you can find the docker image to download [here](https://hub.docker.com/r/mattermost/mattermost-build-server/tags/) or build your own.
 
+### Building the Server Docker image
 
+`Dockerfile` builds the published `mattermost-team-edition` and `mattermost-enterprise-edition` images. By default it uses Mattermost's Chainguard registry, which requires access. Without it, use Chainguard's public images (best-effort, not what we release):
+
+```bash
+docker build \
+  --build-arg BASE_IMAGE=cgr.dev/chainguard/static:latest-glibc \
+  --build-arg BUILDER_IMAGE=cgr.dev/chainguard/go:latest-dev \
+  -t mattermost:local server/build
+```
+
+The image installs a released Mattermost package. Use `--build-arg MM_PACKAGE=<tarball URL>` to choose which one.
 
 ### Docker Image for building the Server
 
