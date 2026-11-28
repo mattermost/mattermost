@@ -4,6 +4,8 @@
 package slashcommands
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -36,6 +38,10 @@ func (*MeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 }
 
 func (*MeProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	if strings.TrimSpace(message) == "" {
+		return &model.CommandResponse{Text: args.T("api.command_me.message.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+	}
+
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         model.PostTypeMe,
