@@ -63,14 +63,15 @@ func (c *captureClusterMock) NotifyMsg(buf []byte)                           {}
 func (c *captureClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
 	return nil, nil
 }
-func (c *captureClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
-	return nil, nil
-}
 func (c *captureClusterMock) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
 	return nil, nil
 }
 func (c *captureClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
 	return nil, nil
+}
+
+func (c *captureClusterMock) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	return nil
 }
 func (c *captureClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return nil, nil

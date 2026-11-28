@@ -89,17 +89,6 @@ describe('component/user_group_popover/group_member_list', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <GroupMemberList
-                {...baseProps}
-            />,
-            initialState as any,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should open dms', async () => {
         const {container} = renderWithContext(
             <GroupMemberList

@@ -4,21 +4,46 @@
 import type {Locator, Request} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import ChannelsWithoutValueModal from './channels_without_value_modal';
+import NotifyChannelAdminsModal from './notify_channel_admins_modal';
+
 export const GLOBAL_ATTRIBUTES_PATH = '/admin_console/system_attributes/manage_attributes';
 export const ATTRIBUTE_DETAILS_PATH = `${GLOBAL_ATTRIBUTES_PATH}/attribute_details`;
 export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classification`;
 
 export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
+// Menu labels of the listing's source filter, in the order the menu offers them.
+export type ListingSourceFilter = 'All' | 'Managed here' | 'AD/LDAP' | 'SAML' | 'OpenID Connect' | 'Plugin';
+
+// Menu labels of the listing's resource type filter, in the order the menu offers them.
+export type ListingResourceTypeFilter = 'All' | 'Users' | 'Channels' | 'Posts';
+
+// Test ids of the listing's search, filters and empty states.
+export const LISTING_TEST_IDS = {
+    search: 'global-attributes-search',
+    sourceFilter: 'global-attributes-source-filter',
+    resourceTypeFilter: 'global-attributes-resource-type-filter',
+    clearFilters: 'global-attributes-clear-filters',
+    empty: 'global-attributes-empty',
+    emptySearch: 'global-attributes-empty-search',
+} as const;
+
+const LISTING_SEARCH_ROUTE = '/api/v4/properties/groups/access_control/attributes/search';
+
 // The switch is a visually hidden checkbox under its <label>, which takes the
 // pointer, so the click goes to the label.
+async function clickToggle(toggle: Locator) {
+    const id = await toggle.getAttribute('id');
+    if (!id) {
+        throw new Error('clickToggle: the switch has no id, so its label cannot be found');
+    }
+    await toggle.page().locator(`label[for="${id}"]`).click();
+}
+
 async function setToggle(toggle: Locator, on: boolean) {
     if ((await toggle.isChecked()) !== on) {
-        const id = await toggle.getAttribute('id');
-        if (!id) {
-            throw new Error('setToggle: the switch has no id, so its label cannot be found');
-        }
-        await toggle.page().locator(`label[for="${id}"]`).click();
+        await clickToggle(toggle);
     }
     await expect(toggle).toBeChecked({checked: on});
 }
@@ -50,8 +75,62 @@ class ChannelResourceSettings {
         return this.container.getByTestId(`channelsResourceLocation-${location}`);
     }
 
+    /**
+     * The missing-values banner (MM-70717). Not shown at all while every
+     * active channel already has a value for this attribute.
+     */
+    get missingValuesBanner() {
+        return this.container.getByTestId('channelsMissingValuesBanner');
+    }
+
+    get notifyChannelAdminsButton() {
+        return this.missingValuesBanner.getByRole('button', {name: 'Notify all channel admins'});
+    }
+
+    get viewChannelListButton() {
+        return this.missingValuesBanner.getByRole('button', {name: 'View channel list'});
+    }
+
+    /**
+     * Clicks Required. Blocked (MM-70717) while any active channel lacks a
+     * value: the toggle stays off and the missing-values banner is what
+     * explains why. Callers that expect the block should assert on
+     * `missingValuesBanner`/`requiredToggle` themselves rather than calling
+     * this — `setRequired(true)` is for the happy path only.
+     */
     async setRequired(required: boolean) {
         await setToggle(this.requiredToggle, required);
+    }
+
+    /**
+     * Clicks Required once without asserting the outcome, for tests that expect
+     * the click to be refused or that flip it back and forth before saving.
+     */
+    async clickRequired() {
+        await clickToggle(this.requiredToggle);
+    }
+
+    /**
+     * Opens the "Channels without a value" modal via the banner's secondary
+     * button. Present in both create and edit mode.
+     */
+    async openChannelsWithoutValueModal(): Promise<ChannelsWithoutValueModal> {
+        await this.viewChannelListButton.click();
+        const modal = new ChannelsWithoutValueModal(this.container.page().getByTestId('channelsWithoutValueModal'));
+        await modal.toBeVisible();
+        return modal;
+    }
+
+    /**
+     * Opens the "Notify all channel admins?" confirmation via the banner's
+     * primary button. Only present in edit mode (the linked field has no ID
+     * yet in create mode, so there is nothing to notify admins about).
+     */
+    async openNotifyChannelAdminsModal(): Promise<NotifyChannelAdminsModal> {
+        await this.notifyChannelAdminsButton.click();
+        const modal = new NotifyChannelAdminsModal(this.container.page().getByTestId('notifyChannelAdminsModal'));
+        await modal.toBeVisible();
+        return modal;
     }
 
     /**
@@ -119,6 +198,17 @@ export class AttributeAppliesToChannels extends ChannelResourceSettings {
         await expect(this.container.getByTestId('channelsResourceSettings')).toBeVisible();
     }
 
+    /**
+     * Opens the disclosure for a Channels resource that already exists (e.g.
+     * seeded via the API before navigating here), as opposed to `addResource()`,
+     * which drives the "Add resource" menu for a brand-new one. The row always
+     * starts collapsed on mount, regardless of whether the resource is new.
+     */
+    async expand() {
+        await this.row.getByTestId('attributeAppliesToRow-channel-toggle').click();
+        await expect(this.container.getByTestId('channelsResourceSettings')).toBeVisible();
+    }
+
     async removeResource() {
         await this.row.getByTestId('attributeAppliesToRow-channel-remove').click();
     }
@@ -152,6 +242,97 @@ export default class GlobalAttributes {
 
     get saveButton() {
         return this.container.getByTestId('saveSetting');
+    }
+
+    async gotoListing() {
+        await this.container.page().goto(GLOBAL_ATTRIBUTES_PATH);
+        await expect(this.container.page().getByTestId(LISTING_TEST_IDS.search)).toBeVisible();
+    }
+
+    get searchInput() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.search);
+    }
+
+    get sourceFilter() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.sourceFilter);
+    }
+
+    get resourceTypeFilter() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.resourceTypeFilter);
+    }
+
+    get clearFiltersButton() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.clearFilters);
+    }
+
+    get emptyState() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.empty);
+    }
+
+    get emptySearchState() {
+        return this.container.page().getByTestId(LISTING_TEST_IDS.emptySearch);
+    }
+
+    /**
+     * Every listing row currently rendered.
+     */
+    get rows() {
+        const page = this.container.page();
+        return page.locator('tr').filter({has: page.getByTestId('global-attribute-name')});
+    }
+
+    /**
+     * The row whose Attribute cell shows `label` (the display name, or the
+     * internal name when the field has none).
+     */
+    rowByLabel(label: string) {
+        const page = this.container.page();
+        return page.locator('tr').filter({
+            has: page.getByTestId('global-attribute-name').filter({hasText: label}),
+        });
+    }
+
+    /**
+     * Resolves once the listing endpoint answers a request
+     * (the term is debounced client-side, so waiting on the response is what
+     * proves the results reflect it).
+     */
+    private waitForListingResponse() {
+        return this.container
+            .page()
+            .waitForResponse((response) => response.url().includes(LISTING_SEARCH_ROUTE) && response.ok());
+    }
+
+    async search(term: string) {
+        const response = this.waitForListingResponse();
+        await this.searchInput.fill(term);
+        await response;
+    }
+
+    async clearSearch() {
+        const response = this.waitForListingResponse();
+        await this.searchInput.clear();
+        await response;
+    }
+
+    async selectSourceFilter(source: ListingSourceFilter) {
+        const response = this.waitForListingResponse();
+        await this.sourceFilter.click();
+        await this.container.page().getByRole('menuitemradio', {name: source, exact: true}).click();
+        await response;
+    }
+
+    async selectResourceTypeFilter(resourceType: ListingResourceTypeFilter) {
+        const response = this.waitForListingResponse();
+        await this.resourceTypeFilter.click();
+        await this.container.page().getByRole('menuitemradio', {name: resourceType, exact: true}).click();
+        await response;
+    }
+
+    async clearFilters() {
+        const response = this.waitForListingResponse();
+        await this.clearFiltersButton.click();
+        await response;
     }
 
     async gotoNewAttribute() {

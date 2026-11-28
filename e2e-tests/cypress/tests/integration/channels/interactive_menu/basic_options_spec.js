@@ -578,8 +578,9 @@ describe('Interactive Menu', () => {
 });
 
 // Matches `.mm-blocks-select` in block_renderer.scss (interactive menus render as mm_blocks).
+// The width is the input's intrinsic width (no explicit width is set), so it follows the Open Sans metrics.
 const MM_BLOCKS_SELECT_HEIGHT = '36px';
-const MM_BLOCKS_SELECT_WIDTH = '220px';
+const MM_BLOCKS_SELECT_WIDTH = '195px';
 const MM_BLOCKS_SELECT_PADDING_RIGHT = '24px';
 
 function verifyMessageAttachmentListContent(isRhs, text) {

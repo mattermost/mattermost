@@ -22,6 +22,40 @@
     "partOfSpeech": "noun",
     "doNotTranslate": true
   },
+  "Mattermost Entry": {
+    "definition": "Name of the Mattermost license plan that is the entry-level tier below Professional. The bare \"Entry\" stays in English only where it names the plan; the ordinary noun is translated.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "Entry"
+    ],
+    "commonWord": true
+  },
+  "Mattermost Professional": {
+    "definition": "Name of the Mattermost license plan above Entry and below Enterprise. The bare \"Professional\" stays in English only where it names the plan; the ordinary adjective is translated.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "Professional"
+    ],
+    "commonWord": true
+  },
+  "Mattermost Enterprise": {
+    "definition": "Name of the Mattermost license plan above Professional. The bare \"Enterprise\" stays in English only where it names the plan; ordinary uses such as \"enterprise-grade\" are translated.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "Enterprise"
+    ]
+  },
+  "Mattermost Enterprise Advanced": {
+    "definition": "Name of the highest Mattermost license plan, above Enterprise.",
+    "partOfSpeech": "noun",
+    "doNotTranslate": true,
+    "aliases": [
+      "Enterprise Advanced"
+    ]
+  },
   "Channels": {
     "definition": "Product name of the Mattermost messaging product; as a product name it stays in English, unlike the common noun 'channel'.",
     "partOfSpeech": "noun",
@@ -172,7 +206,7 @@
     ]
   },
   "thread": {
-    "definition": "A set of replies attached to a root message, viewed and followed as one conversation.",
+    "definition": "A set of replies attached to a root message, viewed and followed as one conversation. Not an operating-system thread, as in the Site health findings about GOMAXPROCS, which takes the ordinary technical word.",
     "partOfSpeech": "noun",
     "doNotTranslate": false,
     "aliases": [
@@ -481,7 +515,7 @@
     ]
   },
   "mute": {
-    "definition": "To silence notifications from a channel while remaining a member; distinct from muting a microphone in Calls.",
+    "definition": "To silence notifications from a channel while remaining a member; distinct from muting a microphone in Calls, and from muting a Site health finding, which hides it from the dashboard and follows that dashboard's own Mute button.",
     "partOfSpeech": "verb",
     "doNotTranslate": false,
     "aliases": [

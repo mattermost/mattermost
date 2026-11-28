@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {memo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {EyeOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-
-import {IconContainer} from '../formatting_bar/formatting_icon';
 
 interface ShowFormatProps {
     onClick: (event: React.MouseEvent) => void;
@@ -33,19 +32,23 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
                 />
             }
         >
-            <IconContainer
-                type='button'
+            <IconButton
                 id='PreviewInputTextButton'
+                size='small'
                 onClick={onClick}
                 aria-label={buttonAriaLabel}
-                className={classNames({active})}
-            >
-                <EyeOutlineIcon
-                    size={18}
-                    color={'currentColor'}
-                    aria-label={iconAriaLabel}
-                />
-            </IconContainer>
+                toggled={active}
+                icon={
+                    <Icon
+                        glyph={
+                            <EyeOutlineIcon
+                                color='currentColor'
+                                aria-label={iconAriaLabel}
+                            />
+                        }
+                    />
+                }
+            />
         </WithTooltip>
     );
 };

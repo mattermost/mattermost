@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+
 log() {
   printf '[cloud-agent-start] %s\n' "$*" >&2
 }
@@ -70,6 +72,8 @@ if command -v service >/dev/null 2>&1; then
 fi
 
 if ! pgrep -x dockerd >/dev/null 2>&1; then
+  # A pid file captured in a Build snapshot outlives its process and blocks dockerd.
+  sudo rm -f /var/run/docker.pid
   sudo sh -c 'nohup dockerd --host=unix:///var/run/docker.sock >/tmp/dockerd.log 2>&1 &'
 fi
 

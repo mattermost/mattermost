@@ -1,0 +1,22 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ServerLogsCustomRangeModal {
+    &__bound {
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        margin: 0 0 var(--spacing-l);
+
+        legend {
+            width: auto;
+            padding: 0;
+            border: 0;
+            margin: 0 0 var(--spacing-xs);
+            color: var(--center-channel-color);
+            font-size: var(--font-size-100);
+            font-weight: var(--font-weight-semibold);
+            line-height: var(--line-height-100);
+        }
+    }
+}

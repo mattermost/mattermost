@@ -46,7 +46,6 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/actions.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/bots.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/cloud.yaml >> $(V4_YAML)
-	@cat $(V4_SRC)/usage.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/permissions.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/imports.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/exports.yaml >> $(V4_YAML)
@@ -70,6 +69,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/agents.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/scheduled_recaps.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/properties.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/entities.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
 	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
 	@echo Extracting code samples

@@ -71,6 +71,12 @@ describe('canEditUserAttribute', () => {
         expect(canEditUserAttribute(field, {canEditAdminManaged: false})).toBe(false);
     });
 
+    test('locks permission_values creator for everyone, since a user attribute has no creator', () => {
+        const field = buildField({permission_values: 'creator'});
+        expect(canEditUserAttribute(field, {canEditAdminManaged: true})).toBe(false);
+        expect(canEditUserAttribute(field, {canEditAdminManaged: false})).toBe(false);
+    });
+
     test.each(['sysadmin', 'admin'] as const)('requires manage_system for permission_values %s', (level) => {
         const field = buildField({permission_values: level});
         expect(canEditUserAttribute(field, {canEditAdminManaged: true})).toBe(true);

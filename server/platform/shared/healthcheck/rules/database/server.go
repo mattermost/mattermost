@@ -14,49 +14,43 @@ import (
 const poolSaturatedPercent = 90
 
 var dbPostgresUnsupported = healthcheck.Rule{
-	Code:     "DB_POSTGRES_UNSUPPORTED",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_postgres_unsupported.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_postgres_unsupported.remediation"),
-		DocsURL:       "https://docs.mattermost.com/deployment-guide/software-hardware-requirements.html",
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "Database.Version",
-	Eval:       healthcheck.Single(evalDBPostgresUnsupported),
+	Code:          "DB_POSTGRES_UNSUPPORTED",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_postgres_unsupported.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_postgres_unsupported.remediation"),
+	DocsURL:       "https://docs.mattermost.com/deployment-guide/software-hardware-requirements.html",
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "Database.Version",
+	Eval:          healthcheck.Single(evalDBPostgresUnsupported),
 }
 
 var dbPoolSaturated = healthcheck.Rule{
-	Code:     "DB_POOL_SATURATED",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_pool_saturated.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_pool_saturated.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    maxOpenConnsSubject,
-	Eval:       healthcheck.Single(evalDBPoolSaturated),
+	Code:          "DB_POOL_SATURATED",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.db_pool_saturated.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_pool_saturated.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       maxOpenConnsSubject,
+	EvalNode:      healthcheck.SingleNode(evalDBPoolSaturated),
 }
 
 var dbReplicaUnused = healthcheck.Rule{
-	Code:     "DB_REPLICA_UNUSED",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_replica_unused.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_replica_unused.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityProbe,
-	Subject:    dataSourceReplicasSubject,
+	Code:          "DB_REPLICA_UNUSED",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_replica_unused.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_replica_unused.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityProbe,
+	Subject:       dataSourceReplicasSubject,
 	// The store ignores replicas without a license.
 	Eval: healthcheck.Licensed(healthcheck.AnyLicense, healthcheck.Single(evalDBReplicaUnused)),
 }
@@ -85,8 +79,7 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-// Collection is leader-only, so this covers the leader's pool.
-func evalDBPoolSaturated(s *healthcheck.Snapshot) healthcheck.Result {
+func evalDBPoolSaturated(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	maxOpen, ok := maxOpenConns(s)
 	if !ok {
 		return unknownConfig()
@@ -95,7 +88,7 @@ func evalDBPoolSaturated(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	diag, ok := s.LeaderDiag(model.SectionDatabasePool)
+	diag, ok := n.SectionDiag(model.SectionDatabasePool)
 	if !ok || diag.Database.MasterConnectionsInUse == nil {
 		return unknownDiagnostics()
 	}

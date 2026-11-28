@@ -1,0 +1,983 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package properties
+
+import (
+	"encoding/json"
+	"net/http"
+	"testing"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// TestLinkedFieldCreateOnTemplatePermissions covers
+// validateAndInheritLinkedFieldSecurity: gating a linked create on the
+// template's permissions when its reads are restricted, and seeding the new
+// field's own permissions from the template when the caller submits none.
+func TestLinkedFieldCreateOnTemplatePermissions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-owner" || pluginID == "plugin-other"
+	})
+
+	newTemplate := func(name string, permissions *model.Permissions) *model.PropertyField {
+		created, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:     th.CPAGroupID,
+			Name:        name,
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeTemplate,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: permissions,
+		})
+		require.NoError(t, err)
+		return created
+	}
+
+	// field.write is set because a template nobody may write is protected,
+	// and linking to one is gated however open its reads are.
+	openReads := &model.Permissions{
+		Restrictions: &model.Restrictions{
+			Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		},
+	}
+
+	t.Run("a masked template refuses a caller with no field.write grant and admits one with it", func(t *testing.T) {
+		source := newTemplate("Masked-"+model.NewId(), &model.Permissions{
+			Masking: &model.Masking{},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionFieldWrite}},
+			},
+		})
+
+		_, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "plugin-other"), &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-Refused-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		linked, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "plugin-owner"), &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-Allowed-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+	})
+
+	t.Run("a template with open reads requires no permission on it to link", func(t *testing.T) {
+		source := newTemplate("Open-"+model.NewId(), openReads)
+
+		_, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "some-random-user"), &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("a template with open reads and non-default restrictions passes them to the linked field", func(t *testing.T) {
+		source := newTemplate("OpenCustom-"+model.NewId(), &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "some-random-user"), &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+		require.NotNil(t, linked.Permissions.Restrictions)
+		assert.Equal(t, *source.Permissions.Restrictions, *linked.Permissions.Restrictions)
+	})
+
+	t.Run("a linked create submitting no permissions takes the template's restrictions and its own converted grants", func(t *testing.T) {
+		source := newTemplate("GrantsAndRestrictions-"+model.NewId(), &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+			},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionOptionRead, model.PropertyActionValueWrite}},
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-other"}, Allow: []string{model.PropertyActionOptionRead}},
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "some-random-user"), &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+		assert.Equal(t, *source.Permissions.Restrictions, *linked.Permissions.Restrictions)
+		assert.Nil(t, linked.Permissions.Masking)
+		// The template's grants are its own. The field has no owners, so it
+		// converts to the plugin wildcard alone, without option.read.
+		require.Len(t, linked.Permissions.Grants, 1)
+		wildcard := linked.Permissions.Grants[0]
+		assert.Equal(t, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}, wildcard.Identity)
+		assert.Contains(t, wildcard.Allow, model.PropertyActionValueWrite)
+		assert.NotContains(t, wildcard.Allow, model.PropertyActionOptionRead)
+	})
+
+	t.Run("a linked field with owners its template lacks lets only those owners and the sync write its values", func(t *testing.T) {
+		source, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "SyncedNoOwners-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyFieldAttrLDAP: "mappedAttr"},
+		})
+		require.NoError(t, err)
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "LinkedOwned-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.Value.Write)
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-owner", "", model.PropertyActionValueWrite))
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", model.PropertyActionValueWrite))
+		assert.Nil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueWrite))
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueRead))
+		// The admin's v2 view lists the field's owner.
+		owners := model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(linked))
+		require.Len(t, owners, 1)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
+		assert.Equal(t, "plugin-owner", owners[0].ID)
+
+		// * The backfill converts the same row to the same grants
+		row := *linked
+		row.Permissions = nil
+		converted, failed := newPermissionsBackfill(th.service, th.CPAGroupID).convertBatch(th.Context, []*model.PropertyField{&row})
+		require.Zero(t, failed)
+		require.Len(t, converted, 1)
+		assert.ElementsMatch(t, linked.Permissions.Grants, converted[0].Permissions.Grants)
+		assert.Equal(t, linked.Permissions.Restrictions.Value.Write, converted[0].Permissions.Restrictions.Value.Write)
+	})
+
+	t.Run("a linked field without owners of its own lets any plugin write its values, whatever owners its template has", func(t *testing.T) {
+		source, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "OwnedTemplate-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+			},
+		})
+		require.NoError(t, err)
+		require.Nil(t, source.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueWrite))
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "LinkedUnowned-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+
+		assert.NotNil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypePlugin, "plugin-other", "", model.PropertyActionValueWrite))
+		for _, g := range linked.Permissions.Grants {
+			assert.NotEqual(t, "plugin-owner", g.ID, "the template's owner is not an owner of the linked field")
+		}
+		assert.Empty(t, model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(linked)))
+
+		// * The backfill converts the same row to the same grants
+		row := *linked
+		row.Permissions = nil
+		converted, failed := newPermissionsBackfill(th.service, th.CPAGroupID).convertBatch(th.Context, []*model.PropertyField{&row})
+		require.Zero(t, failed)
+		require.Len(t, converted, 1)
+		assert.ElementsMatch(t, linked.Permissions.Grants, converted[0].Permissions.Grants)
+	})
+
+	t.Run("a linked create submitting its own permissions keeps them, and the store still refuses one carrying masking", func(t *testing.T) {
+		source := newTemplate("SelfSubmitted-"+model.NewId(), openReads)
+
+		ownPermissions := &model.Permissions{
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		}
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-Own-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+			Permissions:   ownPermissions,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+		assert.Equal(t, ownPermissions.Grants, linked.Permissions.Grants)
+
+		_, err = th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-Masked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &source.ID,
+			Permissions:   &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.Error(t, err)
+	})
+}
+
+// TestLinkedFieldOwnLocksOnCreate covers a linked field whose own protected
+// flag or access mode is stricter than its template's: the template's
+// restrictions are narrowed by the field's own, never widened, as the
+// backfill converts the same row.
+func TestLinkedFieldOwnLocksOnCreate(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-owner" || pluginID == "plugin-other"
+	})
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() {
+		th.service.setPluginCheckerForTests(nil)
+		th.service.setLadderCheckerForTests(nil)
+	})
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+	rctxSource := RequestContextWithCallerID(th.Context, "plugin-owner")
+	rctxOther := RequestContextWithCallerID(th.Context, "plugin-other")
+
+	sysadmin := model.PermissionLevelSysadmin
+	member := model.PermissionLevelMember
+	template, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+		GroupID:           th.CPAGroupID,
+		Name:              "Unprotected-" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypeTemplate,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &sysadmin,
+		PermissionOptions: &sysadmin,
+		PermissionValues:  &member,
+	})
+	require.NoError(t, err)
+	require.Equal(t, model.PermissionLevelSysadmin, template.Permissions.Restrictions.TierFor(model.PropertyActionFieldWrite))
+	require.Equal(t, model.PermissionLevelEveryone, template.Permissions.Restrictions.TierFor(model.PropertyActionValueRead))
+
+	createLinked := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		linked, err := th.service.CreatePropertyField(rctxSource, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         attrs,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+		return linked
+	}
+	rename := func(t *testing.T, rctx request.CTX, field *model.PropertyField) error {
+		t.Helper()
+		stored, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		stored.Name = "Renamed-" + model.NewId()
+		_, _, err = th.service.UpdatePropertyField(rctx, th.CPAGroupID, stored)
+		return err
+	}
+	readableBy := func(t *testing.T, rctx request.CTX, field *model.PropertyField) bool {
+		t.Helper()
+		stored, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.NoError(t, err)
+		read, err := th.service.GetPropertyValue(rctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		return read != nil
+	}
+	// requireBackfillMatches converts the same row as the backfill would and
+	// requires the same permissions.
+	requireBackfillMatches := func(t *testing.T, linked *model.PropertyField) {
+		t.Helper()
+		row := *linked
+		row.Permissions = nil
+		converted, failed := newPermissionsBackfill(th.service, th.CPAGroupID).convertBatch(th.Context, []*model.PropertyField{&row})
+		require.Zero(t, failed)
+		require.Len(t, converted, 1)
+		assert.Equal(t, *linked.Permissions.Restrictions, *converted[0].Permissions.Restrictions)
+		assert.ElementsMatch(t, linked.Permissions.Grants, converted[0].Permissions.Grants)
+		assert.Nil(t, converted[0].Permissions.Masking)
+	}
+
+	t.Run("a protected linked field on an unprotected template lets only its source plugin edit or delete it", func(t *testing.T) {
+		linked := createLinked(t, model.StringInterface{model.PropertyAttrsProtected: true})
+
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionFieldWrite))
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionOptionWrite))
+		// Its reads stay the template's.
+		assert.Equal(t, model.PermissionLevelEveryone, linked.Permissions.Restrictions.TierFor(model.PropertyActionValueRead))
+		requireBackfillMatches(t, linked)
+
+		assert.ErrorIs(t, rename(t, rctxAdmin, linked), ErrAccessDenied)
+		assert.ErrorIs(t, th.service.DeletePropertyField(rctxAdmin, th.CPAGroupID, linked.ID), ErrAccessDenied)
+		assert.ErrorIs(t, rename(t, rctxOther, linked), ErrAccessDenied)
+		assert.NoError(t, rename(t, rctxSource, linked))
+		assert.NoError(t, th.service.DeletePropertyField(rctxSource, th.CPAGroupID, linked.ID))
+	})
+
+	t.Run("a source_only linked field on a public template shows its values to its source plugin alone", func(t *testing.T) {
+		linked := createLinked(t, model.StringInterface{
+			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+		})
+
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionValueRead))
+		assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead))
+		requireBackfillMatches(t, linked)
+
+		assert.False(t, readableBy(t, rctxAdmin, linked))
+		assert.False(t, readableBy(t, rctxOther, linked))
+		assert.True(t, readableBy(t, rctxSource, linked))
+	})
+
+	t.Run("an unprotected public linked field keeps the template's restrictions", func(t *testing.T) {
+		linked := createLinked(t, nil)
+
+		assert.Equal(t, *template.Permissions.Restrictions, *linked.Permissions.Restrictions)
+		requireBackfillMatches(t, linked)
+		assert.NoError(t, rename(t, rctxAdmin, linked))
+	})
+}
+
+// TestLinkedFieldSyncLock covers where the ldap/saml sync lock lands when a
+// field links to a synced template: on linked user fields only, never on the
+// template itself or on a linked field of another object type.
+func TestLinkedFieldSyncLock(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+		if field.Permissions == nil {
+			return false
+		}
+		return model.PermissionLevelSysadmin.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+	})
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+
+	sysadmin := model.PermissionLevelSysadmin
+	member := model.PermissionLevelMember
+	wildcardPlugin := func(p *model.Permissions) *model.Grant {
+		for i := range p.Grants {
+			if p.Grants[i].Identity == (model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}) {
+				return &p.Grants[i]
+			}
+		}
+		return nil
+	}
+
+	for _, syncAttr := range []string{model.PropertyFieldAttrLDAP, model.PropertyFieldAttrSAML} {
+		t.Run(syncAttr, func(t *testing.T) {
+			template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:           th.CPAGroupID,
+				Name:              "Synced-Template-" + model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				ObjectType:        model.PropertyFieldObjectTypeTemplate,
+				TargetType:        string(model.PropertyFieldTargetLevelSystem),
+				PermissionField:   &sysadmin,
+				PermissionOptions: &sysadmin,
+				PermissionValues:  &sysadmin,
+				Attrs:             model.StringInterface{syncAttr: "mappedAttr"},
+			})
+			require.NoError(t, err)
+
+			newLinked := func(t *testing.T, objectType string, pin *model.PermissionLevel) *model.PropertyField {
+				t.Helper()
+				linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+					GroupID:          th.CPAGroupID,
+					Name:             "Linked-" + model.NewId(),
+					Type:             model.PropertyFieldTypeText,
+					ObjectType:       objectType,
+					TargetType:       string(model.PropertyFieldTargetLevelSystem),
+					LinkedFieldID:    &template.ID,
+					PermissionValues: pin,
+				})
+				require.NoError(t, err)
+				require.NotNil(t, linked.Permissions)
+				return linked
+			}
+
+			t.Run("the template's own permissions and projected columns carry its real levels", func(t *testing.T) {
+				stored, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, template.ID)
+				require.NoError(t, err)
+				assert.Equal(t, model.PermissionLevelSysadmin, stored.Permissions.Restrictions.Value.Write)
+				assert.Nil(t, stored.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
+				require.NotNil(t, wildcardPlugin(stored.Permissions))
+				assert.Contains(t, wildcardPlugin(stored.Permissions).Allow, model.PropertyActionValueWrite)
+				assert.Equal(t, model.PermissionLevelSysadmin, *model.ProjectLegacyPermissions(stored).PermissionValues)
+			})
+
+			for _, tc := range []struct {
+				name      string
+				pin       *model.PermissionLevel
+				wantWrite model.PermissionLevel
+			}{
+				{"a linked channel field without a pin takes the template's level and no lock", nil, model.PermissionLevelSysadmin},
+				{"a linked channel field with a pin takes the pin and no lock", &member, model.PermissionLevelMember},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					linked := newLinked(t, model.PropertyFieldObjectTypeChannel, tc.pin)
+					assert.Equal(t, tc.wantWrite, linked.Permissions.Restrictions.Value.Write)
+					assert.Nil(t, linked.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
+					require.NotNil(t, wildcardPlugin(linked.Permissions))
+					assert.Contains(t, wildcardPlugin(linked.Permissions).Allow, model.PropertyActionValueWrite)
+				})
+			}
+
+			for _, tc := range []struct {
+				name string
+				pin  *model.PermissionLevel
+			}{
+				{"a linked user field without a pin keeps the lock", nil},
+				{"a linked user field with a pin keeps the lock", &member},
+			} {
+				t.Run(tc.name, func(t *testing.T) {
+					linked := newLinked(t, model.PropertyFieldObjectTypeUser, tc.pin)
+					assert.Equal(t, model.PermissionLevelNone, linked.Permissions.Restrictions.Value.Write)
+					syncGrant := linked.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite)
+					require.NotNil(t, syncGrant)
+					// Every action but option.read, which a linked field never grants:
+					// the sync reads the template's options through the template's grant.
+					assert.Equal(t, []string{model.PropertyActionFieldWrite, model.PropertyActionOptionWrite, model.PropertyActionValueRead, model.PropertyActionValueWrite}, syncGrant.Allow)
+					if wildcard := wildcardPlugin(linked.Permissions); wildcard != nil {
+						assert.NotContains(t, wildcard.Allow, model.PropertyActionValueWrite)
+					}
+				})
+			}
+
+			t.Run("an owners patch on a linked channel field round-trips", func(t *testing.T) {
+				linked := newLinked(t, model.PropertyFieldObjectTypeChannel, nil)
+				newOwner := model.NewId()
+				submitted := model.ProjectLegacyPermissions(linked)
+				submitted.Attrs[model.PropertyAttrsOwners] = append(model.GetPropertyFieldOwners(submitted),
+					model.PropertyOwner{Type: model.PropertyOwnerTypeUser, ID: newOwner})
+				updated, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, submitted)
+				require.NoError(t, err)
+				// A user owner converts to no grant, and stays in the v2 view.
+				assert.Contains(t, model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(updated)),
+					model.PropertyOwner{Type: model.PropertyOwnerTypeUser, ID: newOwner})
+				assert.Nil(t, updated.Permissions.MatchingGrant(model.PropertyOwnerTypeService, syncAttr, "", model.PropertyActionValueWrite))
+			})
+		})
+	}
+}
+
+// TestLateLinkedSyncValueAccess covers a user field linked to its template
+// before the template got its sync link. The field has no copy of the link,
+// so no sync grant, and the sync is let at its values only where any plugin
+// would be.
+func TestLateLinkedSyncValueAccess(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-owner" })
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() {
+		th.service.setPluginCheckerForTests(nil)
+		th.service.setLadderCheckerForTests(nil)
+	})
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+	rctxLDAP := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+
+	// lateLinked creates a template, a field of objectType linked to it, and
+	// then the template's sync link to syncAttr.
+	lateLinked := func(t *testing.T, rctx request.CTX, objectType, syncAttr string, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		template, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Template-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          template.Name,
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         attrs,
+		})
+		require.NoError(t, err)
+
+		template.Attrs = model.StringInterface{syncAttr: "title"}
+		_, _, err = th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, template)
+		require.NoError(t, err)
+		stored, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		require.False(t, model.IsPropertyFieldSynced(stored))
+		return stored
+	}
+
+	writeAs := func(rctx request.CTX, field *model.PropertyField) error {
+		targetType := "user"
+		if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+			targetType = "channel"
+		}
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: targetType,
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		return err
+	}
+
+	readableBy := func(t *testing.T, rctx request.CTX, field *model.PropertyField) bool {
+		t.Helper()
+		stored, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.NoError(t, err)
+		read, err := th.service.GetPropertyValue(rctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		return read != nil
+	}
+
+	t.Run("a plain user field admits the sync's value writes and reads", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
+		assert.NoError(t, writeAs(rctxLDAP, field))
+		assert.True(t, readableBy(t, rctxLDAP, field))
+	})
+
+	t.Run("an owned user field refuses the sync's value writes", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}},
+		})
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
+	})
+
+	t.Run("a protected user field refuses the sync's value writes", func(t *testing.T) {
+		field := lateLinked(t, RequestContextWithCallerID(th.Context, "plugin-owner"), model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, model.StringInterface{
+			model.PropertyAttrsProtected: true,
+		})
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+	})
+
+	t.Run("a channel field refuses the sync's value writes", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeChannel, model.PropertyFieldAttrLDAP, nil)
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+	})
+
+	t.Run("a template synced from the other source refuses the sync", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrSAML, nil)
+		assert.ErrorIs(t, writeAs(rctxLDAP, field), ErrAccessDenied)
+		assert.False(t, readableBy(t, rctxLDAP, field))
+	})
+
+	t.Run("a machine caller other than the sync is unaffected", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
+		rctxBoards := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		assert.ErrorIs(t, writeAs(rctxBoards, field), ErrAccessDenied)
+		assert.False(t, readableBy(t, rctxBoards, field))
+		assert.NoError(t, writeAs(RequestContextWithCallerID(th.Context, "plugin-owner"), field))
+	})
+
+	t.Run("one call reads the template once however many values it judges", func(t *testing.T) {
+		field := lateLinked(t, rctxAdmin, model.PropertyFieldObjectTypeUser, model.PropertyFieldAttrLDAP, nil)
+		const count = 20
+		values := make([]*model.PropertyValue, 0, count)
+		ids := make([]string, 0, count)
+		for range count {
+			stored, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+				GroupID:    th.CPAGroupID,
+				FieldID:    field.ID,
+				TargetType: "user",
+				TargetID:   model.NewId(),
+				Value:      json.RawMessage(`"v"`),
+			})
+			require.NoError(t, err)
+			ids = append(ids, stored.ID)
+			values = append(values, &model.PropertyValue{
+				GroupID:    th.CPAGroupID,
+				FieldID:    field.ID,
+				TargetType: "user",
+				TargetID:   model.NewId(),
+				Value:      json.RawMessage(`"w"`),
+			})
+		}
+
+		counter := &masterGetCountingFieldStore{PropertyFieldStore: th.service.fieldStore, id: *field.LinkedFieldID}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		read, err := th.service.GetPropertyValues(rctxLDAP, th.CPAGroupID, ids)
+		require.NoError(t, err)
+		assert.Len(t, read, count)
+		assert.Equal(t, 1, counter.reads)
+
+		counter.reads = 0
+		written, err := th.service.UpsertPropertyValues(rctxLDAP, values)
+		require.NoError(t, err)
+		assert.Len(t, written, count)
+		assert.Equal(t, 1, counter.reads)
+	})
+}
+
+// masterGetCountingFieldStore counts the reads of one field from the master
+// database.
+type masterGetCountingFieldStore struct {
+	store.PropertyFieldStore
+	id    string
+	reads int
+}
+
+func (s *masterGetCountingFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	if id == s.id && store.HasMaster(rctx.Context()) {
+		s.reads++
+	}
+	return s.PropertyFieldStore.Get(rctx, groupID, id)
+}
+
+// TestSyncOptionChangeOnUnlinkedTemplate covers the answers a sync gets from
+// the options endpoints about a template's sync link, which come before any
+// grant is judged.
+func TestSyncOptionChangeOnUnlinkedTemplate(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+	rctxAdmin := RequestContextWithCallerID(th.Context, model.NewId())
+	rctxLDAP := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+
+	newTemplate := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		template, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Template-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      attrs,
+		})
+		require.NoError(t, err)
+		return template
+	}
+	createOption := func(rctx request.CTX, template *model.PropertyField) error {
+		_, err := th.service.CreateFieldOptions(rctx, th.CPAGroupID, template.ID, []*model.PropertyFieldOption{{Name: "Option-" + model.NewId()}})
+		return err
+	}
+	requireAppError := func(t *testing.T, err error, id string, status int) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, id, appErr.Id)
+		assert.Equal(t, status, appErr.StatusCode)
+	}
+
+	t.Run("the template's own sync changes its options", func(t *testing.T) {
+		template := newTemplate(t, model.StringInterface{model.PropertyFieldAttrLDAP: "department"})
+		assert.NoError(t, createOption(rctxLDAP, template))
+	})
+
+	t.Run("a template synced from the other source refuses the sync with a 403", func(t *testing.T) {
+		template := newTemplate(t, model.StringInterface{model.PropertyFieldAttrSAML: "department"})
+		requireAppError(t, createOption(rctxLDAP, template), "app.property_field.synced_options_locked.app_error", http.StatusForbidden)
+	})
+
+	t.Run("a template unlinked from the sync refuses it with a 409", func(t *testing.T) {
+		template := newTemplate(t, model.StringInterface{model.PropertyFieldAttrLDAP: "department"})
+		template.Attrs[model.PropertyFieldAttrLDAP] = ""
+		_, _, err := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, template)
+		require.NoError(t, err)
+
+		requireAppError(t, createOption(rctxLDAP, template), "app.property_field.sync_source_unlinked.app_error", http.StatusConflict)
+		assert.NoError(t, createOption(rctxAdmin, template))
+	})
+}
+
+// TestAccessControlHookEnforcesEveryPSAv2Group covers the hook widening from
+// one construction-time group ID to every PSAv2/v3 group: the same read
+// filter, write refusal and grant admission the access_control tests assert
+// hold for a group the hook was never constructed with, such as boards.
+func TestAccessControlHookEnforcesEveryPSAv2Group(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "creator-plugin" || pluginID == "other-plugin"
+	})
+
+	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+	allowedReaderID := model.NewId()
+	th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, _ string) bool {
+		return userID == allowedReaderID && action == model.PropertyActionValueRead
+	})
+
+	created, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "NonCPAField-" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "creator-plugin"}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	value, err := th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, "creator-plugin"), &model.PropertyValue{
+		GroupID:    group.ID,
+		FieldID:    created.ID,
+		TargetType: "user",
+		TargetID:   model.NewId(),
+		Value:      json.RawMessage(`"v"`),
+	})
+	require.NoError(t, err)
+
+	retrieved, getErr := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, allowedReaderID), group.ID, value.ID)
+	require.NoError(t, getErr)
+	require.NotNil(t, retrieved)
+
+	retrieved, getErr = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), group.ID, value.ID)
+	require.NoError(t, getErr)
+	assert.Nil(t, retrieved)
+
+	_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, "other-plugin"), &model.PropertyValue{
+		GroupID:    group.ID,
+		FieldID:    created.ID,
+		TargetType: "user",
+		TargetID:   model.NewId(),
+		Value:      json.RawMessage(`"v2"`),
+	})
+	require.Error(t, upErr)
+	assert.ErrorIs(t, upErr, ErrAccessDenied)
+
+	_, upErr = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, "creator-plugin"), &model.PropertyValue{
+		GroupID:    group.ID,
+		FieldID:    created.ID,
+		TargetType: "user",
+		TargetID:   model.NewId(),
+		Value:      json.RawMessage(`"v3"`),
+	})
+	require.NoError(t, upErr)
+}
+
+// TestAccessControlHookGroupVersionGating covers the two ways narrowing the
+// gate to a group-version test can go wrong silently: a v1 group must still
+// pass through unenforced (the hook has nothing to decide on -- a PSAv1
+// field can never carry a permissions object), and a group ID that fails to
+// resolve must be refused rather than treated as unenforced, since it is a
+// lookup failure, not evidence the group is PSAv1.
+func TestAccessControlHookGroupVersionGating(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	t.Run("a v1 group passes through unenforced", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		// Bypasses CreatePropertyField's group/field version-match check, which
+		// would otherwise refuse pairing a PSAv2-shaped field (non-empty
+		// ObjectType, needed to carry Permissions at all) with a v1 group. The
+		// resulting row is exactly the shape this case exists to guard: a
+		// permissions object the hook must never reach because its group is v1.
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V1PassThrough-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Read: model.PermissionLevelSysadmin, Write: model.PermissionLevelSysadmin},
+				},
+			},
+		})
+
+		value := th.CreatePropertyValue(t, th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+
+		// A read the permissions object would refuse to anyone but a sysadmin is
+		// unfiltered.
+		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), group.ID, value.ID)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved)
+
+		// A write the permissions object would refuse the same way still succeeds.
+		_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v2"`),
+		})
+		require.NoError(t, upErr)
+	})
+
+	t.Run("a group ID that resolves to nothing is refused, not passed through", func(t *testing.T) {
+		unregisteredGroupID := model.NewId()
+
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    unregisteredGroupID,
+			Name:       "UnknownGroup-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+				},
+			},
+		})
+
+		_, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.NewId()), unregisteredGroupID, field.ID)
+		require.Error(t, err)
+
+		_, err = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), &model.PropertyValue{
+			GroupID:    unregisteredGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.Error(t, err)
+	})
+}
+
+// TestAccessControlHookWideningPreservesExistingBehavior covers two shapes
+// that must still hold once the hook gates every PSAv2/v3 group: a field
+// converted from a nil PermissionValues (value.write: none, no grants) is
+// still refused a value write, and a linked create outside access_control
+// still inherits its template's security from
+// validateAndInheritLinkedFieldSecurity.
+func TestAccessControlHookWideningPreservesExistingBehavior(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
+	t.Run("a field converted with no permission grant refuses a value write from anyone", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "boards-plugin" })
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+		// Restrictions and Grants are both left unset, the shape a builtin
+		// field's nil PermissionValues converts into: value.write resolves to
+		// none for a human (TierFor on a nil Restrictions) and matches no grant
+		// for a machine caller.
+		created, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:     group.ID,
+			Name:        "BoardsLikeAssignee-" + model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{},
+		})
+		require.NoError(t, err)
+
+		newValue := func() *model.PropertyValue {
+			return &model.PropertyValue{
+				GroupID:    created.GroupID,
+				FieldID:    created.ID,
+				TargetType: "user",
+				TargetID:   model.NewId(),
+				Value:      json.RawMessage(`"v"`),
+			}
+		}
+
+		_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, "boards-plugin"), newValue())
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+
+		_, upErr = th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), newValue())
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("a linked create outside access_control inherits its template's restrictions", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "Template-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       group.ID,
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.Permissions)
+		require.NotNil(t, linked.Permissions.Restrictions)
+		assert.Equal(t, *template.Permissions.Restrictions, *linked.Permissions.Restrictions)
+	})
+}

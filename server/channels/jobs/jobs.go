@@ -48,17 +48,20 @@ func (srv *JobServer) CreateJob(rctx request.CTX, jobType string, jobData map[st
 	return job, nil
 }
 
+// CreateJobOnce creates a job unless one of the same type is already pending or in progress. It
+// returns nil, and no error, when it created none.
 func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(rctx, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if _, err := srv.Store.Job().SaveOnce(job); err != nil {
+	saved, err := srv.Store.Job().SaveOnce(job)
+	if err != nil {
 		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return job, nil
+	return saved, nil
 }
 
 func (srv *JobServer) CreateJobOnceByTypeAndData(rctx request.CTX, jobType string, jobData map[string]string, data map[string]string) (*model.Job, *model.AppError) {
@@ -88,7 +91,12 @@ func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[s
 		return nil, err
 	}
 
-	if srv.workers.Get(job.Type) == nil {
+	// A type with only a scheduler is valid: health_check is run by a worker set of
+	// its own on app servers, not by the framework, because a run collects
+	// diagnostics from the other nodes and job servers never join the cluster.
+	// If job servers join the cluster or go away, health_check can register a
+	// framework worker and this can require one again.
+	if srv.workers.Get(job.Type) == nil && srv.schedulers.Get(job.Type) == nil {
 		return nil, model.NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+job.Id, http.StatusBadRequest)
 	}
 
@@ -164,11 +172,13 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens:
+		model.JobTypeExtractContent:
 		permission = model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeHealthCheck:
+		// The same permission that reads health_check jobs. The default system_admin role holds it.
+		permission = model.PermissionSysconsoleReadReportingSiteStatistics
 	case model.JobTypeAccessControlTeamSync:
 		permission = model.PermissionManageTeamAccessRules
 	}

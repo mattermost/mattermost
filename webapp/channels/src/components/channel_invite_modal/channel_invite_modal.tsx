@@ -36,6 +36,8 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
@@ -126,6 +128,8 @@ const ChannelInviteModalComponent = (props: Props) => {
     // Monotonic token for fetchAbacUsers — stale HTTP responses must not
     // overwrite abacFilteredUsers after the user switches channels.
     const abacProfilesFetchRequestId = useRef<number>(0);
+
+    const channelKind = useChannelKind(props.channel);
 
     // Public channels with a membership policy are advisory — the invite
     // list is not filtered and matching users are merely surfaced as a
@@ -572,6 +576,13 @@ const ChannelInviteModalComponent = (props: Props) => {
         return option.name;
     }, []);
 
+    const renderValueLabel = useCallback((option: UserProfileValue | GroupValue): React.ReactNode => {
+        if (isUser(option)) {
+            return displayUsername(option, props.teammateNameDisplaySetting);
+        }
+        return option.display_name || option.name;
+    }, [props.teammateNameDisplaySetting]);
+
     // Render option for multiselect
     const renderOption = useCallback((option: UserProfileValue | GroupValue, isSelected: boolean, onAdd: (option: UserProfileValue | GroupValue) => void, onMouseMove: (option: UserProfileValue | GroupValue) => void) => {
         let rowSelected = '';
@@ -584,7 +595,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
             const userMapping: Record<string, string> = {};
             for (let i = 0; i < ProfilesInGroup.length; i++) {
-                userMapping[ProfilesInGroup[i]] = 'Already in channel';
+                userMapping[ProfilesInGroup[i]] = props.intl.formatMessage(messages.alreadyMember[channelKind]);
             }
             const displayName = displayUsername(option, props.teammateNameDisplaySetting);
             const isRecommended = isPolicyRecommendedPublic && recommendedUserIds.has(option.id);
@@ -619,10 +630,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                                             id: 'channel_invite.recommended_tag',
                                             defaultMessage: 'Recommended',
                                         })}
-                                        tooltipTitle={props.intl.formatMessage({
-                                            id: 'channel_invite.recommended_tag.tooltip',
-                                            defaultMessage: 'Matches the suggested membership for this channel',
-                                        })}
+                                        tooltipTitle={props.intl.formatMessage(messages.recommendedTagTooltip[channelKind])}
                                     />
                                 )}
                                 <span
@@ -658,7 +666,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 selectedItemRef={selectedItemRef}
             />
         );
-    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds]);
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds, channelKind]);
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
@@ -824,11 +832,16 @@ const ChannelInviteModalComponent = (props: Props) => {
             loading={loadingUsers}
             placeholderText={props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
             valueWithImage={true}
+            valueLabelRenderer={renderValueLabel}
             backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
             backButtonClick={closeMembersInviteModal}
             customNoOptionsMessage={props.emailInvitationsEnabled ? customNoOptionsMessage : null}
         />
     );
+
+    const isPublicChannel = channel.type === Constants.OPEN_CHANNEL;
+    const policyBannerTitle = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedTitle : messages.policyEnforcedTitle)[channelKind]}/>;
+    const policyBannerMessage = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedDescription : messages.policyEnforcedDescription)[channelKind]}/>;
 
     const inviteGuestLink = (
         <InviteModalLink
@@ -872,28 +885,8 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <AlertBanner
                             mode='info'
                             variant='app'
-                            title={channel.type === Constants.OPEN_CHANNEL ? (
-                                <FormattedMessage
-                                    id='channel_invite.policy_recommended.title'
-                                    defaultMessage='This channel has recommended members based on user attributes'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.title'
-                                    defaultMessage='Channel access is restricted by user attributes'
-                                />
-                            )}
-                            message={channel.type === Constants.OPEN_CHANNEL ? (
-                                <FormattedMessage
-                                    id='channel_invite.policy_recommended.description'
-                                    defaultMessage='A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.description'
-                                    defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
-                                />
-                            )}
+                            title={policyBannerTitle}
+                            message={policyBannerMessage}
                         >
                             {accessControlTags}
                         </AlertBanner>
@@ -904,6 +897,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     <TeamWarningBanner
                         guests={guestsNotInTeam}
                         teamId={channel.team_id}
+                        channelKind={channelKind}
                         users={usersNotInTeam}
                     />
                     {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}
@@ -957,5 +951,68 @@ const InviteModalLink = ({
         </ToggleModalButton>
     );
 };
+
+const messages = {
+    alreadyMember: {
+        channel: defineMessage({
+            id: 'channel_invite.already_member',
+            defaultMessage: 'Already in channel',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.already_member.board',
+            defaultMessage: 'Already in board',
+        }),
+    },
+    recommendedTagTooltip: {
+        channel: defineMessage({
+            id: 'channel_invite.recommended_tag.tooltip',
+            defaultMessage: 'Matches the suggested membership for this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.recommended_tag.tooltip.board',
+            defaultMessage: 'Matches the suggested membership for this board',
+        }),
+    },
+    policyRecommendedTitle: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_recommended.title',
+            defaultMessage: 'This channel has recommended members based on user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_recommended.title.board',
+            defaultMessage: 'This board has recommended members based on user attributes',
+        }),
+    },
+    policyRecommendedDescription: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_recommended.description',
+            defaultMessage: 'A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_recommended.description.board',
+            defaultMessage: 'A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.',
+        }),
+    },
+    policyEnforcedTitle: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_enforced.title',
+            defaultMessage: 'Channel access is restricted by user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_enforced.title.board',
+            defaultMessage: 'Board access is restricted by user attributes',
+        }),
+    },
+    policyEnforcedDescription: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_enforced.description',
+            defaultMessage: 'Only people who match the specified access rules can be selected and added to this channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_enforced.description.board',
+            defaultMessage: 'Only people who match the specified access rules can be selected and added to this board.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default injectIntl(ChannelInviteModalComponent);

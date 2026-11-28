@@ -317,7 +317,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Contains(t, attachedFiles, info1.Id)
 		assert.Contains(t, attachedFiles, info2.Id)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -348,7 +348,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, attachedFiles, 1)
 		assert.Contains(t, attachedFiles, info2.Id)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -2381,6 +2381,49 @@ func TestPatchPost(t *testing.T) {
 			th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 			th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
+	})
+
+	t.Run("removing link preview from burn-on-read post keeps content out of the Posts row", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
+		enableBoRFeature(th)
+
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+
+		authorCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		post, _, appErr := th.App.CreatePost(authorCtx, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read https://example.com",
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   []string{fileInfo.Id},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		patch := &model.PostPatch{Props: &model.StringInterface{
+			model.PostPropsRemoveLinkPreview: "true",
+			model.PostPropsExpireAt:          int64(1),
+		}}
+		patchedPost, _, appErr := th.App.PatchPost(authorCtx, post.Id, patch, nil)
+		require.Nil(t, appErr)
+		assert.Equal(t, "burn on read https://example.com", patchedPost.Message)
+		assert.Equal(t, model.StringArray{fileInfo.Id}, patchedPost.FileIds)
+		assert.Equal(t, "true", patchedPost.GetProp(model.PostPropsRemoveLinkPreview))
+
+		storedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+		assert.Empty(t, storedPost.Message)
+		assert.Empty(t, storedPost.FileIds)
+		assert.Equal(t, "true", storedPost.GetProp(model.PostPropsRemoveLinkPreview))
+		assert.EqualValues(t, post.GetProp(model.PostPropsExpireAt), storedPost.GetProp(model.PostPropsExpireAt))
+		assert.EqualValues(t, post.GetProp(model.PostPropsReadDurationSeconds), storedPost.GetProp(model.PostPropsReadDurationSeconds))
+
+		tmpPost, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, "burn on read https://example.com", tmpPost.Message)
+		assert.Equal(t, model.StringArray{fileInfo.Id}, tmpPost.FileIDs)
 	})
 
 	t.Run("cannot patch post in restricted DM", func(t *testing.T) {
@@ -5680,6 +5723,89 @@ func TestValidateMoveOrCopy(t *testing.T) {
 	})
 }
 
+func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		cfg.WranglerSettings.MoveThreadToAnotherTeamEnable = new(true)
+		cfg.WranglerSettings.MoveThreadMaxCount = new(int64(100))
+	})
+
+	// CreateChannel makes th.BasicUser a member, as moving requires.
+	targetChannel := th.CreateChannel(t, th.BasicTeam)
+
+	// mockUploadPolicy denies the upload_file_attachment action in deniedChannelID
+	// and allows every other evaluation.
+	mockUploadPolicy := func(t *testing.T, deniedChannelID string) {
+		t.Helper()
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment && req.Resource.ID == deniedChannelID
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+	}
+
+	createPost := func(t *testing.T, withFile bool) *model.Post {
+		t.Helper()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "thread to move",
+		}
+		if withFile {
+			info, appErr := th.App.UploadFile(th.Context, []byte("file contents"), th.BasicChannel.Id, "test.txt")
+			require.Nil(t, appErr)
+			post.FileIds = model.StringArray{info.Id}
+		}
+
+		created, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		return created
+	}
+
+	t.Run("a thread with files is not moved into a channel that denies the upload action", func(t *testing.T) {
+		post := createPost(t, true)
+		mockUploadPolicy(t, targetChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "api.file.upload_file.abac_denied.app_error", appErr.Id)
+
+		_, appErr = th.App.GetSinglePost(th.Context, post.Id, false)
+		require.Nil(t, appErr, "the original thread must be left in place")
+	})
+
+	t.Run("a thread without files is moved into a channel that denies the upload action", func(t *testing.T) {
+		post := createPost(t, false)
+		mockUploadPolicy(t, targetChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("a thread with files is moved into a channel that allows the upload action", func(t *testing.T) {
+		post := createPost(t, true)
+		mockUploadPolicy(t, th.BasicChannel.Id)
+
+		appErr := th.App.MoveThread(th.Context, post.Id, th.BasicChannel.Id, targetChannel.Id, th.BasicUser)
+		require.Nil(t, appErr)
+	})
+}
+
 func TestPermanentDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -6032,6 +6158,44 @@ func TestCleanUpAfterPostDeletion(t *testing.T) {
 		assert.Equal(t, post.Id, memberPost.Id)
 		assert.Nil(t, memberPost.GetProp(model.PostPropsMmBlocksActions))
 	})
+
+	t.Run("burn-on-read post deletion is still broadcast when the temporary post is gone", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = new(true)
+		})
+
+		post := &model.Post{
+			Message:       "burn on read message #tag",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		require.NoError(t, th.App.Srv().Store().TemporaryPost().Delete(th.Context, post.Id))
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		appErr = th.App.CleanUpAfterPostDeletion(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		assert.Equal(t, post.Id, memberPost.Id)
+		assert.Empty(t, memberPost.Message)
+		assert.Empty(t, memberPost.Hashtags)
+	})
 }
 
 func TestSendTestMessage(t *testing.T) {
@@ -6345,9 +6509,11 @@ func TestRevealPost(t *testing.T) {
 	t.Run("post type non burn on read", func(t *testing.T) {
 		regularPost := createRegularPost()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, regularPost, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, regularPost, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.not_burn_on_read.app_error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -6370,9 +6536,10 @@ func TestRevealPost(t *testing.T) {
 		// Now manually remove the expire_at prop to test missing prop scenario
 		createdPost.SetProps(make(model.StringInterface))
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -6386,9 +6553,11 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, "invalid_string")
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 	})
 
@@ -6401,9 +6570,11 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, float64(0))
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 	})
 
@@ -6412,8 +6583,8 @@ func TestRevealPost(t *testing.T) {
 
 		post := createBurnOnReadPost()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 		require.Equal(t, "burn on read message", revealedPost.Message)
 		require.NotNil(t, revealedPost.Metadata)
@@ -6434,14 +6605,14 @@ func TestRevealPost(t *testing.T) {
 		post := createBurnOnReadPost()
 
 		// First reveal to create receipt
-		revealedPost1, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost1, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost1)
 		require.NotZero(t, revealedPost1.Metadata.ExpireAt)
 
 		// Reveal again - should succeed and return the same post
-		revealedPost2, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost2, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost2)
 		require.Equal(t, "burn on read message", revealedPost2.Message)
 		require.NotNil(t, revealedPost2.Metadata)
@@ -6462,9 +6633,11 @@ func TestRevealPost(t *testing.T) {
 		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, expiredReceipt)
 		require.NoError(t, err)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.read_receipt_expired.error", appErr.Id)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 	})
@@ -6476,9 +6649,11 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()-1000)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.NotNil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.Error(t, err)
 		require.Nil(t, revealedPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		require.Equal(t, "app.reveal_post.post_expired.app_error", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -6487,8 +6662,8 @@ func TestRevealPost(t *testing.T) {
 		enableBoRFeature(th)
 
 		fileBytes := []byte("test")
-		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
-		require.Nil(t, err)
+		fileInfo, appErr := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, appErr)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -6503,8 +6678,8 @@ func TestRevealPost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdPost)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 		require.NotNil(t, revealedPost.Metadata)
 		require.NotZero(t, revealedPost.Metadata.ExpireAt)
@@ -6527,8 +6702,8 @@ func TestRevealPost(t *testing.T) {
 		initialExpireAt := tmpPostInitial.ExpireAt
 
 		// First reveal by user2 creates a read receipt
-		_, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
-		require.Nil(t, appErr)
+		_, err = th.App.RevealPost(th.Context, post, user2.Id, "")
+		require.NoError(t, err)
 
 		// Get the read receipt's ExpireAt (should be 5 minutes)
 		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, user2.Id)
@@ -6543,8 +6718,8 @@ func TestRevealPost(t *testing.T) {
 		require.Equal(t, initialExpireAt, tmpPostAfterFirstReveal.ExpireAt)
 
 		// Now user3 reveals - this should trigger updateTemporaryPostIfAllRead
-		_, appErr = th.App.RevealPost(th.Context, post, user3.Id, "")
-		require.Nil(t, appErr)
+		_, err = th.App.RevealPost(th.Context, post, user3.Id, "")
+		require.NoError(t, err)
 
 		// Fetch the TemporaryPost with cache bypass to verify it was updated
 		tmpPostAfterAllReveal, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
@@ -6703,8 +6878,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.NotNil(t, createdPost)
 
 		// User2 reveals the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		// User2 saves/flags the post
@@ -6714,7 +6889,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Verify post appears in flagged posts before expiration
@@ -6757,8 +6932,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		preference := model.Preference{
@@ -6767,7 +6942,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Expire the receipt
@@ -6799,8 +6974,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		preference := model.Preference{
@@ -6809,7 +6984,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Expire the receipt
@@ -6841,8 +7016,8 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// User2 reveals and flags the post
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
-		require.Nil(t, appErr)
+		revealedPost, err := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
+		require.NoError(t, err)
 		require.NotNil(t, revealedPost)
 
 		preference := model.Preference{
@@ -6851,7 +7026,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 			Name:     createdPost.Id,
 			Value:    "true",
 		}
-		err := th.App.Srv().Store().Preference().Save(model.Preferences{preference})
+		err = th.App.Srv().Store().Preference().Save(model.Preferences{preference})
 		require.NoError(t, err)
 
 		// Get flagged posts - post should be present
@@ -7094,9 +7269,9 @@ func TestGetBurnOnReadPost(t *testing.T) {
 		_, err := th.App.Srv().Store().TemporaryPost().Save(th.Context, temporaryPost)
 		require.NoError(t, err)
 
-		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
+		resultPost, err := th.App.getBurnOnReadPost(th.Context, post)
 
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 		require.NotNil(t, resultPost)
 		assert.Equal(t, temporaryPost.Message, resultPost.Message)
 		assert.Equal(t, temporaryPost.FileIDs, resultPost.FileIds)
@@ -7116,10 +7291,12 @@ func TestGetBurnOnReadPost(t *testing.T) {
 			Type:      model.PostTypeBurnOnRead,
 		}
 
-		resultPost, appErr := th.App.getBurnOnReadPost(th.Context, post)
+		resultPost, err := th.App.getBurnOnReadPost(th.Context, post)
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
 		require.Nil(t, resultPost)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.post.get_post.app_error", appErr.Id)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
@@ -7491,4 +7668,18 @@ func TestPostMutationsReadFromMaster(t *testing.T) {
 		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
+}
+
+func TestCheckPostRemindersWithoutSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+
+	th.App.CheckPostReminders(th.Context)
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := th.LogBuffer.String()
+	testlib.AssertNoLog(t, strings.NewReader(logs), mlog.LvlError.Name, "Failed to get system bot")
+	testlib.AssertLog(t, strings.NewReader(logs), mlog.LvlDebug.Name, "Skipping post reminders because there is no system admin to own the system bot")
 }

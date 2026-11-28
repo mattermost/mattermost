@@ -5,8 +5,10 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	b64 "encoding/base64"
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -35,6 +37,9 @@ const (
 )
 
 const oauthTokenRedacted = "[REDACTED]"
+
+// maxOAuthTokenResponseSize caps how much of a token endpoint response is read.
+const maxOAuthTokenResponseSize = 1024 * 1024
 
 // oauthTokenPattern matches an access_token, refresh_token, or id_token field name (in JSON or
 // form-encoded format, with literal, percent-encoded, or JSON-unicode-escaped underscores) followed
@@ -67,19 +72,14 @@ func (a *App) CreateOAuthAppInternal(app *model.OAuthApp, generateSecret bool) (
 
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-
 		a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("name", app.Name))
 
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := stderrors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
+		} else if _, ok := stderrors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return oauthApp, nil
@@ -92,13 +92,10 @@ func (a *App) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 
 	oauthApp, err := a.Srv().Store().OAuth().GetApp(appID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := stderrors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return oauthApp, nil
@@ -117,16 +114,12 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 
 	oauthApp, err := a.Srv().Store().OAuth().UpdateApp(updatedApp)
 	if err != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := stderrors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
+		} else if _, ok := stderrors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return oauthApp, nil
@@ -227,19 +220,14 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if authRequest.Scope == "" {
-		authRequest.Scope = model.DefaultScope
-	}
+	authRequest.Scope = cmp.Or(authRequest.Scope, model.DefaultScope)
 
 	oauthApp, nErr := a.Srv().Store().OAuth().GetApp(authRequest.ClientId)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
+		if _, ok := stderrors.AsType[*store.ErrNotFound](nErr); ok {
 			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
@@ -701,16 +689,12 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 
 	app.ClientSecret = model.NewId()
 	if _, err := a.Srv().Store().OAuth().UpdateApp(app); err != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := stderrors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
+		} else if _, ok := stderrors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return app, nil
@@ -977,13 +961,10 @@ func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError
 	token := model.NewToken(model.TokenTypeOAuth, extra)
 
 	if err := a.Srv().Store().Token().Save(token); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := stderrors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateOAuthStateToken", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateOAuthStateToken", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return token, nil
@@ -1162,20 +1143,24 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	}
 	defer resp.Body.Close()
 
-	var buf bytes.Buffer
-	tee := io.TeeReader(resp.Body, &buf)
+	// Read the whole body up front so the error details below always carry the
+	// complete response, regardless of how much the JSON decoder consumes
+	// before it gives up on a malformed one.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxOAuthTokenResponseSize))
 	var ar *model.AccessResponse
-	err = json.NewDecoder(tee).Decode(&ar)
+	if err == nil {
+		err = json.Unmarshal(body, &ar)
+	}
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", redactOAuthTokenResponse(buf.String()), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
+		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", redactOAuthTokenResponse(string(body)), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.AccessTokenType {
-		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
+		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+redactOAuthTokenResponse(string(body)), http.StatusInternalServerError)
 	}
 
 	if ar.AccessToken == "" {
-		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
+		return nil, stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+redactOAuthTokenResponse(string(body)), http.StatusInternalServerError)
 	}
 
 	p = url.Values{}
@@ -1352,19 +1337,14 @@ func (a *App) RegisterOAuthClient(rctx request.CTX, req *model.ClientRegistratio
 
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-
 		a.Log().Error("Error saving OAuth app via DCR", mlog.Err(err), mlog.String("name", app.Name))
 
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := stderrors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
+		} else if _, ok := stderrors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return oauthApp, nil

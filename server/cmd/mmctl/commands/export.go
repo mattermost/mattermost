@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -351,9 +352,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	if len(args) > 1 {
 		path = args[1]
 	}
-	if path == "" {
-		path = name
-	}
+	path = cmp.Or(path, name)
 
 	retries, _ := command.Flags().GetInt("num-retries")
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {
@@ -13,6 +13,7 @@ import {
     GlobeIcon,
     AccountOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -22,8 +23,20 @@ import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
+import {useProductRailKind} from 'hooks/useProductRailKind';
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
+
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
+
+const BrowseOrAddChannelMenuTrigger = Menu.createMenuIconButtonTrigger({
+    size: 'small',
+    style: 'inverted',
+    rounded: true,
+    className: 'browseOrAddChannelMenuTrigger',
+});
 
 type Props = {
     canCreateChannel: boolean;
@@ -38,8 +51,16 @@ type Props = {
     onInvitePeopleClick: () => void;
 };
 
+/* eslint-disable formatjs/enforce-placeholders -- no placeholders */
+const browseMessages: KindMessages = {
+    channel: defineMessage({id: 'sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel', defaultMessage: 'Browse channels'}),
+    board: defineMessage({id: 'sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel.board', defaultMessage: 'Browse boards'}),
+};
+/* eslint-enable formatjs/enforce-placeholders */
+
 export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
+    const productRailKind = useProductRailKind();
     const currentTeamId = useSelector(getCurrentTeamId);
     const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents);
 
@@ -72,12 +93,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                 id='browseChannelsMenuItem'
                 onClick={props.onBrowseChannelClick}
                 leadingElement={<GlobeIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel'
-                        defaultMessage='Browse channels'
-                    />
-                )}
+                labels={<FormattedMessage {...browseMessages[productRailKind]}/>}
                 aria-haspopup='true'
             />
         );
@@ -157,8 +173,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     );
 
     let pluggableMenuItems: JSX.Element[] = [];
+    let afterCreateChannelMenuItems: JSX.Element[] = [];
     if (pluginMenuItems) {
-        pluggableMenuItems = pluginMenuItems.map((item) => {
+        const toMenuItem = (item: SidebarBrowseOrAddChannelMenuAction) => {
             const handlePluginItemClick = () => {
                 if (item.action) {
                     item.action(currentTeamId);
@@ -174,7 +191,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     labels={<span>{item.text}</span>}
                 />
             );
-        });
+        };
+        afterCreateChannelMenuItems = pluginMenuItems.filter((item) => item.placement === 'afterCreateChannel').map(toMenuItem);
+        pluggableMenuItems = pluginMenuItems.filter((item) => item.placement !== 'afterCreateChannel').map(toMenuItem);
     }
 
     return (
@@ -185,8 +204,8 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
                 }),
-                class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
-                children: <PlusIcon size={18}/>,
+                as: BrowseOrAddChannelMenuTrigger,
+                children: <Icon glyph={<PlusIcon/>}/>,
             }}
             menuButtonTooltip={{
                 text: formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenuButton.label', defaultMessage: 'Browse or create channels'}),
@@ -197,6 +216,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             }}
         >
             {createNewChannelMenuItem}
+            {afterCreateChannelMenuItems}
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}

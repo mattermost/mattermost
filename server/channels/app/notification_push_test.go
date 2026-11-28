@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -1011,15 +1012,9 @@ func TestGetPushNotificationMessage(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			locale := tc.Locale
-			if locale == "" {
-				locale = "en"
-			}
+			locale := cmp.Or(tc.Locale, "en")
 
-			pushNotificationContents := tc.PushNotificationContents
-			if pushNotificationContents == "" {
-				pushNotificationContents = model.FullNotification
-			}
+			pushNotificationContents := cmp.Or(tc.PushNotificationContents, model.FullNotification)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.EmailSettings.PushNotificationContents = pushNotificationContents
@@ -1862,6 +1857,7 @@ func TestPushNotificationRace(t *testing.T) {
 	// Playbooks DB job requires a plugin mock
 	pluginStore := mocks.PluginStore{}
 	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 	mockStore.On("Plugin").Return(&pluginStore)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get",

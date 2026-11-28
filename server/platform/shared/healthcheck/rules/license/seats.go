@@ -16,48 +16,42 @@ const (
 )
 
 var seatsOverDeployed = healthcheck.Rule{
-	Code:     "SEATS_OVER_DEPLOYED",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.seats_over_deployed.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.seats_over_deployed.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    seatsSubject,
-	Eval:       healthcheck.Single(evalSeatsOverDeployed),
+	Code:          "SEATS_OVER_DEPLOYED",
+	Area:          model.AreaLicense,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.seats_over_deployed.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.seats_over_deployed.remediation"),
+	ConsolePath:   licenseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       seatsSubject,
+	Eval:          healthcheck.Single(evalSeatsOverDeployed),
 }
 
 var seatsLimitReached = healthcheck.Rule{
-	Code:     "SEATS_LIMIT_REACHED",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.seats_limit_reached.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.seats_limit_reached.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    seatsSubject,
-	Eval:       healthcheck.Single(evalSeatsLimitReached),
+	Code:          "SEATS_LIMIT_REACHED",
+	Area:          model.AreaLicense,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.seats_limit_reached.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.seats_limit_reached.remediation"),
+	ConsolePath:   licenseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       seatsSubject,
+	Eval:          healthcheck.Single(evalSeatsLimitReached),
 }
 
 var seatsNearCapacity = healthcheck.Rule{
-	Code:     "SEATS_NEAR_CAPACITY",
-	Area:     model.AreaLicense,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.seats_near_capacity.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.seats_near_capacity.remediation"),
-		ConsolePath:   licenseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    seatsSubject,
-	Eval:       healthcheck.Single(evalSeatsNearCapacity),
+	Code:          "SEATS_NEAR_CAPACITY",
+	Area:          model.AreaLicense,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.seats_near_capacity.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.seats_near_capacity.remediation"),
+	ConsolePath:   licenseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       seatsSubject,
+	Eval:          healthcheck.Single(evalSeatsNearCapacity),
 }
 
 // seatsUsed mirrors GetServerLimits: single-channel guests are free unless on Entry or with guest accounts disabled.

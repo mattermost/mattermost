@@ -5,6 +5,10 @@ package api4
 
 import (
 	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -12,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -187,14 +192,20 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test help")
 	require.NoError(t, err)
 	require.True(t, strings.Contains(rs.Text, "Mattermost testing commands to help"), rs.Text)
+
+	rs, _, err = client.ExecuteCommand(context.Background(), channel.Id, "/test  help")
+	require.NoError(t, err)
+	require.True(t, strings.Contains(rs.Text, "Mattermost testing commands to help"), rs.Text)
 }
 
 func TestLoadTestSetupCommands(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	client := th.Client
+	client := th.SystemAdminClient
 	channel := th.BasicChannel
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, channel)
 
 	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
@@ -212,8 +223,10 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	client := th.Client
+	client := th.SystemAdminClient
 	channel := th.BasicChannel
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, channel)
 
 	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
@@ -231,8 +244,10 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	client := th.Client
+	client := th.SystemAdminClient
 	channel := th.BasicChannel
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, channel)
 
 	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
@@ -250,8 +265,10 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	client := th.Client
+	client := th.SystemAdminClient
 	channel := th.BasicChannel
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, channel)
 
 	enableTesting := *th.App.Config().ServiceSettings.EnableTesting
 	defer func() {
@@ -263,6 +280,314 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	rs, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/test posts fuzz 2 3 2")
 	require.NoError(t, err)
 	require.Equal(t, "Added posts", rs.Text, rs.Text)
+}
+
+func TestTestingModeUserManagementPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.LoginSystemManager(t)
+
+	for _, user := range []*model.User{th.SystemAdminUser, th.SystemManagerUser} {
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, th.BasicChannel)
+	}
+
+	setEnableTesting := func(t *testing.T, enabled bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = enabled })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = false })
+		})
+	}
+
+	newUserInChannel := func(t *testing.T, roles string) *model.User {
+		t.Helper()
+		user := th.CreateUser(t)
+		if roles != "" {
+			_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, roles, false)
+			require.Nil(t, appErr)
+		}
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, th.BasicChannel)
+		return user
+	}
+
+	isActive := func(t *testing.T, userID string) bool {
+		t.Helper()
+		user, appErr := th.App.GetUser(th.Context, userID)
+		require.Nil(t, appErr)
+		return user.DeleteAt == 0
+	}
+
+	runCommand := func(t *testing.T, client *model.Client4, command string) {
+		t.Helper()
+		resp, _, err := client.ExecuteCommand(context.Background(), th.BasicChannel.Id, command)
+		if resp != nil {
+			t.Logf("%q response: %q", command, resp.Text)
+		}
+		if err != nil {
+			t.Logf("%q returned error: %v", command, err)
+		}
+	}
+
+	t.Run("system manager cannot enable testing mode", func(t *testing.T) {
+		setEnableTesting(t, false)
+
+		patch := &model.Config{ServiceSettings: model.ServiceSettings{EnableTesting: new(true)}}
+		returnedCfg, resp, err := th.SystemManagerClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.False(t, *returnedCfg.ServiceSettings.EnableTesting, "returned config should keep EnableTesting disabled")
+		require.False(t, *th.App.Config().ServiceSettings.EnableTesting, "stored config should keep EnableTesting disabled")
+	})
+
+	t.Run("system manager cannot enable testing mode with a full config update", func(t *testing.T) {
+		setEnableTesting(t, false)
+
+		cfg, _, err := th.SystemManagerClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		*cfg.ServiceSettings.EnableTesting = true
+
+		returnedCfg, resp, err := th.SystemManagerClient.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.False(t, *returnedCfg.ServiceSettings.EnableTesting, "returned config should keep EnableTesting disabled")
+		require.False(t, *th.App.Config().ServiceSettings.EnableTesting, "stored config should keep EnableTesting disabled")
+	})
+
+	t.Run("system manager can still change EnableDeveloper", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = false })
+		})
+
+		patch := &model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true)}}
+		_, resp, err := th.SystemManagerClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.True(t, *th.App.Config().ServiceSettings.EnableDeveloper)
+	})
+
+	t.Run("system admin can enable testing mode", func(t *testing.T) {
+		setEnableTesting(t, false)
+
+		patch := &model.Config{ServiceSettings: model.ServiceSettings{EnableTesting: new(true)}}
+		returnedCfg, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.True(t, *returnedCfg.ServiceSettings.EnableTesting)
+		require.True(t, *th.App.Config().ServiceSettings.EnableTesting)
+	})
+
+	t.Run("system manager cannot deactivate a system admin via the test command", func(t *testing.T) {
+		setEnableTesting(t, true)
+		target := newUserInChannel(t, model.SystemUserRoleId+" "+model.SystemAdminRoleId)
+
+		runCommand(t, th.SystemManagerClient, "/test deactivate_user "+target.Id)
+
+		require.True(t, isActive(t, target.Id), "system admin should remain active")
+	})
+
+	t.Run("regular member cannot deactivate another user via the test command", func(t *testing.T) {
+		setEnableTesting(t, true)
+		target := newUserInChannel(t, "")
+
+		runCommand(t, th.Client, "/test deactivate_user "+target.Id)
+
+		require.True(t, isActive(t, target.Id), "user should remain active")
+	})
+
+	t.Run("regular member cannot activate a deactivated user via the test command", func(t *testing.T) {
+		setEnableTesting(t, true)
+		target := newUserInChannel(t, "")
+		_, appErr := th.App.UpdateActive(th.Context, target, false)
+		require.Nil(t, appErr)
+		require.False(t, isActive(t, target.Id))
+
+		runCommand(t, th.Client, "/test activate_user "+target.Id)
+
+		require.False(t, isActive(t, target.Id), "user should remain deactivated")
+	})
+
+	t.Run("regular member cannot post as another user via test dms", func(t *testing.T) {
+		setEnableTesting(t, true)
+		target := newUserInChannel(t, "")
+
+		runCommand(t, th.Client, "/test dms u=@"+target.Username+" range=2")
+
+		dm, err := th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(th.BasicUser.Id, target.Id), false)
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			// No DM channel means no posts were created in it.
+			return
+		}
+		require.NoError(t, err)
+		posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: dm.Id, Page: 0, PerPage: 100})
+		require.Nil(t, appErr)
+		for _, post := range posts.Posts {
+			require.NotEqual(t, target.Id, post.UserId, "no post should be authored by the other user: %q", post.Message)
+		}
+	})
+
+	t.Run("system admin can deactivate and activate users via the test command", func(t *testing.T) {
+		setEnableTesting(t, true)
+		target := newUserInChannel(t, "")
+
+		runCommand(t, th.SystemAdminClient, "/test deactivate_user "+target.Id)
+		require.False(t, isActive(t, target.Id), "user should be deactivated")
+
+		runCommand(t, th.SystemAdminClient, "/test activate_user "+target.Id)
+		require.True(t, isActive(t, target.Id), "user should be reactivated")
+	})
+}
+
+func TestTestingModeCommandsRequireSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = false })
+	})
+
+	runCommand := func(t *testing.T, client *model.Client4, channelID, command string) {
+		t.Helper()
+		resp, _, err := client.ExecuteCommand(context.Background(), channelID, command)
+		if resp != nil {
+			t.Logf("%q response: %q", command, resp.Text)
+		}
+		if err != nil {
+			t.Logf("%q returned error: %v", command, err)
+		}
+	}
+
+	teamMemberCount := func(t *testing.T) int64 {
+		t.Helper()
+		count, err := th.App.Srv().Store().Team().GetTotalMemberCount(th.BasicTeam.Id, nil)
+		require.NoError(t, err)
+		return count
+	}
+
+	channelPosts := func(t *testing.T, channelID string) []*model.Post {
+		t.Helper()
+		posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 200})
+		require.Nil(t, appErr)
+		list := make([]*model.Post, 0, len(posts.Posts))
+		for _, post := range posts.Posts {
+			list = append(list, post)
+		}
+		return list
+	}
+
+	newChannel := func(t *testing.T) *model.Channel {
+		t.Helper()
+		channel := th.CreatePublicChannel(t)
+		th.AddUserToChannel(t, th.BasicUser, channel)
+		return channel
+	}
+
+	t.Run("regular member cannot create accounts via test users", func(t *testing.T) {
+		before := teamMemberCount(t)
+
+		runCommand(t, th.Client, th.BasicChannel.Id, "/test users range=2")
+
+		require.Equal(t, before, teamMemberCount(t), "no accounts should be added to the team")
+	})
+
+	t.Run("regular member cannot create accounts via test setup", func(t *testing.T) {
+		before := teamMemberCount(t)
+
+		runCommand(t, th.Client, th.BasicChannel.Id, "/test setup 1 1 1")
+
+		require.Equal(t, before, teamMemberCount(t), "no accounts should be added to the team")
+	})
+
+	t.Run("regular member without create_private_channel cannot create private channels via test channels", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionCreatePrivateChannel.Id, model.TeamUserRoleId)
+		})
+
+		_, resp, err := th.Client.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        GenerateTestChannelName(),
+			DisplayName: "private",
+			Type:        model.ChannelTypePrivate,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		before, _, err := th.SystemAdminClient.GetPrivateChannelsForTeam(context.Background(), th.BasicTeam.Id, 0, 200, "")
+		require.NoError(t, err)
+
+		runCommand(t, th.Client, th.BasicChannel.Id, "/test channels range=2 type=p")
+
+		after, _, err := th.SystemAdminClient.GetPrivateChannelsForTeam(context.Background(), th.BasicTeam.Id, 0, 200, "")
+		require.NoError(t, err)
+		require.Len(t, after, len(before), "no private channels should be created")
+	})
+
+	t.Run("regular member cannot set the post create time via test posts", func(t *testing.T) {
+		channel := newChannel(t)
+		const createAt = int64(1000000000000)
+
+		runCommand(t, th.Client, channel.Id, "/test posts range=2 time="+strconv.FormatInt(createAt, 10))
+
+		for _, post := range channelPosts(t, channel.Id) {
+			if post.UserId != th.BasicUser.Id {
+				continue
+			}
+			require.Greater(t, post.CreateAt, createAt+1000, "post create time should not be set by the caller")
+		}
+	})
+
+	t.Run("regular member cannot create system message posts via test json", func(t *testing.T) {
+		channel := newChannel(t)
+		const marker = "test-json-system-post-marker"
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"message":"` + marker + `","type":"` + model.PostTypeAddToChannel + `"}`))
+		}))
+		t.Cleanup(server.Close)
+
+		runCommand(t, th.Client, channel.Id, "/test json "+server.URL+"/post.json")
+
+		for _, post := range channelPosts(t, channel.Id) {
+			if post.Message == marker {
+				require.False(t, model.IsSystemMessagePostType(post.Type), "post should not have system type %q", post.Type)
+			}
+		}
+	})
+
+	t.Run("regular member cannot load content from a loopback address via test url", func(t *testing.T) {
+		channel := newChannel(t)
+		const marker = "test-url-loopback-content-marker"
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(marker))
+		}))
+		t.Cleanup(server.Close)
+
+		runCommand(t, th.Client, channel.Id, "/test url "+server.URL+"/content.md")
+
+		for _, post := range channelPosts(t, channel.Id) {
+			require.NotContains(t, post.Message, marker, "loopback content should not be posted")
+		}
+	})
+
+	t.Run("system admin can still run test users", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+		before := teamMemberCount(t)
+
+		resp, _, err := th.SystemAdminClient.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/test users range=1")
+		require.NoError(t, err)
+		require.Equal(t, "Added users", resp.Text)
+
+		require.Equal(t, before+1, teamMemberCount(t))
+	})
 }
 
 func TestLeaveCommands(t *testing.T) {

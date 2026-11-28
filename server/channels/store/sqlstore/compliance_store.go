@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -172,9 +173,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	channelsQuery := ""
 	var argsChannelsQuery []any
 	if !cursor.ChannelsQueryCompleted {
-		if cursor.LastChannelsQueryPostCreateAt == 0 {
-			cursor.LastChannelsQueryPostCreateAt = job.StartAt
-		}
+		cursor.LastChannelsQueryPostCreateAt = cmp.Or(cursor.LastChannelsQueryPostCreateAt, job.StartAt)
 		// append the named parameters of SQL query in the correct order to argsChannelsQuery
 		argsChannelsQuery = append(argsChannelsQuery, cursor.LastChannelsQueryPostCreateAt, cursor.LastChannelsQueryPostCreateAt, cursor.LastChannelsQueryPostID, job.EndAt)
 		argsChannelsQuery = append(argsChannelsQuery, argsEmails...)
@@ -237,9 +236,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	directMessagesQuery := ""
 	var argsDirectMessagesQuery []any
 	if !cursor.DirectMessagesQueryCompleted && len(channelPosts) < limit {
-		if cursor.LastDirectMessagesQueryPostCreateAt == 0 {
-			cursor.LastDirectMessagesQueryPostCreateAt = job.StartAt
-		}
+		cursor.LastDirectMessagesQueryPostCreateAt = cmp.Or(cursor.LastDirectMessagesQueryPostCreateAt, job.StartAt)
 		// append the named parameters of SQL query in the correct order to argsDirectMessagesQuery
 		argsDirectMessagesQuery = append(argsDirectMessagesQuery, cursor.LastDirectMessagesQueryPostCreateAt, cursor.LastDirectMessagesQueryPostCreateAt, cursor.LastDirectMessagesQueryPostID, job.EndAt)
 		argsDirectMessagesQuery = append(argsDirectMessagesQuery, argsEmails...)

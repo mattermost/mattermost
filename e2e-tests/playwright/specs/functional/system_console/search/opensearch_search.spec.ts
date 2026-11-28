@@ -25,5 +25,5 @@ test('finds a newly posted message through OpenSearch search', {tag: '@opensearc
 
     // # Post a message with a unique term, then search for it via the search API
     // * Verify the search API returns exactly the post containing the unique term
-    await postAndFindMessage(pw, userClient, team.id);
+    await postAndFindMessage(pw, userClient, team.id, {fromSearchEngine: true});
 });

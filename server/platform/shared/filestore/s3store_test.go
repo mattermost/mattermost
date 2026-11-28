@@ -5,6 +5,7 @@ package filestore
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -45,15 +46,9 @@ func TestCheckMandatoryS3Fields(t *testing.T) {
 }
 
 func TestMakeBucket(t *testing.T) {
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
@@ -86,15 +81,9 @@ func TestMakeBucket(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
@@ -152,15 +141,9 @@ func TestTimeout(t *testing.T) {
 }
 
 func TestInsecureMakeBucket(t *testing.T) {
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
@@ -325,15 +308,9 @@ func (fc fauxCloser) Close() error {
 }
 
 func TestListDirectory(t *testing.T) {
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
@@ -381,15 +358,9 @@ func TestListDirectory(t *testing.T) {
 }
 
 func TestWriteFileVideoMimeTypes(t *testing.T) {
-	s3Host := os.Getenv("CI_MINIO_HOST")
-	if s3Host == "" {
-		s3Host = "localhost"
-	}
+	s3Host := cmp.Or(os.Getenv("CI_MINIO_HOST"), "localhost")
 
-	s3Port := os.Getenv("CI_MINIO_PORT")
-	if s3Port == "" {
-		s3Port = "9000"
-	}
+	s3Port := cmp.Or(os.Getenv("CI_MINIO_PORT"), "9000")
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {FormattedDate, FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {FormattedDate, FormattedMessage, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {BellRingOutlineIcon, PencilOutlineIcon, StarOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
@@ -33,11 +33,13 @@ import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
 import UserProfile from 'components/user_profile';
 
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelKind} from 'types/store/plugins';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
@@ -61,6 +63,7 @@ type Props = {
     usersLimit: number;
     channelMember?: ChannelMembership;
     isMobileView: boolean;
+    channelKind: ChannelKind;
     actions: {
         getTotalUsersStats: () => any;
         favoriteChannel: (channelId: string) => any;
@@ -107,6 +110,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
             usersLimit,
             channelMember,
             isMobileView,
+            channelKind,
         } = this.props;
 
         let centeredIntro = '';
@@ -127,7 +131,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
             return createOffTopicIntroMessage(channel, centeredIntro, isFavorite, isMobileView, currentUser, this.toggleFavorite, stats, usersLimit, isInManagedCategory);
         } else if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
-            return createStandardIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, locale, creatorName, isInManagedCategory);
+            return createStandardIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, locale, creatorName, channelKind, isInManagedCategory);
         }
         return null;
     }
@@ -376,7 +380,9 @@ function createOffTopicIntroMessage(
         />
     );
 
-    if (inviteUsers) {
+    if (totalUsers === undefined) {
+        actionButtons = null;
+    } else if (inviteUsers) {
         actionButtons = (
             <div className='channel-intro__actions'>
                 {actionButtons = channelInviteButton}
@@ -500,7 +506,9 @@ function createDefaultIntroMessage(
         );
     }
 
-    if (inviteUsers) {
+    if (totalUsers === undefined) {
+        actionButtons = null;
+    } else if (inviteUsers) {
         actionButtons = (
             <div className='channel-intro__actions'>
                 {actionButtons = teamInviteLink}
@@ -576,6 +584,81 @@ const ChannelIntroBody = ({channel, children}: {channel: Channel; children: Reac
     return <>{children}</>;
 };
 
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const standardIntroMessages = {
+    onlyInvited: {
+        channel: defineMessage({
+            id: 'intro_messages.onlyInvited',
+            defaultMessage: 'This is the start of {display_name}. Only invited members can see this private channel.',
+        }),
+        board: defineMessage({
+            id: 'intro_messages.onlyInvited.board',
+            defaultMessage: 'This is the start of {display_name}. Only invited members can see this private board.',
+        }),
+    },
+    anyMember: {
+        channel: defineMessage({
+            id: 'intro_messages.anyMember',
+            defaultMessage: 'This is the start of {display_name}. Any team member can join and read this channel.',
+        }),
+        board: defineMessage({
+            id: 'intro_messages.anyMember.board',
+            defaultMessage: 'This is the start of {display_name}. Any team member can join and read this board.',
+        }),
+    },
+    noCreatorPrivate: {
+        channel: defineMessage({
+            id: 'intro_messages.noCreatorPrivate',
+            defaultMessage: 'Private channel created on {date}.',
+        }),
+        board: defineMessage({
+            id: 'intro_messages.noCreatorPrivate.board',
+            defaultMessage: 'Private board created on {date}.',
+        }),
+    },
+    noCreator: {
+        channel: defineMessage({
+            id: 'intro_messages.noCreator',
+            defaultMessage: 'Public channel created on {date}.',
+        }),
+        board: defineMessage({
+            id: 'intro_messages.noCreator.board',
+            defaultMessage: 'Public board created on {date}.',
+        }),
+    },
+    creatorPrivate: {
+        channel: defineMessage({
+            id: 'intro_messages.creatorPrivate',
+            defaultMessage: 'Private channel created by {creator} on {date}.',
+        }),
+        board: defineMessage({
+            id: 'intro_messages.creatorPrivate.board',
+            defaultMessage: 'Private board created by {creator} on {date}.',
+        }),
+    },
+    creator: {
+        channel: defineMessage({
+            id: 'intro_messages.creator',
+            defaultMessage: 'Public channel created by {creator} on {date}.',
+        }),
+        board: defineMessage({
+            id: 'intro_messages.creator.board',
+            defaultMessage: 'Public board created by {creator} on {date}.',
+        }),
+    },
+    purpose: {
+        channel: defineMessage({
+            id: 'intro_messages.purpose',
+            defaultMessage: " This channel's purpose is: {purpose}",
+        }),
+        board: defineMessage({
+            id: 'intro_messages.purpose.board',
+            defaultMessage: " This board's purpose is: {purpose}",
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
+
 function createStandardIntroMessage(
     channel: Channel,
     centeredIntro: string,
@@ -587,6 +670,7 @@ function createStandardIntroMessage(
     usersLimit: number,
     locale: string,
     creatorName: string,
+    kind: ChannelKind,
     isInManagedCategory?: boolean,
 ) {
     let memberMessage;
@@ -600,8 +684,7 @@ function createStandardIntroMessage(
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         memberMessage = (
             <FormattedMessage
-                id='intro_messages.onlyInvited'
-                defaultMessage='This is the start of {display_name}. Only invited members can see this private channel.'
+                {...standardIntroMessages.onlyInvited[kind]}
                 values={{
                     display_name: channel.display_name,
                 }}
@@ -610,8 +693,7 @@ function createStandardIntroMessage(
     } else {
         memberMessage = (
             <FormattedMessage
-                id='intro_messages.anyMember'
-                defaultMessage='This is the start of {display_name}. Any team member can join and read this channel.'
+                {...standardIntroMessages.anyMember[kind]}
                 values={{
                     display_name: channel.display_name,
                 }}
@@ -633,16 +715,14 @@ function createStandardIntroMessage(
         if (channel.type === Constants.PRIVATE_CHANNEL) {
             createMessage = (
                 <FormattedMessage
-                    id='intro_messages.noCreatorPrivate'
-                    defaultMessage='Private channel created on {date}.'
+                    {...standardIntroMessages.noCreatorPrivate[kind]}
                     values={{date}}
                 />
             );
         } else if (channel.type === Constants.OPEN_CHANNEL) {
             createMessage = (
                 <FormattedMessage
-                    id='intro_messages.noCreator'
-                    defaultMessage='Public channel created on {date}.'
+                    {...standardIntroMessages.noCreator[kind]}
                     values={{date}}
                 />
             );
@@ -651,8 +731,7 @@ function createStandardIntroMessage(
         createMessage = (
             <span>
                 <FormattedMessage
-                    id='intro_messages.creatorPrivate'
-                    defaultMessage='Private channel created by {creator} on {date}.'
+                    {...standardIntroMessages.creatorPrivate[kind]}
                     values={{
                         creator: (creatorName),
                         date,
@@ -664,8 +743,7 @@ function createStandardIntroMessage(
         createMessage = (
             <span>
                 <FormattedMessage
-                    id='intro_messages.creator'
-                    defaultMessage='Public channel created by {creator} on {date}.'
+                    {...standardIntroMessages.creator[kind]}
                     values={{
                         creator: (creatorName),
                         date,
@@ -680,8 +758,7 @@ function createStandardIntroMessage(
         purposeMessage = (
             <span>
                 <FormattedMessage
-                    id='intro_messages.purpose'
-                    defaultMessage=" This channel's purpose is: {purpose}"
+                    {...standardIntroMessages.purpose[kind]}
                     values={{purpose: channel.purpose}}
                 />
             </span>
@@ -712,7 +789,9 @@ function createStandardIntroMessage(
         />
     );
 
-    if (inviteUsers) {
+    if (totalUsers === undefined) {
+        actionButtons = null;
+    } else if (inviteUsers) {
         actionButtons = (
             <div className='channel-intro__actions'>
                 {actionButtons = teamInviteLink}

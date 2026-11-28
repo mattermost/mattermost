@@ -193,6 +193,40 @@ describe('SendPostOptions', () => {
         });
     });
 
+    describe('custom time modal', () => {
+        async function scheduleFromCustomTimeModal() {
+            openMenu();
+            fireEvent.click(screen.getByText('Choose a custom time'));
+            runPendingTimers();
+
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', {name: 'Schedule'}));
+            });
+        }
+
+        it('stays open and shows the error when scheduling fails', async () => {
+            onSelect.mockResolvedValue({error: 'Invalid scheduled at time.'});
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW));
+
+            await scheduleFromCustomTimeModal();
+
+            expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({scheduled_at: tomorrowAt9am}));
+            expect(screen.getByText('Invalid scheduled at time.')).toBeVisible();
+            expect(screen.getByRole('heading', {name: 'Schedule message'})).toBeVisible();
+        });
+
+        it('closes when scheduling succeeds', async () => {
+            onSelect.mockResolvedValue({});
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW));
+
+            await scheduleFromCustomTimeModal();
+            runPendingTimers();
+
+            expect(onSelect).toHaveBeenCalledTimes(1);
+            expect(screen.queryByRole('heading', {name: 'Schedule message'})).not.toBeInTheDocument();
+        });
+    });
+
     it('reopens the menu in mobile view after a message has been scheduled', () => {
         renderComponent(stateForView(WindowSizes.MOBILE_VIEW));
 
@@ -215,5 +249,57 @@ describe('SendPostOptions', () => {
         openMenu();
 
         expect(menuModal()).toBeNull();
+    });
+
+    describe('blocked reason', () => {
+        const reason = 'Messages with attributes can’t be scheduled';
+
+        // The tooltip opens on focus of its trigger: the wrapper when there is a reason,
+        // the button itself otherwise
+        async function showTooltip(trigger: HTMLElement) {
+            await act(async () => {
+                fireEvent.focus(trigger);
+            });
+            runPendingTimers();
+        }
+
+        it('disables the chevron and shows the reason as its tooltip', async () => {
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW), {blockedReason: reason});
+
+            expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
+
+            await showTooltip(screen.getByRole('button', {name: 'Schedule message'}).parentElement!);
+
+            expect(await screen.findByText(reason)).toBeVisible();
+        });
+
+        it('does not open the menu', () => {
+            renderComponent(stateForView(WindowSizes.MOBILE_VIEW), {blockedReason: reason});
+
+            openMenu();
+
+            expect(menuModal()).toBeNull();
+        });
+
+        it('leaves the chevron enabled and shows the usual tooltip without a reason', async () => {
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW));
+
+            expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled();
+
+            await showTooltip(screen.getByRole('button', {name: 'Schedule message'}));
+
+            expect(await screen.findByRole('tooltip')).toHaveTextContent('Schedule message');
+            expect(screen.queryByText(reason)).not.toBeInTheDocument();
+        });
+
+        it('keeps the disabled chevron without a tooltip when only `disabled` is set', async () => {
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW), {disabled: true});
+
+            expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
+
+            await showTooltip(screen.getByRole('button', {name: 'Schedule message'}));
+
+            expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+        });
     });
 });

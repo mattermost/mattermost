@@ -5,6 +5,7 @@ package mail
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -170,14 +171,8 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 }
 
 func getInbucketHost() (host string) {
-	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "localhost"
-	}
+	inbucket_host := cmp.Or(os.Getenv("CI_INBUCKET_HOST"), "localhost")
 
-	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "9001"
-	}
+	inbucket_port := cmp.Or(os.Getenv("CI_INBUCKET_PORT"), "9001")
 	return "http://" + net.JoinHostPort(inbucket_host, inbucket_port)
 }

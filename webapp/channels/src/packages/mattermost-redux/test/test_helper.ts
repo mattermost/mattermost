@@ -587,7 +587,6 @@ class TestHelper {
             width: 0,
             height: 0,
             clientId: '',
-            archived: false,
             ...override,
         };
     };
@@ -610,7 +609,6 @@ class TestHelper {
                 width: 350,
                 height: 200,
                 clientId: 'client_id',
-                archived: false,
             });
         }
 

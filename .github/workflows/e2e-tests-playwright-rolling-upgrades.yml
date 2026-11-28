@@ -80,6 +80,9 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
       # Declared so the manual-run fallback below is well-typed. Callers never pass these — under
       # workflow_call they resolve to empty and MM_LICENSE / REPORT_WEBHOOK_URL win; under
       # workflow_dispatch there is no caller, and these resolve to the repo secrets directly.
@@ -242,6 +245,7 @@ jobs:
       statuses: write
       id-token: write
       pull-requests: write
+      actions: read
     uses: ./.github/workflows/e2e-tests-playwright-rolling-upgrades-template.yml
     with:
       # The two images that define this upgrade: from `dockerTag` (this matrix entry) to
@@ -266,3 +270,4 @@ jobs:
       # e2e entry workflows would otherwise have passed.
       MM_LICENSE: ${{ secrets.MM_LICENSE || secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL || secrets.MM_E2E_REPORT_WEBHOOK_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

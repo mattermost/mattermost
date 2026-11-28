@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"bytes"
+	"cmp"
 	"os"
 	"path/filepath"
 	"slices"
@@ -56,10 +57,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 
 	// Check for environment variable override for console log level (useful for debugging tests)
-	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	if consoleLevel == "" {
-		consoleLevel = mlog.LvlStdLog.Name
-	}
+	consoleLevel := cmp.Or(os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL"), mlog.LvlStdLog.Name)
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 
 	_, _, err = memoryStore.Set(memoryConfig)

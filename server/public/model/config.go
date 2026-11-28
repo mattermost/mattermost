@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io"
+	"maps"
 	"math"
 	"net"
 	"net/http"
@@ -145,7 +146,8 @@ const (
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
-	TeamSettingsDefaultMaxUsersPerTeam       = 50
+	TeamSettingsDefaultMaxUsersPerTeam       = 0
+	TeamSettingsDefaultMaxChannelsPerTeam    = 0
 	TeamSettingsDefaultCustomBrandText       = ""
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
@@ -394,7 +396,7 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable,manage_system_write"`
 	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
 	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -429,11 +431,11 @@ type ServiceSettings struct {
 	EnableLinkPreviews                     *bool    `access:"site_posts"`
 	EnablePermalinkPreviews                *bool    `access:"site_posts"`
 	RestrictLinkPreviews                   *string  `access:"site_posts"`
-	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable,manage_system_write"`
 	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
 	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
 	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert                 *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert                 *bool    `access:"site_notices,write_restrictable,cloud_restrictable"`
 	EnableInsecureOutgoingConnections      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
@@ -1130,6 +1132,11 @@ type CacheSettings struct {
 	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisCachePrefix   *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisEnableTLS     *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSSkipVerify *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSCA         *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSClientCert *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSClientKey  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
@@ -1154,6 +1161,26 @@ func (s *CacheSettings) SetDefaults() {
 		s.RedisCachePrefix = new("")
 	}
 
+	if s.RedisEnableTLS == nil {
+		s.RedisEnableTLS = new(false)
+	}
+
+	if s.RedisTLSSkipVerify == nil {
+		s.RedisTLSSkipVerify = new(false)
+	}
+
+	if s.RedisTLSCA == nil {
+		s.RedisTLSCA = new("")
+	}
+
+	if s.RedisTLSClientCert == nil {
+		s.RedisTLSClientCert = new("")
+	}
+
+	if s.RedisTLSClientKey == nil {
+		s.RedisTLSClientKey = new("")
+	}
+
 	if s.DisableClientCache == nil {
 		s.DisableClientCache = new(false)
 	}
@@ -1176,6 +1203,10 @@ func (s *CacheSettings) isValid() *AppError {
 	// so a separator or glob character in the prefix would let one server match another's keys.
 	if *s.CacheType == CacheTypeRedis && strings.ContainsAny(*s.RedisCachePrefix, `:*?[]\`) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_cache_prefix.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CacheType == CacheTypeRedis && *s.RedisEnableTLS && (*s.RedisTLSClientCert == "") != (*s.RedisTLSClientKey == "") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.redis_tls_client_cert_key.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -1778,7 +1809,7 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.EnableWebhookDebugging == nil {
-		s.EnableWebhookDebugging = new(true)
+		s.EnableWebhookDebugging = new(false)
 	}
 
 	if s.EnableDiagnostics == nil {
@@ -2256,13 +2287,13 @@ type EmailSettings struct {
 	FeedbackEmail                     *string `access:"site_notifications,cloud_restrictable"`
 	ReplyToAddress                    *string `access:"site_notifications,cloud_restrictable"`
 	FeedbackOrganization              *string `access:"site_notifications"`
-	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPServer                        *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPPort                          *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
+	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPServer                        *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPPort                          *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
 	SMTPServerTimeout                 *int    `access:"cloud_restrictable"`
-	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	SendPushNotifications             *bool   `access:"environment_push_notification_server"`
 	PushNotificationServer            *string `access:"environment_push_notification_server"` // telemetry: none
 	PushNotificationContents          *string `access:"site_notifications"`
@@ -2271,7 +2302,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int    `access:"site_notifications"`
 	EmailBatchingInterval             *int    `access:"site_notifications"`
 	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
-	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	EmailNotificationContentsType     *string `access:"site_notifications"`
 }
 
@@ -2395,6 +2426,16 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.EmailNotificationContentsType == nil {
 		s.EmailNotificationContentsType = new(EmailNotificationContentsFull)
 	}
+}
+
+// IsSMTPConfigured reports whether an SMTP server was set up. An empty server, or one still at exactly the
+// default localhost:10025, counts as never configured; localhost on any other port is a real local relay.
+func (s *EmailSettings) IsSMTPConfigured() bool {
+	server := SafeDereference(s.SMTPServer)
+	if server == "" {
+		return false
+	}
+	return server != EmailSMTPDefaultServer || SafeDereference(s.SMTPPort) != EmailSMTPDefaultPort
 }
 
 type RateLimitSettings struct {
@@ -2666,7 +2707,7 @@ func (s *ThemeSettings) SetDefaults() {
 
 type TeamSettings struct {
 	SiteName                        *string `access:"site_customization"`
-	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
+	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"` // 0 means no limit
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
@@ -2680,7 +2721,7 @@ type TeamSettings struct {
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"site_users_and_teams"`
-	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
+	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"` // 0 means no limit
 	EnableChannelCategorySorting        *bool    `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
@@ -2750,7 +2791,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.MaxChannelsPerTeam == nil {
-		s.MaxChannelsPerTeam = new(int64(2000))
+		s.MaxChannelsPerTeam = new(int64(TeamSettingsDefaultMaxChannelsPerTeam))
 	}
 
 	if s.EnableChannelCategorySorting == nil {
@@ -3658,11 +3699,23 @@ func (s *JobSettings) SetDefaults() {
 	}
 }
 
+type SiteHealthSettings struct {
+	// EnableAutomaticChecks gates only the hourly scheduler. On-demand runs keep working when it is off.
+	EnableAutomaticChecks *bool `access:"reporting_site_statistics,manage_system_write,write_restrictable,cloud_restrictable"`
+}
+
+func (s *SiteHealthSettings) SetDefaults() {
+	if s.EnableAutomaticChecks == nil {
+		s.EnableAutomaticChecks = new(true)
+	}
+}
+
 type CloudSettings struct {
 	CWSURL                *string `access:"write_restrictable"`
 	CWSAPIURL             *string `access:"write_restrictable"`
 	Disable               *bool   `access:"write_restrictable,cloud_restrictable"`
 	PreviewModalBucketURL *string `access:"write_restrictable"`
+	PreviewLandingPath    *string `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3691,6 +3744,10 @@ func (s *CloudSettings) SetDefaults() {
 	if s.PreviewModalBucketURL == nil {
 		s.PreviewModalBucketURL = new("")
 	}
+
+	if s.PreviewLandingPath == nil {
+		s.PreviewLandingPath = new("")
+	}
 }
 
 type PluginState struct {
@@ -3712,6 +3769,9 @@ type PluginSettings struct {
 	RequirePluginSignature      *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
 	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
+	// RestrictUnauthenticatedWebappPlugins limits the webapp plugins exposed to clients without a
+	// session to those whose manifest sets webapp.pre_auth.
+	RestrictUnauthenticatedWebappPlugins *bool `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
@@ -3746,6 +3806,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.PluginStates == nil {
 		s.PluginStates = make(map[string]*PluginState)
 	}
+
+	maps.DeleteFunc(s.PluginStates, func(_ string, state *PluginState) bool {
+		return state == nil
+	})
 
 	if s.PluginStates[PluginIdNPS] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
@@ -3794,6 +3858,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 
 	if s.SignaturePublicKeyFiles == nil {
 		s.SignaturePublicKeyFiles = []string{}
+	}
+
+	// Existing installations are reset to false by an app migration on upgrade.
+	if s.RestrictUnauthenticatedWebappPlugins == nil {
+		s.RestrictUnauthenticatedWebappPlugins = new(true)
 	}
 }
 
@@ -4279,6 +4348,7 @@ const (
 	ConfigAccessTagType              = "access"
 	ConfigAccessTagWriteRestrictable = "write_restrictable"
 	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+	ConfigAccessTagManageSystemWrite = "manage_system_write"
 )
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
@@ -4299,6 +4369,9 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access
 // unless the request is made using local mode.
+//
+// Config values with the access tag 'manage_system_write' can only be written with PermissionManageSystem or using
+// local mode, regardless of any PermissionSysconsoleWrite* granted by the other access tag values. Read access is unaffected.
 //
 // PermissionManageSystem always grants read access.
 //
@@ -4355,6 +4428,7 @@ type Config struct {
 	MobileEphemeralModeSettings MobileEphemeralModeSettings
 	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
+	SiteHealthSettings          SiteHealthSettings
 	PluginSettings              PluginSettings
 	DisplaySettings             DisplaySettings
 	GuestAccountsSettings       GuestAccountsSettings
@@ -4474,6 +4548,7 @@ func (o *Config) SetDefaults() {
 	o.RateLimitSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
+	o.SiteHealthSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()
@@ -4681,11 +4756,11 @@ func (o *Config) IsValid() *AppError {
 }
 
 func (s *TeamSettings) isValid() *AppError {
-	if *s.MaxUsersPerTeam <= 0 {
+	if *s.MaxUsersPerTeam < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxChannelsPerTeam <= 0 {
+	if *s.MaxChannelsPerTeam < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 

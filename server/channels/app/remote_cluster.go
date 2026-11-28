@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/base64"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 
@@ -52,9 +54,7 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	// When SiteURL is empty, fall back to the legacy single-remote behavior
 	// using the "plugin_" prefix. This preserves compatibility for older plugins
 	// that haven't been updated to provide a SiteURL.
-	if opts.SiteURL == "" {
-		opts.SiteURL = model.SiteURLPlugin + opts.PluginID
-	}
+	opts.SiteURL = cmp.Or(opts.SiteURL, model.SiteURLPlugin+opts.PluginID)
 
 	// Check if this SiteURL is already registered.
 	rc, err := a.Srv().Store().RemoteCluster().GetBySiteURL(opts.SiteURL)
@@ -193,8 +193,9 @@ func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *
 			return nil, appErr
 		}
 
-		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {
-			return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		var conflictErr *store.ErrConflict
+		if errors.As(err, &conflictErr) {
+			return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusConflict).Wrap(err)
 		}
 
 		return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

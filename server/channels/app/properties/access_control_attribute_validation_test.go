@@ -1340,9 +1340,9 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 
 	t.Run("sanitizeAndValidateOptions writes back canonical []any of map[string]any", func(t *testing.T) {
 		// Downstream readers (asOptionSlice, EnsureOptionIDs, store-layer
-		// serialization) expect the canonical loose-typed shape. Writing back
-		// a typed PropertyOptions slice from the hook used to break the linked-
-		// options diff on every no-op patch — see commit bc15075016.
+		// serialization) expect the canonical loose-typed shape. A typed
+		// PropertyOptions slice from the hook breaks the linked-options diff
+		// on every no-op patch — see commit bc15075016.
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -1532,8 +1532,10 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 		// Should succeed because the hook doesn't apply to this group
 		created, createErr := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, createErr)
-		// PermissionValues should NOT be set by the hook for unmanaged groups
-		assert.Nil(t, created.PermissionValues)
+		// The hook didn't pin PermissionValues to sysadmin for this group, so the
+		// unset column converted to value.write none, which is what is stored.
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelNone, *created.PermissionValues)
 	})
 
 	t.Run("empty caller ID is rejected (default-deny for unidentified callers)", func(t *testing.T) {
@@ -2662,6 +2664,52 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
 		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
 		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+	})
+
+	t.Run("merging duplicate entries unions their allow lists in order", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}, Allow: []string{model.PropertyActionValueRead, model.PropertyActionValueWrite}},
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Allow: []string{model.PropertyActionFieldWrite, model.PropertyActionValueRead, model.PropertyActionOptionRead}},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		assert.Equal(t, []string{
+			model.PropertyActionValueRead,
+			model.PropertyActionValueWrite,
+			model.PropertyActionFieldWrite,
+			model.PropertyActionOptionRead,
+		}, owners[0].Allow)
+	})
+
+	t.Run("merging a duplicate entry with no allow list leaves the merged allow empty", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}, Allow: []string{model.PropertyActionValueRead}},
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Empty(t, owners[0].Allow)
 	})
 
 	t.Run("preserves scope label case verbatim", func(t *testing.T) {
@@ -3918,5 +3966,116 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassificati
 		var appErr *model.AppError
 		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+	})
+}
+
+func TestAccessControlAttributeValidationHookRefusesUnsupportedTypes(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_unsupported_types", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeNumber, model.PropertyFieldTypeCheckbox} {
+		t.Run("refuses creating a "+string(fieldType)+" field", func(t *testing.T) {
+			_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       fieldType,
+				TargetType: "system",
+				ObjectType: "user",
+			})
+			require.Error(t, createErr)
+			assert.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+			assert.Contains(t, createErr.Error(), "cannot be an access control attribute")
+		})
+
+		t.Run("refuses changing a field to "+string(fieldType), func(t *testing.T) {
+			created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "system",
+				ObjectType: "user",
+			})
+			require.NoError(t, createErr)
+
+			created.Type = fieldType
+			_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+			require.Error(t, updateErr)
+			assert.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+		})
+	}
+}
+
+func TestAccessControlAttributeValidationHook_PostFields(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_post_fields", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+	unmanaged, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_post_fields_unmanaged", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
+
+	newField := func(groupID, objectType, targetType, targetID string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: targetType,
+			TargetID:   targetID,
+		}
+	}
+	cloneField := func(f *model.PropertyField) *model.PropertyField {
+		c := *f
+		return &c
+	}
+	mustCreate := func(t *testing.T, f *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		created, createErr := th.service.CreatePropertyField(th.Context, f)
+		require.NoError(t, createErr)
+		return created
+	}
+
+	t.Run("a system-scoped post field is accepted on create", func(t *testing.T) {
+		mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypePost, "system", ""))
+	})
+
+	t.Run("channel and team scoped post fields are refused on create", func(t *testing.T) {
+		for _, target := range []string{"channel", "team"} {
+			f := newField(group.ID, model.PropertyFieldObjectTypePost, target, model.NewId())
+			_, createErr := th.service.CreatePropertyField(th.Context, f)
+			require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+			assert.NotContains(t, createErr.Error(), f.Name)
+		}
+	})
+
+	t.Run("updating a system post field to channel scope is refused, single and batch", func(t *testing.T) {
+		created := mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypePost, "system", ""))
+
+		single := cloneField(created)
+		single.TargetType = "channel"
+		single.TargetID = model.NewId()
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, single)
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+
+		batch := cloneField(created)
+		batch.TargetType = "channel"
+		batch.TargetID = model.NewId()
+		_, _, _, updateErr = th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{batch})
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+	})
+
+	t.Run("a post field linked to a template is accepted", func(t *testing.T) {
+		template := mustCreate(t, newField(group.ID, model.PropertyFieldObjectTypeTemplate, "system", ""))
+		linked := newField(group.ID, model.PropertyFieldObjectTypePost, "system", "")
+		linked.LinkedFieldID = &template.ID
+		mustCreate(t, linked)
+	})
+
+	t.Run("a group the hook does not manage is untouched", func(t *testing.T) {
+		mustCreate(t, newField(unmanaged.ID, model.PropertyFieldObjectTypePost, "channel", model.NewId()))
 	})
 }

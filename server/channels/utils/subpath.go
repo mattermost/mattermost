@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -55,9 +56,7 @@ func GetStaticScriptHashes(subpath string) string {
 //
 // No changes are written unless necessary.
 func UpdateAssetsSubpathInDir(subpath, directory string) error {
-	if subpath == "" {
-		subpath = "/"
-	}
+	subpath = cmp.Or(subpath, "/")
 
 	// Resolve the static directory
 	staticDir, found := fileutils.FindDir(directory)

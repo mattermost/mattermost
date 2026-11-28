@@ -21,14 +21,17 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {PropertyField} from '@mattermost/types/properties';
 
+import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
-import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+import {comparePropertyFieldOrder, getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
-import {showChannelInfo} from 'actions/views/rhs';
+import {openChannelAttributeEditor, showChannelInfo} from 'actions/views/rhs';
 
 import type {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import useChannelLabels from 'components/common/hooks/useChannelLabels';
+import useFixableMissingRequiredAttributes from 'components/common/hooks/useFixableMissingRequiredAttributes';
 
 import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
@@ -66,6 +69,10 @@ type Props = {
     // Global Threads and the thread popout have no such channel, so there the
     // chips are labels only rather than controls that cannot do anything.
     interactive?: boolean;
+
+    // Also show a "Set {label}" chip for each required attribute this channel lacks
+    // a value for, that the viewer can set and that is designated for the header.
+    showMissingPlaceholders?: boolean;
 };
 
 /**
@@ -80,17 +87,41 @@ type ChipSpec = {
     fieldLabel: string;
     value: string;
     color?: string;
+
+    // A "Set {label}" prompt for a missing value instead of a value chip.
+    missingFieldId?: string;
+    missingFieldName?: string;
 };
 
-const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, interactive = true}: Props) => {
+const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, interactive = true, showMissingPlaceholders = false}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const labels = useChannelLabels(channelId, surface);
+    const {fields: fixableMissingFields} = useFixableMissingRequiredAttributes(channelId, {skip: !showMissingPlaceholders || !interactive});
     const surfaceId = Array.isArray(surface) ? surface.join('-') : surface;
 
     // Expand each attribute into one ChipSpec per value (multiselect → N chips).
+    // "Set {label}" prompts take their field's place in the configured order, so a
+    // missing value never pushes a set one into the overflow.
     const chipSpecs = useMemo((): ChipSpec[] => {
-        const specs: ChipSpec[] = [];
+        const entries: Array<{field: PropertyField; specs: ChipSpec[]}> = [];
+        for (const missingField of fixableMissingFields) {
+            const actions = missingField.attrs?.actions;
+            if (!Array.isArray(actions) || !actions.includes(DISPLAY_LABEL_HEADER)) {
+                continue;
+            }
+            const fieldLabel = getPropertyFieldLabel(missingField);
+            entries.push({
+                field: missingField,
+                specs: [{
+                    chipId: `missing:${missingField.id}`,
+                    fieldLabel,
+                    value: formatMessage({id: 'channel_attributes.labels.set_value', defaultMessage: 'Set {label}'}, {label: fieldLabel}),
+                    missingFieldId: missingField.id,
+                    missingFieldName: missingField.name,
+                }],
+            });
+        }
         for (const attribute of labels) {
             if (!attribute.displayValue) {
                 continue;
@@ -98,15 +129,16 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
             const fieldLabel = getPropertyFieldLabel(attribute.field);
             const values = attribute.displayValues.length > 0 ? attribute.displayValues : [attribute.displayValue];
             if (values.length === 1) {
-                specs.push({chipId: attribute.field.id, fieldLabel, value: values[0], color: optionColor(attribute)});
+                entries.push({field: attribute.field, specs: [{chipId: attribute.field.id, fieldLabel, value: values[0], color: optionColor(attribute)}]});
             } else {
-                for (let i = 0; i < values.length; i++) {
-                    specs.push({chipId: `${attribute.field.id}:${i}`, fieldLabel, value: values[i]});
-                }
+                entries.push({field: attribute.field, specs: values.map((value, i) => ({chipId: `${attribute.field.id}:${i}`, fieldLabel, value}))});
             }
         }
-        return specs;
-    }, [labels]);
+        if (fixableMissingFields.length > 0) {
+            entries.sort((a, b) => comparePropertyFieldOrder(a.field, b.field));
+        }
+        return entries.flatMap((entry) => entry.specs);
+    }, [labels, fixableMissingFields, formatMessage]);
 
     const ids = useMemo(() => chipSpecs.map((s) => s.chipId), [chipSpecs]);
     const {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds, measured} = useLabelsOverflow(ids, {allowEmptyVisible});
@@ -173,6 +205,26 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
         return null;
     }
 
+    const renderMissingChip = (spec: ChipSpec, fieldId: string) => (
+        <button
+            type='button'
+            className='ChannelAttributeLabels__chipButton'
+            onClick={() => {
+                dispatch(openChannelAttributeEditor(channelId, fieldId));
+                setPopoverOpen(false);
+            }}
+            data-testid={`channelHeaderMissingAttributeChip-${spec.missingFieldName}`}
+        >
+            <AttributeChip
+                label={spec.fieldLabel}
+                value={spec.value}
+                size='medium'
+                announceLabel={false}
+                className='AttributeChip--missing'
+            />
+        </button>
+    );
+
     const wrapChip = (chip: ReactNode) => (interactive ? (
         <button
             type='button'
@@ -199,16 +251,18 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
                 ref={chipRef(id)}
                 className='ChannelAttributeLabels__item'
             >
-                <WithTooltip title={spec.fieldLabel}>
-                    {wrapChip(
-                        <AttributeChip
-                            label={spec.fieldLabel}
-                            value={spec.value}
-                            color={spec.color}
-                            size='medium'
-                        />,
-                    )}
-                </WithTooltip>
+                {spec.missingFieldId ? renderMissingChip(spec, spec.missingFieldId) : (
+                    <WithTooltip title={spec.fieldLabel}>
+                        {wrapChip(
+                            <AttributeChip
+                                label={spec.fieldLabel}
+                                value={spec.value}
+                                color={spec.color}
+                                size='medium'
+                            />,
+                        )}
+                    </WithTooltip>
+                )}
             </span>
         );
     };
@@ -235,7 +289,7 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
                     type='button'
                     className='ChannelAttributeLabels__overflow'
                     aria-label={formatMessage(
-                        {id: 'channel_attributes.labels.overflow_aria', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
+                        {id: 'generic.more_attributes', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}', description: 'Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes.'},
                         {count: overflowIds.length},
                     )}
                     data-testid={`channelAttributeLabelsOverflow-${surfaceId}`}
@@ -272,7 +326,7 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
                                     <span className='ChannelAttributeLabels__popoverLabel'>
                                         {spec.fieldLabel}
                                     </span>
-                                    {wrapChip(
+                                    {spec.missingFieldId ? renderMissingChip(spec, spec.missingFieldId) : wrapChip(
                                         <AttributeChip
                                             label={spec.fieldLabel}
                                             value={spec.value}

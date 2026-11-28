@@ -81,6 +81,33 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 	return configListenerId, licenseListenerId
 }
 
+// SearchEngineConnectionTested is called after a successful connection test
+// with the given settings. Testing doesn't start the engine, so if it isn't
+// running, wake the watcher to retry Start() now rather than after its backoff.
+// The watcher starts the engine with the saved config, so a test of other
+// connection settings is ignored; waking the watcher also resets its backoff.
+func (ps *PlatformService) SearchEngineConnectionTested(tested model.ElasticsearchSettings) {
+	engine := ps.SearchEngine.ElasticsearchEngine
+	if engine == nil || engine.IsActive() || !sameSearchEngineConnection(tested, ps.Config().ElasticsearchSettings) {
+		return
+	}
+	ps.esWatcher.reevaluate()
+}
+
+// sameSearchEngineConnection reports whether a and b connect to the same
+// cluster in the same way.
+func sameSearchEngineConnection(a, b model.ElasticsearchSettings) bool {
+	return model.SafeDereference(a.Backend) == model.SafeDereference(b.Backend) &&
+		model.SafeDereference(a.ConnectionURL) == model.SafeDereference(b.ConnectionURL) &&
+		model.SafeDereference(a.Username) == model.SafeDereference(b.Username) &&
+		model.SafeDereference(a.Password) == model.SafeDereference(b.Password) &&
+		model.SafeDereference(a.Sniff) == model.SafeDereference(b.Sniff) &&
+		model.SafeDereference(a.SkipTLSVerification) == model.SafeDereference(b.SkipTLSVerification) &&
+		model.SafeDereference(a.CA) == model.SafeDereference(b.CA) &&
+		model.SafeDereference(a.ClientCert) == model.SafeDereference(b.ClientCert) &&
+		model.SafeDereference(a.ClientKey) == model.SafeDereference(b.ClientKey)
+}
+
 func (ps *PlatformService) StopSearchEngine() {
 	if ps.esWatcher != nil {
 		ps.esWatcher.stop()

@@ -2,8 +2,7 @@
   "name": "Mattermost Cloud Agent",
   "user": "ubuntu",
   "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
+    "dockerfile": "Dockerfile"
   },
   "repositoryDependencies": [
     "github.com/mattermost/enterprise"

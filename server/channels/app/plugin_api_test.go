@@ -1299,6 +1299,18 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
+	reservedBundle := makeInMemoryGzipTarFile(t, []testFile{
+		{"plugin.json", `{"id":"com.mattermost.server","version":"1.0.0","webapp":{"bundle_path":"main.js"}}`},
+		{"main.js", "// reserved fixture"},
+	})
+	reservedManifest, appErr := api.InstallPlugin(reservedBundle, true)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.plugin.reserved_id.app_error", appErr.Id)
+	require.Nil(t, reservedManifest)
+	stored, appErr := th.App.FileExists(getBundleStorePath(model.CoreServerPluginID))
+	require.Nil(t, appErr)
+	require.False(t, stored)
+
 	manifest, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
 	defer os.RemoveAll("plugins/testplugin")
 	require.Nil(t, appErr)
@@ -1964,7 +1976,7 @@ func TestPluginUpdatePostWithOptions(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
 		require.Nil(t, appErr)
 		require.Len(t, infos, 1)
 		assert.Equal(t, file.Id, infos[0].Id)
@@ -2042,7 +2054,7 @@ func TestPluginUpdatePostWithOptions(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Empty(t, updated.FileIds)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
 		require.Nil(t, appErr)
 		assert.Empty(t, infos)
 	})
@@ -2359,6 +2371,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				if r.URL.Path != "/api/v2/test" {
 					return
 				}
+			case "/identity":
+				w.Write([]byte(r.Header.Get("Mattermost-Plugin-ID")))
 			case "/nobody":
 				w.WriteHeader(599)
 			}
@@ -2450,6 +2464,13 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "ok", ret)
+
+	req := httptest.NewRequest(http.MethodGet, "/identity", nil)
+	req.Header.Set("Mattermost-Plugin-ID", "forged-plugin")
+	response := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", response, req, "", "testplugininterserver")
+	require.Equal(t, http.StatusOK, response.Code)
+	require.Equal(t, model.CoreServerPluginID, response.Body.String())
 }
 
 type flushObservingRecorder struct {
@@ -4796,6 +4817,185 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 	})
 }
 
+// TestPluginAPIGetPropertyFieldProjectsLegacyPermissions asserts that a
+// plugin -- a v2 caller with no version negotiation -- reads Protected,
+// PermissionField/Values/Options and owners computed from a field's
+// permissions object, on every read method, even for a field whose legacy
+// columns were never written directly.
+func TestPluginAPIGetPropertyFieldProjectsLegacyPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	// api.RegisterPropertyGroup hardcodes v1, which never holds a permissions
+	// object, so register the v2 group directly through the app layer.
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	ownerID := model.NewId()
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "projected field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+			},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: ownerID}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		},
+	})
+	require.NoError(t, sErr)
+
+	assertProjected := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.True(t, got.Protected)
+		require.NotNil(t, got.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *got.PermissionField)
+		require.NotNil(t, got.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *got.PermissionValues)
+		require.NotNil(t, got.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelAdmin, *got.PermissionOptions)
+		owners := model.GetPropertyFieldOwners(got)
+		require.Len(t, owners, 1)
+		assert.Equal(t, ownerID, owners[0].ID)
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, field.ID)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{field.ID})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", field.Name)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	// Store hydration overrides the stored Protected/Permission* columns with the
+	// values projected from Permissions, so a load-modify-save does not look like a
+	// legacy-column change. Attrs (owners, access_mode) are still projected only on
+	// the plugin/v2 copy via ProjectLegacyPermissions.
+	stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, stored)
+	assert.True(t, stored.Protected)
+	require.NotNil(t, stored.PermissionField)
+	assert.Equal(t, model.PermissionLevelNone, *stored.PermissionField)
+	require.NotNil(t, stored.PermissionValues)
+	assert.Equal(t, model.PermissionLevelMember, *stored.PermissionValues)
+	require.NotNil(t, stored.PermissionOptions)
+	assert.Equal(t, model.PermissionLevelAdmin, *stored.PermissionOptions)
+}
+
+func TestPluginAPIPropertyFieldReadsFollowLinkedTemplate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_linked_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	restrictions := func() *model.Restrictions {
+		return &model.Restrictions{
+			Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+		}
+	}
+	template, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:     group.ID,
+		Name:        "masked_template",
+		Type:        model.PropertyFieldTypeText,
+		ObjectType:  model.PropertyFieldObjectTypeTemplate,
+		TargetType:  string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{Restrictions: restrictions(), Masking: &model.Masking{}},
+	})
+	require.NoError(t, sErr)
+	linked, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       group.ID,
+		Name:          "linked_field",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Permissions:   &model.Permissions{Restrictions: restrictions()},
+	})
+	require.NoError(t, sErr)
+	require.NotContains(t, linked.Attrs, model.PropertyAttrsAccessMode)
+
+	assertFollowsTemplate := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, got.Attrs[model.PropertyAttrsAccessMode])
+		assert.Equal(t, true, got.Attrs[model.PropertyAttrsProtected])
+		assert.True(t, got.Protected)
+	}
+	findLinked := func(t *testing.T, fields []*model.PropertyField) *model.PropertyField {
+		t.Helper()
+		for _, f := range fields {
+			if f.ID == linked.ID {
+				return f
+			}
+		}
+		require.Fail(t, "linked field not returned")
+		return nil
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, linked.ID)
+		require.NoError(t, err)
+		assertFollowsTemplate(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{linked.ID})
+		require.NoError(t, err)
+		assertFollowsTemplate(t, findLinked(t, got))
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		assertFollowsTemplate(t, findLinked(t, got))
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", linked.Name)
+		require.NoError(t, err)
+		assertFollowsTemplate(t, got)
+	})
+}
+
 func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -5099,7 +5299,9 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	t.Cleanup(func() {
 		th.ConfigStore.SetReadOnlyFF(true)
 	})
-	api := th.SetupPluginAPI()
+	// The untagged context a real plugin gets, so the managed category write
+	// only succeeds if CreateChannel tags the plugin as the caller itself.
+	api := th.SetupPluginAPIWithPluginContext(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	defer func() {
@@ -5778,5 +5980,240 @@ func TestPluginAPICluster(t *testing.T) {
 		assert.Equal(t, "pluginid", msgs[0].Props["PluginID"])
 		assert.Equal(t, "event", msgs[0].Props["EventID"])
 		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
+	})
+}
+
+func TestPluginThreadFollowing(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	root, appErr := api.CreatePost(&model.Post{
+		Message:   "a root post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("a new thread has no followers", func(t *testing.T) {
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("following and unfollowing a root post", func(t *testing.T) {
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{th.BasicUser2.Id}, followers)
+
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, false))
+		followers, appErr = api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("rejects a reply", func(t *testing.T) {
+		reply, appErr := api.CreatePost(&model.Post{
+			Message:   "a reply",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			RootId:    root.Id,
+		})
+		require.Nil(t, appErr)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, reply.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.not_root_post.app_error", appErr.Id)
+	})
+
+	t.Run("rejects invalid ids", func(t *testing.T) {
+		appErr := api.SetThreadFollowing("not-an-id", root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_user_id.app_error", appErr.Id)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, "not-an-id", true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+
+		_, appErr = api.GetThreadFollowers("not-an-id")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+	})
+
+	t.Run("rejects a user that does not exist", func(t *testing.T) {
+		unknownID := model.NewId()
+		appErr := api.SetThreadFollowing(unknownID, root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, followers, unknownID)
+	})
+
+	t.Run("leaves out a deactivated follower", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		require.Nil(t, api.SetThreadFollowing(user.Id, root.Id, true))
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, followers, th.BasicUser2.Id)
+		assert.NotContains(t, followers, user.Id)
+	})
+}
+
+func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	const pluginID = "com.example.p"
+
+	setup := func(t *testing.T, flagEnabled bool) (*propertyValuesTestHelper, *PluginAPI) {
+		t.Helper()
+		th := setupPropertyValuesCreateTest(t, flagEnabled)
+		// The property hook treats the caller as a plugin only when the plugin is installed.
+		registerTestPlugin(t, th.TestHelper, pluginID)
+		return th, NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+	}
+
+	// grantedField creates a system post field whose only way to a value write is a plugin
+	// grant naming grantee: no human tier allows one.
+	grantedField := func(t *testing.T, th *propertyValuesTestHelper, grantee string) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: grantee},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+		return field
+	}
+
+	postWithValue := func(th *propertyValuesTestHelper, field *model.PropertyField) *model.Post {
+		return &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "from a plugin " + model.NewId(),
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{{FieldID: field.ID, Value: json.RawMessage(`"set by plugin"`)}},
+			},
+		}
+	}
+
+	storedValues := func(t *testing.T, th *propertyValuesTestHelper, postID string) []*model.PropertyValue {
+		t.Helper()
+		values, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
+			TargetType: model.PropertyValueTargetTypePost,
+			TargetIDs:  []string{postID},
+			PerPage:    model.PostAttributesMaxFields + 1,
+		})
+		require.Nil(t, appErr)
+		return values
+	}
+
+	t.Run("flag on", func(t *testing.T) {
+		th, api := setup(t, true)
+
+		t.Run("a field granting the plugin a value write takes the value", func(t *testing.T) {
+			field := grantedField(t, th, pluginID)
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(postWithValue(th, field))
+			require.Nil(t, appErr)
+			require.NotNil(t, created)
+
+			stored := storedValues(t, th, created.Id)
+			require.Len(t, stored, 1)
+			assert.Equal(t, field.ID, stored[0].FieldID)
+			assert.JSONEq(t, `"set by plugin"`, string(stored[0].Value))
+			// The plugin acts, but the value is the post author's.
+			assert.Equal(t, th.BasicUser.Id, stored[0].CreatedBy)
+			assert.Equal(t, th.BasicUser.Id, stored[0].UpdatedBy)
+
+			// CreatePost ran with the plugin's caller tag, which is what the hook judged.
+			assert.Equal(t, []string{pluginID}, posts.saveCallerIDs)
+			assert.Empty(t, posts.deletedIDs)
+		})
+
+		t.Run("a field granting another plugin refuses the value and the post is removed", func(t *testing.T) {
+			field := grantedField(t, th, "com.example.other")
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(postWithValue(th, field))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.property.access_denied.app_error", appErr.Id)
+			assert.Nil(t, created)
+
+			// Validation passed, so the post was saved, and the hook's denial removed it again.
+			require.Len(t, posts.savedIDs, 1)
+			assert.Equal(t, posts.savedIDs, posts.deletedIDs)
+			_, getErr := th.App.GetSinglePost(th.Context, posts.savedIDs[0], true)
+			require.NotNil(t, getErr)
+			assert.Equal(t, http.StatusNotFound, getErr.StatusCode)
+			assert.Empty(t, storedValues(t, th, posts.savedIDs[0]))
+		})
+
+		t.Run("a field from another group is refused before the post is saved", func(t *testing.T) {
+			field := th.createOtherGroupField(t)
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(postWithValue(th, field))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.post.create_post.invalid_attribute.app_error", appErr.Id)
+			assert.Nil(t, created)
+			assert.Empty(t, posts.savedIDs)
+		})
+
+		t.Run("a post without values runs with the plugin API's own context", func(t *testing.T) {
+			grantedField(t, th, pluginID)
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(&model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   "no values " + model.NewId(),
+			})
+			require.Nil(t, appErr)
+			require.NotNil(t, created)
+			assert.Empty(t, storedValues(t, th, created.Id))
+
+			// th.Context, which the API was built with, already carries a caller ID of its own.
+			// The save seeing exactly that one, and not the plugin's, shows CreatePost ran with
+			// the API's context untouched.
+			apiCallerID, _ := CallerIDFromRequestContext(th.Context)
+			require.Len(t, posts.saveCallerIDs, 1)
+			assert.Equal(t, apiCallerID, posts.saveCallerIDs[0])
+			assert.NotEqual(t, pluginID, posts.saveCallerIDs[0])
+		})
+	})
+
+	t.Run("flag off refuses values before the post is saved", func(t *testing.T) {
+		th, api := setup(t, false)
+		field := grantedField(t, th, pluginID)
+		posts := th.watchPostStore(t, nil)
+
+		created, appErr := api.CreatePost(postWithValue(th, field))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.post.create_post.attributes_feature_disabled.app_error", appErr.Id)
+		assert.Nil(t, created)
+		assert.Empty(t, posts.savedIDs)
 	})
 }

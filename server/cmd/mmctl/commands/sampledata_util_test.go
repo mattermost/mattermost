@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"cmp"
 	"fmt"
 	"math/rand/v2"
 	"testing"
@@ -21,10 +22,7 @@ func TestCreateUserPasswordLength(t *testing.T) {
 
 	for _, userType := range userTypes {
 		for _, idx := range indices {
-			name := userType
-			if name == "" {
-				name = "user"
-			}
+			name := cmp.Or(userType, "user")
 			t.Run(fmt.Sprintf("%s/idx=%d", name, idx), func(t *testing.T) {
 				t.Parallel()
 				r := rand.New(rand.NewPCG(uint64(idx), uint64(idx)))

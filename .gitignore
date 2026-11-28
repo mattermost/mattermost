@@ -6,6 +6,7 @@
 logs
 .DS_Store
 node_modules
+__pycache__/
 /data
 /dist
 /webapp/dist
@@ -184,6 +185,8 @@ docker-compose.override.yaml
 .cursor/scripts/*
 !.cursor/scripts/cloud-agent-install.sh
 !.cursor/scripts/cloud-agent-start.sh
+!.cursor/scripts/cloud-agent-lib.sh
+!.cursor/scripts/super-env.sh
 server/prev-report.xml
 server/prev-gotestsum.json
 server/shard-*.txt

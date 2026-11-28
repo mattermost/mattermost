@@ -12,9 +12,11 @@ import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
+import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
+import {useChannelKind} from 'hooks/useChannelKind';
 import {Constants} from 'utils/constants';
 
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
@@ -47,6 +49,7 @@ interface Props extends Menu.FirstMenuItemProps {
 }
 
 const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
+    const channelKind = useChannelKind(channel);
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -54,6 +57,11 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
     const channelMembersPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
     const channelDeletePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
     const channelUnarchivePermission = Permissions.MANAGE_TEAM;
+
+    // Unarchiving is authorised on manage_team, which the management decision does not
+    // reach through the permission selectors, so ask it here. An archived channel mounts
+    // no composer to prefetch it.
+    const managementAllowedByPolicy = useChannelManagementAccess(isArchived ? channel.id : '');
 
     return (
         <>
@@ -174,7 +182,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             )}
 
             {isArchived && (
-                <MenuItemCloseChannel/>
+                <MenuItemCloseChannel kind={channelKind}/>
             )}
 
             {!isArchived && !isDefault && (
@@ -189,7 +197,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 </ChannelPermissionGate>
             )}
 
-            {isArchived && !isDefault && (
+            {isArchived && !isDefault && managementAllowedByPolicy && (
                 <ChannelPermissionGate
                     channelId={channel.id}
                     teamId={channel.team_id}
@@ -197,6 +205,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 >
                     <MenuItemUnarchiveChannel
                         channel={channel}
+                        kind={channelKind}
                     />
                 </ChannelPermissionGate>
             )}

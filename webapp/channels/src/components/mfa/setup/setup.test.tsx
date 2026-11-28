@@ -29,16 +29,15 @@ describe('components/mfa/setup', () => {
         history: {push: jest.fn()},
     };
 
-    test('should match snapshot without required text', async () => {
-        const {container} = renderWithContext(
+    test('should render without required text', async () => {
+        renderWithContext(
             <Setup {...baseProps}/>,
         );
-        expect(container).toMatchSnapshot();
         const requiredText = screen.queryByText(/Multi-factor authentication is required/);
         expect(requiredText).not.toBeInTheDocument();
     });
 
-    test('should match snapshot with required text', async () => {
+    test('should render with required text', async () => {
         const props = {
             ...baseProps,
             enforceMultifactorAuthentication: true,
