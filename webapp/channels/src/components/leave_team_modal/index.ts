@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {removeUserFromTeam as leaveTeam} from 'mattermost-redux/actions/teams';
-import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -19,15 +19,23 @@ import type {GlobalState} from 'types/store';
 import LeaveTeamModal from './leave_team_modal';
 
 function getNumOfPrivateChannels(state: GlobalState) {
-    const channels = getMyChannels(state);
+    const channels = getChannelsInCurrentTeam(state);
+    const myMembers = getMyChannelMemberships(state);
 
-    return channels.filter((channel) => channel.type === Constants.PRIVATE_CHANNEL).length;
+    return channels.filter((channel) =>
+        channel.type === Constants.PRIVATE_CHANNEL &&
+        Object.hasOwn(myMembers, channel.id),
+    ).length;
 }
 
 function getNumOfPublicChannels(state: GlobalState) {
-    const channels = getMyChannels(state);
+    const channels = getChannelsInCurrentTeam(state);
+    const myMembers = getMyChannelMemberships(state);
 
-    return channels.filter((channel) => channel.type === Constants.OPEN_CHANNEL).length;
+    return channels.filter((channel) =>
+        channel.type === Constants.OPEN_CHANNEL &&
+        Object.hasOwn(myMembers, channel.id),
+    ).length;
 }
 
 function mapStateToProps(state: GlobalState) {
