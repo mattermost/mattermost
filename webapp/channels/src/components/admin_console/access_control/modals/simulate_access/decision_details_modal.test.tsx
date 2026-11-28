@@ -72,8 +72,8 @@ function renderDetails(decision: PolicySimulationActionDecision, policy?: Access
 }
 
 async function expandTrace(): Promise<HTMLElement> {
-    await userEvent.click(await screen.findByTestId(`simulate-access-details-toggle-${ACTION}`));
-    return screen.findByTestId(`simulate-access-details-rule-${ACTION}`);
+    await userEvent.click(await screen.findByTestId('admin.simulate_access.details.action.toggle--button'));
+    return screen.findByTestId('admin.simulate_access.details.action.rule');
 }
 
 function flatExpression(container: HTMLElement): string | null | undefined {
@@ -109,10 +109,10 @@ describe('DecisionDetailsModal trace rendering', () => {
         });
 
         await expandTrace();
-        const tree = screen.getByTestId(`simulate-access-details-tree-${ACTION}`);
+        const tree = screen.getByTestId('admin.simulate_access.details.action.tree');
 
-        expect(within(tree).getByTestId('simulate-access-trace-node-or-false')).toBeInTheDocument();
-        expect(within(tree).getAllByTestId('simulate-access-trace-node-compare-false')).toHaveLength(2);
+        expect(within(tree).getByTestId('admin.simulate_access.details.action.trace_node:or_false')).toBeInTheDocument();
+        expect(within(tree).getAllByTestId('admin.simulate_access.details.action.trace_node:compare_false')).toHaveLength(2);
         expect(within(tree).getByText('ANY of the following may hold (OR)')).toBeInTheDocument();
     });
 
@@ -131,10 +131,10 @@ describe('DecisionDetailsModal trace rendering', () => {
         });
 
         await expandTrace();
-        const first = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-1`);
-        const second = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-2`);
+        const first = screen.getByTestId('admin.simulate_access.details.action.merged_rule:1');
+        const second = screen.getByTestId('admin.simulate_access.details.action.merged_rule:2');
 
-        expect(within(first).getByTestId('simulate-access-trace-node-compare-false')).toBeInTheDocument();
+        expect(within(first).getByTestId('admin.simulate_access.details.action.trace_node:compare_false')).toBeInTheDocument();
         expect(within(second).getByText(A)).toBeInTheDocument();
     });
 
@@ -153,12 +153,12 @@ describe('DecisionDetailsModal trace rendering', () => {
         });
 
         const ruleBlock = await expandTrace();
-        const tree = screen.getByTestId(`simulate-access-details-tree-${ACTION}`);
+        const tree = screen.getByTestId('admin.simulate_access.details.action.tree');
 
-        expect(screen.queryByTestId(`simulate-access-details-merged-${ACTION}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.merged')).not.toBeInTheDocument();
         expect(within(ruleBlock).getByText('Combined evaluation')).toBeInTheDocument();
-        expect(within(tree).getAllByTestId('simulate-access-trace-node-or-false')).toHaveLength(1);
-        expect(within(tree).getAllByTestId('simulate-access-trace-node-compare-false')).toHaveLength(2);
+        expect(within(tree).getAllByTestId('admin.simulate_access.details.action.trace_node:or_false')).toHaveLength(1);
+        expect(within(tree).getAllByTestId('admin.simulate_access.details.action.trace_node:compare_false')).toHaveLength(2);
     });
 
     test('client merged-rules fallback shows the combined header with the role', async () => {
@@ -182,6 +182,6 @@ describe('DecisionDetailsModal trace rendering', () => {
         const ruleBlock = await expandTrace();
 
         expect(within(ruleBlock).getByText('Combined evaluation for role system_bot')).toBeInTheDocument();
-        expect(screen.queryByTestId(`simulate-access-details-merged-${ACTION}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.merged')).not.toBeInTheDocument();
     });
 });

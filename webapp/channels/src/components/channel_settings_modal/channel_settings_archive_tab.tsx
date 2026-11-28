@@ -48,7 +48,10 @@ function ChannelSettingsArchiveTab({
     };
 
     return (
-        <div className='ChannelSettingsModal__archiveTab'>
+        <div
+            className='ChannelSettingsModal__archiveTab'
+            data-testid='channel_settings_modal.archive'
+        >
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             <FormattedMessage {...messages.warning[channelKind]}/>
             <Button
@@ -57,6 +60,7 @@ function ChannelSettingsArchiveTab({
                 onClick={handleArchiveChannel}
                 disabled={isReadOnly}
                 id='channelSettingsArchiveChannelButton'
+                data-testid='channel_settings_modal.archive.archive_channel--button'
                 aria-label={formatMessage(messages.buttonAriaLabel[channelKind], {displayName: channel.display_name})}
             >
                 <FormattedMessage {...messages.button[channelKind]}/>
@@ -65,6 +69,7 @@ function ChannelSettingsArchiveTab({
             {showArchiveConfirmModal && (
                 <ConfirmationModal
                     id='archiveChannelConfirmModal'
+                    testId='archive_channel_modal'
                     show={true}
                     title={formatMessage(messages.confirmTitle[channelKind])}
                     message={

@@ -22,6 +22,8 @@ export type GraphValueCellProps = {
     channelFields?: UserPropertyField[];
     onSelectTarget?: (name: string) => void;
     rowIndex?: number;
+
+    testId?: string;
 };
 
 export default function GraphValueCell({
@@ -33,6 +35,7 @@ export default function GraphValueCell({
     channelFields = [],
     onSelectTarget,
     rowIndex = 0,
+    testId,
 }: GraphValueCellProps) {
     const {formatMessage} = useIntl();
 
@@ -52,11 +55,12 @@ export default function GraphValueCell({
             disabled={disabled}
             menuId={`value-selector-menu-${rowIndex}`}
             buttonId={`value-selector-button-${rowIndex}`}
-            buttonDataTestId='valueSelectorMenuButton'
+            buttonDataTestId={testId ? `${testId}.value--button` : undefined}
+            testIdScope={testId ? `${testId}.value_menu` : undefined}
             placeholder={placeholder}
             className='values-editor'
-            trailingChips={row.hasMaskedValues ? <MaskedChip/> : undefined}
-            extraMenuItems={onSelectTarget ? channelAttributeMenuItems(channelFields, row.targetAttribute, onSelectTarget, formatMessage) : undefined}
+            trailingChips={row.hasMaskedValues ? <MaskedChip testId={testId ? `${testId}.masked` : undefined}/> : undefined}
+            extraMenuItems={onSelectTarget ? channelAttributeMenuItems(channelFields, row.targetAttribute, onSelectTarget, formatMessage, testId) : undefined}
         />
     );
 }

@@ -184,6 +184,7 @@ function ChannelAccessRulesConfirmModal({
                     emphasis='tertiary'
                     onClick={handleClose}
                     disabled={isProcessing}
+                    data-testid='channel_access_rules_confirm_modal.cancel--button'
                 >
                     <FormattedMessage
                         id='channel_settings.access_rules.confirm_modal.cancel'
@@ -193,6 +194,7 @@ function ChannelAccessRulesConfirmModal({
                 <Button
                     onClick={onConfirm}
                     disabled={isProcessing}
+                    data-testid='channel_access_rules_confirm_modal.confirm--button'
                     destructive={true}
                     loading={isProcessing}
                 >
@@ -236,6 +238,7 @@ function ChannelAccessRulesConfirmModal({
         <GenericModal
             className='ChannelAccessRulesConfirmModal a11y__modal'
             id='channel-access-rules-confirm-modal'
+            testId='channel_access_rules_confirm_modal'
             show={show}
             onHide={handleClose}
             onExited={handleClose}
@@ -249,13 +252,17 @@ function ChannelAccessRulesConfirmModal({
 
                 // Detailed user list view
                 <div className='ChannelAccessRulesConfirmModal__details'>
-                    <div className='ChannelAccessRulesConfirmModal__message'>
+                    <div
+                        className='ChannelAccessRulesConfirmModal__message'
+                        data-testid='channel_access_rules_confirm_modal.message--text'
+                    >
                         {membershipChangeMessage}
                     </div>
                     <div className='ChannelAccessRulesConfirmModal__tabs'>
                         <button
                             className={`ChannelAccessRulesConfirmModal__tab ${activeTab === 'allowed' ? 'active' : ''}`}
                             onClick={() => handleTabChange('allowed')}
+                            data-testid='channel_access_rules_confirm_modal.allowed--button'
                         >
                             <FormattedMessage
                                 id='channel_settings.access_rules.confirm_modal.allowed_tab'
@@ -266,6 +273,7 @@ function ChannelAccessRulesConfirmModal({
                         <button
                             className={`ChannelAccessRulesConfirmModal__tab ${activeTab === 'restricted' ? 'active' : ''}`}
                             onClick={() => handleTabChange('restricted')}
+                            data-testid='channel_access_rules_confirm_modal.restricted--button'
                         >
                             <FormattedMessage
                                 id='channel_settings.access_rules.confirm_modal.restricted_tab'
@@ -285,6 +293,7 @@ function ChannelAccessRulesConfirmModal({
                                 focusOnMount={false}
                                 nextPage={() => {}}
                                 search={handleSearch}
+                                testIdScope='channel_access_rules_confirm_modal.users'
                             />
                         ) : (
                             <div className='ChannelAccessRulesConfirmModal__noResults'>
@@ -301,6 +310,7 @@ function ChannelAccessRulesConfirmModal({
                             emphasis='tertiary'
                             onClick={handleHideUsers}
                             disabled={isProcessing}
+                            data-testid='channel_access_rules_confirm_modal.hide_users--button'
                         >
                             <FormattedMessage
                                 id='channel_settings.access_rules.confirm_modal.hide_users'
@@ -313,7 +323,10 @@ function ChannelAccessRulesConfirmModal({
 
                 // Summary view
                 <div className='ChannelAccessRulesConfirmModal__summary'>
-                    <div className='ChannelAccessRulesConfirmModal__message'>
+                    <div
+                        className='ChannelAccessRulesConfirmModal__message'
+                        data-testid='channel_access_rules_confirm_modal.message--text'
+                    >
                         {membershipChangeMessage}
                     </div>
                     <div className='ChannelAccessRulesConfirmModal__question'>
@@ -327,6 +340,7 @@ function ChannelAccessRulesConfirmModal({
                             emphasis='tertiary'
                             onClick={handleViewUsers}
                             disabled={isProcessing}
+                            data-testid='channel_access_rules_confirm_modal.view_users--button'
                         >
                             <FormattedMessage
                                 id='channel_settings.access_rules.confirm_modal.view_users'

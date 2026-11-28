@@ -71,7 +71,7 @@ describe('Verify Guest User Identification in different screens', () => {
         cy.uiOpenTeamMenu('View members');
 
         cy.get('#teamMembersModal').should('be.visible').within(($el) => {
-            cy.wrap($el).findAllByTestId('userListItemDetails').each(($elChild) => {
+            cy.wrap($el).findAllByTestId('user_list_row.details').each(($elChild) => {
                 cy.wrap($elChild).invoke('text').then((username) => {
                     // * Verify Guest Badge in Channel Members List
                     if (username === guestUser.username) {

@@ -116,6 +116,10 @@ const userDepartment = makeField({
     type: 'text',
 });
 
+// The rule table's testid scope; each rule row's controls are under `${ROW}`.
+const TABLE = 'test.rules' as const;
+const ROW = `${TABLE}.row` as const;
+
 describe('TableEditor - graph attributes', () => {
     const actions = {getVisualAST: jest.fn()};
     const onChange = jest.fn();
@@ -127,6 +131,7 @@ describe('TableEditor - graph attributes', () => {
         enableUserManagedAttributes: true,
         onParseError: jest.fn(),
         actions,
+        testId: TABLE,
     };
 
     beforeEach(() => {
@@ -146,9 +151,9 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
 
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has each of or a parent of');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has each of or a parent of');
     });
 
     test('picking option names on a hierarchy predicate emits the member-call form', async () => {
@@ -158,10 +163,10 @@ describe('TableEditor - graph attributes', () => {
 
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.value--button`));
         await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'}));
 
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["F-18 Program"])');
@@ -191,10 +196,10 @@ describe('TableEditor - graph attributes', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of or a child of');
-        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Air Program');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has any of or a child of');
+        expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent('Air Program');
     });
 
     test('a graph channel attribute is offered as the target of a hierarchy predicate', async () => {
@@ -204,10 +209,10 @@ describe('TableEditor - graph attributes', () => {
 
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.value--button`));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
 
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(resource.attributes.channelPrograms)');
@@ -237,10 +242,10 @@ describe('TableEditor - graph attributes', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.operator--button`));
         await pickOperator('has all of');
 
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.hasAllOf(resource.attributes.channelPrograms)');
@@ -256,17 +261,17 @@ describe('TableEditor - graph attributes', () => {
 
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has each of or a parent of');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has each of or a parent of');
 
-        await userEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /department/}));
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('is');
 
-        await userEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /programs/}));
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has each of or a parent of');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has each of or a parent of');
     });
 
     test('a membership row the server reported as multiselect is still treated as graph', async () => {
@@ -296,14 +301,14 @@ describe('TableEditor - graph attributes', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
 
         // The graph operator set, not the multiselect one the row claims.
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.operator--button`));
         await pickOperator('has any of or a parent of');
 
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.value--button`));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAny(resource.attributes.channelPrograms)');
     });
@@ -327,13 +332,13 @@ describe('TableEditor - graph attributes', () => {
 
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.operator--button`));
         await pickOperator('has any of');
 
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.value--button`));
         expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toBeInTheDocument();
         expect(screen.queryByRole('menuitemradio', {name: /otherPrograms/})).not.toBeInTheDocument();
         await userEvent.click(screen.getByRole('menuitemradio', {name: /channelPrograms/}));
@@ -403,6 +408,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         enableUserManagedAttributes: true,
         onParseError: jest.fn(),
         actions,
+        testId: TABLE,
     });
 
     beforeEach(() => {
@@ -413,12 +419,12 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
     const addRow = async () => {
         await userEvent.click(await screen.findByRole('button', {name: /add attribute/i}));
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
     };
 
     const openValues = async () => {
-        await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.value--button`));
     };
 
     const treeRow = (name: string) => screen.findByRole('menuitemcheckbox', {name});
@@ -473,7 +479,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         // is whose button carries it: the tree suffixes the row index, the flat
         // control's is the bare 'value-selector-button'. So this asserts the e2e
         // handle survived onto the tree's trigger specifically.
-        expect(screen.getByTestId('valueSelectorMenuButton').id).toBe('value-selector-button-0');
+        expect(screen.getByTestId(`${ROW}.value--button`).id).toBe('value-selector-button-0');
     });
 
     test('gives the open menu an id the policy e2e selector matches', async () => {
@@ -611,7 +617,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
         await openValues();
 
@@ -646,9 +652,9 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Air Program');
+        expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent('Air Program');
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
@@ -677,7 +683,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
         await openValues();
         await treeRow('Air Program');
@@ -741,9 +747,9 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent(/Channel:\s*channelPrograms/);
+        expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent(/Channel:\s*channelPrograms/);
 
         await openValues();
 
@@ -783,10 +789,10 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of');
-        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent(/Channel:\s*channelPrograms/);
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has any of');
+        expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent(/Channel:\s*channelPrograms/);
     });
 
     test('offers the channel target under a membership operator alongside the tree', async () => {
@@ -796,7 +802,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
         await addRow();
 
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.operator--button`));
         await pickOperator('has all of');
 
         await openValues();
@@ -811,7 +817,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
         await addRow();
 
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.operator--button`));
         await pickOperator('has all of');
 
         await openValues();
@@ -851,7 +857,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
         await addRow();
 
-        await userEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /department/}));
 
         // A text attribute with no comparable channel field keeps its bare input.
@@ -897,11 +903,11 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('valueSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.value--button`)).toBeInTheDocument();
         });
 
         expect(screen.getByLabelText('Hidden values that you do not have permission to view')).toBeInTheDocument();
-        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByTestId(`${ROW}.value--button`)).toHaveAttribute('aria-disabled', 'true');
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
@@ -913,7 +919,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, graphEnabledState);
         await addRow();
 
-        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Select values...');
+        expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent('Select values...');
         expect(screen.queryByLabelText('Hidden values that you do not have permission to view')).not.toBeInTheDocument();
     });
 });

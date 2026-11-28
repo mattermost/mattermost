@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getRandomId,
+    test,
+    closeChannelSettings,
+    openChannelSettingsInfoTab,
+    Api,
+    settle,
+} from '@mattermost/playwright-lib';
 
 async function enableManagedCategories(adminClient: any) {
     await adminClient.patchConfig({
@@ -73,7 +81,7 @@ test.describe('Managed Channel Categories', () => {
             await adminClient.addToTeam(team.id, adminUser.id);
 
             // # Log in and navigate to town-square
-            const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
@@ -84,25 +92,25 @@ test.describe('Managed Channel Categories', () => {
 
             // # Open channel settings and navigate to info tab
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.openInfoTab();
+            const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
             // * Verify managed category selector is visible
-            const managedSelector = channelSettingsModal.container.locator('.ManagedCategory__control');
+            const managedSelector = info.managedCategory.container;
             await expect(managedSelector).toBeVisible();
 
             // # Click the selector, type a new category name, and select "Create new category"
-            await managedSelector.click();
-            const input = channelSettingsModal.container.getByRole('combobox');
-            await input.fill('Operations');
+            await info.managedCategory.controlButton.click();
+            await expect(info.managedCategory.inputCombobox).toBeVisible();
+            await info.managedCategory.inputCombobox.fill('Operations');
 
-            const createOption = page.getByRole('option', {name: 'Create new category: Operations'});
-            await expect(createOption).toBeVisible();
-            await createOption.click();
+            await expect(info.managedCategory.createOption).toBeVisible();
+            await info.managedCategory.createOption.select();
+            await expect(channelSettingsModal.savePanel.saveButton).toBeVisible();
 
             // # Save and close
-            await channelSettingsModal.save();
-            await pw.wait(pw.duration.two_sec);
-            await channelSettingsModal.close();
+            await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await expect(channelSettingsModal.savePanel.saveButton).not.toBeVisible();
+            await closeChannelSettings(channelSettingsModal);
 
             // * Verify the managed category appears in the sidebar with the channel under it
             const sidebar = channelsPage.sidebarLeft.container;
@@ -154,20 +162,19 @@ test.describe('Managed Channel Categories', () => {
 
             // # Open channel settings and click the clear button to remove the category
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.openInfoTab();
+            const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
-            const clearButton = channelSettingsModal.container.locator('.ManagedCategory__clear-indicator');
+            const clearButton = info.managedCategory.clearButton;
             await expect(clearButton).toBeVisible();
             await clearButton.click();
-            await pw.wait(pw.duration.half_sec);
 
             // * Verify the clear button is gone
             await expect(clearButton).not.toBeVisible();
 
             // # Save and close
-            await channelSettingsModal.save();
-            await pw.wait(pw.duration.two_sec);
-            await channelSettingsModal.close();
+            await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await expect(channelSettingsModal.savePanel.saveButton).not.toBeVisible();
+            await closeChannelSettings(channelSettingsModal);
 
             // * Verify the managed category is removed and the channel is back under CHANNELS
             await expect(sidebar.getByText('Removable')).not.toBeVisible();
@@ -209,11 +216,13 @@ test.describe('Managed Channel Categories', () => {
             // # Select a new managed category and create the channel
             await managedSelector.click();
             const input = newChannelModal.container.getByRole('combobox');
+            await expect(input).toBeVisible();
             await input.fill('Flight Ops');
 
             const createOption = page.getByRole('option', {name: 'Create new category: Flight Ops'});
             await expect(createOption).toBeVisible();
             await createOption.click();
+            await expect(createOption).not.toBeVisible();
 
             await newChannelModal.create();
             await channelsPage.toBeVisible();
@@ -415,10 +424,11 @@ test.describe('Managed Channel Categories', () => {
         await expect(categoryHeader).toBeVisible();
 
         await categoryHeader.click({button: 'right'});
-        await pw.wait(pw.duration.one_sec);
 
-        // * Verify no context menu appears
+        // * Verify no context menu appears, also once a menu would have had time to open
         const categoryMenu = channelsPage.page.locator('.SidebarCategoryMenu');
+        await expect(categoryMenu).not.toBeVisible();
+        await pw.wait(pw.duration.one_sec);
         await expect(categoryMenu).not.toBeVisible();
     });
 
@@ -686,13 +696,12 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.openInfoTab();
+            const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
             // * Verify the managed category selector is disabled
-            const disabledControl = channelSettingsModal.container.locator('.ManagedCategory__control--is-disabled');
-            await expect(disabledControl).toBeVisible();
+            await expect(info.managedCategory.inputCombobox).toBeDisabled();
 
-            await channelSettingsModal.close();
+            await closeChannelSettings(channelSettingsModal);
         },
     );
 });

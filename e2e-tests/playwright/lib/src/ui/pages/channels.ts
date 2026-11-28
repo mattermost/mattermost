@@ -16,12 +16,12 @@ import type {
 import {
     BrowseChannelsModal,
     ChannelsCenterView,
-    ChannelSettingsModal,
     CreateTeamForm,
     NewChannelModal,
     components,
     ChannelsSidebarLeft,
 } from '@/ui/components';
+import {App, type ChannelSettingsModal, type ChannelSettingsModalMount} from '@/ui/generated';
 import {duration} from '@/util';
 
 export default class ChannelsPage {
@@ -40,7 +40,6 @@ export default class ChannelsPage {
     readonly userProfilePopover;
     readonly messagePriority;
 
-    readonly channelSettingsModal;
     readonly channelNotificationPreferencesModal;
     readonly editChannelHeaderModal;
     readonly createTeamForm;
@@ -98,7 +97,6 @@ export default class ChannelsPage {
         this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
 
         // Modals
-        this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
         this.channelNotificationPreferencesModal = new components.ChannelNotificationPreferencesModal(
             page.getByRole('dialog', {name: 'Notification Preferences'}),
         );
@@ -336,7 +334,7 @@ export default class ChannelsPage {
         await this.searchResultsPanel.toBeVisible();
     }
 
-    async openChannelSettings(): Promise<ChannelSettingsModal> {
+    async openChannelSettings(): Promise<ChannelSettingsModal<ChannelSettingsModalMount>> {
         const channelMenu = await this.openChannelMenu();
 
         const channelSettingsMenuItem = channelMenu.channelSettings;
@@ -352,9 +350,10 @@ export default class ChannelsPage {
 
         await expect(channelSettingsMenuItem).toBeVisible();
         await channelSettingsMenuItem.click();
-        await this.channelSettingsModal.toBeVisible();
+        const modal = new App(this.page).channelSettingsModal;
+        await expect(modal.container.locator).toBeVisible();
 
-        return this.channelSettingsModal;
+        return modal;
     }
 
     /**

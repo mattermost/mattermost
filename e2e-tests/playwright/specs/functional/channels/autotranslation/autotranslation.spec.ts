@@ -13,6 +13,10 @@ import {
     setUserChannelAutotranslation,
     expect,
     test,
+    closeChannelSettings,
+    openChannelSettingsConfigurationTab,
+    Api,
+    settle,
 } from '@mattermost/playwright-lib';
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
@@ -161,10 +165,11 @@ test(
         });
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
-        const configurationTab = await channelSettingsModal.openConfigurationTab();
-        await configurationTab.enableChannelAutotranslation();
-        await configurationTab.save();
-        await channelSettingsModal.close();
+        const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
+        await configurationTab.autotranslationSwitch.set(true);
+        await expect(configurationTab.autotranslationSwitch).toBeOn();
+        await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+        await closeChannelSettings(channelSettingsModal);
 
         await expect
             .poll(async () => (await adminClient.getChannel(created.id)).autotranslation === true, {
@@ -216,18 +221,19 @@ test(
             return (cfg as any).AutoTranslationSettings?.Enable === true;
         });
         const channelSettingsModal = await channelsPage.openChannelSettings();
-        const configurationTab = await channelSettingsModal.openConfigurationTab();
+        const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
         // Wait for the translation toggle to be visible before clicking — it is conditionally
         // rendered only when AutoTranslationSettings.Enable is true in the server config.
         // A concurrent initSetup() may reset the config between waitUntil above and this line;
         // re-apply once more and wait for the DOM element rather than relying on the earlier check.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        await expect(configurationTab.container.getByTestId('channelTranslationToggle-button')).toBeVisible({
+        await expect(configurationTab.autotranslationSwitch).toBeVisible({
             timeout: 30000,
         });
-        await configurationTab.enableChannelAutotranslation();
-        await configurationTab.save();
-        await channelSettingsModal.close();
+        await configurationTab.autotranslationSwitch.set(true);
+        await expect(configurationTab.autotranslationSwitch).toBeOn();
+        await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+        await closeChannelSettings(channelSettingsModal);
 
         await expect
             .poll(
@@ -582,6 +588,7 @@ test(
 
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
+        await expect(page.getByRole('button', {name: 'Turn off auto-translation'})).toBeVisible();
         await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
 
         await expect(
@@ -655,6 +662,7 @@ test.fixme(
 
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
+        await expect(page.getByRole('button', {name: 'Turn off auto-translation'})).toBeVisible();
         await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
 
         // * After disabling, wait for page to update and verify original text is shown
@@ -1069,8 +1077,9 @@ test.fixme(
 
         // Move mouse away so it doesn't hover over Remind and trigger its submenu.
         // The submenu's MUI portal sets aria-hidden on the main menu, breaking getByRole.
+        await expect(channelsPage.postDotMenu.container).toBeVisible();
         await page.mouse.move(0, 0);
-        await channelsPage.postDotMenu.toBeVisible();
+        await expect(channelsPage.postDotMenu.container).toBeVisible();
 
         // * Verify the "Show translation" menu item is present
         await expect(channelsPage.postDotMenu.showTranslationMenuItem).toBeVisible({timeout: 10000});
@@ -1115,6 +1124,7 @@ test(
 
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
+        await expect(page.getByRole('button', {name: 'Turn off auto-translation'})).toBeVisible();
         await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();

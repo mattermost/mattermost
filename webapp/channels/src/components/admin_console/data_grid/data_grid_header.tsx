@@ -21,6 +21,7 @@ const HeaderElement = ({col}: HeaderElementProps) => {
         <div
             key={col.field}
             className='DataGrid_cell'
+            role='columnheader'
             style={style}
         >
             {col.name}
@@ -30,13 +31,15 @@ const HeaderElement = ({col}: HeaderElementProps) => {
 
 export type Props = {
     columns: Column[];
+    testIdScope?: string;
 };
 
-const DataGridHeader = ({columns}: Props) => {
+const DataGridHeader = ({columns, testIdScope}: Props) => {
     return (
         <div
             className='DataGrid_header'
-            data-testid='dataGrid-header'
+            role='row'
+            data-testid={testIdScope ? `${testIdScope}.header` : 'dataGrid-header'}
         >
             {columns.map((col) => (
                 <HeaderElement

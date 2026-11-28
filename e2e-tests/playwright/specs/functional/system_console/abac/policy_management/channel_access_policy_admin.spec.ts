@@ -106,16 +106,15 @@ test.describe(
 
             const channelSettings = await channelsPage.openChannelSettings();
 
-            const membershipPolicyTab = channelSettings.container.getByRole('tab', {name: /membership policy/i});
-            const permissionsPolicyTab = channelSettings.container.getByRole('tab', {name: /permissions policy/i});
-            await expect(membershipPolicyTab).toBeVisible();
-            await expect(permissionsPolicyTab).toBeVisible();
+            // * Both policy tabs stay listed, with the notice explaining that editing is restricted
+            await expect(channelSettings.tabs.tab('access_rules').locator).toBeVisible();
+            await expect(channelSettings.tabs.tab('permissions_policy').locator).toBeVisible();
+            await expect(channelSettings.readOnlyNotice.container).toContainText('Editing is restricted');
 
-            await expect(channelSettings.container.getByText('Editing is restricted')).toBeVisible();
-
-            await permissionsPolicyTab.click();
-            await expect(channelSettings.container.getByTestId('permissions-policy-read-only')).toBeVisible();
-            await expect(channelSettings.container.getByTestId('permissions-policy-add-rule')).toHaveCount(0);
+            // * The permissions policy tab is read-only: no way to add a rule
+            await channelSettings.tabs.tab('permissions_policy').locator.click();
+            await expect(channelSettings.permissionsPolicy.readOnly).toBeVisible();
+            await expect(channelSettings.permissionsPolicy.addRuleButton).toHaveCount(0);
 
             const channelAdminStatus = await page.evaluate(async (channelId: string) => {
                 const resp = await fetch('/api/v4/access_control_policies', {

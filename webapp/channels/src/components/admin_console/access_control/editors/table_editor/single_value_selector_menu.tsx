@@ -30,6 +30,7 @@ const SingleValueSelector = ({
     channelFields = [],
     targetAttribute,
     onSelectTarget,
+    testId,
 }: {
     value: string;
     disabled: boolean;
@@ -41,6 +42,8 @@ const SingleValueSelector = ({
     channelFields?: UserPropertyField[];
     targetAttribute?: string;
     onSelectTarget?: (name: string) => void;
+
+    testId?: string;
 }) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
@@ -132,7 +135,7 @@ const SingleValueSelector = ({
         return (
             <div className='values-editor'>
                 <div className='value-selector-menu-button__multi-values-container'>
-                    <MaskedChip/>
+                    <MaskedChip testId={testId ? `${testId}.masked` : undefined}/>
                 </div>
             </div>
         );
@@ -150,6 +153,7 @@ const SingleValueSelector = ({
                 <input
                     type='text'
                     className='values-editor__simple-input'
+                    data-testid={testId ? `${testId}.value_input--textbox` : undefined}
                     value={isEditing ? inputValue : value}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDownSimpleInput}
@@ -203,7 +207,7 @@ const SingleValueSelector = ({
                             />
                         </span>
                     ),
-                    dataTestId: 'valueSelectorMenuButton',
+                    dataTestId: testId ? `${testId}.value--button` : undefined,
                     disabled,
                 }}
                 menu={{
@@ -216,6 +220,7 @@ const SingleValueSelector = ({
                     <Menu.InputItem
                         key='filter_values'
                         id='filter_values'
+                        testId={testId ? `${testId}.value_menu.filter` : undefined}
                         type='text'
                         placeholder={formatMessage(allowCreateValue ? {
                             id: 'admin.access_control.table_editor.selector.filter_or_create',
@@ -233,6 +238,7 @@ const SingleValueSelector = ({
                     <Menu.InputItem
                         key='value_text'
                         id='value_text'
+                        testId={testId ? `${testId}.value_menu.value` : undefined}
                         type='text'
                         placeholder={placeholder || formatMessage({
                             id: 'admin.access_control.table_editor.value.placeholder',
@@ -269,6 +275,7 @@ const SingleValueSelector = ({
                         <Menu.Item
                             id={`value-option-${id}`}
                             key={id}
+                            data-testid={testId ? `${testId}.value_menu.option:${option.id}--menuitemradio` : undefined}
                             role='menuitemradio'
                             forceCloseOnSelect={true}
                             aria-checked={isSelected}
@@ -284,6 +291,7 @@ const SingleValueSelector = ({
                     <Menu.Item
                         id='create-value-option'
                         key='create-value-option'
+                        data-testid={testId ? `${testId}.value_menu.create--menuitem` : undefined}
                         onClick={() => handleCreateValue(filter)}
                         labels={<span>
                             {formatMessage({
@@ -293,7 +301,7 @@ const SingleValueSelector = ({
                         </span>}
                     />
                 )}
-                {onSelectTarget && channelAttributeMenuItems(channelFields, targetAttribute, onSelectTarget, formatMessage)}
+                {onSelectTarget && channelAttributeMenuItems(channelFields, targetAttribute, onSelectTarget, formatMessage, testId)}
             </Menu.Container>
         </div>
     );

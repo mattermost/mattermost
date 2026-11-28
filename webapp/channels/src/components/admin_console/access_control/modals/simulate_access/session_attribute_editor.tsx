@@ -112,7 +112,7 @@ export default function SessionAttributeEditorButton({userId, displayName, field
                 ref={refs.setReference}
                 type='button'
                 className='SimulateAccessModal__rowConfigure'
-                data-testid={`simulate-access-row-edit-${userId}`}
+                data-testid='admin.simulate_access.user.edit_session--button'
                 aria-label={formatMessage({id: 'admin.access_control.simulate_access.row.edit', defaultMessage: 'Edit session attribute values'})}
                 {...getReferenceProps()}
             >
@@ -129,7 +129,7 @@ export default function SessionAttributeEditorButton({userId, displayName, field
                         <div
                             ref={refs.setFloating}
                             className='SimulateAccessModal__editorPanel'
-                            data-testid='simulate-access-row-editor'
+                            data-testid='admin.simulate_access.session_editor'
                             aria-labelledby={titleId}
                             style={floatingStyles}
                             {...getFloatingProps()}

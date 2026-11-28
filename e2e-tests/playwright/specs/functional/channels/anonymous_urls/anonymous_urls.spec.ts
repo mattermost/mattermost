@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getAdminClient,
+    test,
+    closeChannelSettings,
+    openChannelSettingsInfoTab,
+    Api,
+    settle,
+} from '@mattermost/playwright-lib';
 
 const OBFUSCATED_SLUG_RE = /^[a-z0-9]{26}$/;
 
@@ -85,7 +93,7 @@ async function createAnonymousUrlChannel(
     await setAnonymousUrls(adminClient, true);
 
     await createChannelFromUI(channelsPage, displayName);
-    await channelsPage.centerView.header.toHaveTitle(displayName);
+    await expect(channelsPage.centerView.header.title).toContainText(displayName);
 
     const channel = await getChannelByDisplayName(adminClient, teamId, displayName);
     expectObfuscatedSlug(channel.name);
@@ -236,8 +244,9 @@ test.describe('Anonymous URLs', () => {
 
             // # Open new channel modal
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
+            await expect(channelsPage.page.locator('#createNewChannelMenuItem')).toBeVisible();
             await channelsPage.page.locator('#createNewChannelMenuItem').click();
-            await channelsPage.newChannelModal.toBeVisible();
+            await expect(channelsPage.newChannelModal.container).toBeVisible();
 
             // # Fill in a channel name
             await channelsPage.newChannelModal.fillDisplayName('Anonymous Test Channel');
@@ -286,8 +295,9 @@ test.describe('Anonymous URLs', () => {
             // # Create a new channel via UI
             const channelDisplayName = 'Obfuscated Channel ' + Date.now();
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
+            await expect(channelsPage.page.locator('#createNewChannelMenuItem')).toBeVisible();
             await channelsPage.page.locator('#createNewChannelMenuItem').click();
-            await channelsPage.newChannelModal.toBeVisible();
+            await expect(channelsPage.newChannelModal.container).toBeVisible();
             await channelsPage.newChannelModal.fillDisplayName(channelDisplayName);
             await setAnonymousUrls(adminClient, true);
             await channelsPage.newChannelModal.create();
@@ -332,8 +342,9 @@ test.describe('Anonymous URLs', () => {
 
             // # Open new channel modal
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
+            await expect(channelsPage.page.locator('#createNewChannelMenuItem')).toBeVisible();
             await channelsPage.page.locator('#createNewChannelMenuItem').click();
-            await channelsPage.newChannelModal.toBeVisible();
+            await expect(channelsPage.newChannelModal.container).toBeVisible();
 
             // # Type a display name to trigger URL generation
             await channelsPage.newChannelModal.fillDisplayName('Test Channel URL');
@@ -378,11 +389,11 @@ test.describe('Anonymous URLs', () => {
 
             // # Open team menu and click Create a team
             await channelsPage.sidebarLeft.teamMenuButton.click();
-            await channelsPage.teamMenu.toBeVisible();
+            await expect(channelsPage.teamMenu.container).toBeVisible();
             await channelsPage.teamMenu.clickCreateTeam();
 
             // # Wait for create team form
-            await channelsPage.createTeamForm.toBeVisible();
+            await expect(channelsPage.createTeamForm.container).toBeVisible();
 
             // * Verify the display name input is visible
             await expect(channelsPage.createTeamForm.teamNameInput).toBeVisible();
@@ -423,11 +434,11 @@ test.describe('Anonymous URLs', () => {
 
             // # Open team menu and click Create a team
             await channelsPage.sidebarLeft.teamMenuButton.click();
-            await channelsPage.teamMenu.toBeVisible();
+            await expect(channelsPage.teamMenu.container).toBeVisible();
             await channelsPage.teamMenu.clickCreateTeam();
 
             // # Wait for create team form
-            await channelsPage.createTeamForm.toBeVisible();
+            await expect(channelsPage.createTeamForm.container).toBeVisible();
 
             // * Verify the submit button says "Next" on the first step because the team URL step follows
             await expect(channelsPage.createTeamForm.teamNameSubmitButton).toContainText('Next');
@@ -486,7 +497,7 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.sidebarLeft.goToItem(createdChannel.name);
 
             // * Verify the restored channel still uses the original anonymous URL route
-            await channelsPage.centerView.header.toHaveTitle(channelDisplayName);
+            await expect(channelsPage.centerView.header.title).toContainText(channelDisplayName);
             await expect(channelsPage.page).toHavePath(`/${team.name}/channels/${createdChannel.name}`);
         },
     );
@@ -659,14 +670,14 @@ test.describe('Anonymous URLs', () => {
             // # Rename the channel from channel settings
             const renamedDisplayName = `Renamed Channel ${pw.random.id()}`;
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            const infoTab = await channelSettingsModal.openInfoTab();
-            await infoTab.updateName(renamedDisplayName);
-            await channelSettingsModal.save();
+            const infoTab = await openChannelSettingsInfoTab(channelSettingsModal);
+            await infoTab.name.container.fill(renamedDisplayName);
+            await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
 
             await pw.waitUntil(
                 async () => (await adminClient.getChannel(createdChannel.id)).display_name === renamedDisplayName,
             );
-            await channelSettingsModal.close();
+            await closeChannelSettings(channelSettingsModal);
 
             const renamedChannel = await adminClient.getChannel(createdChannel.id);
 
@@ -681,7 +692,7 @@ test.describe('Anonymous URLs', () => {
 
             // * Verify the obfuscated route still resolves to the renamed channel
             await expect(channelsPage.page).toHavePath(`/${team.name}/channels/${originalSlug}`);
-            await channelsPage.centerView.header.toHaveTitle(renamedDisplayName);
+            await expect(channelsPage.centerView.header.title).toContainText(renamedDisplayName);
         },
     );
 
@@ -776,7 +787,7 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.page.goto(permalink);
 
             // * Verify the permalink resolves to the channel's obfuscated route
-            await channelsPage.centerView.header.toHaveTitle(displayName);
+            await expect(channelsPage.centerView.header.title).toContainText(displayName);
             await expect(channelsPage.page).toHavePath(`/${team.name}/channels/${channel.name}`);
             await channelsPage.centerView.waitUntilPostWithIdContains(postId, message);
 
@@ -785,7 +796,7 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.page.goto(permalink);
 
             // * Verify the permalink still resolves to the existing obfuscated route
-            await channelsPage.centerView.header.toHaveTitle(displayName);
+            await expect(channelsPage.centerView.header.title).toContainText(displayName);
             await expect(channelsPage.page).toHavePath(`/${team.name}/channels/${channel.name}`);
             await channelsPage.centerView.waitUntilPostWithIdContains(postId, message);
         },
@@ -824,7 +835,7 @@ test.describe('Anonymous URLs', () => {
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         await channelsPage.sidebarLeft.findChannelButton.click();
-        await channelsPage.findChannelsModal.toBeVisible();
+        await expect(channelsPage.findChannelsModal.container).toBeVisible();
         await channelsPage.findChannelsModal.input.fill(targetChannel.displayName.substring(0, 15));
 
         // * Verify the anonymous URL channel appears in results
@@ -836,7 +847,7 @@ test.describe('Anonymous URLs', () => {
         await channelsPage.findChannelsModal.selectChannel(targetChannel.channel.name);
 
         // * Verify navigation lands on the obfuscated route
-        await channelsPage.centerView.header.toHaveTitle(targetChannel.displayName);
+        await expect(channelsPage.centerView.header.title).toContainText(targetChannel.displayName);
         await expect(channelsPage.page).toHavePath(`/${team.name}/channels/${targetChannel.channel.name}`);
     });
 
@@ -878,7 +889,7 @@ test.describe('Anonymous URLs', () => {
         await searchItem.getByRole('link', {name: 'Jump'}).click();
 
         // * Verify navigation returns to the anonymous URL route and highlights the expected post
-        await channelsPage.centerView.header.toHaveTitle(displayName);
+        await expect(channelsPage.centerView.header.title).toContainText(displayName);
         await expect(channelsPage.page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
         await channelsPage.centerView.waitUntilPostWithIdContains(postId, message);
     });
@@ -923,7 +934,7 @@ test.describe('Anonymous URLs', () => {
                 // * Verify the channel keeps the exact display name and remains usable
                 const lastPost = await channelsPage.getLastPost();
                 await expect(lastPost.body).toContainText(message);
-                await channelsPage.centerView.header.toHaveTitle(displayName);
+                await expect(channelsPage.centerView.header.title).toContainText(displayName);
                 await expect(channelsPage.page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}$`));
             }
 
@@ -933,13 +944,13 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
             await channelsPage.sidebarLeft.findChannelButton.click();
-            await channelsPage.findChannelsModal.toBeVisible();
+            await expect(channelsPage.findChannelsModal.container).toBeVisible();
             await channelsPage.findChannelsModal.input.fill(searchableChannel.displayName);
 
             // * Verify search results use the display name and navigate back to the obfuscated slug
             await expect(channelsPage.findChannelsModal.getResult(searchableChannel.channel.name)).toBeVisible();
             await channelsPage.findChannelsModal.selectChannel(searchableChannel.channel.name);
-            await channelsPage.centerView.header.toHaveTitle(searchableChannel.displayName);
+            await expect(channelsPage.centerView.header.title).toContainText(searchableChannel.displayName);
             await expect(channelsPage.page).toHaveURL(
                 new RegExp(`/${team.name}/channels/${searchableChannel.channel.name}$`),
             );
@@ -981,7 +992,7 @@ test.describe('Anonymous URLs', () => {
             await adminClient.addToChannel(adminUser.id, channel.id);
 
             // * Verify the current anonymous URL channel shows the Calls entry point
-            await channelsPage.centerView.header.toHaveTitle(displayName);
+            await expect(channelsPage.centerView.header.title).toContainText(displayName);
             await expect(channelsPage.centerView.header.callButton).toBeVisible();
 
             // # Open the anonymous URL directly as another member

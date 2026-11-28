@@ -24,6 +24,9 @@ const markdownRenderingOptions = {
 };
 
 type Props = {
+
+    // The banner is `<testId>`; when nothing would render, `<testId>.empty_notice` says why.
+    testId?: string;
     template: string;
     attributes: ResolvedChannelAttribute[];
     backgroundColor?: string;
@@ -32,7 +35,7 @@ type Props = {
 /**
  * The banner as this channel's members will see it, colour included.
  */
-const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
+const BannerPreview = ({testId, template, attributes, backgroundColor}: Props) => {
     const {formatMessage} = useIntl();
 
     // Trimmed as channel_banner.tsx does: unresolved tokens can leave only the
@@ -57,7 +60,7 @@ const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
                 <div
                     className='BannerPreview'
                     style={style}
-                    data-testid='bannerAttributePreview'
+                    data-testid={testId ?? 'bannerAttributePreview'}
                 >
                     <Markdown
                         message={rendered}
@@ -65,7 +68,7 @@ const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
                     />
                 </div>
             ) : (
-                <div data-testid='bannerPreviewEmptyNotice'>
+                <div data-testid={testId ? `${testId}.empty_notice` : 'bannerPreviewEmptyNotice'}>
                     <SectionNotice
                         type='warning'
                         title={formatMessage({

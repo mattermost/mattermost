@@ -31,6 +31,9 @@ type Props = {
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
     saving?: boolean;
+
+    /** The panel's testid; its parts render `<testId>.message--text`, `<testId>.close--button`, `<testId>.cancel--button` and `<testId>.save--button`. */
+    testId?: string;
 };
 function SaveChangesPanel({
     handleSubmit,
@@ -43,6 +46,7 @@ function SaveChangesPanel({
     saveButtonText,
     cancelButtonText,
     saving = false,
+    testId,
 }: Props) {
     const intl = useIntl();
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
@@ -100,6 +104,7 @@ function SaveChangesPanel({
                     <WithTooltip title={intl.formatMessage({id: 'saveChangesPanel.dismiss', defaultMessage: 'Dismiss'})}>
                         <IconButton
                             id='panelCloseButton'
+                            data-testid={testId ? `${testId}.close--button` : undefined}
                             size='small'
                             icon={<Icon glyph={<CloseIcon/>}/>}
                             onClick={handleClose}
@@ -115,7 +120,7 @@ function SaveChangesPanel({
         return (
             <div className='SaveChangesPanel__btn-ctr'>
                 <Button
-                    data-testid='SaveChangesPanel__cancel-btn'
+                    data-testid={testId ? `${testId}.cancel--button` : 'SaveChangesPanel__cancel-btn'}
                     emphasis='tertiary'
                     size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
@@ -130,7 +135,7 @@ function SaveChangesPanel({
                     )}
                 </Button>
                 <Button
-                    data-testid='SaveChangesPanel__save-btn'
+                    data-testid={testId ? `${testId}.save--button` : 'SaveChangesPanel__save-btn'}
                     emphasis='primary'
                     size='small'
                     className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
@@ -155,8 +160,14 @@ function SaveChangesPanel({
     };
 
     return (
-        <div className={panelClassName}>
-            <p className={messageClassName}>
+        <div
+            className={panelClassName}
+            data-testid={testId}
+        >
+            <p
+                className={messageClassName}
+                data-testid={testId ? `${testId}.message--text` : undefined}
+            >
                 <AlertCircleOutlineIcon
                     size={18}
                     color={'currentcolor'}

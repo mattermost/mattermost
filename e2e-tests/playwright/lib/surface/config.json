@@ -29,6 +29,19 @@
         "runtime": "../src/aria",
         "reports": "reports"
     },
+    "checks": {
+        "keyFields": {
+            "allow": [
+                {
+                    "entity": "ChannelSettingsTabComponent",
+                    "module": "types/store/plugins",
+                    "field": "id",
+                    "value": "plugin_tab",
+                    "reason": "A plugin's settings tab is identified by the id its registration returned: the channel settings modal names the tab plugin_<id>."
+                }
+            ]
+        }
+    },
     "pageNames": {
         "ChannelIdentifierRouter": "ChannelsPage",
         "GlobalThreads": "ThreadsPage"

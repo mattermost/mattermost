@@ -529,11 +529,15 @@ interface TestButtonProps {
      *  permission-rule editors to surface "Simulate rules" instead,
      *  matching the dual-lane simulation modal they open. */
     label?: React.ReactNode;
+
+    testId?: string;
 }
 
 interface AddAttributeButtonProps {
     onClick: () => void;
     disabled: boolean;
+
+    testId?: string;
 }
 
 interface HelpTextProps {
@@ -541,11 +545,12 @@ interface HelpTextProps {
     onLearnMoreClick?: () => void;
 }
 
-export function TestButton({onClick, disabled, disabledTooltip, label}: TestButtonProps): JSX.Element {
+export function TestButton({onClick, disabled, disabledTooltip, label, testId}: TestButtonProps): JSX.Element {
     const button = (
         <Button
             emphasis='tertiary'
             size='small'
+            data-testid={testId ? `${testId}--button` : undefined}
             onClick={onClick}
             disabled={disabled}
             leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
@@ -630,11 +635,12 @@ export function TestResults({expression, channelId, teamId, isStacked, onExited,
     );
 }
 
-export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {
+export function AddAttributeButton({onClick, disabled, testId}: AddAttributeButtonProps): JSX.Element {
     return (
         <Button
             emphasis='tertiary'
             size='small'
+            data-testid={testId ? `${testId}--button` : undefined}
             onClick={onClick}
             disabled={disabled}
             leadingIcon={<Icon glyph={<PlusIcon/>}/>}

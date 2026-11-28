@@ -51,7 +51,7 @@ describe('Channel Settings', () => {
             cy.get('.url-input-container button.url-input-button').click();
 
             // # Try to save
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+            cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
             // # Error is displayed and URL is unchanged
             cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
@@ -63,7 +63,7 @@ describe('Channel Settings', () => {
             cy.get('.url-input-container input').clear().type('another-town-square');
             cy.get('.url-input-button').click();
             cy.get('.url-input-container button.url-input-button').click();
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+            cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
             // * URL is updated and no errors are displayed
             cy.url().should('include', `/${testTeam.name}/channels/another-town-square`);

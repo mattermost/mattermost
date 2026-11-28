@@ -14,14 +14,17 @@ type Props = {
     message?: ReactNode;
     className?: string;
     centered?: boolean;
+
+    // Without it, the legacy `loading-screen`.
+    testId?: string;
 };
 
-function LoadingScreen({message, position = 'relative', style, className = '', centered = false}: Props) {
+function LoadingScreen({message, position = 'relative', style, className = '', centered = false, testId}: Props) {
     const {formatMessage} = useIntl();
 
     return (
         <div
-            data-testid='loading-screen'
+            data-testid={testId ?? 'loading-screen'}
             className={classNames('loading-screen', className, {
                 'loading-screen--in-middle': centered,
             })}
@@ -29,6 +32,7 @@ function LoadingScreen({message, position = 'relative', style, className = '', c
         >
             <div className='loading__content'>
                 <LoadingSpinner
+                    testId={testId ? `${testId}.spinner` : undefined}
                     text={message || formatMessage({id: 'loading_screen.loading', defaultMessage: 'Loading'})}
                 />
             </div>

@@ -338,14 +338,16 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await channelsPage.toBeVisible();
 
             const channelSettings = await channelsPage.openChannelSettings();
-            const membershipPolicyTab = channelSettings.container.getByRole('tab', {name: /membership policy/i});
+            const membershipPolicyTab = channelSettings.tabs.tab('access_rules').locator;
             await membershipPolicyTab.waitFor({state: 'visible', timeout: 10000});
             await membershipPolicyTab.click();
             await page.waitForTimeout(1500);
 
-            await expect(channelSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
-                timeout: 10000,
-            });
+            await expect(channelSettings.container.locator.locator('.select__multi-value--masked').first()).toBeVisible(
+                {
+                    timeout: 10000,
+                },
+            );
 
             // Server-side guard: direct DELETE by the channel admin must 403
             expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);

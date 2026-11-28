@@ -11,6 +11,12 @@ type Props = {
     children: React.ReactNode;
     helpText?: React.ReactNode;
     footer?: React.ReactNode;
+
+    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`); without it the row keeps its input-id based ids. */
+    testIdScope?: string;
+
+    /** The row's own testid when it isn't the scope (a keyed row: `admin.setting:<key>`). */
+    testId?: string;
 };
 
 const Setting: React.FC<Props> = ({
@@ -21,15 +27,17 @@ const Setting: React.FC<Props> = ({
     children,
     footer,
     helpText,
+    testIdScope,
+    testId,
 }: Props) => {
     return (
         <div
-            data-testid={inputId}
+            data-testid={testIdScope ? testId ?? testIdScope : inputId}
             className='form-group'
         >
             {label && (
                 <label
-                    data-testid={inputId + 'label'}
+                    data-testid={testIdScope ? `${testIdScope}.label--text` : inputId + 'label'}
                     className={'control-label ' + labelClassName}
                     htmlFor={inputId}
                 >
@@ -39,7 +47,7 @@ const Setting: React.FC<Props> = ({
             <div className={inputClassName}>
                 {children}
                 <div
-                    data-testid={inputId + 'help-text'}
+                    data-testid={testIdScope ? `${testIdScope}.help--text` : inputId + 'help-text'}
                     className='help-text'
                 >
                     {helpText}

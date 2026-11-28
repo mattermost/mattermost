@@ -14,6 +14,12 @@ type Props = {
     onChange(name: string, value: string[]): void;
     value?: string[];
     disabled?: boolean;
+
+    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row keeps its input-id based ids. */
+    testIdScope?: string;
+
+    /** The row's own testid when it isn't the scope (a keyed row: `admin.setting:<key>--region`). */
+    testId?: string;
 };
 
 export function parseMatrixValue(entries: string[]): Map<string, Set<string>> {
@@ -53,6 +59,8 @@ const CheckboxMatrixSetting = ({
     onChange,
     value,
     disabled,
+    testIdScope,
+    testId,
 }: Props) => {
     const rows = matrixConfig.rows || [];
     const columns = matrixConfig.columns || [];
@@ -95,12 +103,12 @@ const CheckboxMatrixSetting = ({
     return (
         <div
             className='form-group'
-            data-testid={id}
+            data-testid={testIdScope ? testId ?? testIdScope : id}
         >
             {label && (
                 <label
                     className='control-label'
-                    data-testid={id + 'label'}
+                    data-testid={testIdScope ? `${testIdScope}.label--text` : id + 'label'}
                 >
                     {label}
                 </label>
@@ -124,11 +132,18 @@ const CheckboxMatrixSetting = ({
                 </thead>
                 <tbody>
                     {rows.map((row) => (
-                        <tr key={row.value}>
+                        <tr
+                            key={row.value}
+                            data-testid={testIdScope ? `${testIdScope}.row:${row.value}--row` : undefined}
+                        >
                             <th scope='row'>{row.label}</th>
                             {columns.map((col) => {
                                 const rowColumns = selection.get(row.value);
                                 const checked = rowColumns?.has(col.value) || false;
+                                let cellTestId;
+                                if (testIdScope) {
+                                    cellTestId = rowSelection === 'single' ? `${testIdScope}.row.radio_cell:${col.value}--radio` : `${testIdScope}.row.cell:${col.value}--checkbox`;
+                                }
                                 return (
                                     <td key={col.value}>
                                         <input
@@ -136,6 +151,7 @@ const CheckboxMatrixSetting = ({
                                             name={rowSelection === 'single' ? `${id}:${row.value}` : undefined}
                                             value={col.value}
                                             data-row={row.value}
+                                            data-testid={cellTestId}
                                             aria-label={`${row.label}, ${col.label}`}
                                             checked={checked}
                                             onChange={handleChange}
@@ -151,7 +167,7 @@ const CheckboxMatrixSetting = ({
             {helpText && (
                 <div
                     className='help-text'
-                    data-testid={id + 'help-text'}
+                    data-testid={testIdScope ? `${testIdScope}.help--text` : id + 'help-text'}
                 >
                     {helpText}
                 </div>
