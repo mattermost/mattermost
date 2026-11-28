@@ -160,6 +160,9 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "ha",
 			expected: []finding{
+				// app-1 has its own SiteURL, which shows whose configuration the reader takes.
+				{Code: "CLUSTER_CONFIG_DRIFT", State: healthcheck.StateFiring, Subject: "cluster.config"},
+				{Code: "CLUSTER_CONFIG_DRIFT", State: healthcheck.StateFiring, Subject: "cluster.config", Scope: "app-1.example.com"},
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateUnknown, Subject: "Database.PostsDeadTuples"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
@@ -511,6 +514,70 @@ func TestReadUnparsableNodeDiagnostics(t *testing.T) {
 	assert.Contains(t, evaluate(t, p.Snapshot), finding{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject})
 }
 
+func TestReadNodeConfigs(t *testing.T) {
+	settingsByNode := func(t *testing.T, p *Packet) map[string]map[string]string {
+		t.Helper()
+
+		settings := map[string]map[string]string{}
+		for _, node := range p.Snapshot.Nodes() {
+			require.NotNil(t, node.Diagnostics, node.Hostname)
+			settings[node.Hostname] = healthcheck.FlattenConfig(node.Diagnostics.Config)
+		}
+		return settings
+	}
+
+	differing := func(a, b map[string]string) []string {
+		paths := map[string]bool{}
+		healthcheck.DifferingSettings(paths, a, b)
+		return healthcheck.SortedSettings(paths)
+	}
+
+	t.Run("each node's config is read", func(t *testing.T) {
+		settings := settingsByNode(t, readFiles(t, fixtureFiles(t, "ha")))
+
+		for hostname, nodeSettings := range settings {
+			assert.NotEmpty(t, nodeSettings, hostname)
+		}
+		assert.Equal(t, settings["app-2.example.com"], settings["app-3.example.com"])
+		assert.Equal(t, []string{"ServiceSettings.SiteURL"}, differing(settings["app-1.example.com"], settings["app-2.example.com"]), "app-1 has its own SiteURL")
+	})
+
+	t.Run("feature flags are compared", func(t *testing.T) {
+		files := fixtureFiles(t, "ha")
+		name := path.Join("app-3.example.com", model.SupportPacketConfigFileName)
+		var cfg map[string]any
+		require.NoError(t, json.Unmarshal(files[name], &cfg))
+		cfg["FeatureFlags"].(map[string]any)["TestFeature"] = "on"
+		var err error
+		files[name], err = json.Marshal(cfg)
+		require.NoError(t, err)
+
+		settings := settingsByNode(t, readFiles(t, files))
+		assert.Equal(t, []string{"FeatureFlags.TestFeature"}, differing(settings["app-3.example.com"], settings["app-2.example.com"]))
+	})
+
+	t.Run("a node whose config does not parse is left out with a warning", func(t *testing.T) {
+		files := fixtureFiles(t, "ha")
+		files[path.Join("app-3.example.com", model.SupportPacketConfigFileName)] = []byte("{")
+
+		p := readFiles(t, files)
+		settings := settingsByNode(t, p)
+		assert.Empty(t, settings["app-3.example.com"])
+		assert.NotEmpty(t, settings["app-2.example.com"])
+		require.Len(t, p.Warnings, 1)
+		assert.Contains(t, p.Warnings[0], "app-3.example.com/sanitized_config.json")
+		assert.Contains(t, p.Warnings[0], "left out of the config drift check")
+	})
+
+	t.Run("a standalone packet's node config is read", func(t *testing.T) {
+		settings := settingsByNode(t, readFiles(t, fixtureFiles(t, "standalone")))
+		require.Len(t, settings, 1)
+		for _, nodeSettings := range settings {
+			assert.NotEmpty(t, nodeSettings)
+		}
+	})
+}
+
 func TestReadGenerationErrors(t *testing.T) {
 	files := fixtureFiles(t, "standalone")
 	files[model.SupportPacketErrorFile] = []byte("1 error occurred:\n\t* failed to get plugin list for Support Packet\n\n")
@@ -597,7 +664,10 @@ func TestReadInvalidPackets(t *testing.T) {
 		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 		require.NoError(t, err)
 
-		budget := len(files["app-1.example.com/diagnostics.yaml"]) + len(files["app-2.example.com/diagnostics.yaml"])
+		budget := 0
+		for _, node := range []string{"app-1.example.com", "app-2.example.com"} {
+			budget += len(files[path.Join(node, model.SupportPacketDiagnosticsFileName)]) + len(files[path.Join(node, model.SupportPacketConfigFileName)])
+		}
 		p, err := readPacket(&budgetedZip{zr: zr, remaining: int64(budget)})
 		require.NoError(t, err)
 

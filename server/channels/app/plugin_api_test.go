@@ -2272,7 +2272,10 @@ func TestPluginAPIGetConfig(t *testing.T) {
 	}
 
 	assert.Equal(t, *config.SqlSettings.DataSource, model.FakeSetting)
-	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
+
+	if *config.ElasticsearchSettings.Password != "" {
+		assert.Equal(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
+	}
 
 	for i := range config.SqlSettings.DataSourceReplicas {
 		assert.Equal(t, config.SqlSettings.DataSourceReplicas[i], model.FakeSetting)

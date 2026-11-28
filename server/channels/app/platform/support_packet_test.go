@@ -39,6 +39,7 @@ import (
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 type fixedDBStatsStore struct {
@@ -1304,6 +1305,38 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
 		assert.Contains(t, packet.OAuthProviders.GitLab.Error, "no discovery or token endpoint")
 	})
+}
+
+func TestSupportPacketDiagnosticsConfig(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	settings := func(t *testing.T) map[string]string {
+		t.Helper()
+
+		d, _ := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.NotNil(t, d)
+		require.NotNil(t, d.Config)
+		packetConfig, err := th.Service.GetSupportPacketConfig(th.Context)
+		require.NoError(t, err)
+		require.Equal(t, healthcheck.FlattenConfig(packetConfig), healthcheck.FlattenConfig(d.Config), "the same config the packet holds")
+		return healthcheck.FlattenConfig(d.Config)
+	}
+
+	// Sanitizing keeps an empty secret empty, so whether one is set still counts; its value does not.
+	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "secret" })
+	before := settings(t)
+
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		*cfg.JobSettings.RunJobs = !*cfg.JobSettings.RunJobs
+		*cfg.EmailSettings.SMTPPassword = "a different secret"
+	})
+	assert.Equal(t, before, settings(t), "node-local settings and secret values do not differ")
+
+	th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName += " renamed" })
+	paths := map[string]bool{}
+	healthcheck.DifferingSettings(paths, before, settings(t))
+	assert.Equal(t, []string{"TeamSettings.SiteName"}, healthcheck.SortedSettings(paths))
 }
 
 func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {

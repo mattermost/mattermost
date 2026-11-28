@@ -15010,6 +15010,36 @@
     "description": "Health dashboard finding title when the cluster advertise address is a loopback, unspecified or localhost address; 'ClusterSettings.AdvertiseAddress' is the config setting path and should not be translated."
   },
   {
+    "id": "health.rule.cluster_config_drift.message",
+    "translation": "These nodes run with a different configuration from the majority of the cluster: {{.nodes}}. Settings that differ ({{.count}}): {{.settings}}.",
+    "description": "Health dashboard finding detail when some cluster nodes run with a different configuration from most nodes; {{.nodes}} is a comma-separated list of the hostnames of the nodes that differ, {{.settings}} is a comma-separated list of up to 10 config setting paths such as TeamSettings.SiteName, which should not be translated, and {{.count}} is the total number of settings that differ."
+  },
+  {
+    "id": "health.rule.cluster_config_drift.message.mixed_builds",
+    "translation": "Nodes are running different builds; config drift is checked once all nodes match.",
+    "description": "Health dashboard reason shown when cluster nodes run different Mattermost builds, for example during a rolling upgrade, so configuration drift cannot be checked and the status is unknown."
+  },
+  {
+    "id": "health.rule.cluster_config_drift.message.no_majority",
+    "translation": "The nodes are split between configurations, with none more common than the others, so it is not clear which nodes differ. Nodes with the same configuration are grouped together: {{.groups}}. Settings that differ ({{.count}}): {{.settings}}.",
+    "description": "Health dashboard finding detail, and the reason a cluster node's status is unknown, when cluster nodes run with different configurations and two or more configurations are tied for the most common; {{.groups}} lists the hostnames grouped by configuration, with groups separated by ' | ', {{.settings}} is a comma-separated list of up to 10 config setting paths such as TeamSettings.SiteName, which should not be translated, and {{.count}} is the total number of settings that differ."
+  },
+  {
+    "id": "health.rule.cluster_config_drift.message.node",
+    "translation": "{{.node}} runs with a different configuration from the {{.majority}} nodes that share the most common configuration. Settings that differ ({{.count}}): {{.settings}}.",
+    "description": "Health dashboard finding detail for one cluster node whose configuration differs from most nodes; {{.node}} is the node's hostname, {{.majority}} is the number of nodes that share the most common configuration, {{.settings}} is a comma-separated list of up to 10 config setting paths such as TeamSettings.SiteName, which should not be translated, and {{.count}} is the total number of settings that differ."
+  },
+  {
+    "id": "health.rule.cluster_config_drift.remediation",
+    "translation": "Compare the listed settings in config.json and the MM_* environment variable overrides on the named nodes, make them match, then reload the configuration on every node. Secret values such as passwords are not compared, and settings that nodes set differently on purpose, such as JobSettings.RunJobs and ClusterSettings.AdvertiseAddress, are ignored.",
+    "description": "Health dashboard fix-it step for cluster nodes running with different configurations; 'config.json' is the configuration file name, 'MM_*' is the prefix of Mattermost environment variables, and 'JobSettings.RunJobs' and 'ClusterSettings.AdvertiseAddress' are config setting paths, none of which should be translated."
+  },
+  {
+    "id": "health.rule.cluster_config_drift.title",
+    "translation": "Cluster nodes are running with different configurations",
+    "description": "Health dashboard finding title when nodes in a high availability cluster run with different effective configurations."
+  },
+  {
     "id": "health.rule.cluster_config_writable.message",
     "translation": "The configuration is stored in a file on each node and can be changed in the System Console. A change is saved on one node and pushed to the others on a best-effort basis; a node that misses the push keeps its own file, so the nodes' configurations can drift apart.",
     "description": "Health dashboard finding detail when a high availability cluster uses file-based configuration that the System Console can change; 'System Console' is the Mattermost admin UI."

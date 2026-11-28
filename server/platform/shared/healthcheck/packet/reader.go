@@ -156,10 +156,11 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 		newestSeen int
 	)
 
-	read := func(hostname, name string) *healthcheck.NodeSnapshot {
+	// dir is the node's directory, or "" for the root files of a standalone packet.
+	read := func(hostname, dir string) *healthcheck.NodeSnapshot {
 		node := &healthcheck.NodeSnapshot{Hostname: hostname}
 		var diag model.SupportPacketDiagnostics
-		if _, err := z.readMember(name, &diag, yaml.Unmarshal); err != nil {
+		if _, err := z.readMember(path.Join(dir, model.SupportPacketDiagnosticsFileName), &diag, yaml.Unmarshal); err != nil {
 			warnings = append(warnings, fmt.Sprintf("%s. The node's diagnostics are ignored.", err))
 			return node
 		}
@@ -170,11 +171,20 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 		}
 		node.Diagnostics = &model.NodeDiagnostics{Diagnostics: &diag, Errors: errs}
 		newestSeen = max(newestSeen, diag.Version)
+
+		var cfg model.SupportPacketConfig
+		found, err := z.readMember(path.Join(dir, model.SupportPacketConfigFileName), &cfg, json.Unmarshal)
+		switch {
+		case err != nil:
+			warnings = append(warnings, fmt.Sprintf("%s. The node is left out of the config drift check.", err))
+		case found && cfg.Config != nil:
+			node.Diagnostics.Config = &cfg
+		}
 		return node
 	}
 
 	if len(byNode) == 0 && slices.Contains(root, model.SupportPacketDiagnosticsFileName) {
-		node := read("", model.SupportPacketDiagnosticsFileName)
+		node := read("", "")
 		if diag, ok := node.Diag(); ok {
 			node.Hostname = model.SafeDereference(diag.Server.Hostname)
 		}
@@ -182,7 +192,7 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 	}
 
 	for _, hostname := range slices.Sorted(maps.Keys(byNode)) {
-		nodes = append(nodes, read(hostname, path.Join(hostname, model.SupportPacketDiagnosticsFileName)))
+		nodes = append(nodes, read(hostname, hostname))
 	}
 
 	if newestSeen > model.CurrentSupportPacketVersion {

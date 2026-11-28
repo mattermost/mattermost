@@ -18,6 +18,8 @@ type SectionErrors map[NodeSection]error
 type NodeDiagnostics struct {
 	Diagnostics *SupportPacketDiagnostics `json:"diagnostics"`
 	Errors      SectionErrors             `json:"errors"`
+	// Config is the node's sanitized config, as in its sanitized_config.json.
+	Config *SupportPacketConfig `json:"config,omitempty"`
 }
 
 func (e SectionErrors) MarshalJSON() ([]byte, error) {

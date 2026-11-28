@@ -225,6 +225,7 @@ func TestRegistered(t *testing.T) {
 		{clusterNotEnabled, "CLUSTER_NOT_ENABLED", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "ClusterSettings.Enable", true, false},
 		{clusterNotEnabledAtScale, "CLUSTER_NOT_ENABLED_AT_SCALE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "ClusterSettings.Enable", true, false},
 		{versionSkew, "CLUSTER_VERSION_SKEW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.version", true, true},
+		{configDrift, "CLUSTER_CONFIG_DRIFT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.config", true, true},
 		{nodeNotResponding, "NODE_NOT_RESPONDING", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityTopology, "cluster.node", false, true},
 	}
 

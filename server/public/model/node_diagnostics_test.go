@@ -37,6 +37,33 @@ func TestNodeDiagnosticsJSON(t *testing.T) {
 		assert.EqualError(t, out.Errors[SectionSMTPProbe], "dial tcp: timeout")
 	})
 
+	t.Run("the config travels with the diagnostics", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		*cfg.TeamSettings.SiteName = "Drifted"
+		cfg.FeatureFlags.TestFeature = "on"
+		in := NodeDiagnostics{
+			Diagnostics: &SupportPacketDiagnostics{},
+			Config:      &SupportPacketConfig{Config: cfg, FeatureFlags: *cfg.FeatureFlags},
+		}
+
+		data, err := json.Marshal(in)
+		require.NoError(t, err)
+
+		var out NodeDiagnostics
+		require.NoError(t, json.Unmarshal(data, &out))
+		require.NotNil(t, out.Config)
+		require.NotNil(t, out.Config.Config)
+		assert.Equal(t, "Drifted", *out.Config.TeamSettings.SiteName)
+		assert.Equal(t, "on", out.Config.FeatureFlags.TestFeature)
+	})
+
+	t.Run("a node on an older build sends no config", func(t *testing.T) {
+		var out NodeDiagnostics
+		require.NoError(t, json.Unmarshal([]byte(`{"diagnostics":{},"errors":{}}`), &out))
+		assert.Nil(t, out.Config)
+	})
+
 	t.Run("a pointer encodes the same as a value", func(t *testing.T) {
 		in := &NodeDiagnostics{Diagnostics: &SupportPacketDiagnostics{}, Errors: SectionErrors{SectionServerHost: nil}}
 

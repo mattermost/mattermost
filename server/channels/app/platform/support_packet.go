@@ -385,7 +385,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	collectProbes()
 
-	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
+	spConfig, _ := ps.GetSupportPacketConfig(rctx)
+
+	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors, Config: spConfig}, rErr.ErrorOrNil()
 }
 
 // networkProbe checks one external service on its own goroutine, so that a service that doesn't answer

@@ -53,6 +53,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"CLUSTER_NOT_ENABLED",
 		"CLUSTER_NOT_ENABLED_AT_SCALE",
 		"CLUSTER_VERSION_SKEW",
+		"CLUSTER_CONFIG_DRIFT",
 		"NODE_NOT_RESPONDING",
 
 		// compliance
