@@ -1210,7 +1210,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*Server).QueryLogs
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).ReadFile
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).RemoveLicense
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).SaveLicense
-github.com/mattermost/mattermost/server/v8/channels/app.(*Server).SendRemoveExpiredLicenseEmail
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).doPermissionsMigration
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).exportFileExists
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).exportFileReader
@@ -1228,7 +1227,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*Server).listExportDire
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).mergeChannelHigherScopedPermissions
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).removeExportFile
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).removeFile
-github.com/mattermost/mattermost/server/v8/channels/app.(*Server).sendLicenseUpForRenewalEmail
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).writeExportFile
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).writeExportFileContext
 github.com/mattermost/mattermost/server/v8/channels/app.(*Server).writeFile

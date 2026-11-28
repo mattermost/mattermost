@@ -1612,7 +1612,7 @@ func (s *Server) HandleMetrics(route string, h http.Handler) {
 	s.platform.HandleMetrics(route, h)
 }
 
-func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
+func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) error {
 	key := model.LicenseUpForRenewalEmailSent + license.Id
 	if _, err := s.Store().System().GetByName(key); err == nil {
 		// return early because the key already exists and that means we already executed the code below to send email successfully
@@ -1696,9 +1696,9 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsWithinExpirationPeriod() {
-		appErr := s.sendLicenseUpForRenewalEmail(users, license)
-		if appErr != nil {
-			mlog.Debug(appErr.Error())
+		err = s.sendLicenseUpForRenewalEmail(users, license)
+		if err != nil {
+			mlog.Debug(err.Error())
 		}
 		return
 	}
@@ -1727,7 +1727,7 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 }
 
-func (s *Server) SendRemoveExpiredLicenseEmail(email, locale string) *model.AppError {
+func (s *Server) SendRemoveExpiredLicenseEmail(email, locale string) error {
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(email, locale); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
