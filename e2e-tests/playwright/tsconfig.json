@@ -21,5 +21,5 @@
         }
     },
     "include": ["./**/*"],
-    "exclude": ["node_modules", "playwright-report", "lib"]
+    "exclude": ["node_modules", "playwright-report", "lib", "test-surface"]
 }

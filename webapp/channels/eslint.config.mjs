@@ -6,9 +6,21 @@ import formatjsPlugin from 'eslint-plugin-formatjs';
 import noOnlyTestsPlugin from 'eslint-plugin-no-only-tests';
 
 import eslintPlugin from '@mattermost/eslint-plugin';
+import testSurface from '@mattermost/test-surface/lint/webapp';
 
 export default defineConfig([
     ...eslintPlugin.configs.react,
+    {
+        plugins: {'test-surface': testSurface},
+    },
+    {
+        files: ['src/**/*.tsx', 'src/**/*.ts'],
+        ignores: ['**/*.test.*', '**/*_test_helpers.*', '**/__mocks__/**'],
+        rules: {
+            'test-surface/testid-grammar': 'warn',
+            'test-surface/testid-no-unscoped-data': 'warn',
+        },
+    },
     globalIgnores(['./dist']),
     {
         plugins: {

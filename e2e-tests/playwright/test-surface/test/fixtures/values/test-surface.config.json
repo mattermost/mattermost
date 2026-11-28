@@ -1,0 +1,1 @@
+{"root": ".", "tsconfig": "tsconfig.json", "include": ["src"], "entityTypeDirs": ["types"], "output": {"report": "test-surface.json"}}

@@ -1,14 +1,15 @@
 {
   "name": "mattermost-playwright",
   "workspaces": [
-    "lib"
+    "lib",
+    "test-surface"
   ],
   "scripts": {
     "postinstall": "script/post_install.sh && npm run build",
     "build": "npm run build --workspaces",
     "build:watch": "npm run build:watch --workspaces",
     "tsc": "npm run tsc --workspaces && tsc -b",
-    "lint": "eslint .",
+    "lint": "eslint . && npm run check --workspace @mattermost/test-surface",
     "lint:test-docs": "node script/lint-test-docs.js",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier --write .",
@@ -33,7 +34,7 @@
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
     "start:libretranslate-mock": "node mock_libre_translate.js",
-    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results .mattermost_data && npm run clean --workspaces"
+    "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results .mattermost_data && npm run clean --workspaces --if-present"
   },
   "dependencies": {
     "@mattermost/client": "file:../../webapp/platform/client",
