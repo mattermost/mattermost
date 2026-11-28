@@ -284,6 +284,26 @@ func (_m *MockAppIface) DeleteReactionForPost(rctx request.CTX, reaction *model.
 	return r0
 }
 
+// DemoteUserToGuest provides a mock function with given fields: rctx, user
+func (_m *MockAppIface) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
+	ret := _m.Called(rctx, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DemoteUserToGuest")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) *model.AppError); ok {
+		r0 = rf(rctx, user)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // FileReader provides a mock function with given fields: path
 func (_m *MockAppIface) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	ret := _m.Called(path)
@@ -619,6 +639,26 @@ func (_m *MockAppIface) PreparePostForClient(rctx request.CTX, post *model.Post,
 	return r0
 }
 
+// PromoteGuestToUser provides a mock function with given fields: rctx, user, requestorId
+func (_m *MockAppIface) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError {
+	ret := _m.Called(rctx, user, requestorId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PromoteGuestToUser")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, string) *model.AppError); ok {
+		r0 = rf(rctx, user, requestorId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // Publish provides a mock function with given fields: message
 func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
@@ -778,6 +818,38 @@ func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post 
 // SetupBroadcastHookForChannelReadAccess provides a mock function with given fields: channelID, message
 func (_m *MockAppIface) SetupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
 	_m.Called(channelID, message)
+}
+
+// UpdateActive provides a mock function with given fields: rctx, user, active
+func (_m *MockAppIface) UpdateActive(rctx request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
+	ret := _m.Called(rctx, user, active)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateActive")
+	}
+
+	var r0 *model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) (*model.User, *model.AppError)); ok {
+		return rf(rctx, user, active)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) *model.User); ok {
+		r0 = rf(rctx, user, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, bool) *model.AppError); ok {
+		r1 = rf(rctx, user, active)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdatePost provides a mock function with given fields: rctx, post, updatePostOptions

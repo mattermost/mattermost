@@ -48,6 +48,7 @@ type SelfReferentialSyncHandler struct {
 	OnIndividualSync func(userId string, messageNumber int32)
 	OnBatchSync      func(userIds []string, messageNumber int32)
 	OnGlobalUserSync func(userIds []string, messageNumber int32)
+	OnGlobalUsers    func(users map[string]*model.User)
 }
 
 // NewSelfReferentialSyncHandler creates a new handler for processing sync messages in tests
@@ -110,6 +111,9 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 						}
 						if h.OnGlobalUserSync != nil {
 							h.OnGlobalUserSync(userIds, currentCall)
+						}
+						if h.OnGlobalUsers != nil {
+							h.OnGlobalUsers(syncMsg.Users)
 						}
 					}
 

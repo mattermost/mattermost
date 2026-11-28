@@ -107,7 +107,7 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 
 	// First try to upsert user from sync message (mirrors mention scenario)
 	if userProfile, exists := syncMsg.Users[change.UserId]; exists {
-		user, err = scs.upsertSyncUser(rctx, userProfile, channel, rc)
+		user, err = scs.upsertSyncUser(rctx, userProfile, channel, rc, syncMsg.GuestRolesSynced)
 		if err != nil {
 			return fmt.Errorf("cannot upsert user for channel add: %w", err)
 		}

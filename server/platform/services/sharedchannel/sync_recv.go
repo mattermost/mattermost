@@ -61,7 +61,7 @@ func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncM
 
 	// Process all users in the sync message
 	for _, user := range syncMsg.Users {
-		if userSaved, err := scs.upsertSyncUser(rctx, user, nil, rc); err != nil {
+		if userSaved, err := scs.upsertSyncUser(rctx, user, nil, rc, syncMsg.GuestRolesSynced); err != nil {
 			syncResp.UserErrors = append(syncResp.UserErrors, user.Id)
 		} else {
 			syncResp.UsersSyncd = append(syncResp.UsersSyncd, userSaved.Id)
@@ -141,7 +141,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 
 	// add/update users before posts
 	for _, user := range syncMsg.Users {
-		if userSaved, err := scs.upsertSyncUser(rctx, user, targetChannel, rc); err != nil {
+		if userSaved, err := scs.upsertSyncUser(rctx, user, targetChannel, rc, syncMsg.GuestRolesSynced); err != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync user",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),
@@ -298,7 +298,7 @@ func (scs *Service) processSyncMessageForRemote(rctx request.CTX, syncMsg *model
 	return response.SetPayload(syncResp)
 }
 
-func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster, canPromote bool) (*model.User, error) {
 	var err error
 
 	// Check if user already exists
@@ -352,7 +352,11 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			patch.Email = &remoteEmail
 		}
 
+		isGuest := user.IsGuest()
 		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
+			return nil, err
+		}
+		if userSaved, err = scs.updateSyncUserGuestRole(rctx, userSaved, isGuest, canPromote); err != nil {
 			return nil, err
 		}
 	}
@@ -382,8 +386,11 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	var userSaved *model.User
 	var suffix string
 
-	// ensure the new user is created with system_user role and random password.
+	// ensure the new user is created with system_user or system_guest role and random password.
 	user = sanitizeUserForSync(user)
+	if user.IsGuest() && user.DeleteAt == 0 && !scs.guestAccountsEnabled() {
+		user.DeleteAt = model.GetMillis()
+	}
 
 	// RemoteEmail was selected before the incoming RemoteId was rewritten.
 	// Preserve it instead of replacing it with a synthetic email.
@@ -477,6 +484,45 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 		}
 	}
 	return nil, fmt.Errorf("error updating sync user %s: %w", user.Id, err)
+}
+
+// User().Update does not change roles, so guest status is synced here.
+func (scs *Service) updateSyncUserGuestRole(rctx request.CTX, user *model.User, isGuest, canPromote bool) (*model.User, error) {
+	if user.IsBot {
+		return user, nil
+	}
+
+	if user.IsGuest() != isGuest && (isGuest || canPromote) {
+		var appErr *model.AppError
+		if isGuest {
+			appErr = scs.app.DemoteUserToGuest(rctx, user)
+		} else {
+			appErr = scs.app.PromoteGuestToUser(rctx, user, "")
+		}
+		if appErr != nil {
+			return nil, fmt.Errorf("error updating guest role for sync user %s: %w", user.Id, appErr)
+		}
+
+		updated, err := scs.server.GetStore().User().Get(rctx, user.Id)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching sync user %s after guest role update: %w", user.Id, err)
+		}
+		user = updated
+	}
+
+	// Outside the role-change branch so a retry finishes a deactivation that failed after the demote.
+	if user.IsGuest() && user.DeleteAt == 0 && !scs.guestAccountsEnabled() {
+		deactivated, appErr := scs.app.UpdateActive(rctx, user, false)
+		if appErr != nil {
+			return nil, fmt.Errorf("error deactivating sync guest %s: %w", user.Id, appErr)
+		}
+		user = deactivated
+	}
+	return user, nil
+}
+
+func (scs *Service) guestAccountsEnabled() bool {
+	return *scs.server.Config().GuestAccountsSettings.Enable
 }
 
 func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) (*model.Post, error) {
