@@ -634,9 +634,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			mock.AnythingOfType("*request.Context"),
 		).Return("", "", nil)
 		ldapMock.On(
-			"RunTest",
+			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
-		).Return(nil)
+		).Return(nil, nil)
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -658,9 +658,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			mock.AnythingOfType("*request.Context"),
 		).Return("some vendor", "v1.0.0", nil)
 		ldapMock.On(
-			"RunTest",
+			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
-		).Return(nil)
+		).Return(nil, nil)
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -682,9 +682,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			mock.AnythingOfType("*request.Context"),
 		).Return("some vendor", "v1.0.0", nil)
 		ldapMock.On(
-			"RunTest",
+			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
-		).Return(model.NewAppError("", "some error", nil, "", 0))
+		).Return(nil, model.NewAppError("", "some error", nil, "", 0))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -717,7 +717,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("model.SamlSettings"),
-		).Return(nil)
+		).Return(nil, nil, nil)
 		originalSAMLDiag := th.Service.samlDiagnostic
 		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
 		th.Service.samlDiagnostic = diagMock
@@ -747,7 +747,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("enterprise check failed"))
+		).Return(nil, nil, errors.New("enterprise check failed"))
 		originalSAMLDiag := th.Service.samlDiagnostic
 		t.Cleanup(func() {
 			th.Service.samlDiagnostic = originalSAMLDiag
@@ -1499,7 +1499,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 	t.Run("LDAP vendor info fails", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(nil)
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(nil, nil)
 		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("", "", errors.New("vendor down"))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
@@ -1518,9 +1518,12 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 	})
 
+	expiredCert := &model.SupportPacketCertificate{CommonName: "dc01.corp.example.com", Issuer: "Example Corp Issuing CA 2", NotAfter: time.Date(2026, 11, 10, 23, 59, 59, 0, time.UTC)}
+	unreadableCert := &model.SupportPacketCertificate{Error: `failed to parse certificate "public.crt": x509: malformed certificate`}
+
 	t.Run("failed probe stays present and clean", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(model.NewAppError("", "bind failed", nil, "", 0))
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(unreadableCert, model.NewAppError("", "bind failed", nil, "", 0))
 		originalLDAP := th.Service.ldapDiagnostic
 		t.Cleanup(func() {
 			th.Service.ldapDiagnostic = originalLDAP
@@ -1533,7 +1536,37 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			cfg.LdapSettings.EnableSync = model.NewPointer(true)
 		})
 
-		requireSectionErrors(t, nil)
+		d := requireSectionErrors(t, nil)
+		// The client certificate is reported even when the test fails.
+		assert.Equal(t, unreadableCert, d.LDAP.ClientCertificate)
+	})
+
+	t.Run("failed SAML test still reports its certificates", func(t *testing.T) {
+		samlMock := emocks.NewSamlDiagnosticInterface(t)
+		samlMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("model.SamlSettings")).
+			Return(expiredCert, unreadableCert, errors.New("SAML IdP certificate expired"))
+		originalSAML := th.Service.samlDiagnostic
+		t.Cleanup(func() {
+			th.Service.samlDiagnostic = originalSAML
+			th.Service.UpdateConfig(func(cfg *model.Config) { cfg.SamlSettings.Enable = model.NewPointer(false) })
+		})
+		th.Service.samlDiagnostic = samlMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("https://idp.example.com/saml")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("https://idp.example.com")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		d := requireSectionErrors(t, nil)
+		assert.Equal(t, model.StatusFail, d.SAML.Status)
+		assert.Equal(t, expiredCert, d.SAML.IdpCertificate)
+		assert.Equal(t, unreadableCert, d.SAML.SPCertificate)
 	})
 
 	t.Run("probe still running at the deadline", func(t *testing.T) {
@@ -1549,9 +1582,9 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			})
 		})
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).
 			Run(func(mock.Arguments) { <-release }).
-			Return(model.NewAppError("", "released", nil, "", 0))
+			Return(nil, model.NewAppError("", "released", nil, "", 0))
 		setLDAP(t, ldapMock)
 
 		// Long enough for the local collection, which also uses the context for its database queries.
@@ -1596,12 +1629,12 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		require.NoError(t, err)
 
 		ldapMock := &emocks.LdapDiagnosticInterface{}
-		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) *model.AppError {
+		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) (*model.SupportPacketCertificate, *model.AppError) {
 			close(ldapStarted)
 			if err := waitFor(fileStoreStarted); err != nil {
-				return model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
+				return nil, model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
 			}
-			return nil
+			return nil, nil
 		})
 		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("OpenLDAP", "2.6", nil)
 		setLDAP(t, ldapMock)

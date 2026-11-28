@@ -28,6 +28,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -158,6 +159,14 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	client := &http.Client{Transport: tr}
 	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 	require.NoError(t, err)
+
+	nodeDiagnostics, _ := s.platform.GetSupportPacketDiagnostics(request.TestContext(t))
+	require.NotNil(t, nodeDiagnostics)
+	assert.Equal(t, &model.SupportPacketCertificate{
+		CommonName: "O=Default Company Ltd,L=Default City,C=XX",
+		Issuer:     "O=Default Company Ltd,L=Default City,C=XX",
+		NotAfter:   time.Date(2019, time.October, 6, 20, 3, 45, 0, time.UTC),
+	}, nodeDiagnostics.Diagnostics.TLS.Certificate)
 
 	s.Shutdown()
 	require.NoError(t, serverErr)

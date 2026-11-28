@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"hash/maphash"
@@ -103,6 +104,9 @@ type PlatformService struct {
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 	samlDiagnostic einterfaces.SamlDiagnosticInterface
+
+	// tlsCertificate is the leaf certificate the HTTPS listener loaded from TLSCertFile at startup.
+	tlsCertificate atomic.Pointer[x509.Certificate]
 
 	httpService            httpservice.HTTPService
 	pushNotificationClient *http.Client
@@ -777,6 +781,11 @@ func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface 
 
 func (ps *PlatformService) SamlDiagnostic() einterfaces.SamlDiagnosticInterface {
 	return ps.samlDiagnostic
+}
+
+// SetTLSCertificate records the leaf certificate the HTTPS listener serves, for the Support Packet.
+func (ps *PlatformService) SetTLSCertificate(cert *x509.Certificate) {
+	ps.tlsCertificate.Store(cert)
 }
 
 // DatabaseTypeAndSchemaVersion returns the database type and current version of the schema

@@ -16,21 +16,42 @@ type SamlDiagnosticInterface struct {
 }
 
 // RunSupportPacketTest provides a mock function with given fields: rctx, settings
-func (_m *SamlDiagnosticInterface) RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) error {
+func (_m *SamlDiagnosticInterface) RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) (*model.SupportPacketCertificate, *model.SupportPacketCertificate, error) {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RunSupportPacketTest")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX, model.SamlSettings) error); ok {
+	var r0 *model.SupportPacketCertificate
+	var r1 *model.SupportPacketCertificate
+	var r2 error
+	if rf, ok := ret.Get(0).(func(request.CTX, model.SamlSettings) (*model.SupportPacketCertificate, *model.SupportPacketCertificate, error)); ok {
+		return rf(rctx, settings)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.SamlSettings) *model.SupportPacketCertificate); ok {
 		r0 = rf(rctx, settings)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SupportPacketCertificate)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, model.SamlSettings) *model.SupportPacketCertificate); ok {
+		r1 = rf(rctx, settings)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.SupportPacketCertificate)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, model.SamlSettings) error); ok {
+		r2 = rf(rctx, settings)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // NewSamlDiagnosticInterface creates a new instance of SamlDiagnosticInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

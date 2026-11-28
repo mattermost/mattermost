@@ -1361,19 +1361,21 @@ func (s *Server) Start() error {
 				tlsConfig.CipherSuites = cipherSuites
 			}
 
-			certFile := ""
-			keyFile := ""
-
 			if *s.platform.Config().ServiceSettings.UseLetsEncrypt {
 				tlsConfig.GetCertificate = m.GetCertificate
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 			} else {
-				certFile = *s.platform.Config().ServiceSettings.TLSCertFile
-				keyFile = *s.platform.Config().ServiceSettings.TLSKeyFile
+				// Loaded here rather than by ServeTLS so that the Support Packet can report the certificate being served.
+				var cert tls.Certificate
+				cert, err = tls.LoadX509KeyPair(*s.platform.Config().ServiceSettings.TLSCertFile, *s.platform.Config().ServiceSettings.TLSKeyFile)
+				tlsConfig.Certificates = []tls.Certificate{cert}
+				s.platform.SetTLSCertificate(cert.Leaf)
 			}
 
-			s.Server.TLSConfig = tlsConfig
-			err = s.Server.ServeTLS(listener, certFile, keyFile)
+			if err == nil {
+				s.Server.TLSConfig = tlsConfig
+				err = s.Server.ServeTLS(listener, "", "")
+			}
 		} else {
 			err = s.Server.Serve(listener)
 		}
