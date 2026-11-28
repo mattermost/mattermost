@@ -33,7 +33,7 @@ describe('TextFormatting.ChannelLinks', () => {
                     team: TH.getTeamMock({name: 'myteam'}),
                 }, emojiMap).trim(),
             ).toBe(
-                '<p><a class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a></p>',
+                '<p><a data-testid="markdown.channel_mention--link" class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a></p>',
             );
         });
 
@@ -44,7 +44,7 @@ describe('TextFormatting.ChannelLinks', () => {
                     team: TH.getTeamMock({name: 'myteam'}),
                 }, emojiMap).trim(),
             ).toBe(
-                '<p><a class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a>.</p>',
+                '<p><a data-testid="markdown.channel_mention--link" class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a>.</p>',
             );
         });
 
@@ -55,7 +55,7 @@ describe('TextFormatting.ChannelLinks', () => {
                     team: TH.getTeamMock({name: 'myteam'}),
                 }, emojiMap).trim(),
             ).toBe(
-                '<p><a class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~&lt;b&gt;Reception&lt;/b&gt;</a></p>',
+                '<p><a data-testid="markdown.channel_mention--link" class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~&lt;b&gt;Reception&lt;/b&gt;</a></p>',
             );
         });
 
@@ -67,7 +67,7 @@ describe('TextFormatting.ChannelLinks', () => {
                     team: TH.getTeamMock({name: 'myteam'}),
                 }, emojiMap).trim(),
             ).toBe(
-                '<p><a class="mention-link" href="/subpath/myteam/channels/town-square" data-channel-mention="town-square">~&lt;b&gt;Reception&lt;/b&gt;</a></p>',
+                '<p><a data-testid="markdown.channel_mention--link" class="mention-link" href="/subpath/myteam/channels/town-square" data-channel-mention="town-square">~&lt;b&gt;Reception&lt;/b&gt;</a></p>',
             );
         });
 
@@ -78,7 +78,7 @@ describe('TextFormatting.ChannelLinks', () => {
                     team: TH.getTeamMock({name: 'myteam'}),
                 }, emojiMap).trim(),
             ).toBe(
-                '<p>(<a class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a>)</p>',
+                '<p>(<a data-testid="markdown.channel_mention--link" class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a>)</p>',
             );
         });
     });

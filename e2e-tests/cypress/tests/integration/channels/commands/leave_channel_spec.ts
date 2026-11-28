@@ -28,7 +28,7 @@ describe('Leave Channel Command', () => {
         // # Go to newly created channel
         cy.get('#sidebarItem_' + testChannel.name).click({force: true});
 
-        cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last().scrollIntoView().should('be.visible');
 
         // # Post /leave command in center channel
         cy.postMessage('/leave ');

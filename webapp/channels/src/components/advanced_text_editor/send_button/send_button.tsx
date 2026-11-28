@@ -28,9 +28,11 @@ type SendButtonProps = {
     channelId: string;
     repeatDisabledReason?: RepeatDisabledReason;
     schedulingBlockedReason?: string;
+
+    testId?: string;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, schedulingBlockedReason}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, schedulingBlockedReason, testId}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
@@ -69,7 +71,7 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, sc
             >
                 <button
                     className={classNames('SendMessageButton', {disabled}, {singleAction: !isScheduledPostEnabled})}
-                    data-testid='SendMessageButton'
+                    data-testid={testId ? `${testId}--button` : undefined}
                     tabIndex={0}
                     aria-label={formatMessage({
                         id: 'create_post_button.option.send_now',
@@ -93,6 +95,7 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, sc
                     channelId={channelId}
                     repeatDisabledReason={repeatDisabledReason}
                     blockedReason={schedulingBlockedReason}
+                    testId={testId ? `${testId}_options` : undefined}
                 />
             }
         </div>

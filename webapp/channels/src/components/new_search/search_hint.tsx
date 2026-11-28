@@ -66,7 +66,10 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
 
     if (hasSelectedOption) {
         return (
-            <SearchHintsContainer id='searchHints'>
+            <SearchHintsContainer
+                id='searchHints'
+                data-testid='search_box.hints'
+            >
                 <i className='icon icon-keyboard-return'/>
                 <FormattedMessage
                     id='search_hint.enter_to_select'
@@ -78,7 +81,10 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
 
     if (searchTerms.length > 0 && searchTerms[searchTerms.length - 1] !== ' ') {
         return (
-            <SearchHintsContainer id='searchHints'>
+            <SearchHintsContainer
+                id='searchHints'
+                data-testid='search_box.hints'
+            >
                 <i className='icon icon-keyboard-return'/>
                 <FormattedMessage
                     id='search_hint.enter_to_search'
@@ -89,7 +95,10 @@ const SearchHints = ({onSelectFilter, searchType, searchTerms, searchTeam, hasSe
     }
 
     return (
-        <SearchHintsContainer id='searchHints'>
+        <SearchHintsContainer
+            id='searchHints'
+            data-testid='search_box.hints'
+        >
             <i
                 className='icon icon-lightbulb-outline'
                 aria-hidden='true'

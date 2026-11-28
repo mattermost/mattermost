@@ -447,12 +447,13 @@ describe('components/PostMarkdown', () => {
             ...baseProps,
             message: 'See ~test',
             post: dataSpillageReportPost,
+            testIdScope: 'center.post_list.post' as const,
         };
 
         mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
         renderWithContext(<PostMarkdown {...props}/>, state);
         await act(async () => {});
 
-        expect(screen.queryByTestId('data-spillage-report')).toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.spillage_report')).toBeInTheDocument();
     });
 });

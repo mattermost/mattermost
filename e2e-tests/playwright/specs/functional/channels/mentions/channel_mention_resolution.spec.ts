@@ -53,26 +53,25 @@ test.describe('channel mention resolution', () => {
 
             // # Author posts the public channel mention into the DM. current_team_id scopes the
             // server-side name lookup to team A so the mention resolves for the author at creation time.
-            await userClient.createPost({
+            const post = await userClient.createPost({
                 channel_id: dmChannel.id,
                 message: `Check out ~${channelName}`,
-                user_id: author.id,
                 props: {current_team_id: teamA.id},
             });
 
             // # Log in as the viewer and open the DM via team B
-            const {channelsPage} = await pw.testBrowser.login(viewer);
-            await channelsPage.goto(teamB.name, `@${author.username}`);
-            await channelsPage.toBeVisible();
-
-            const lastPost = await channelsPage.getLastPost();
-
-            // * The mention is NOT resolved into a clickable channel link for the cross-team viewer
-            await expect(lastPost.body.locator('a.mention-link[data-channel-mention]')).toHaveCount(0);
+            const {app} = await pw.testBrowser.login(viewer);
+            await app.channelsPage.goto({team: teamB, path: 'messages', channel: `@${author.username}`});
+            const shown = app.center.postList.post(post);
 
             // * The raw `~slug` is rendered as plain text and the display name is never disclosed
-            await expect(lastPost.body).toContainText(`~${channelName}`);
-            await expect(lastPost.body).not.toContainText(channelDisplayName);
+            await expect(shown.message.container).toContainText(`~${channelName}`);
+            await expect(shown.message.container).not.toContainText(channelDisplayName);
+
+            // * The mention is NOT resolved into a clickable channel link for the cross-team viewer
+            // (the Compliance test below sees this link where the mention does resolve)
+            const markdown = shown.markdown;
+            await expect(markdown.channelMentionLink).toHaveCount(0);
         },
     );
 
@@ -96,7 +95,6 @@ test.describe('channel mention resolution', () => {
             // NOTE: ComplianceSettings is a global, server-wide setting. Toggling it can affect other
             // tests running in parallel; we restore it in a finally block to limit the blast radius.
             await adminClient.patchConfig({ComplianceSettings: {Enable: true}});
-
             try {
                 // # Create a public channel; the author is a member, the viewer will not be
                 const channelName = `compliance-public-${pw.random.id()}`;
@@ -115,21 +113,18 @@ test.describe('channel mention resolution', () => {
 
                 // # Author posts the mention in town-square (both users are members)
                 const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
-                await userClient.createPost({
+                const post = await userClient.createPost({
                     channel_id: townSquare.id,
                     message: `Please see ~${channelName}`,
-                    user_id: author.id,
                 });
 
                 // # Log in as the viewer and open town-square
-                const {channelsPage} = await pw.testBrowser.login(viewer);
-                await channelsPage.goto(team.name, 'town-square');
-                await channelsPage.toBeVisible();
-
-                const lastPost = await channelsPage.getLastPost();
+                const {app} = await pw.testBrowser.login(viewer);
+                await app.channelsPage.goto({team, channel: townSquare});
 
                 // * The mention resolves to a clickable channel link showing the display name
-                const mentionLink = lastPost.body.locator(`a.mention-link[data-channel-mention="${channelName}"]`);
+                const markdown = app.center.postList.post(post).markdown;
+                const mentionLink = markdown.channelMentionLink;
                 await expect(mentionLink).toBeVisible();
                 await expect(mentionLink).toContainText(channelDisplayName);
             } finally {

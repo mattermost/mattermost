@@ -10,9 +10,10 @@ import type {ChannelScheduledPostIndicatorData} from 'mattermost-redux/selectors
 type Props = {
     scheduledPostData: ChannelScheduledPostIndicatorData;
     scheduledPostLinkURL: string;
+    testId?: string;
 };
 
-export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLinkURL}: Props) {
+export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLinkURL, testId}: Props) {
     if (scheduledPostData.count === 0) {
         return null;
     }
@@ -20,7 +21,7 @@ export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLin
     return (
         <div
             className='ScheduledPostIndicator'
-            data-testid='scheduledPostIndicator'
+            data-testid={testId}
         >
             <FormattedMessage
                 id='scheduled_post.channel_indicator.with_other_user_late_time'
@@ -28,7 +29,10 @@ export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLin
                 values={{
                     count: scheduledPostData.count,
                     a: (chunks) => (
-                        <Link to={scheduledPostLinkURL}>
+                        <Link
+                            to={scheduledPostLinkURL}
+                            data-testid={testId ? `${testId}.see_all--link` : undefined}
+                        >
                             {chunks}
                         </Link>
                     ),

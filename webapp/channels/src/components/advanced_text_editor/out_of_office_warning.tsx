@@ -26,13 +26,15 @@ const Icon = styled(CancelIcon)`
 
 type Props = {
     displayName: string;
+
+    testId?: string;
 };
 
-const OutOfOfficeWarning = ({displayName}: Props) => {
+const OutOfOfficeWarning = ({displayName, testId}: Props) => {
     return (
         <Container
             className='OutOfOfficeWarning'
-            data-testid='outOfOfficeWarning'
+            data-testid={testId ? `${testId}--text` : undefined}
         >
             <Icon
                 size={14}

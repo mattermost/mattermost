@@ -40,6 +40,7 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
             <IconButton
                 aria-label={categoryLabel}
                 aria-pressed={selected}
+                data-testid={`emoji_picker.categories.category:${category.name}--togglebutton`}
                 active={selected}
                 disabled={!enable}
                 size='small'

@@ -30,17 +30,11 @@ const getDraftsCount = makeGetDraftsCount();
 import './drafts_link.scss';
 
 const scheduleIcon = (
-    <i
-        data-testid='scheduledPostIcon'
-        className='icon icon-draft-indicator icon-clock-send-outline'
-    />
+    <i className='icon icon-draft-indicator icon-clock-send-outline'/>
 );
 
 const pencilIcon = (
-    <i
-        data-testid='draftIcon'
-        className='icon icon-draft-indicator icon-pencil-outline'
-    />
+    <i className='icon icon-draft-indicator icon-pencil-outline'/>
 );
 
 function DraftsLink() {
@@ -122,16 +116,14 @@ function DraftsLink() {
                 <NavLink
                     to={`${url}/drafts`}
                     id='sidebarItem_drafts'
+                    data-testid='lhs.drafts--link'
                     activeClassName='active'
                     draggable='false'
                     className='SidebarLink sidebar-item'
                     tabIndex={0}
                     isActive={isNavLinkActive}
                 >
-                    <i
-                        data-testid='sendPostIcon'
-                        className='icon icon-send-post icon-send'
-                    />
+                    <i className='icon icon-send-post icon-send'/>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
                             <FormattedMessage
@@ -149,6 +141,7 @@ function DraftsLink() {
                                 <ChannelMentionBadge
                                     unreadMentions={draftCount}
                                     icon={pencilIcon}
+                                    data-testid='lhs.drafts.draft_badge--text'
                                 />
                             }
 
@@ -159,7 +152,7 @@ function DraftsLink() {
                                     icon={scheduleIcon}
                                     className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
                                     hasUrgent={scheduledPostsHasError}
-                                    data-testid='scheduled-post-badge'
+                                    data-testid='lhs.drafts.scheduled_post_badge--text'
                                 />
                             }
                         </div>

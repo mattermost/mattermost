@@ -7,7 +7,7 @@ import React from 'react';
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -79,6 +79,12 @@ const baseState: DeepPartial<GlobalState> = {
     },
 };
 
+// A row is `post_attributes_modal.attribute:<field id>`; its parts are unkeyed, so they're found inside it.
+const ROW = 'post_attributes_modal.attribute';
+const getRow = (fieldId: string) => screen.getByTestId(`${ROW}:${fieldId}`);
+const getPart = (fieldId: string, part: string) => within(getRow(fieldId)).getByTestId(`${ROW}.${part}`);
+const queryPart = (fieldId: string, part: string) => within(getRow(fieldId)).queryByTestId(`${ROW}.${part}`);
+
 function renderRow(props: Partial<React.ComponentProps<typeof PostAttributesModalRow>> = {}) {
     const onChange = props.onChange ?? jest.fn();
 
@@ -110,36 +116,36 @@ describe('PostAttributesModalRow', () => {
     test('a writable set row renders a trigger and a trash button', () => {
         renderRow();
 
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-clear-classification')).toBeInTheDocument();
+        expect(getPart('field_1', 'value--button')).toBeInTheDocument();
+        expect(getPart('field_1', 'clear--button')).toBeInTheDocument();
     });
 
     test('a writable unset row renders a trigger and no trash button', () => {
         renderRow({value: undefined});
 
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
+        expect(getPart('field_1', 'value--button')).toBeInTheDocument();
+        expect(queryPart('field_1', 'clear--button')).not.toBeInTheDocument();
     });
 
     test('an unset row keeps its empty trigger after its menu is opened and closed without a pick', async () => {
         const onChange = renderRow({value: undefined});
 
-        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        const trigger = screen.getByTestId('post_attributes_modal.attribute.value--button');
         await userEvent.click(trigger);
         expect(screen.getByRole('menu')).toBeInTheDocument();
 
         await userEvent.keyboard('{Escape}');
 
         await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('');
+        expect(screen.getByTestId('post_attributes_modal.attribute.value--button')).toHaveTextContent('');
         expect(onChange).not.toHaveBeenCalled();
     });
 
     test('a locked row renders the padlock, no trigger and no trash button', () => {
         renderRow({canEdit: false});
 
-        expect(screen.queryByTestId('post-attribute-trigger-classification')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
+        expect(queryPart('field_1', 'value--button')).not.toBeInTheDocument();
+        expect(queryPart('field_1', 'clear--button')).not.toBeInTheDocument();
 
         expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
 
@@ -168,7 +174,7 @@ describe('PostAttributesModalRow', () => {
     test('the trash button clears by writing an empty value', async () => {
         const onChange = renderRow();
 
-        await userEvent.click(screen.getByTestId('post-attribute-clear-classification'));
+        await userEvent.click(getPart('field_1', 'clear--button'));
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('field_1', '');
@@ -185,7 +191,7 @@ describe('PostAttributesModalRow', () => {
             />,
         );
 
-        const withButton = screen.getByTestId('post-attribute-row-classification').lastElementChild;
+        const withButton = getRow('field_1').lastElementChild;
         expect(withButton).toHaveClass('PostAttributesModalRow__trailing');
         expect(withButton?.querySelector('button')).toBeInTheDocument();
 
@@ -201,7 +207,7 @@ describe('PostAttributesModalRow', () => {
             />,
         );
 
-        const withoutButton = screen.getByTestId('post-attribute-row-classification').lastElementChild;
+        const withoutButton = getRow('field_1').lastElementChild;
 
         // The slot itself is present and carries the same class in both cases, so
         // the fixed-width grid column reserves it either way. Revealing the
@@ -213,8 +219,8 @@ describe('PostAttributesModalRow', () => {
     test('a writing row disables both the trigger and the trash button', () => {
         renderRow({writing: true});
 
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toBeDisabled();
-        expect(screen.getByTestId('post-attribute-clear-classification')).toBeDisabled();
+        expect(getPart('field_1', 'value--button')).toBeDisabled();
+        expect(getPart('field_1', 'clear--button')).toBeDisabled();
     });
 
     test('a text field commits on blur, not on every keystroke', async () => {
@@ -224,7 +230,7 @@ describe('PostAttributesModalRow', () => {
             value: makeValue({field_id: 'field_text', value: 'before'}),
         });
 
-        const input = screen.getByTestId('post-attribute-input-reason');
+        const input = getPart('field_text', 'value_input--textbox');
 
         await userEvent.clear(input);
         await userEvent.type(input, 'after');
@@ -244,7 +250,7 @@ describe('PostAttributesModalRow', () => {
             value: makeValue({field_id: 'field_text', value: 'before'}),
         });
 
-        const input = screen.getByTestId('post-attribute-input-reason');
+        const input = getPart('field_text', 'value_input--textbox');
 
         expect(input.tagName).toBe('INPUT');
         expect(input.closest('.Input_fieldset')).toBeNull();
@@ -264,10 +270,10 @@ describe('PostAttributesModalRow', () => {
                 value: makeValue({field_id: 'field_user', value: alice.id}),
             });
 
-            expect(screen.getByTestId('post-attribute-user-reviewer')).toBeInTheDocument();
+            expect(getPart('field_user', 'users')).toBeInTheDocument();
             expect(screen.getByRole('combobox')).toBeInTheDocument();
-            expect(screen.getByTestId('post-attribute-user-reviewer')).toHaveTextContent('alice');
-            expect(screen.getByTestId('post-attribute-clear-reviewer')).toBeInTheDocument();
+            expect(getPart('field_user', 'users')).toHaveTextContent('alice');
+            expect(getPart('field_user', 'clear--button')).toBeInTheDocument();
         });
 
         test('a writable multiuser row renders every stored user', () => {
@@ -276,7 +282,7 @@ describe('PostAttributesModalRow', () => {
                 value: makeValue({field_id: 'field_multiuser', value: [alice.id, bob.id]}),
             });
 
-            const control = screen.getByTestId('post-attribute-user-reviewers');
+            const control = getPart('field_multiuser', 'users');
             expect(control).toHaveTextContent('alice');
             expect(control).toHaveTextContent('bob');
         });
@@ -293,7 +299,7 @@ describe('PostAttributesModalRow', () => {
                 value: makeValue({field_id: 'field_user', value: alice.id}),
             });
 
-            const picker = screen.getByTestId('post-attribute-user-reviewer');
+            const picker = getPart('field_user', 'users');
             expect(picker).toHaveTextContent('alice');
 
             await userEvent.click(screen.getByRole('combobox'));
@@ -322,7 +328,7 @@ describe('PostAttributesModalRow', () => {
             // The names the control is showing, rather than the whole picker:
             // react-select keeps a live region inside it that announces the
             // focused option, so the name just removed is still spoken there.
-            const names = () => screen.getByTestId('post-attribute-user-reviewers').querySelector('.UserMultiSelector__value-container');
+            const names = () => getPart('field_multiuser', 'users').querySelector('.UserMultiSelector__value-container');
 
             await userEvent.click(screen.getByRole('combobox'));
             await userEvent.keyboard('{Backspace}');
@@ -355,9 +361,9 @@ describe('PostAttributesModalRow', () => {
         test('an unset user row renders the picker with its placeholder and no trash button', () => {
             renderRow({field: userField(), value: undefined});
 
-            expect(screen.getByTestId('post-attribute-user-reviewer')).toBeInTheDocument();
+            expect(getPart('field_user', 'users')).toBeInTheDocument();
             expect(screen.getByText('Unassigned')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-clear-reviewer')).not.toBeInTheDocument();
+            expect(queryPart('field_user', 'clear--button')).not.toBeInTheDocument();
         });
 
         test.each([
@@ -370,10 +376,10 @@ describe('PostAttributesModalRow', () => {
                 writing: true,
             });
 
-            const picker = screen.getByTestId(`post-attribute-user-${name}`);
+            const picker = getPart(`field_${type}`, 'users');
             expect(picker.querySelector('input')).toBeDisabled();
             expect(picker.querySelector('.UserMultiSelector__control--is-disabled')).toBeInTheDocument();
-            expect(screen.getByTestId(`post-attribute-clear-${name}`)).toBeDisabled();
+            expect(getPart(`field_${type}`, 'clear--button')).toBeDisabled();
         });
 
         /*
@@ -392,12 +398,12 @@ describe('PostAttributesModalRow', () => {
                 canEdit: false,
             });
 
-            expect(screen.queryByTestId(`post-attribute-user-${name}`)).not.toBeInTheDocument();
+            expect(queryPart(`field_${type}`, 'users')).not.toBeInTheDocument();
             expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-            expect(screen.queryByTestId(`post-attribute-clear-${name}`)).not.toBeInTheDocument();
+            expect(queryPart(`field_${type}`, 'clear--button')).not.toBeInTheDocument();
 
             expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
-            expect(screen.getByTestId(`post-attribute-row-${name}`)).toHaveTextContent(text as string);
+            expect(getRow(`field_${type}`)).toHaveTextContent(text as string);
         });
     });
 });

@@ -1,7 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, expectFilesRedacted, getRandomId, testConfig} from '@mattermost/playwright-lib';
+import {
+    Api,
+    assetPath,
+    settle,
+    type App,
+    expect,
+    test,
+    enableABAC,
+    getRandomId,
+    testConfig,
+} from '@mattermost/playwright-lib';
 
 import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissionPoliciesPage} from '../support';
 
@@ -46,11 +56,12 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
 
             // # Admin sends a Burn-on-Read message carrying a file
-            const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-            await adminChannelsPage.goto(team.name, channelName);
-            await adminChannelsPage.toBeVisible();
-            await adminChannelsPage.centerView.postCreate.toggleBurnOnRead();
-            await adminChannelsPage.centerView.postCreate.postMessage('BOR with file', ['sample_text_file.txt']);
+            const {app: adminApp} = await pw.testBrowser.login(adminUser);
+            await adminApp.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(adminApp.center.postCreate.message.container).toBeVisible();
+            await adminApp.center.postCreate.burnOnReadButton.click();
+            await expect(adminApp.center.postCreate.burnOnReadLabel).toBeVisible();
+            const sent = await postWithFile(adminApp, 'BOR with file');
 
             // # Enable ABAC and deny download for everyone
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -68,17 +79,18 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             await ensureABACEnabled(adminClient);
 
             // # The denied user opens the channel and reveals the concealed message
-            const {channelsPage} = await pw.testBrowser.login(deniedUser);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(deniedUser);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
-            const post = await channelsPage.centerView.getLastPost();
-            await post.concealedPlaceholder.toBeVisible();
-            await post.concealedPlaceholder.clickToReveal();
-            await post.concealedPlaceholder.waitForReveal(pw.duration.ten_sec);
+            const post = app.center.postList.post({id: sent.id});
+            await expect(post.revealButton).toBeVisible();
+            await expect(post.revealButton).toBeEnabled();
+            await post.revealButton.click();
+            await expect(post.revealButton).not.toBeVisible({timeout: pw.duration.ten_sec});
 
             // * Verify the revealed message's file is redacted
-            await post.toHaveFilesRedacted();
+            await expectFilesRedacted(post);
         },
     );
 
@@ -97,10 +109,10 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             const {testUser: deniedUser, channelName, channelId} = await setupUserAndChannel(adminClient, team);
 
             // # Admin posts a file, then posts a permalink to it in the same channel
-            const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-            await adminChannelsPage.goto(team.name, channelName);
-            await adminChannelsPage.toBeVisible();
-            await adminChannelsPage.centerView.postCreate.postMessage('original with file', ['sample_text_file.txt']);
+            const {app: adminApp} = await pw.testBrowser.login(adminUser);
+            await adminApp.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(adminApp.center.postCreate.message.container).toBeVisible();
+            await postWithFile(adminApp, 'original with file');
 
             const originalPosts = await adminClient.getPosts(channelId, 0, 1);
             const originalPostId = originalPosts.order[0];
@@ -110,13 +122,15 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             // internal permalink lookup, instead of fetching it back over HTTP as a link
             // (which fails under testcontainers).
             const permalinkUrl = `${testConfig.siteURL}/${team.name}/pl/${originalPostId}`;
-            await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
-            await adminChannelsPage.centerView.waitUntilLastPostContains(permalinkUrl);
+            await adminApp.center.postCreate.message.container.fill(permalinkUrl);
+            await expect(adminApp.center.postCreate.message.container).toHaveValue(permalinkUrl);
+            const permalinkSent = await settle(adminApp.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+            await expect(adminApp.center.postList.post({id: permalinkSent.id})).toContainText(permalinkUrl);
 
             // Permalink embeds resolve asynchronously. Wait until the admin view has the
             // preview so later assertions are not racing the first metadata fetch.
-            const permalinkPostAdmin = await adminChannelsPage.centerView.getLastPost();
-            await expect(permalinkPostAdmin.postPreview).toBeVisible({timeout: pw.duration.half_min});
+            const permalinkPostAdmin = adminApp.center.postList.post({id: permalinkSent.id});
+            await expect(permalinkPostAdmin.permalinkPreview).toBeVisible({timeout: pw.duration.half_min});
 
             // Both posts are addressed by ID: the embed repeats the original's text, so filtering
             // by text cannot tell the two of them apart.
@@ -140,18 +154,18 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             await ensureABACEnabled(adminClient);
 
             // # The denied user opens the channel
-            const {channelsPage} = await pw.testBrowser.login(deniedUser);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(deniedUser);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify the standalone original post is redacted
-            const originalPost = await channelsPage.centerView.getPostById(originalPostId);
-            await originalPost.toHaveFilesRedacted();
+            const originalPost = app.center.postList.post({id: originalPostId});
+            await expectFilesRedacted(originalPost);
 
             // * Verify the embedded preview is redacted too, and not merely file-less
-            const permalinkPost = await channelsPage.centerView.getPostById(permalinkPostId);
-            await expect(permalinkPost.postPreview).toBeVisible({timeout: pw.duration.half_min});
-            await permalinkPost.toHaveFilesRedacted(permalinkPost.postPreview);
+            const permalinkPost = app.center.postList.post({id: permalinkPostId});
+            await expect(permalinkPost.permalinkPreview).toBeVisible({timeout: pw.duration.half_min});
+            await expectFilesRedacted(permalinkPost.permalinkPreview);
         },
     );
 
@@ -170,10 +184,10 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
 
             // # Admin posts a file
-            const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-            await adminChannelsPage.goto(team.name, channelName);
-            await adminChannelsPage.toBeVisible();
-            await adminChannelsPage.centerView.postCreate.postMessage(THREAD_ROOT_MESSAGE, ['sample_text_file.txt']);
+            const {app: adminApp} = await pw.testBrowser.login(adminUser);
+            await adminApp.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(adminApp.center.postCreate.message.container).toBeVisible();
+            await postWithFile(adminApp, THREAD_ROOT_MESSAGE);
 
             // # Enable ABAC and deny download for everyone
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -191,18 +205,20 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             await ensureABACEnabled(adminClient);
 
             // # The denied user opens the post in a thread
-            const {channelsPage} = await pw.testBrowser.login(deniedUser);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(deniedUser);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
-            const centerPost = await channelsPage.centerView.getPostByText(THREAD_ROOT_MESSAGE);
-            await centerPost.toHaveFilesRedacted();
-            await centerPost.openAThread();
-            await channelsPage.sidebarRight.toBeVisible();
+            const {post: centerPost, id: centerPostId} = await postNamed(app, THREAD_ROOT_MESSAGE);
+            await expectFilesRedacted(centerPost);
+            await centerPost.container.hover();
+            await expect(centerPost.menu.replyButton).toBeVisible();
+            await centerPost.menu.replyButton.click();
+            await expect(app.rhs.thread.scroller).toBeVisible();
 
             // * Verify the thread's copy of the post is redacted as well
-            const rhsPost = await channelsPage.sidebarRight.getFirstPost();
-            await rhsPost.toHaveFilesRedacted();
+            const rhsPost = app.rhs.thread.post({id: centerPostId});
+            await expectFilesRedacted(rhsPost);
         },
     );
 
@@ -219,10 +235,10 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
 
         // # Admin posts a file with a searchable, unique term
         const searchTerm = `redactme${getRandomId()}`;
-        const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage(searchTerm, ['sample_text_file.txt']);
+        const {app: adminApp} = await pw.testBrowser.login(adminUser);
+        await adminApp.channelsPage.goto({team, channel: {name: channelName}});
+        await expect(adminApp.center.postCreate.message.container).toBeVisible();
+        await postWithFile(adminApp, searchTerm);
 
         // # Enable ABAC and deny download for everyone
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -240,14 +256,81 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
         await ensureABACEnabled(adminClient);
 
         // # The denied user searches for the post
-        const {channelsPage} = await pw.testBrowser.login(deniedUser);
-        await channelsPage.goto(team.name, channelName);
-        await channelsPage.toBeVisible();
-        await channelsPage.searchFor(searchTerm);
+        const {app} = await pw.testBrowser.login(deniedUser);
+        await app.channelsPage.goto({team, channel: {name: channelName}});
+        await expect(app.center.postCreate.message.container).toBeVisible();
+        await app.globalHeader.search.openButton.click();
+        await expect(app.searchBox.inputSearchbox).toBeVisible();
+        await app.searchBox.inputSearchbox.fill(searchTerm);
+        await expect(app.searchBox.inputSearchbox).toHaveValue(searchTerm);
+        await app.searchBox.inputSearchbox.press('Enter');
+        await expect(app.search.results).toBeVisible();
 
         // * Verify the search result shows the redacted placeholder, not the file
-        const result = channelsPage.searchResultsPanel.getResultByText(searchTerm).first();
+        let resultId = '';
+        await expect
+            .poll(async () => {
+                for (const id of await app.search.results.postList.keys()) {
+                    if ((await app.search.results.post({id}).message.container.text()).includes(searchTerm)) {
+                        resultId = id;
+                        return true;
+                    }
+                }
+                return false;
+            })
+            .toBe(true);
+        const result = app.search.results.post({id: resultId});
         await expect(result).toBeVisible();
         await expectFilesRedacted(result);
     });
 });
+
+// Uploads a file and waits for its keyed post to render.
+async function postWithFile(app: App, message: string) {
+    await expect(app.center.postCreate.attachButton).toBeVisible();
+    await settle(app.center.postCreate.uploadInput, {wait: Api.UploadFile}).chooseFiles(
+        `${assetPath}/sample_text_file.txt`,
+    );
+    await expect(app.center.postCreate.filePreviews.fileList).toHaveKeyCount(1);
+    const [fileId] = await app.center.postCreate.filePreviews.fileList.keys();
+    await expect(app.center.postCreate.filePreviews.file({id: fileId}).details).toBeVisible();
+    await expect(app.center.postCreate.filePreviews).toContainText('sample_text_file.txt');
+    await app.center.postCreate.message.container.fill(message);
+    await expect(app.center.postCreate.message.container).toHaveValue(message);
+    await expect(app.center.postCreate.sendButton).toBeVisible();
+    await expect(app.center.postCreate.sendButton).toBeEnabled();
+    const sent = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    await expect(app.center.postList.post({id: sent.id})).toContainText(message);
+    return sent;
+}
+
+async function postNamed(app: App, message: string) {
+    let id = '';
+    await expect
+        .poll(async () => {
+            for (const key of await app.center.postList.postList.keys()) {
+                const post = app.center.postList.post({id: key});
+                if ((await post.message.container.text()).includes(message)) {
+                    id = key;
+                    return true;
+                }
+            }
+            return false;
+        })
+        .toBe(true);
+    const post = app.center.postList.post({id});
+    await expect(post).toContainText(message);
+    return {post, id};
+}
+
+type CenterPost = ReturnType<App['center']['postList']['post']>;
+
+// A post, or the permalink preview embedded in one: both have a redacted placeholder and an attachment list.
+type WithFiles = Pick<CenterPost, 'redactedFiles'> & {
+    attachments: CenterPost['attachments'] | CenterPost['permalinkPreview']['attachments'];
+};
+
+async function expectFilesRedacted(post: WithFiles) {
+    await expect(post.redactedFiles).toBeVisible();
+    await expect(post.attachments).toHaveCount(0);
+}

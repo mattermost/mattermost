@@ -24,6 +24,9 @@ type Props = {
     fileUrl: string;
     getContent?: (code: string) => void;
     isMobileView?: boolean;
+
+    /** The loading spinner's test id. */
+    testId?: string;
 };
 
 export function hasSupportedLanguage(fileInfo: FileInfo | LinkInfo) {
@@ -41,6 +44,7 @@ const CodePreview = ({
     fileUrl,
     getContent,
     isMobileView = false,
+    testId,
 }: Props) => {
     const [markdownView] = useMarkdownView('file_preview');
     const [codeInfo, setCodeInfo] = useState({
@@ -160,7 +164,10 @@ const CodePreview = ({
     if (status === 'loading') {
         return (
             <div className='view-image__loading'>
-                <LoadingSpinner size='24'/>
+                <LoadingSpinner
+                    size='24'
+                    testId={testId}
+                />
             </div>
         );
     }

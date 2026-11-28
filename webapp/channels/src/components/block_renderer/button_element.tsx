@@ -24,9 +24,11 @@ const buttonMarkdownOptions = {
 type ButtonElementProps = {
     element: MmButtonBlock;
     onAction: ActionHandler;
+
+    testIdScope?: string;
 };
 
-export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
+export const ButtonElement = ({element, onAction, testIdScope}: ButtonElementProps) => {
     const theme = useSelector(getTheme);
     const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     const [isExecuting, setIsExecuting] = useState(false);
@@ -54,6 +56,7 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
             emphasis={element.style === 'primary' ? 'primary' : 'tertiary'}
             destructive={element.style === 'danger'}
             className={mmBlocksButtonClassName(element.style)}
+            data-testid={testIdScope ? `${testIdScope}.block_action:${element.action_id}--button` : undefined}
             style={mmBlocksButtonInlineStyle(element.style, theme)}
             onClick={handleClick}
             disabled={interactionsDisabled || element.disabled === true}

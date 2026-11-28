@@ -563,6 +563,15 @@ function PostComponent(props: Props) {
         },
     );
 
+    let postTestIdScope: string | undefined;
+    if (props.location === Locations.CENTER) {
+        postTestIdScope = 'center.post_list.post';
+    } else if (props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT) {
+        postTestIdScope = 'rhs.thread.post';
+    } else if (props.location === Locations.SEARCH) {
+        postTestIdScope = 'search.results.post';
+    }
+
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
@@ -570,6 +579,7 @@ function PostComponent(props: Props) {
                 onCommentClick={handleCommentClick}
                 rootId={post.root_id}
                 enablePostUsernameOverride={props.enablePostUsernameOverride}
+                testIdScope={postTestIdScope}
             />
         );
     }
@@ -577,7 +587,10 @@ function PostComponent(props: Props) {
     let visibleMessage = null;
     if (post.type === Constants.PostTypes.EPHEMERAL && !props.compactDisplay && post.state !== Posts.POST_DELETED) {
         visibleMessage = (
-            <span className='post__visibility'>
+            <span
+                className='post__visibility'
+                data-testid={postTestIdScope ? `${postTestIdScope}.only_visible_to_you--text` : undefined}
+            >
                 <FormattedMessage
                     id='post_info.message.visible'
                     defaultMessage='(Only visible to you)'
@@ -606,6 +619,7 @@ function PostComponent(props: Props) {
                 compactDisplay={props.compactDisplay}
                 post={post}
                 userId={post.user_id}
+                testId={postTestIdScope ? `${postTestIdScope}.avatar` : undefined}
             />
         );
 
@@ -625,6 +639,7 @@ function PostComponent(props: Props) {
     if (showConcealedPlaceholder) {
         message = (
             <BurnOnReadConcealedPlaceholder
+                testIdScope={postTestIdScope}
                 postId={post.id}
                 authorName={props.displayName || post.user_id}
                 onReveal={handleRevealBurnOnRead}
@@ -636,6 +651,7 @@ function PostComponent(props: Props) {
         message = (
             <PostBodyAdditionalContent
                 post={post}
+                testIdScope={postTestIdScope}
                 options={{
                     searchTerm: props.term,
                     searchMatches: props.matches,
@@ -649,6 +665,8 @@ function PostComponent(props: Props) {
                         mentionHighlight: props.isMentionSearch,
                     }}
                     isRHS={isRHS}
+                    testId={postTestIdScope ? `${postTestIdScope}.message` : undefined}
+                    testIdScope={postTestIdScope}
                     isChannelAutotranslated={props.isChannelAutotranslated}
                     userLanguage={locale}
                 />
@@ -663,6 +681,8 @@ function PostComponent(props: Props) {
                 isRHS={isRHS}
                 compactDisplay={props.compactDisplay}
                 isChannelAutotranslated={props.isChannelAutotranslated}
+                testId={postTestIdScope ? `${postTestIdScope}.message` : undefined}
+                testIdScope={postTestIdScope}
             />
         );
     }
@@ -672,6 +692,7 @@ function PostComponent(props: Props) {
         <ThreadFooter
             threadId={post.id}
             replyClick={handleThreadClick}
+            testIdScope={postTestIdScope ? `${postTestIdScope}.thread_footer` : undefined}
         />
     ) : null;
     const channelDisplayName = getChannelName();
@@ -703,7 +724,14 @@ function PostComponent(props: Props) {
 
     let priority;
     if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
-        priority = <span className='d-flex'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+        priority = (
+            <span className='d-flex'>
+                <PriorityLabel
+                    priority={post.metadata.priority.priority}
+                    testId={postTestIdScope ? `${postTestIdScope}.priority_label` : undefined}
+                />
+            </span>
+        );
     }
 
     // Burn-on-Read badge logic
@@ -737,6 +765,7 @@ function PostComponent(props: Props) {
 
         burnOnReadBadge = (
             <BurnOnReadBadge
+                testIdScope={postTestIdScope}
                 post={post}
                 isSender={isSender}
                 revealed={revealed}
@@ -757,18 +786,12 @@ function PostComponent(props: Props) {
         if (hasExpireAt) {
             burnOnReadTimerChip = (
                 <BurnOnReadTimerChip
+                    testIdScope={postTestIdScope}
                     expireAt={post.metadata.expire_at as number}
                     onClick={handleTimerChipClick}
                 />
             );
         }
-    }
-
-    let postAriaLabelDivTestId = '';
-    if (props.location === Locations.CENTER) {
-        postAriaLabelDivTestId = 'postView';
-    } else if (props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT) {
-        postAriaLabelDivTestId = 'rhsPostView';
     }
 
     // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
@@ -780,7 +803,7 @@ function PostComponent(props: Props) {
             <PostAriaLabelDiv
                 ref={postRef}
                 id={getTestId()}
-                data-testid={postAriaLabelDivTestId}
+                data-testid={postTestIdScope ? `${postTestIdScope}:${post.id}` : undefined}
                 post={post}
                 className={getClassName()}
                 style={props.preventClickInteraction ? preventInteractionStyle : undefined}
@@ -826,7 +849,7 @@ function PostComponent(props: Props) {
                     className={classNames('post__content', {
                         center: props.center,
                     })}
-                    data-testid='postContent'
+                    data-testid={postTestIdScope ? `${postTestIdScope}.content` : undefined}
                 >
                     <div className='post__img'>
                         {profilePic}
@@ -835,6 +858,7 @@ function PostComponent(props: Props) {
                         <div
                             className='post__header'
                             ref={postHeaderRef}
+                            data-testid={postTestIdScope ? `${postTestIdScope}.header` : undefined}
                         >
                             <PostUserProfile
                                 {...props}
@@ -849,6 +873,7 @@ function PostComponent(props: Props) {
                                         postId={post.id}
                                         location={props.location}
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
+                                        testId={postTestIdScope ? `${postTestIdScope}.time` : undefined}
                                     />
                                 }
                                 {showPostHeaderBadge && (
@@ -873,6 +898,7 @@ function PostComponent(props: Props) {
                                         postId={post.id}
                                         translationState={translation?.state}
                                         postType={post.type}
+                                        testIdScope={postTestIdScope}
                                     />
                                 )}
                                 {Boolean(post.props && post.props.card) &&
@@ -910,6 +936,7 @@ function PostComponent(props: Props) {
                                 removePost={props.actions.removePost}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
+                                testIdScope={postTestIdScope}
                             />
                             }
                         </div>
@@ -917,13 +944,14 @@ function PostComponent(props: Props) {
                             <PostAttributesChips
                                 post={post}
                                 channel={props.channel}
+                                testIdScope={postTestIdScope}
                             />
                         )}
                         {comment}
                         <div
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
-                            data-testid='post-body'
+                            data-testid={postTestIdScope ? `${postTestIdScope}.body` : undefined}
                         >
                             {post.failed && <FailedPostOptions post={post}/>}
                             <AutoHeightSwitcher
@@ -937,12 +965,14 @@ function PostComponent(props: Props) {
                                 showFileAttachments &&
                                 <FileAttachmentListContainer
                                     post={post}
+                                    testIdScope={postTestIdScope ? `${postTestIdScope}.attachments` : undefined}
                                     compactDisplay={props.compactDisplay}
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
                             {props.permissionPoliciesEnabled && redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
                                 <RedactedFilesPlaceholder
+                                    testIdScope={postTestIdScope}
                                     count={redactedFileCount}
                                     compactDisplay={props.compactDisplay}
                                 />
@@ -955,7 +985,12 @@ function PostComponent(props: Props) {
                                         postId={post.id}
                                     />
                                 )}
-                                {showReactions && <ReactionList post={post}/>}
+                                {showReactions && (
+                                    <ReactionList
+                                        post={post}
+                                        testIdScope={postTestIdScope ? `${postTestIdScope}.reactions` : undefined}
+                                    />
+                                )}
                             </div>
                             {threadFooter}
                         </div>

@@ -47,7 +47,12 @@ const SidebarGroupChannel = ({
 
     const getIcon = () => {
         return (
-            <div className='status status--group'>{membersCount}</div>
+            <div
+                className='status status--group'
+                data-testid='lhs.channel_list.channel.member_count--text'
+            >
+                {membersCount}
+            </div>
         );
     };
 

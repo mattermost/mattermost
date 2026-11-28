@@ -155,16 +155,22 @@ const AdvancedTextEditor = ({
     const getDisplayName = useMemo(() => makeGetDisplayName(), []);
 
     let textboxId: string;
+    let testIdScope: string;
     if (isInEditMode) {
         textboxId = AdvancedTextEditorTextboxIds.InEditMode;
+        testIdScope = 'post_edit.editor';
     } else if (location === Locations.CENTER) {
         textboxId = AdvancedTextEditorTextboxIds.InCenter;
+        testIdScope = 'center.post_create';
     } else if (location === Locations.RHS_COMMENT) {
         textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
+        testIdScope = 'rhs.post_create';
     } else if (location === Locations.MODAL) {
         textboxId = AdvancedTextEditorTextboxIds.InModal;
+        testIdScope = 'modal.post_create';
     } else {
         textboxId = AdvancedTextEditorTextboxIds.Default;
+        testIdScope = 'plugin.post_create';
     }
 
     const isRHS = isThreadView ? false : Boolean(rootId) || location === Locations.RHS_COMMENT;
@@ -449,6 +455,7 @@ const AdvancedTextEditor = ({
         focusTextbox,
         setServerError,
         isInEditMode,
+        testIdScope,
     );
 
     const insertWysiwygText = useCallback((text: string) => {
@@ -463,6 +470,7 @@ const AdvancedTextEditor = ({
         textboxId,
         isDisabled,
         showPreview,
+        testIdScope,
         wysiwygEnabled ? insertWysiwygText : undefined,
     );
     const {
@@ -470,7 +478,7 @@ const AdvancedTextEditor = ({
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false, testIdScope ? `${testIdScope}.priority_labels` : undefined);
 
     // The server refuses a burn-on-read post with attributes, every time, so
     // the composer doesn't let the two meet: a staged chip disables
@@ -486,7 +494,7 @@ const AdvancedTextEditor = ({
         additionalControl: burnOnReadAdditionalControl,
         isBurnOnReadSendable: burnOnReadSendable,
         hasBurnOnReadSet,
-    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false, burnOnReadBlockedReason);
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false, burnOnReadBlockedReason, testIdScope);
     const addAttributesBlockedReason = hasBurnOnReadSet ? formatMessage({
         id: 'post_attributes.composer.cannot_add_burn_on_read',
         defaultMessage: 'Burn-on-read messages can’t have attributes',
@@ -799,6 +807,7 @@ const AdvancedTextEditor = ({
     }) : undefined;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
+            testId={testIdScope ? `${testIdScope}.send` : undefined}
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
@@ -811,6 +820,7 @@ const AdvancedTextEditor = ({
         <ShowFormat
             onClick={handleShowPreview}
             active={showPreview}
+            testId={testIdScope ? `${testIdScope}.preview` : undefined}
         />
     );
 
@@ -901,15 +911,17 @@ const AdvancedTextEditor = ({
                 isRHS={location === Locations.RHS_COMMENT}
                 rewriteMenuProps={rewriteMenuProps}
                 aiRewriteEnabled={aiRewriteEnabled}
+                testIdScope={testIdScope ? `${testIdScope}.ai_actions` : undefined}
             />
         );
-    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
+    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu, testIdScope]);
 
     const formattingBar = (
         <AutoHeightSwitcher
             showSlot={showFormattingBar ? 1 : 2}
             slot1={(
                 <FormattingBar
+                    testId={testIdScope ? `${testIdScope}.formatting_bar` : undefined}
                     ref={formattingBarRef}
                     applyFormatting={applyFormatting}
                     disableControls={showPreview}
@@ -952,12 +964,17 @@ const AdvancedTextEditor = ({
     return (
         <form
             id={rootId ? undefined : 'create_post'}
-            data-testid={rootId ? undefined : 'create-post'}
+            data-testid={testIdScope}
             className={(!rootId && !fullWidthTextBox) ? 'center' : undefined}
             onSubmit={handleSubmitWithEvent}
         >
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            {showOooWarning && <OutOfOfficeWarning displayName={teammateDisplayName}/>}
+            {showOooWarning && (
+                <OutOfOfficeWarning
+                    testId={testIdScope ? `${testIdScope}.out_of_office_warning` : undefined}
+                    displayName={teammateDisplayName}
+                />
+            )}
             {!isInEditMode && (
                 <PostBoxIndicator
                     channelId={channelId}
@@ -1018,6 +1035,7 @@ const AdvancedTextEditor = ({
                                     burnOnReadLabels={burnOnReadLabels}
                                     onRemoveAll={handleRemoveAllLabels}
                                     canRemove={!showPreview}
+                                    testIdScope={testIdScope}
                                 />
                             </div>
                         )}
@@ -1033,6 +1051,7 @@ const AdvancedTextEditor = ({
                                 channelId={channelId}
                                 rootId={rootId}
                                 id={textboxId}
+                                testId={testIdScope ? `${testIdScope}.message` : undefined}
                                 disabled={isDisabled && !rewriteIsProcessing}
                                 useCtrlSend={ctrlSend}
                                 sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
@@ -1055,6 +1074,7 @@ const AdvancedTextEditor = ({
                                 createMessage={createMessage}
                                 channelId={channelId}
                                 id={textboxId}
+                                testId={testIdScope ? `${testIdScope}.message` : undefined}
                                 ref={textboxRef!}
                                 disabled={isDisabled && !rewriteIsProcessing}
                                 characterLimit={maxPostSize}
@@ -1096,7 +1116,7 @@ const AdvancedTextEditor = ({
                                     active={showFormattingBar}
                                     disabled={showPreview}
                                 />
-                                <Separator/>
+                                <Separator data-testid={testIdScope ? `${testIdScope}.attachments_separator--separator` : undefined}/>
                                 {fileUploadJSX}
                                 {emojiPicker}
                                 {sendButton}
@@ -1123,12 +1143,14 @@ const AdvancedTextEditor = ({
                 rootId={rootId}
                 noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
+                testIdScope={testIdScope}
             />
             {isInEditMode && (
                 <EditPostFooter
                     onSave={handleSubmitWrapper}
                     onCancel={handleCancel}
                     disabled={readOnlyChannel}
+                    testIdScope={testIdScope}
                 />
             )}
             <div

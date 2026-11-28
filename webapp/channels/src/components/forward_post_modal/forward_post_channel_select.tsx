@@ -5,7 +5,7 @@ import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {components} from 'react-select';
-import type {OptionProps, SingleValueProps, OnChangeValue, DropdownIndicatorProps, OptionsOrGroups, GroupBase} from 'react-select';
+import type {InputProps, OptionProps, SingleValueProps, OnChangeValue, DropdownIndicatorProps, OptionsOrGroups, GroupBase} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import {
@@ -162,7 +162,7 @@ export const FormattedOption = (props: ChannelOption & {className: string; isSin
         <div
             id={componentId}
             className={props.className}
-            data-testid={details.name}
+            data-testid={props.isSingleValue ? 'forward_post_modal.selected_channel--text' : undefined}
             aria-label={name}
         >
             {icon}
@@ -190,7 +190,10 @@ const Option = (props: OptionProps<ChannelOption>) => {
     }
 
     return (
-        <components.Option {...props}>
+        <components.Option
+            {...props}
+            innerProps={{...props.innerProps, 'data-testid': `forward_post_modal.channel:${data.details.id}--option`} as typeof props.innerProps}
+        >
             <FormattedOption
                 {...data}
                 className='option'
@@ -212,6 +215,13 @@ const SingleValue = (props: SingleValueProps<ChannelOption>) => {
         </components.SingleValue>
     );
 };
+
+const SearchInput = (props: InputProps<ChannelOption>) => (
+    <components.Input
+        {...props}
+        data-testid='forward_post_modal.channel_select--combobox'
+    />
+);
 
 const DropdownIndicator = (props: DropdownIndicatorProps<ChannelOption>) => {
     return (
@@ -300,11 +310,10 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
             onChange={onSelect}
             loadOptions={handleInputChange}
             defaultOptions={defaultOptions.current}
-            components={{DropdownIndicator, Option, SingleValue}}
+            components={{DropdownIndicator, Input: SearchInput, Option, SingleValue}}
             styles={baseStyles}
             placeholder={formatMessage({id: 'forward_post_modal.channel_select.placeholder', defaultMessage: 'Select channel or people'})}
             className='forward-post__select'
-            data-testid='forward-post-select'
         />
     );
 }

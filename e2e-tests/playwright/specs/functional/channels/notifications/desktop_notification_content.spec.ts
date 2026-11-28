@@ -22,18 +22,21 @@ test(
     'MM-T487 Desktop Notifications for all activity with apostrophe, emoji, and markdown',
     {tag: '@notifications'},
     async ({pw}) => {
-        const {adminClient, team, user: sender, userClient: senderClient} = await pw.initSetup();
+        const {
+            adminClient,
+            team,
+            user: sender,
+            userClient: senderClient,
+            offTopic: channel,
+            townSquare,
+        } = await pw.initSetup();
         const receiver = await pw.createNewUserProfile(adminClient, {prefix: 'notification-receiver'});
         await adminClient.addToTeam(team.id, receiver.id);
         await setDesktopNotificationLevel(adminClient, receiver, 'all');
-
-        const channel = await adminClient.getChannelByName(team.id, 'off-topic');
-        const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
-        const {page, channelsPage} = await pw.testBrowser.login(receiver);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {page, app} = await pw.testBrowser.login(receiver);
+        await app.channelsPage.goto({team, channel: townSquare});
         await pw.stubNotification(page, 'granted');
-        await ensureSenderProfileLoaded(senderClient, channelsPage, townSquare.id, pw, page);
+        await ensureSenderProfileLoaded(senderClient, app, townSquare.id, pw, page);
 
         const message =
             "*I'm* [hungry](http://example.com) :taco: ![Mattermost](https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png)";

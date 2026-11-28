@@ -63,6 +63,7 @@ export default function ToggleMuteChannel({
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.toggle_mute--menuitem'
             leadingElement={<BellOffOutlineIcon size='18px'/>}
             id='channelToggleMuteChannel'
             onClick={handleClick}

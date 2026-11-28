@@ -11,6 +11,8 @@ import NewChannelWithBoardTourTip from 'components/app_bar/new_channel_with_boar
 
 import {suitePluginIds} from 'utils/constants';
 
+import type {PluginComponent} from 'types/store/plugins';
+
 type Props = {
 
     /**
@@ -45,6 +47,11 @@ type Props = {
     isRhsOpen?: boolean;
     pluginId?: string;
     size?: React.ComponentProps<typeof IconButton>['size'];
+
+    testId?: string;
+
+    /** The plugin component the button belongs to: the button is `<testId>:<plugin id>--button`. */
+    plugin?: PluginComponent;
 };
 
 const HeaderIconWrapper = (props: Props) => {
@@ -62,8 +69,15 @@ const HeaderIconWrapper = (props: Props) => {
         tooltipShortcut,
         isRhsOpen,
         pluginId,
+        testId,
+        plugin,
         size = 'x-small',
     } = props;
+
+    let buttonTestId;
+    if (testId) {
+        buttonTestId = plugin ? `${testId}:${plugin.pluginId}--button` : `${testId}--button`;
+    }
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
@@ -90,6 +104,7 @@ const HeaderIconWrapper = (props: Props) => {
                 <IconButton
                     ref={buttonRef}
                     id={buttonId}
+                    data-testid={buttonTestId}
                     size={size}
                     className={buttonClass || 'channel-header__icon'}
                     icon={children}

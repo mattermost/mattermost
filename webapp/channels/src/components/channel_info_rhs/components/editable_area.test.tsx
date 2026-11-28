@@ -70,4 +70,31 @@ describe('channel_info_rhs/components/editable_area', () => {
         await userEvent.click(screen.getByLabelText('Edit'));
         expect(mockOnEdit).toHaveBeenCalledTimes(2);
     });
+
+    test('with a testId: the area, its edit button, and the empty state\'s add button', () => {
+        const {rerender} = renderWithContext(
+            <EditableArea
+                testId='rhs.channel_info.about.purpose'
+                content='test content'
+                editable={true}
+                emptyLabel='Add a channel purpose'
+                onEdit={() => {}}
+            />,
+        );
+        expect(screen.getByTestId('rhs.channel_info.about.purpose')).toHaveTextContent('test content');
+        expect(screen.getByTestId('rhs.channel_info.about.purpose.edit--button')).toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.channel_info.about.purpose.add--button')).not.toBeInTheDocument();
+
+        rerender(
+            <EditableArea
+                testId='rhs.channel_info.about.purpose'
+                content=''
+                editable={true}
+                emptyLabel='Add a channel purpose'
+                onEdit={() => {}}
+            />,
+        );
+        expect(screen.getByTestId('rhs.channel_info.about.purpose.add--button')).toHaveTextContent('Add a channel purpose');
+        expect(screen.queryByTestId('rhs.channel_info.about.purpose.edit--button')).not.toBeInTheDocument();
+    });
 });

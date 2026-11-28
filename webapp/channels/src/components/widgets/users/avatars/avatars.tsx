@@ -28,6 +28,7 @@ type Props = {
     totalUsers?: number;
     size?: ComponentProps<typeof Avatar>['size'];
     fetchMissingUsers?: boolean;
+    testIdScope?: string;
 };
 
 const OTHERS_DISPLAY_LIMIT = 99;
@@ -87,6 +88,7 @@ function Avatars({
     userIds,
     totalUsers,
     fetchMissingUsers = true,
+    testIdScope,
 }: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -133,13 +135,15 @@ function Avatars({
     return (
         <div
             className={`Avatars Avatars___${size}`}
+            data-testid={testIdScope}
         >
-            {displayUserIds.map((id) => (
+            {displayUserIds.map((id, position) => (
                 <UserAvatar
                     style={avatarStyle}
                     key={id}
                     userId={id}
                     size={size}
+                    data-testid={testIdScope ? `${testIdScope}.avatar:${position}--img` : undefined}
                 />
             ))}
             {Boolean(nonDisplayCount) && (
@@ -150,6 +154,7 @@ function Avatars({
                         style={avatarStyle}
                         size={size}
                         tabIndex={0}
+                        data-testid={testIdScope ? `${testIdScope}.others--text` : undefined}
                         text={nonDisplayCount > OTHERS_DISPLAY_LIMIT ? `${OTHERS_DISPLAY_LIMIT}+` : `+${nonDisplayCount}`}
                     />
                 </WithTooltip>

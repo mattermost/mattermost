@@ -44,6 +44,7 @@ const useBurnOnRead = (
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
     blockedReason?: string,
+    testIdScope?: string,
 ) => {
     const rootId = draft.rootId;
     const channelId = draft.channelId;
@@ -119,12 +120,13 @@ const useBurnOnRead = (
     const labels = useMemo(() => (
         (hasBurnOnReadSet && !rootId) ? (
             <BurnOnReadLabel
+                testId={testIdScope ? `${testIdScope}.burn_on_read_label` : undefined}
                 canRemove={showIndividualCloseButton && !shouldShowPreview}
                 onRemove={handleRemoveBurnOnRead}
                 durationMinutes={durationMinutes}
             />
         ) : undefined
-    ), [hasBurnOnReadSet, rootId, showIndividualCloseButton, shouldShowPreview, handleRemoveBurnOnRead, durationMinutes]);
+    ), [hasBurnOnReadSet, rootId, showIndividualCloseButton, shouldShowPreview, handleRemoveBurnOnRead, durationMinutes, testIdScope]);
 
     // Button component with tour tip wrapper (in formatting bar)
     const additionalControl = useMemo(() =>
@@ -140,13 +142,14 @@ const useBurnOnRead = (
                     disabled={shouldShowPreview}
                     durationMinutes={durationMinutes}
                     blockedReason={blockedReason}
+                    testIdScope={testIdScope}
                 />
                 <BurnOnReadTourTip
                     key='burn-on-read-tour-tip-key'
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes, blockedReason]);
+        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes, blockedReason, testIdScope]);
 
     return {
         labels,

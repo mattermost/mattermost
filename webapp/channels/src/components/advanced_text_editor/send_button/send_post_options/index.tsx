@@ -33,9 +33,12 @@ type Props = {
     // disabled button receives no hover or focus events, so it is shown from a focusable
     // wrapper around the button.
     blockedReason?: string;
+
+    /** The composer's scope for this button (`<testId>.open_menu--button`); the center and thread composers each have one. */
+    testId?: string;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, blockedReason}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, blockedReason, testId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -76,6 +79,7 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             }}
             menuButton={{
                 id: 'button_send_post_options',
+                testId: testId ? `${testId}.open_menu` : undefined,
                 class: classNames('button_send_post_options', {disabled: buttonDisabled}),
                 children: <ChevronDownIcon size={16}/>,
                 disabled: buttonDisabled,
@@ -114,6 +118,7 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             <Menu.Separator/>
 
             <Menu.Item
+                data-testid='send_post_options.menu.custom_time--menuitem'
                 onClick={handleChooseCustomTime}
                 key={'choose_custom_time'}
                 labels={

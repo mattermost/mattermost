@@ -54,6 +54,7 @@ const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotra
             onExited={onHide}
             enforceFocus={false}
             id='restorePostModal'
+            testId='restore_post_modal'
             aria-labelledby='restorePostModalLabel'
             modalHeaderText={modalHeaderText}
             handleCancel={onHide}
@@ -68,12 +69,14 @@ const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotra
                     showPostEditedIndicator={false}
                     userLanguage={locale}
                     isChannelAutotranslated={isChannelAutotranslated}
+                    testId='restore_post_modal.message'
                 />
                 <FileAttachmentListContainer
                     post={post}
                     isEditHistory={true}
                     disableDownload={true}
                     disableActions={true}
+                    testIdScope='restore_post_modal.attachments'
                 />
             </div>
         </GenericModal>

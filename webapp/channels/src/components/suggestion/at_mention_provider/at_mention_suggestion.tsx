@@ -208,13 +208,11 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             className={classNames({'suggestion-list__item--default-agent': item.isDefaultAgent})}
             aria-labelledby={ids.atMention}
             aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers, ids.importedInactiveTag)}
-            data-testid={`mentionSuggestion_${itemname}`}
         >
             {icon}
             <span className='suggestion-list__ellipsis'>
                 <span
                     id={ids.atMention}
-                    data-testid='suggestion-list__main'
                     className='suggestion-list__main'
                 >
                     {'@' + itemname}

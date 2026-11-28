@@ -77,8 +77,8 @@ describe('PendingJoinRequests', () => {
             },
         );
 
-        expect(screen.getByTestId('pending-join-requests-section')).toBeInTheDocument();
-        expect(screen.getByTestId('pending-join-request-request1')).toBeInTheDocument();
+        expect(screen.getByTestId('rhs.channel_members.pending_requests')).toBeInTheDocument();
+        expect(screen.getByTestId('rhs.channel_members.pending_requests.request:request1')).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', {name: 'Approve'}));
 

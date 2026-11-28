@@ -202,10 +202,7 @@ const Input = React.forwardRef((
     const error = customInputLabel?.type === ItemStatus.ERROR;
     const warning = customInputLabel?.type === ItemStatus.WARNING;
 
-    let messageTestId;
-    if (testId) {
-        messageTestId = error || warning ? `${testId}.validation--alert` : `${testId}.message--text`;
-    }
+    const messageKind = error || warning ? 'validation--alert' : 'message--text';
 
     const clearButton = value && clearable ? (
         <WithTooltip
@@ -306,7 +303,7 @@ const Input = React.forwardRef((
                     className={`Input___customMessage Input___${customInputLabel?.type || 'error'}`}
                     id={errorId}
                     role={error || warning ? 'alert' : undefined}
-                    data-testid={messageTestId}
+                    data-testid={testId ? `${testId}.${messageKind}` : undefined}
                 >
                     <i
                         className={classNames(`icon ${customInputLabel?.type || 'error'}`, {

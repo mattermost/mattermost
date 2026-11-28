@@ -239,7 +239,10 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         return (
             <>
                 <div className={classNames('ThreadViewer', this.props.className)}>
-                    <ChannelBanner channelId={this.props.channel?.id || ''}/>
+                    <ChannelBanner
+                        channelId={this.props.channel?.id || ''}
+                        testIdScope='rhs.thread.channel_banner'
+                    />
                     <div className='post-right-comments-container'>
                         <>
                             <FileUploadOverlay

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-import type {Client4} from '@mattermost/client';
+import {ClientError, type Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getRandomId, newTestPassword} from '../util';
@@ -372,5 +372,28 @@ export async function updateUserAttributes(
     // Update attributes using field IDs
     if (Object.keys(valuesByFieldId).length > 0) {
         await client.updateUserCustomProfileAttributesValues(userId, valuesByFieldId);
+    }
+}
+
+/**
+ * Deletes an access control policy for cleanup. Tolerates only "already gone" (404), so a policy a test removed itself
+ * is not an error; every other failure reaches the caller.
+ */
+export async function deleteAccessControlPolicyIfPresent(client: Client4, policyId: string): Promise<void> {
+    try {
+        await client.deleteAccessControlPolicy(policyId);
+    } catch (error) {
+        if (error instanceof ClientError && error.status_code === 404) {
+            return;
+        }
+        throw error;
+    }
+}
+
+/** Deletes the membership policies named exactly `name` (cleanup for a policy whose id the test never learned). */
+export async function deleteAccessControlPoliciesNamed(client: Client4, name: string): Promise<void> {
+    const result = await client.searchAccessControlPolicies(name, 'parent', '', 100);
+    for (const policy of (result?.policies ?? []).filter((p) => p.name === name)) {
+        await deleteAccessControlPolicyIfPresent(client, policy.id);
     }
 }

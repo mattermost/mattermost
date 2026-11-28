@@ -8,29 +8,33 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('MM-T352 keeps a cleared search term empty after closing search results', {tag: '@search'}, async ({pw}) => {
     // # Create a user with a searchable post and open the channel
-    const {user, team, adminClient} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'off-topic');
+    const {user, team, userClient, offTopic: channel} = await pw.initSetup();
     const term = `London${pw.random.id()}`;
-    await adminClient.createPost({channel_id: channel.id, user_id: user.id, message: term});
+    const post = await userClient.createPost({channel_id: channel.id, message: term});
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
+    const input = app.searchBox.inputSearchbox;
 
     // # Search for the post, reopen search, and clear the query
-    await channelsPage.searchFor(term);
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await input.fill(term);
+    await input.press('Enter');
+    await expect(app.search.results.post(post)).toBeVisible();
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await app.searchBox.clearButton.click();
 
-    // * Verify the query is empty while the search results remain open
-    await expect(channelsPage.searchBox.searchInput).toHaveValue('');
-    await channelsPage.searchResultsPanel.toBeVisible();
+    // * The query is empty while the search results stay open
+    await expect(input).toHaveValue('');
+    await expect(app.search.results.post(post)).toBeVisible();
 
-    // # Close both search surfaces, then open search again
-    await channelsPage.searchBox.searchBoxClose.click();
-    await channelsPage.sidebarRight.close();
-    await channelsPage.globalHeader.openSearch();
+    // # Close the search box and the results, then open search again
+    await app.searchBox.closeButton.click();
+    await expect(app.searchBox.inputSearchbox).not.toBeVisible();
+    await app.search.header.closeButton.click();
+    await expect(app.search.header.closeButton).not.toBeVisible();
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
 
-    // * Verify the cleared term does not reappear
-    await expect(channelsPage.searchBox.searchInput).toHaveValue('');
+    // * The cleared term doesn't come back
+    await expect(input).toHaveValue('');
 });

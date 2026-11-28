@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {expect, test, Msg} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify deleting a root post while another user drafts a reply removes the original message and does not send the draft.
@@ -17,35 +17,39 @@ test(
         await adminClient.addToChannel(author.id, channel.id);
         const message = `root-${pw.random.id()}`;
         const draftMessage = `draft-${pw.random.id()}`;
-        const root = await adminClient.createPost({channel_id: channel.id, user_id: author.id, message});
 
-        // # Log in as the other user, open the root thread, and type an unsent draft
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
-        const centerRoot = await channelsPage.centerView.getPostById(root.id);
-        await centerRoot.reply();
-        await channelsPage.sidebarRight.toBeVisible();
-        await channelsPage.sidebarRight.postCreate.writeMessage(draftMessage);
-        const rhsRoot = await channelsPage.sidebarRight.getPostById(root.id);
+        // # The author posts the root (adminClient would post as the admin, whatever user_id says)
+        const {client: authorClient} = await pw.makeClient({username: author.username, password: author.password});
+        const root = await authorClient.createPost({channel_id: channel.id, message});
 
-        // # Delete the root post as its author
-        await adminClient.deletePost(root.id);
+        // # Log in as the other user, open the root's thread, and type a reply without sending it
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
+        const centerRoot = app.center.postList.post(root);
+        await centerRoot.container.hover();
+        await centerRoot.menu.replyButton.click();
+        await expect(app.rhs.postCreate.message.container).toBeVisible();
+        const threadRoot = app.rhs.thread.post(root);
+        await expect(threadRoot.message.container).toHaveText(message);
+        await app.rhs.postCreate.message.container.fill(draftMessage);
+        await expect(app.rhs.postCreate.message.container).toHaveValue(draftMessage);
 
-        // * Verify the other user sees a deleted-message placeholder without the original message
-        await centerRoot.toBeDeleted(message);
-        await rhsRoot.toBeDeleted(message);
+        // # The author deletes the root
+        await authorClient.deletePost(root.id);
 
-        // * Verify the draft was not sent as a reply
-        const lastRhsPost = await channelsPage.sidebarRight.getLastPost();
-        await lastRhsPost.toNotContainText(draftMessage);
+        // * The other user sees the placeholder instead of the message, in the center and in the thread
+        await expect(centerRoot.message.container).toHaveMessage(Msg.post_body.deleted);
+        await expect(threadRoot.message.container).toHaveMessage(Msg.post_body.deleted);
+
+        // * The draft wasn't sent: the thread still holds only the root
+        expect(await app.rhs.thread.postList.keys()).toEqual([root.id]);
 
         // # Log in as the author and revisit the channel
-        const {channelsPage: authorChannelsPage} = await pw.testBrowser.login(author);
-        await authorChannelsPage.goto(team.name, channel.name);
-        await authorChannelsPage.toBeVisible();
+        const {app: authorApp} = await pw.testBrowser.login(author);
+        await authorApp.channelsPage.goto({team, channel});
 
-        // * Verify the deleted post's original message is absent
-        await authorChannelsPage.toNotContainText(message);
+        // * The deleted post's message is gone
+        await expect(authorApp.center.postList).toBeVisible();
+        await expect(authorApp.center.postList).not.toContainText(message);
     },
 );

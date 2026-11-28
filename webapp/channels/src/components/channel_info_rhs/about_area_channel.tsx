@@ -132,6 +132,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
         <>
             <ChannelName>
                 <EditableArea
+                    testId='rhs.channel_info.about.name'
                     editable={canEditChannelProperties}
                     content={<div>{channel.display_name}</div>}
                     onEdit={actions.editChannelName}
@@ -140,7 +141,10 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                 />
             </ChannelName>
 
-            <ChannelInfoAttributes channelId={channel.id}/>
+            <ChannelInfoAttributes
+                channelId={channel.id}
+                testId='rhs.channel_info.about.attributes'
+            />
 
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>
@@ -148,9 +152,11 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                         {formatMessage(messages.purposeHeading[channelKind])}
                     </ChannelDescriptionHeading>
                     <EditableArea
+                        testId='rhs.channel_info.about.purpose'
                         editable={canEditChannelProperties}
                         content={channel.purpose && (
                             <LineLimiter
+                                testId='rhs.channel_info.about.purpose'
                                 maxLines={4}
                                 lineHeight={20}
                                 moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_purpose.line_limiter.more', defaultMessage: 'more'})}
@@ -172,8 +178,10 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                         {formatMessage(messages.headerHeading[channelKind])}
                     </ChannelDescriptionHeading>
                     <EditableArea
+                        testId='rhs.channel_info.about.header'
                         content={channel.header && (
                             <LineLimiter
+                                testId='rhs.channel_info.about.header'
                                 maxLines={4}
                                 lineHeight={20}
                                 moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
@@ -190,14 +198,14 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                 </ChannelHeader>
             )}
 
-            <ChannelId>
+            <ChannelId data-testid='rhs.channel_info.about.handle'>
                 {formatMessage(messages.handle[channelKind])} {channel.name}
                 <SmallCopyButton
                     content={channel.name}
                     isForText={true}
                 />
             </ChannelId>
-            <ChannelId>
+            <ChannelId data-testid='rhs.channel_info.about.id'>
                 {formatMessage({id: 'channel_info_rhs.about_area_id', defaultMessage: 'ID:'})} {channel.id}
                 <SmallCopyButton
                     content={channel.id}

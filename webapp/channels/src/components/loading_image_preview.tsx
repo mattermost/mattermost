@@ -12,6 +12,9 @@ type Props = {
     progress?: number;
     containerClass?: string;
     size?: SpinnerSize;
+
+    /** The test id of the loader's container: the spinner and its progress text. */
+    testId?: string;
 };
 
 const LoadingImagePreview: React.FC<Props> = ({
@@ -19,6 +22,7 @@ const LoadingImagePreview: React.FC<Props> = ({
     progress,
     containerClass = 'view-image__loading',
     size = '16',
+    testId,
 }: Props) => {
     let progressView: JSX.Element = (
         <span className='loader-percent'/>
@@ -34,7 +38,10 @@ const LoadingImagePreview: React.FC<Props> = ({
     }
 
     return (
-        <div className={containerClass}>
+        <div
+            className={containerClass}
+            data-testid={testId}
+        >
             <LoadingSpinner size={size}/>
             {progressView}
         </div>

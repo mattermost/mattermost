@@ -37,7 +37,7 @@ describe('Image URL Preview', () => {
         });
 
         // * Verify the preview modal opens and the image is displayed correctly
-        cy.findByTestId('imagePreview').should('be.visible').and('have.class', 'image_preview__image').and('have.attr', 'alt', 'preview url image').and('have.attr', 'src').and('include', 'image-small-height.png');
+        cy.findByTestId('file_preview_modal.image--img').should('be.visible').and('have.class', 'image_preview__image').and('have.attr', 'alt', 'preview url image').and('have.attr', 'src').and('include', 'image-small-height.png');
 
         // # Close the modal
         cy.uiCloseFilePreviewModal();
@@ -61,7 +61,7 @@ describe('Image URL Preview', () => {
         });
 
         // * Verify the preview modal opens and the image is displayed correctly
-        cy.findByTestId('imagePreview').should('be.visible').and('have.class', 'image_preview__image').and('have.attr', 'alt', 'preview url image').and('have.attr', 'src').and('include', 'public');
+        cy.findByTestId('file_preview_modal.image--img').should('be.visible').and('have.class', 'image_preview__image').and('have.attr', 'alt', 'preview url image').and('have.attr', 'src').and('include', 'public');
 
         // # Close the modal
         cy.uiCloseFilePreviewModal();
@@ -86,7 +86,7 @@ describe('Image URL Preview', () => {
         });
 
         // * Verify the preview modal opens and the image is displayed correctly
-        cy.findByTestId('imagePreview').should('be.visible').and('have.class', 'image_preview__image').and('have.attr', 'alt', 'preview url image').and('have.attr', 'src').and('include', proxiedImageUrl);
+        cy.findByTestId('file_preview_modal.image--img').should('be.visible').and('have.class', 'image_preview__image').and('have.attr', 'alt', 'preview url image').and('have.attr', 'src').and('include', proxiedImageUrl);
 
         // # Close the modal
         cy.uiCloseFilePreviewModal();

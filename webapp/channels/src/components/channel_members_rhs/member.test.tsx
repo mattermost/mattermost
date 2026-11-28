@@ -147,7 +147,7 @@ describe('components/channel_members_rhs/Member', () => {
         );
 
         expect(screen.getByText('Test User')).toBeInTheDocument();
-        expect(screen.queryByTestId('SharedChannelIcon')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('shared_channel_icon')).not.toBeInTheDocument();
     });
 
     test('should render remote user with shared indicator', () => {
@@ -168,7 +168,7 @@ describe('components/channel_members_rhs/Member', () => {
         );
 
         expect(screen.getByText('Test User')).toBeInTheDocument();
-        expect(screen.getByTestId('SharedChannelIcon')).toBeInTheDocument();
+        expect(screen.getByTestId('shared_channel_icon')).toBeInTheDocument();
     });
 
     test('should show remote organization name in tooltip for remote user', async () => {
@@ -193,7 +193,7 @@ describe('components/channel_members_rhs/Member', () => {
             initialState,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toBeInTheDocument();
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -222,7 +222,7 @@ describe('components/channel_members_rhs/Member', () => {
             initialState,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toBeInTheDocument();
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});

@@ -26,6 +26,10 @@ import {hasValueControl, storedEntries} from './utils';
 export {hasValueControl};
 
 type Props = {
+
+    // The scope of the control's test ids (`<scope>.attribute.value--button` and the rest). Without one, such as
+    // in the composer, the ids are the plain ones.
+    testIdScope?: string;
     field: PropertyField;
     value?: PropertyValue<unknown>;
     disabled: boolean;
@@ -77,13 +81,14 @@ type Props = {
  * websocket — the row reads the store, always. The text control keeps a draft of
  * what is being typed, which is not the same thing — see `TextInput`.
  */
-export default function PostAttributeValueControl({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty, tooltip, menuMinWidth}: Props) {
+export default function PostAttributeValueControl({testIdScope, field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty, tooltip, menuMinWidth}: Props) {
     switch (field.type) {
     case 'select':
     case 'rank':
     case 'multiselect':
         return (
             <OptionMenu
+                testIdScope={testIdScope}
                 field={field}
                 value={value}
                 disabled={disabled}
@@ -102,6 +107,7 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
     case 'multiuser':
         return (
             <UserPicker
+                testIdScope={testIdScope}
                 field={field}
                 value={value}
                 disabled={disabled}
@@ -114,6 +120,7 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
         return (
             <TextInput
                 key={storedText(value)}
+                testIdScope={testIdScope}
                 field={field}
                 value={value}
                 disabled={disabled}
@@ -140,7 +147,7 @@ function sameEntries(left: string[], right: string[]): boolean {
 /**
  * A menu of the field's options with a check on each chosen one.
  */
-function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty, tooltip, menuMinWidth}: Props) {
+function OptionMenu({testIdScope, field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty, tooltip, menuMinWidth}: Props) {
     const label = ariaLabel ?? getPropertyFieldLabel(field);
     const isMulti = field.type === 'multiselect';
     const options = getPropertyFieldOptions(field);
@@ -214,9 +221,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
          */
         const normalised = entries.map((entry) => resolveOption(field, entry)?.id ?? entry);
 
-        const next = isSelected(option) ?
-            normalised.filter((entry) => entry !== option.id) :
-            [...normalised, option.id];
+        const next = isSelected(option) ? normalised.filter((entry) => entry !== option.id) : [...normalised, option.id];
 
         hasValue.current = isPropertyValueSet(next);
         onChange(field.id, next);
@@ -234,7 +239,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
         <Menu.Container
             menuButton={{
                 id: `postAttributeValueTrigger-${field.id}-${instanceId}`,
-                dataTestId: `post-attribute-trigger-${field.name}`,
+                dataTestId: testIdScope ? `${testIdScope}.attribute.value--button` : `post-attribute-trigger-${field.name}`,
                 class: 'PostAttributesModalRow__trigger',
                 disabled,
                 'aria-label': label,
@@ -243,6 +248,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
             menuButtonTooltip={tooltip ? {text: tooltip} : undefined}
             menu={{
                 id: `postAttributeValueMenu-${field.id}-${instanceId}`,
+                testId: testIdScope ? `${testIdScope}.attribute.value_menu` : undefined,
                 'aria-label': label,
                 isMenuOpen: isOpen,
                 onToggle: handleToggle,
@@ -256,6 +262,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
                     <Menu.Item
                         key={option.id}
                         id={`postAttributeOption-${field.id}-${option.id}`}
+                        data-testid={testIdScope ? `${testIdScope}.attribute.value_menu.option:${option.id}--menuitem` : undefined}
 
                         // `menuitemradio`/`menuitemcheckbox` rather than
                         // `menuitem`: the check mark is state, not decoration. The
@@ -290,7 +297,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
  * a text value and a select value sit at the same place and shade the same way
  * under the pointer.
  */
-function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
+function TextInput({testIdScope, field, value, disabled, onChange, autoOpen}: Props) {
     const instanceId = useId();
     const stored = storedText(value);
     const [draft, setDraft] = useState(stored);
@@ -322,7 +329,7 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
         <input
             id={`postAttributeValueInput-${field.id}-${instanceId}`}
             name={`postAttributeValueInput-${field.name}`}
-            data-testid={`post-attribute-input-${field.name}`}
+            data-testid={testIdScope ? `${testIdScope}.attribute.value_input--textbox` : `post-attribute-input-${field.name}`}
             type='text'
             className='PostAttributesModalRow__input'
             value={draft}
@@ -358,7 +365,7 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
  * members. Naming someone in a post attribute is not a claim that they can read
  * the channel, so membership is the wrong constraint.
  */
-function UserPicker({field, value, disabled, onChange, autoOpen}: Props) {
+function UserPicker({testIdScope, field, value, disabled, onChange, autoOpen}: Props) {
     const {formatMessage} = useIntl();
     const isMulti = field.type === 'multiuser';
 
@@ -467,7 +474,7 @@ function UserPicker({field, value, disabled, onChange, autoOpen}: Props) {
         <div
             ref={containerRef}
             className='PostAttributesModalRow__users'
-            data-testid={`post-attribute-user-${field.name}`}
+            data-testid={testIdScope ? `${testIdScope}.attribute.users` : `post-attribute-user-${field.name}`}
             onKeyDownCapture={handleKeyDownCapture}
             onBlur={handleBlur}
         >

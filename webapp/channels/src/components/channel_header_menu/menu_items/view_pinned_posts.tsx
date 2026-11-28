@@ -33,6 +33,7 @@ const ViewPinnedPosts = ({
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.pinned_messages--menuitem'
             onClick={handleClick}
             labels={
                 <FormattedMessage

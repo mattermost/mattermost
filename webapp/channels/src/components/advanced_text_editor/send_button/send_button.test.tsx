@@ -25,6 +25,7 @@ describe('SendButton', () => {
         handleSubmit: jest.fn(),
         disabled: false,
         channelId: 'channelId',
+        testId: 'center.post_create.send',
     };
 
     it('disables the schedule chevron when a scheduling blocked reason is given, and leaves the send button enabled', () => {
@@ -37,7 +38,7 @@ describe('SendButton', () => {
         );
 
         expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
-        expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+        expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
     });
 
     it('leaves the schedule chevron enabled without a scheduling blocked reason', () => {
@@ -47,6 +48,6 @@ describe('SendButton', () => {
         );
 
         expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled();
-        expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+        expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
     });
 });

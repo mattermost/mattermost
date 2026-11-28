@@ -25,9 +25,11 @@ type Props = {
 
     /** Preview/read-only surfaces: render blocks but do not dispatch actions. */
     interactionsDisabled?: boolean;
+
+    testIdScope?: string;
 };
 
-const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
+const InteractiveMessages = ({post, interactionsDisabled = false, testIdScope}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
     const [actionError, setActionError] = useState<string | null>(null);
@@ -87,6 +89,7 @@ const InteractiveMessages = ({post, interactionsDisabled = false}: Props) => {
                     integrationFormat,
                 }}
                 interactionsDisabled={interactionsDisabled}
+                testIdScope={testIdScope}
             />
             {actionError && (
                 <div className='has-error'>

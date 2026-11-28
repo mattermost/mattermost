@@ -41,13 +41,13 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
         } as any);
 
         // # Login as admin and navigate to the channel
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Open Channel Settings and navigate to Configuration tab
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const configSettings = await openChannelSettingsConfigurationTab(channelSettings);
 
         // * Toggle is visible
@@ -92,18 +92,20 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await adminClient.addToChannel(secondUser.id, channel.id);
 
             // # Login as admin and navigate to the channel
-            const {page} = await pw.testBrowser.login(adminUser);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await app.channelsPage.goto({team, channel: channel.name});
+            await expect(app.center.postCreate).toBeVisible();
 
             // * The join system post is visible in the timeline before disabling
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                app.center.postList.container.locator.getByText('joined the channel'), // EN locale
             ).toBeVisible({timeout: pw.duration.ten_sec});
 
             // # Open Channel Settings → Configuration tab and disable join/leave messages
-            const channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             const configSettings = await openChannelSettingsConfigurationTab(channelSettings);
             await configSettings.joinLeaveMessagesSwitch.set(false);
             await expect(configSettings.joinLeaveMessagesSwitch).not.toBeOn();
@@ -112,12 +114,12 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * The join system post is no longer visible — wait for post-list re-fetch after ETag bust
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                app.center.postList.container.locator.getByText('joined the channel'), // EN locale
             ).not.toBeVisible({timeout: pw.duration.ten_sec});
 
             // * Normal messages are still visible
             await expect(
-                channelsPage.centerView.container
+                app.center.postList.container.locator
                     .getByTestId('postContent')
                     .getByText('This is a regular message that should remain visible'),
             ).toBeVisible();
@@ -255,13 +257,15 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await adminClient.addToChannel(secondUser.id, channel.id);
 
             // # Login as admin and navigate to the channel
-            const {page} = await pw.testBrowser.login(adminUser);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await app.channelsPage.goto({team, channel: channel.name});
+            await expect(app.center.postCreate).toBeVisible();
 
             // # Disable join/leave messages and save
-            let channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            let channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             let configSettings = await openChannelSettingsConfigurationTab(channelSettings);
             await configSettings.joinLeaveMessagesSwitch.set(false);
             await expect(configSettings.joinLeaveMessagesSwitch).not.toBeOn();
@@ -270,11 +274,12 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * Join system post is hidden after disabling — wait for post-list re-fetch
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                app.center.postList.container.locator.getByText('joined the channel'), // EN locale
             ).not.toBeVisible({timeout: pw.duration.ten_sec});
 
             // # Re-open Channel Settings → Configuration tab and re-enable join/leave messages
-            channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
             configSettings = await openChannelSettingsConfigurationTab(channelSettings);
             await configSettings.joinLeaveMessagesSwitch.set(true);
             await expect(configSettings.joinLeaveMessagesSwitch).toBeOn();
@@ -283,7 +288,7 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * Join system post is visible again after re-enabling
             await expect(
-                channelsPage.centerView.container.getByText('joined the channel'), // EN locale
+                app.center.postList.container.locator.getByText('joined the channel'), // EN locale
             ).toBeVisible({timeout: pw.duration.ten_sec});
         },
     );

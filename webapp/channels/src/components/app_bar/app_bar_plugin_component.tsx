@@ -60,6 +60,7 @@ const AppBarPluginComponent = ({
     };
 
     const buttonId = `app-bar-icon-${component.pluginId}`;
+    const testId = `app_bar.plugin:${component.pluginId}--button`;
     const tooltipText = component.tooltipText || dropdownText || component.pluginId;
 
     let content: React.ReactNode = (
@@ -67,8 +68,10 @@ const AppBarPluginComponent = ({
             role='button'
             tabIndex={0}
             className='app-bar__icon-inner'
+            data-testid={testId}
         >
             <img
+                data-testid={`app_bar.plugin_icon:${component.pluginId}--img`}
                 src={iconUrl}
                 alt={component.pluginId}
                 onLoad={onImageLoadComplete}
@@ -84,6 +87,7 @@ const AppBarPluginComponent = ({
             <div
                 role='button'
                 tabIndex={0}
+                data-testid={testId}
                 className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
             >
                 {icon}

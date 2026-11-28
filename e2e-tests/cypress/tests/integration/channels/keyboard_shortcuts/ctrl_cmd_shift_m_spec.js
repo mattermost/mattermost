@@ -67,7 +67,7 @@ describe('Keyboard Shortcuts', () => {
         cy.get('.sidebar--right__title').should('contain', 'Recent Mentions');
 
         // # Verify that the correct number of mentions are returned
-        cy.findAllByTestId('search-item-container').should('be.visible').should('have.length', 3);
+        cy.findAllByTestId(/^search\.results\.(post|file):[^.]+$/).should('be.visible').should('have.length', 3);
         cy.get('#search-items-container').within(() => {
             // * Ensure that the mentions are visible in the RHS
             cy.findAllByText(`@${testUser.username}`).should('be.visible');

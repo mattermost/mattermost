@@ -3,6 +3,8 @@
 
 import type {Client4} from '@mattermost/client';
 
+import {ignoreMissing} from '@mattermost/playwright-lib';
+
 import {backfillAndRequireChannelAttribute} from '../channel_attributes/helpers';
 
 // Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
@@ -32,8 +34,9 @@ export const TEST_LEVELS = [
  * to provide a clean slate.
  */
 export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
+    // Each group of fields may not exist yet (404); any other failure is the caller's to see.
     // Delete channel linked fields first
-    try {
+    await ignoreMissing(async () => {
         const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {
             targetType: TARGET_TYPE,
             targetId: '',
@@ -41,13 +44,11 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
         for (const f of channelFields.filter((f) => f.name === CHANNEL_LINKED_FIELD_NAME && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, f.id);
         }
-    } catch {
-        // May not exist
-    }
+    });
 
     // Delete system linked fields
     for (const objectType of ['system', 'user'] as const) {
-        try {
+        await ignoreMissing(async () => {
             const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {
                 targetType: TARGET_TYPE,
                 targetId: '',
@@ -57,22 +58,18 @@ export async function deleteClassificationFieldsIfExist(adminClient: Client4) {
             )) {
                 await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, f.id);
             }
-        } catch {
-            // May not exist
-        }
+        });
     }
 
     // Delete template fields
-    try {
+    await ignoreMissing(async () => {
         const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, {
             targetType: TARGET_TYPE,
         });
         for (const f of fields.filter((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, f.id);
         }
-    } catch {
-        // May not exist
-    }
+    });
 }
 
 export type ClassificationLevel = {

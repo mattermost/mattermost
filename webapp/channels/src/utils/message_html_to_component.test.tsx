@@ -13,6 +13,23 @@ import * as TextFormatting from 'utils/text_formatting';
 const emptyEmojiMap = new EmojiMap(new Map());
 
 describe('messageHtmlToComponent', () => {
+    test('plugin options cannot supply an internal edited-indicator id', () => {
+        const pluginOptions = {postId: 'p1', editedAt: 1234, editedTestId: 'plugin.injected'};
+        const {container} = renderWithContext(
+            <>{messageHtmlToComponent('<span data-edited-post-id="p1"></span>', pluginOptions)}</>,
+        );
+        const indicator = container.querySelector('.post-edited__indicator');
+        expect(indicator).toBeInTheDocument();
+        expect(indicator).not.toHaveAttribute('data-testid');
+    });
+
+    test('the internal scope supplies the edited-indicator id separately', () => {
+        renderWithContext(
+            <>{messageHtmlToComponent('<span data-edited-post-id="p1"></span>', {postId: 'p1', editedAt: 1234}, 'center.post_list.post.edited')}</>,
+        );
+        expect(screen.getByTestId('center.post_list.post.edited--text')).toBeInTheDocument();
+    });
+
     test('Inline markdown image', () => {
         const options = {markdown: true};
         const html = TextFormatting.formatText('![Mattermost](/images/icon.png) and a [link](link)', options, emptyEmojiMap);
@@ -186,10 +203,11 @@ describe('messageHtmlToComponent', () => {
 
             const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
 
-            expect(screen.getByTestId('postEmoji.:taco:')).toBeInTheDocument();
-            expect(screen.getByTestId('postEmoji.:taco:').getAttribute('style')).toContain('background-image');
-            expect(screen.getByTestId('postEmoji.:astronaut:')).toBeInTheDocument();
-            expect(screen.getByTestId('postEmoji.:astronaut:').getAttribute('style')).toContain('background-image');
+            const emojis = screen.getAllByTestId(/^markdown\.emoji:/);
+            expect(emojis).toHaveLength(2);
+            for (const emoji of emojis) {
+                expect(emoji.getAttribute('style')).toContain('background-image');
+            }
 
             expect(container).toHaveTextContent('These are emojis: :taco: :astronaut:');
         });
@@ -199,8 +217,7 @@ describe('messageHtmlToComponent', () => {
 
             const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
 
-            expect(screen.queryByTestId('postEmoji.:taco:')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('postEmoji.:astronaut:')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(/^markdown\.emoji:/)).not.toBeInTheDocument();
 
             expect(container).toHaveTextContent('These are emojis: :fake: :notAnEmoji:');
         });
@@ -210,10 +227,11 @@ describe('messageHtmlToComponent', () => {
 
             const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
 
-            expect(screen.getByTestId('postEmoji.:taco:')).toBeInTheDocument();
-            expect(screen.getByTestId('postEmoji.:taco:').getAttribute('style')).toContain('background-image');
-            expect(screen.getByTestId('postEmoji.:astronaut:')).toBeInTheDocument();
-            expect(screen.getByTestId('postEmoji.:astronaut:').getAttribute('style')).toContain('background-image');
+            const emojis = screen.getAllByTestId(/^markdown\.emoji:/);
+            expect(emojis).toHaveLength(2);
+            for (const emoji of emojis) {
+                expect(emoji.getAttribute('style')).toContain('background-image');
+            }
 
             expect(container).toHaveTextContent('These are emojis: 🌮 🧑‍🚀');
         });

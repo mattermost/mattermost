@@ -101,7 +101,7 @@ class ChannelNavigator extends React.PureComponent<Props> {
                     onClick={this.openQuickSwitcher}
                     aria-label={this.props.intl.formatMessage(channelKindMessages.channelSwitcherLabel[channelKind])}
                     aria-haspopup='dialog'
-                    data-testid='SidebarChannelNavigatorButton'
+                    data-testid='lhs.header.find_channels--button'
                     id='SidebarChannelNavigatorButton'
                 >
                     <i className='icon icon-magnify'/>

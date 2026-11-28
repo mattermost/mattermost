@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, formatMessage, Msg, test} from '@mattermost/playwright-lib';
 
 // NOTIFY_ALL_MEMBERS threshold from webapp constants — modal triggers when member count > 5.
 const NOTIFY_ALL_THRESHOLD = 5;
@@ -19,29 +19,20 @@ test(
         }
 
         // # Log in and go to Town Square (all team members are in it by default)
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Type a message with @all to trigger the notify-all confirmation modal
-        await channelsPage.centerView.postCreate.writeMessage('@all test');
-
-        // # Click the Send button (without waiting for navigation — the modal will intercept)
-        await channelsPage.centerView.postCreate.sendMessage();
-
-        // # Wait for the confirm modal
-        const confirmModal = channelsPage.page.locator('#confirmModal');
-        await confirmModal.waitFor({state: 'visible'});
+        // # Send a message with @all, which asks for confirmation instead of posting
+        await app.center.postCreate.message.container.fill('@all test');
+        await app.center.postCreate.sendButton.click();
+        await expect(app.notifyConfirmModal.confirmButton).toBeVisible();
 
         // * Verify the modal has the correct title text
-        const modalTitle = confirmModal.locator('.modal-title');
-        await expect(modalTitle).toContainText('Confirm sending notifications to entire channel');
+        const modalTitle = app.notifyConfirmModal.headingText;
+        await expect(modalTitle).toHaveText(formatMessage(Msg.notify_all.title.confirm));
 
-        // * Read the computed line-height of the modal title and assert correct spacing.
-        const lineHeight = await modalTitle.evaluate((el) => {
-            return window.getComputedStyle(el).lineHeight;
-        });
-
-        expect(lineHeight, `Modal title line-height should be 28px but got ${lineHeight}`).toBe('28px');
+        // * Verify the title's computed line-height gives correct spacing
+        await expect(modalTitle).toHaveCSS('line-height', '28px');
     },
 );

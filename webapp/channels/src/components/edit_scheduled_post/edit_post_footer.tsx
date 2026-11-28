@@ -15,9 +15,11 @@ import type {GlobalState} from 'types/store';
 type Props = {
     onSave: () => void;
     onCancel: () => void;
+
+    testId?: string;
 };
 
-const EditPostFooter = ({onSave, onCancel}: Props) => {
+const EditPostFooter = ({onSave, onCancel, testId}: Props) => {
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const ctrlSendKey = isMac() ? '⌘+' : 'CTRL+';
 
@@ -26,6 +28,7 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
             <button
                 onClick={onSave}
                 className='save'
+                data-testid={testId ? `${testId}.save--button` : undefined}
             >
                 <FormattedMessage
                     id='edit_post.action_buttons.save'
@@ -35,6 +38,7 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
             <button
                 onClick={onCancel}
                 className='cancel'
+                data-testid={testId ? `${testId}.cancel--button` : undefined}
             >
                 <FormattedMessage
                     id='edit_post.action_buttons.cancel'

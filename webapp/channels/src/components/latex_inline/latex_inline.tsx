@@ -25,7 +25,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
         return (
             <span
                 className='post-body--code inline-tex'
-                data-testid='latex-disabled'
+                data-testid='latex.inline.source'
             >
                 {'$' + content + '$'}
             </span>
@@ -47,7 +47,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
         return (
             <span
                 className='post-body--code inline-tex'
-                data-testid='latex-error'
+                data-testid='latex.inline.error'
             >
                 <FormattedMessage
                     id='katex.error'
@@ -60,7 +60,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
     return (
         <span
             className='post-body--code inline-tex'
-            data-testid='latex-enabled'
+            data-testid='latex.inline.rendered'
             dangerouslySetInnerHTML={{__html: html}}
         />
     );

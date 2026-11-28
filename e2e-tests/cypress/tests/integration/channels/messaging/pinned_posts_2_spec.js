@@ -81,7 +81,7 @@ describe('pinned messages', () => {
             cy.uiGetChannelPinButton().click();
 
             // * Number of pinned messages in RHS should be 1
-            cy.findByTestId('search-item-container').should('have.length', 1);
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).should('have.length', 1);
 
             // # Go to town square
             cy.get('#sidebarItem_town-square').should('be.visible').click();
@@ -90,7 +90,7 @@ describe('pinned messages', () => {
             cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
 
             // * Number of pinned messages in RHS should be 0
-            cy.findByTestId('search-item-container').should('not.exist');
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).should('not.exist');
 
             // # Visit a test channel
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
@@ -117,7 +117,7 @@ describe('pinned messages', () => {
             return cy.getLastPostId();
         }).then((postId) => {
             // * Number of pinned messages in RHS should be 0
-            cy.findByTestId('search-item-container').should('not.exist');
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).should('not.exist');
 
             // # Pin the post
             pinPost(postId);
@@ -274,7 +274,7 @@ describe('pinned messages', () => {
             cy.get('#channelPinnedPostCountText').should('have.text', '1');
 
             // * Number of pinned messages in RHS should also be 1
-            cy.findByTestId('search-item-container').should('have.length', 1);
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).should('have.length', 1);
         });
     });
 });

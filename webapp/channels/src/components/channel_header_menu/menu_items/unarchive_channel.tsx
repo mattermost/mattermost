@@ -44,6 +44,7 @@ const UnarchiveChannel = ({
         <>
             <Menu.Separator/>
             <Menu.Item
+                data-testid='channel_header.menu.unarchive_channel--menuitem'
                 id='channelUnarchiveChannel'
                 onClick={handleUnarchiveChannel}
                 labels={<FormattedMessage {...messages.unarchive[kind]}/>}

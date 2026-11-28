@@ -11,35 +11,35 @@ test(
     'MM-T843 removes the reply box in the right-hand side after the user is removed from the channel',
     {tag: '@channel_settings'},
     async ({pw}) => {
-        const {adminClient, adminUser, team, user} = await pw.initSetup();
+        const {adminClient, team, user} = await pw.initSetup();
 
         // # Create a channel, add the user, and post a root message as the admin
         const channel = await adminClient.createPublicChannel(team.id, `Remove ${pw.random.id()}`);
         await adminClient.addToChannel(user.id, channel.id);
-        const rootMessage = `root ${pw.random.id()}`;
-        await adminClient.createPost({channel_id: channel.id, user_id: adminUser.id, message: rootMessage});
+        const root = await adminClient.createPost({channel_id: channel.id, message: `root ${pw.random.id()}`});
 
         // # Log in as the user and open the thread in the right-hand side
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
-        const rootPost = await channelsPage.getLastPost();
-        await rootPost.reply();
-        await channelsPage.sidebarRight.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
+        const rootPost = app.center.postList.post(root);
+        await rootPost.locator.hover();
+        await rootPost.menu.replyButton.click();
+        await expect(app.rhs.postCreate.message.container).toBeVisible();
 
         // # Post a reply in the right-hand side
-        const reply = `reply ${pw.random.id()}`;
-        await channelsPage.sidebarRight.postMessage(reply);
-        await channelsPage.sidebarRight.toContainText(reply);
+        const composer = app.rhs.postCreate;
+        await composer.message.container.fill(`reply ${pw.random.id()}`);
+        await composer.sendButton.click();
 
-        // * Verify the reply box is available before removal
-        await expect(channelsPage.sidebarRight.postCreate.input).toBeVisible();
+        // * The reply is in the thread, and the reply box is available before removal
+        await expect.poll(async () => (await app.rhs.thread.postList.keys()).length).toBe(2);
+        await expect(composer.message).toBeVisible();
 
         // # Remove the user from the channel
         await adminClient.removeFromChannel(user.id, channel.id);
 
-        // * Verify the reply box in the right-hand side is no longer available
-        await expect(channelsPage.sidebarRight.postCreate.input).not.toBeVisible({timeout: pw.duration.ten_sec});
+        // * The reply box in the right-hand side is no longer available
+        await expect(composer.message).not.toBeVisible({timeout: pw.duration.ten_sec});
     },
 );
 
@@ -51,36 +51,40 @@ test(
     'MM-T858 combines consecutive join messages and separates them across posts',
     {tag: '@channel_settings'},
     async ({pw}) => {
-        const {adminClient, team, user} = await pw.initSetup();
+        const {adminClient, team, user, userClient} = await pw.initSetup();
         const [member1, member2, member3] = await adminClient.createUsers(team.id, 3, 'join-leave');
         const channel = await adminClient.createPublicChannel(team.id, `Messages ${pw.random.id()}`);
         await adminClient.addToChannel(user.id, channel.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
+        const postList = app.center.postList;
+        const lastPostText = async () => {
+            const keys = await postList.postList.keys();
+            return keys.length ? postList.post({id: keys[keys.length - 1]}).locator.innerText() : '';
+        };
 
         // # Post a message to seal the setup system messages into their own group
-        await channelsPage.postMessage(`setup ${pw.random.id()}`);
+        const setup = await userClient.createPost({channel_id: channel.id, message: `setup ${pw.random.id()}`});
+        await expect(postList.post(setup).locator).toBeVisible();
 
         // # Add two members to the channel in quick succession
         await adminClient.addToChannel(member1.id, channel.id);
         await adminClient.addToChannel(member2.id, channel.id);
 
-        // * Verify both members are combined into a single "added to the channel" system message
-        await channelsPage.centerView.waitUntilLastPostContains('added to the channel');
-        const combinedPost = await channelsPage.getLastPost();
-        await combinedPost.toContainText(member1.username);
-        await combinedPost.toContainText(member2.username);
+        // * Both members are combined into a single "added to the channel" system message
+        await expect.poll(lastPostText).toContain('added to the channel');
+        await expect.poll(lastPostText).toContain(member1.username);
+        expect(await lastPostText()).toContain(member2.username);
 
         // # Post a message, then add a third member after it
-        await channelsPage.postMessage(`divider ${pw.random.id()}`);
+        const divider = await userClient.createPost({channel_id: channel.id, message: `divider ${pw.random.id()}`});
+        await expect(postList.post(divider).locator).toBeVisible();
         await adminClient.addToChannel(member3.id, channel.id);
 
-        // * Verify the third member produces a separate system message that does not include the earlier members
-        await channelsPage.centerView.waitUntilLastPostContains('added to the channel');
-        const separatePost = await channelsPage.getLastPost();
-        await separatePost.toContainText(member3.username);
-        await separatePost.toNotContainText(member1.username);
+        // * The third member gets a separate system message that doesn't include the earlier members
+        await expect.poll(lastPostText).toContain(member3.username);
+        expect(await lastPostText()).toContain('added to the channel');
+        expect(await lastPostText()).not.toContain(member1.username);
     },
 );

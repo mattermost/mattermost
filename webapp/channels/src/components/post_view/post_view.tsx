@@ -92,6 +92,7 @@ export default class PostView extends React.PureComponent<Props, State> {
             <div
                 id='post-list'
                 role='main'
+                data-testid='center.post_list'
             >
                 <MissingRequiredAttributesNotice channelId={this.props.channelId}/>
                 <PostList

@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {expectDocument, lastPostText, openRichComposer, sendRich, typeRich} from './support';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
@@ -10,73 +12,71 @@ test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
         await pw.ensureFeatureFlag('WysiwygEditor', true);
     });
 
+    /**
+     * @objective Verify a plain message posts with the Send button.
+     */
     test('posts a plain-text message with button', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
-        await channelsPage.toBeVisible();
-
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.toBeVisible();
-
+        // # Type a message and send it with the button
         const msg = `wysiwyg plain ${pw.random.id()}`;
-        await editor.postMessage(msg);
+        await typeRich(composer, msg);
+        await sendRich(composer);
 
-        const last = await channelsPage.getLastPost();
-        await last.toContainText(msg);
-        await expect(editor.input).toHaveText('');
+        // * Verify it posted and the editor emptied
+        await expect.poll(() => lastPostText(app.center.postList)).toContain(msg);
+        await expect(composer.message.container).toHaveText('');
     });
 
+    /**
+     * @objective Verify a plain message posts with Enter.
+     */
     test('posts a plain-text message with enter key', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
-        await channelsPage.toBeVisible();
-
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.toBeVisible();
-
+        // # Type a message and send it with Enter, once the draft is ready
         const msg = `wysiwyg plain ${pw.random.id()}`;
-        await editor.type(msg);
-        await editor.sendByEnter();
+        await typeRich(composer, msg);
+        await expect(composer.sendButton).toBeEnabled();
+        await composer.message.container.press('Enter');
 
-        const last = await channelsPage.getLastPost();
-        await last.toContainText(msg);
-        await expect(editor.input).toHaveText('');
+        // * Verify it posted and the editor emptied
+        await expect.poll(() => lastPostText(app.center.postList)).toContain(msg);
+        await expect(composer.message.container).toHaveText('');
     });
 
+    /**
+     * @objective Verify the placeholder shows only while the editor is empty.
+     */
     test('placeholder shows when empty and hides after typing', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
-        await channelsPage.toBeVisible();
+        // * Verify the empty editor shows its placeholder
+        await expectDocument(composer, /^(?=.*\bis-editor-empty\b)(?=.*\bdata-placeholder="[^"]+")/);
 
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.toBeVisible();
+        // # Type a character
+        await typeRich(composer, 'x');
 
-        await expect(editor.placeholder().first()).toBeVisible();
-        await editor.type('x');
-        await expect(editor.placeholder()).toHaveCount(0);
+        // * Verify the placeholder is gone
+        await expectDocument(composer, /is-editor-empty/, true);
     });
 
+    /**
+     * @objective Verify ArrowUp in an empty editor opens the inline edit for the user's last post.
+     */
     test('ArrowUp on empty composer opens the inline edit for the last post', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
-        await channelsPage.toBeVisible();
+        // # Post a message, then press ArrowUp in the empty editor
+        await typeRich(composer, `edit-me ${pw.random.id()}`);
+        await sendRich(composer);
+        await composer.message.container.press('ArrowUp');
 
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.postMessage(`edit-me ${pw.random.id()}`);
-        await editor.press('ArrowUp');
-
-        await expect(page.getByTestId('post-edit-container')).toBeVisible();
+        // * Verify the inline editor opens
+        await expect(app.postEdit.editor.message.container).toBeVisible();
     });
 });

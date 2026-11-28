@@ -62,7 +62,8 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const secondaryPluginButtons = useSelector(getSecondarySearchButtons);
     const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
 
-    const renderPluginButton = ({component, pluginId}: SearchButtonsComponent) => {
+    const renderPluginButton = (searchButton: SearchButtonsComponent) => {
+        const {component, pluginId} = searchButton;
         const Component = component as React.ComponentType;
         return (
             <SearchTypeItem
@@ -71,6 +72,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                 onClick={() => setSearchType(pluginId)}
                 role='radio'
                 aria-checked={searchType === pluginId}
+                data-testid={`search_box.plugin_type:${searchButton.pluginId}--radio`}
             >
                 <ErrorBoundary pluginId={pluginId}>
                     <Component/>
@@ -89,6 +91,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                 onClick={setMessagesSearchType}
                 role='radio'
                 aria-checked={searchType === 'messages'}
+                data-testid='search_box.type:messages--radio'
             >
                 <FormattedMessage
                     id='search_bar.usage.search_type_messages'
@@ -101,6 +104,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     onClick={setFilesSearchType}
                     role='radio'
                     aria-checked={searchType === 'files'}
+                    data-testid='search_box.type:files--radio'
                 >
                     <FormattedMessage
                         id='search_bar.usage.search_type_files'

@@ -322,6 +322,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     >
                         <IconButton
                             id='newDirectMessageButton'
+                            data-testid='lhs.channel_list.category.new_direct_message--button'
                             style='inverted'
                             size='x-small'
                             className='SidebarChannelGroupHeader_addButton'
@@ -349,6 +350,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         if (category.type === CategoryTypes.MANAGED) {
             return (
                 <div
+                    data-testid={`lhs.channel_list.category:${category.id}`}
                     className={classNames('SidebarChannelGroup a11y__section', {
                         'SidebarChannelGroup--managedDropRejected': this.isChannelDragOverManagedCategory(),
                         menuIsOpen: this.state.isMenuOpen,
@@ -403,6 +405,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
                     return (
                         <div
+                            data-testid={`lhs.channel_list.category:${category.id}`}
                             className={classNames('SidebarChannelGroup a11y__section', {
                                 dropDisabled: this.isDropDisabled(),
                                 menuIsOpen: this.state.isMenuOpen,

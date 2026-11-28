@@ -58,6 +58,7 @@ const ProfilePopoverSelfUserRow = ({
             className='user-popover__bottom-row-container'
         >
             <Button
+                data-testid='profile_popover.actions.edit_profile--button'
                 type='button'
                 emphasis='primary'
                 size='small'
@@ -76,6 +77,7 @@ const ProfilePopoverSelfUserRow = ({
                     size='small'
                     icon={<Icon glyph={<SendIcon/>}/>}
                     onClick={handleShowDirectChannel}
+                    data-testid='profile_popover.actions.message_self--button'
                     aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
                 />
             </WithTooltip>

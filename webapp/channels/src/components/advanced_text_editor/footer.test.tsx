@@ -16,6 +16,7 @@ describe('Footer Component', () => {
         rootId: '',
         noArgumentHandleSubmit: jest.fn(),
         isInEditMode: false,
+        testIdScope: 'center.post_create' as const,
     };
 
     describe('HelpButton visibility', () => {

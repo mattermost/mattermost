@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator} from '@playwright/test';
-
-import {expect, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, lastPost, test, testConfig, type App} from '@mattermost/playwright-lib';
 
 /**
  * Posts a JSON payload to an incoming webhook URL.
@@ -21,19 +19,23 @@ async function postToWebhook(webhookId: string, payload: Record<string, unknown>
     }
 }
 
-/** Legacy attachments are translated to mm_blocks; author/title live in markdown text blocks. */
-function mmBlocks(lastPost: {container: Locator}) {
-    return lastPost.container.locator('.mm-blocks');
+/** The center channel's last post (the webhook's), once its attachment blocks have rendered. */
+async function lastWebhookPost(app: App) {
+    const post = await lastPost(app.center.postList);
+    await expect(post.blocks).toBeVisible();
+    return post;
 }
 
-async function expectMmBlocksAuthorName(lastPost: {container: Locator}, name: string) {
-    const blocks = mmBlocks(lastPost);
-    // Attachment translation renders author before title; title <p> also contains the link text via hasText.
-    await expect(blocks.locator('p').first()).toHaveText(name);
+type LastPost = Awaited<ReturnType<typeof lastWebhookPost>>;
+
+async function expectMmBlocksAuthorName(post: LastPost, name: string) {
+    // The attachment author is the first paragraph of the rendered Markdown document.
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators, test-surface/e2e-no-positional-picks -- rendered markdown has no ids; the author is its first paragraph
+    await expect(post.blocks.locator.getByRole('paragraph').first()).toHaveText(name);
 }
 
-async function expectMmBlocksTitleLink(lastPost: {container: Locator}, title: string) {
-    await expect(mmBlocks(lastPost).getByRole('link', {name: title})).toBeVisible();
+async function expectMmBlocksTitleLink(post: LastPost, title: string) {
+    await expect(post.blocks.locator.getByRole('link', {name: title})).toBeVisible();
 }
 
 test.describe('Message attachment special character decoding', () => {
@@ -73,21 +75,17 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             // # Log in and navigate to the channel
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             // # Get the last post which should contain the webhook attachment
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-
-            await expect(mmBlocks(lastPost)).toBeVisible();
+            const post = await lastWebhookPost(app);
 
             // * Verify the author name has decoded entities: &#40; → (, &#41; → ), &amp; → &
-            await expectMmBlocksAuthorName(lastPost, 'Bot (v2.1) & Integrations');
+            await expectMmBlocksAuthorName(post, 'Bot (v2.1) & Integrations');
 
             // * Verify the title has decoded entities
-            await expectMmBlocksTitleLink(lastPost, 'Future Plan for Plugins (3rd party & core)');
+            await expectMmBlocksTitleLink(post, 'Future Plan for Plugins (3rd party & core)');
         },
     );
 
@@ -119,17 +117,13 @@ test.describe('Message attachment special character decoding', () => {
                 ],
             });
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-
-            await expect(mmBlocks(lastPost)).toBeVisible();
+            const post = await lastWebhookPost(app);
 
             // * Verify the numeric entities are decoded in the title link
-            await expectMmBlocksTitleLink(lastPost, '"All Hands" Meeting [Q1] - 9:00');
+            await expectMmBlocksTitleLink(post, '"All Hands" Meeting [Q1] - 9:00');
         },
     );
 
@@ -159,17 +153,13 @@ test.describe('Message attachment special character decoding', () => {
                 ],
             });
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-
-            await expect(mmBlocks(lastPost)).toBeVisible();
+            const post = await lastWebhookPost(app);
 
             // * Verify named entities are decoded in the author name
-            await expectMmBlocksAuthorName(lastPost, 'CI <Build> "System" \'Owner\'');
+            await expectMmBlocksAuthorName(post, 'CI <Build> "System" \'Owner\'');
         },
     );
 
@@ -202,18 +192,14 @@ test.describe('Message attachment special character decoding', () => {
                 ],
             });
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-
-            await expect(mmBlocks(lastPost)).toBeVisible();
+            const post = await lastWebhookPost(app);
 
             // * Should show &lt;safe&gt; literally, not <safe>
-            await expectMmBlocksAuthorName(lastPost, '&lt;safe&gt;');
-            await expectMmBlocksTitleLink(lastPost, '&lt;safe&gt;');
+            await expectMmBlocksAuthorName(post, '&lt;safe&gt;');
+            await expectMmBlocksTitleLink(post, '&lt;safe&gt;');
         },
     );
 
@@ -245,18 +231,14 @@ test.describe('Message attachment special character decoding', () => {
                 ],
             });
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-
-            await expect(mmBlocks(lastPost)).toBeVisible();
+            const post = await lastWebhookPost(app);
 
             // * Verify text passes through unchanged
-            await expectMmBlocksAuthorName(lastPost, 'Simple Bot Name');
-            await expectMmBlocksTitleLink(lastPost, 'A normal title with no special chars');
+            await expectMmBlocksAuthorName(post, 'Simple Bot Name');
+            await expectMmBlocksTitleLink(post, 'A normal title with no special chars');
         },
     );
 
@@ -289,18 +271,14 @@ test.describe('Message attachment special character decoding', () => {
                 ],
             });
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-
-            await expect(mmBlocks(lastPost)).toBeVisible();
+            const post = await lastWebhookPost(app);
 
             // * Verify realistic plugin content is properly decoded
-            await expectMmBlocksAuthorName(lastPost, 'Google Calendar | via Plugin (v1.0)');
-            await expectMmBlocksTitleLink(lastPost, 'Team Standup (Daily) - 9:00 AM');
+            await expectMmBlocksAuthorName(post, 'Google Calendar | via Plugin (v1.0)');
+            await expectMmBlocksTitleLink(post, 'Team Standup (Daily) - 9:00 AM');
         },
     );
 });

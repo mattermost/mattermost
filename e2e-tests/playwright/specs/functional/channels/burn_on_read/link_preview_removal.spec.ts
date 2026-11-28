@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, setupFileServer, test} from '@mattermost/playwright-lib';
+import {Api, duration, expect, setupFileServer, settle, test} from '@mattermost/playwright-lib';
 
-import {BOR_TAG, createSecondUser, setupBorTest} from './support';
+import {BOR_TAG, concealedPost, createSecondUser, openDm, reveal, setupBorTest} from './support';
 
 let fileServerUrl: string;
 setupFileServer().then((serverUrl) => {
@@ -35,55 +35,49 @@ test('MM-67309 sender removes the link preview from a Burn-on-Read message', {ta
     const message = `${fileServerUrl}/opengraph-huge.html`;
 
     // # Log in as the sender and post a Burn-on-Read message with a link
-    const {channelsPage: senderPage, page: senderBrowserPage} = await pw.testBrowser.login(sender);
-    await senderPage.goto(team.name, `@${receiver.username}`);
-    await senderPage.toBeVisible();
-    await senderPage.centerView.postCreate.toggleBurnOnRead();
-    const postResponsePromise = senderBrowserPage.waitForResponse(
-        (response) => response.url().endsWith('/api/v4/posts') && response.request().method() === 'POST',
-    );
-    await senderPage.postMessage(message);
-    const postId = ((await (await postResponsePromise).json()) as {id: string}).id;
-    const senderPost = await senderPage.centerView.getPostById(postId);
-    const senderPreview = senderPost.getLinkPreview();
+    const senderApp = await openDm(pw, sender, team, receiver);
+    await senderApp.center.postCreate.burnOnReadButton.click();
+    await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
+    await senderApp.center.postCreate.message.container.fill(message);
+    const sent = await settle(senderApp.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    const postId = sent.id;
+    const senderPost = senderApp.center.postList.post({id: postId});
+    const senderPreview = senderPost.linkPreview.container;
 
     // * Verify the link preview is shown to the sender
-    await senderPreview.toBeVisible(pw.duration.half_min);
+    await expect(senderPreview).toBeVisible({timeout: duration.half_min});
 
     // # Log in as the receiver and reveal the message
-    const {channelsPage: revealPage} = await pw.testBrowser.login(receiver);
-    await revealPage.goto(team.name, `@${sender.username}`);
-    await revealPage.toBeVisible();
-    const revealPost = await revealPage.centerView.getPostById(postId);
-    await revealPost.concealedPlaceholder.clickToReveal();
-    await revealPost.concealedPlaceholder.waitForReveal();
+    const revealApp = await openDm(pw, receiver, team, sender);
+    const {post: revealPost} = await concealedPost(revealApp);
+    await reveal(revealPost);
 
     // # Open the conversation as the receiver in a new session, since previews are not rendered on reveal
-    const {channelsPage: receiverPage, page: receiverBrowserPage} = await pw.testBrowser.login(receiver);
-    await receiverPage.goto(team.name, `@${sender.username}`);
-    await receiverPage.toBeVisible();
-    const receiverPost = await receiverPage.centerView.getPostById(postId);
-    const receiverPreview = receiverPost.getLinkPreview();
+    const receiverApp = await openDm(pw, receiver, team, sender);
+    const receiverPost = receiverApp.center.postList.post({id: postId});
+    const receiverPreview = receiverPost.linkPreview.container;
 
     // * Verify the receiver also sees the link preview
-    await receiverPreview.toBeVisible(pw.duration.half_min);
+    await expect(receiverPreview).toBeVisible({timeout: duration.half_min});
 
     // # Remove the link preview as the sender
-    await senderPreview.remove();
+    await senderPreview.hover();
+    await senderPost.linkPreview.removeButton.click();
+    await expect(senderPreview).not.toBeVisible();
 
     // # Reload as the sender
-    await senderBrowserPage.reload();
-    await senderPage.toBeVisible();
+    await senderApp.page.reload();
+    await expect(senderApp.center.postCreate).toBeVisible();
 
     // * Verify the message is still shown without its preview
-    await expect(senderPost.body).toContainText(message);
-    await senderPreview.toNotBeVisible();
+    await expect(senderPost.message.container).toContainText(message);
+    await expect(senderPreview).not.toBeVisible();
 
     // # Reload as the receiver
-    await receiverBrowserPage.reload();
-    await receiverPage.toBeVisible();
+    await receiverApp.page.reload();
+    await expect(receiverApp.center.postCreate).toBeVisible();
 
     // * Verify the receiver sees the message without the link preview
-    await expect(receiverPost.body).toContainText(message);
-    await receiverPreview.toNotBeVisible();
+    await expect(receiverPost.message.container).toContainText(message);
+    await expect(receiverPreview).not.toBeVisible();
 });

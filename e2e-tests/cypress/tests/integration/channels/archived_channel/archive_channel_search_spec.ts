@@ -114,7 +114,7 @@ describe('archive channel search tests', () => {
         // # Type "in:" and note the list of channels that appear
         cy.uiGetSearchContainer().click();
         cy.uiGetSearchBox().clear().type(`in:${testChannel.name}`);
-        cy.findByTestId(testChannel.name).should('not.exist');
+        cy.findByTestId(`search_box.suggestions.suggestion:${testChannel.name}--option`).should('not.exist');
     });
 });
 

@@ -71,7 +71,7 @@ describe('Messaging', () => {
         // * Download file tooltip is present
         cy.findByLabelText('Upload files').attachFile('long_text_post.txt');
         cy.postMessage('test file upload');
-        const downloadLink = () => cy.findByTestId('fileAttachmentList').should('be.visible').findByRole('link', {name: 'download', hidden: true});
+        const downloadLink = () => cy.findByTestId('center.post_list.post.attachments').should('be.visible').findByRole('link', {name: 'download', hidden: true});
         downloadLink().trigger('mouseover');
         cy.uiGetToolTip('Download');
         downloadLink().trigger('mouseout');

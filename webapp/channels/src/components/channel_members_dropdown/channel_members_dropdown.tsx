@@ -35,6 +35,9 @@ export interface Props {
     channelAdminLabel?: JSX.Element;
     channelMemberLabel?: JSX.Element;
     guestLabel?: JSX.Element;
+
+    // The member's row: the dropdown is `.open_role_menu--button`, its items under `.role_menu`.
+    testIdScope?: string;
     actions: {
         getChannelStats: (channelId: string) => void;
         updateChannelMemberSchemeRoles: (channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
@@ -56,6 +59,7 @@ export default function ChannelMembersDropdown({
     channelAdminLabel,
     channelMemberLabel,
     guestLabel,
+    testIdScope,
     actions,
 }: Props) {
     const intl = useIntl();
@@ -162,12 +166,15 @@ export default function ChannelMembersDropdown({
     const canMakeUserChannelAdmin = canChangeMemberRoles && isMember;
     const canRemoveUserFromChannel = canRemoveMember && (!channel.group_constrained || user.is_bot) && (!isDefaultChannel || isGuest);
     const removeFromChannelText = user.id === currentUserId ? intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'}) : intl.formatMessage({id: 'channel_members_dropdown.remove_from_channel', defaultMessage: 'Remove from Channel'});
-    const removeFromChannelTestId = user.id === currentUserId ? 'leaveChannel' : 'removeFromChannel';
+    let removeFromChannelTestId: string | undefined;
+    if (testIdScope) {
+        removeFromChannelTestId = user.id === currentUserId ? `${testIdScope}.role_menu.leave` : `${testIdScope}.role_menu.remove`;
+    }
 
     if (canMakeUserChannelMember || canMakeUserChannelAdmin || canRemoveUserFromChannel) {
         const removeMenu = (
             <Menu.ItemAction
-                data-testid={removeFromChannelTestId}
+                testId={removeFromChannelTestId}
                 show={canRemoveUserFromChannel}
                 onClick={handleRemoveFromChannel}
                 text={removeFromChannelText}
@@ -177,6 +184,7 @@ export default function ChannelMembersDropdown({
         const makeAdminMenu = (
             <Menu.ItemAction
                 id={`${user.username}-make-channel-admin`}
+                testId={testIdScope ? `${testIdScope}.role_menu.make_admin` : undefined}
                 show={canMakeUserChannelAdmin}
                 onClick={handleMakeChannelAdmin}
                 text={intl.formatMessage({id: 'channel_members_dropdown.make_channel_admin', defaultMessage: 'Make Channel Admin'})}
@@ -185,6 +193,7 @@ export default function ChannelMembersDropdown({
         const makeMemberMenu = (
             <Menu.ItemAction
                 id={`${user.username}-make-channel-member`}
+                testId={testIdScope ? `${testIdScope}.role_menu.make_member` : undefined}
                 show={canMakeUserChannelMember}
                 onClick={handleMakeChannelMember}
                 text={intl.formatMessage({id: 'channel_members_dropdown.make_channel_member', defaultMessage: 'Make Channel Member'})}
@@ -195,6 +204,7 @@ export default function ChannelMembersDropdown({
                 <button
                     className='dropdown-toggle theme color--link style--none'
                     type='button'
+                    data-testid={testIdScope ? `${testIdScope}.open_role_menu--button` : undefined}
                 >
                     <span className='sr-only'>{user.username}</span>
                     <span>{currentRole} </span>

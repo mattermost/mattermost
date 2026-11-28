@@ -103,18 +103,18 @@ test.describe(
 
                 // # Create a channel as the same admin, who is a member of a team
                 const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
+                const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+                await app.teamPage.goto({team});
+                await expect(app.center.composer.locator).toBeVisible();
 
                 const modal = await channelsPage.openNewChannelModal();
 
                 // * The attribute is asked for, because it was marked required here
-                await expect(channelsPage.page.getByTestId(`channelAttributeRow-${name}`)).toBeVisible();
+                await expect(page.getByTestId(`channelAttributeRow-${name}`)).toBeVisible();
 
                 await modal.fillDisplayName(`Attr Console ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('NOFORN', {exact: true}).click();
+                await page.getByTestId(`channelAttribute-${name}`).click();
+                await page.getByText('NOFORN', {exact: true}).click();
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 
@@ -152,19 +152,19 @@ test.describe(
                 );
 
                 const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
+                const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+                await app.teamPage.goto({team});
+                await expect(app.center.composer.locator).toBeVisible();
 
                 const modal = await channelsPage.openNewChannelModal();
                 await modal.fillDisplayName(`Attr Banner ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('RESTRICTED', {exact: true}).click();
+                await page.getByTestId(`channelAttribute-${name}`).click();
+                await page.getByText('RESTRICTED', {exact: true}).click();
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 
                 // * The value drives the banner and stays out of the header
-                await expect(channelsPage.page.getByTestId('channel_banner_text')).toContainText('RESTRICTED');
+                await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('RESTRICTED');
                 await expect(channelsPage.centerView.header.attributes.chip('RESTRICTED')).toHaveCount(0);
             } finally {
                 await deleteChannelFieldIfExists(adminClient, name);
@@ -197,15 +197,15 @@ test.describe(
                 );
 
                 const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
+                const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+                await app.teamPage.goto({team});
+                await expect(app.center.composer.locator).toBeVisible();
 
                 const displayName = `Attr Quiet ${suffix}`;
                 const modal = await channelsPage.openNewChannelModal();
                 await modal.fillDisplayName(displayName);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('QUIET', {exact: true}).click();
+                await page.getByTestId(`channelAttribute-${name}`).click();
+                await page.getByText('QUIET', {exact: true}).click();
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 
@@ -219,7 +219,7 @@ test.describe(
 
                 // * And is rendered on no display surface
                 await expect(channelsPage.centerView.header.attributes.chip('QUIET')).toHaveCount(0);
-                await expect(channelsPage.page.getByTestId('channel_banner_container')).toHaveCount(0);
+                await expect(page.getByTestId('center.channel_banner')).toHaveCount(0);
 
                 // * Channel Info still lists it: the display locations govern the
                 // header and banner, never whether an admin can reach a value
@@ -264,14 +264,14 @@ test.describe(
                 expect(channelField?.attrs?.editable).toBe(false);
 
                 const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
+                const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+                await app.teamPage.goto({team});
+                await expect(app.center.composer.locator).toBeVisible();
 
                 const modal = await channelsPage.openNewChannelModal();
                 await modal.fillDisplayName(`Attr Locked ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('FINAL', {exact: true}).click();
+                await page.getByTestId(`channelAttribute-${name}`).click();
+                await page.getByText('FINAL', {exact: true}).click();
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 
@@ -317,15 +317,15 @@ test.describe(
                 expect(channelField?.permission_values).toBe('admin');
 
                 const {team, user} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
+                const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+                await app.teamPage.goto({team});
+                await expect(app.center.composer.locator).toBeVisible();
 
                 const channelDisplayName = `Attr Restricted ${suffix}`;
                 const modal = await channelsPage.openNewChannelModal();
                 await modal.fillDisplayName(channelDisplayName);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('SET', {exact: true}).click();
+                await page.getByTestId(`channelAttribute-${name}`).click();
+                await page.getByText('SET', {exact: true}).click();
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 

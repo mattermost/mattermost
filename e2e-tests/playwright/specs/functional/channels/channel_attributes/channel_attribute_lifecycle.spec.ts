@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, Msg} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_BANNER_TOP,
@@ -47,9 +47,9 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             });
             created.push(required, optional);
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
+            const {page, channelsPage, app} = await pw.testBrowser.login(user);
+            await app.teamPage.goto({team});
+            await expect(app.center.composer.locator).toBeVisible();
 
             const modal = await channelsPage.openNewChannelModal();
 
@@ -107,9 +107,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await adminClient.addToChannel(user.id, channel.id);
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'BEFORE'));
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {page, app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channel.name});
 
             const chips = page.getByTestId('attributeChip');
             await expect(chips.filter({hasText: 'BEFORE'}).first()).toBeVisible();
@@ -169,15 +168,14 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             created.push(required);
             await adminClient.unarchiveChannel(channel.id);
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {page, app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channel.name});
             await page.locator('#channel-info-btn').click();
 
             // The empty row is both the signal and the retry path.
             const row = page.getByTestId(`channelInfoAttributeRow-${required.name}`);
             await expect(row).toBeVisible();
-            await expect(row.getByTestId(`channelInfoAttributeMissing-${required.name}`)).toHaveText('Select a value');
+            await expect(row).toContainMessage(Msg.channel_attributes.info.select_a_value);
 
             // No chip while unset.
             await expect(page.getByTestId('attributeChip')).toHaveCount(0);
@@ -235,12 +233,11 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'RESTRICTED'));
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'AURORA'));
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {page, app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channel.name});
 
             // No manual text: falls back to the value name.
-            await expect(page.getByTestId('channel_banner_text')).toContainText('RESTRICTED');
+            await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('RESTRICTED');
 
             // A two-attribute template resolves against this channel.
             await adminClient.patchChannel(channel.id, {
@@ -251,14 +248,14 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 },
             } as never);
 
-            await expect(page.getByTestId('channel_banner_text')).toContainText('RESTRICTED · AURORA');
+            await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('RESTRICTED · AURORA');
 
             // A literal passes through untouched.
             await adminClient.patchChannel(channel.id, {
                 banner_info: {enabled: true, text: 'Handle with care', background_color: '#c8102e'},
             } as never);
 
-            await expect(page.getByTestId('channel_banner_text')).toContainText('Handle with care');
+            await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('Handle with care');
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -292,9 +289,9 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // Not blocked at the API level, but no DM surface displays them.
             await setChannelValue(adminClient, dm.id, marking, optionId(marking, 'PRIVATE'));
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
+            const {page, app} = await pw.testBrowser.login(user);
+            await app.teamPage.goto({team});
+            await expect(app.center.composer.locator).toBeVisible();
             await page.goto(`/${team.name}/messages/@${other.username}`);
 
             await expect(page.getByTestId('channelAttributeLabels-info-header')).toHaveCount(0);
@@ -334,9 +331,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await adminClient.addToChannel(user.id, channel.id);
             await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'DARKBG'));
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {page, app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channel.name});
 
             const chip = page.getByTestId('attributeChip').filter({hasText: 'DARKBG'}).first();
             await expect(chip).toBeVisible();

@@ -13,7 +13,7 @@ describe('components/SharedChannelIndicator', () => {
             <SharedChannelIndicator withTooltip={false}/>,
         );
 
-        expect(screen.getByTestId('SharedChannelIcon')).toHaveClass('icon-circle-multiple-outline');
+        expect(screen.getByTestId('shared_channel_icon')).toHaveClass('icon-circle-multiple-outline');
     });
 
     test('should render with default tooltip when no remote names', async () => {
@@ -23,7 +23,7 @@ describe('components/SharedChannelIndicator', () => {
             <SharedChannelIndicator withTooltip={true}/>,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -44,7 +44,7 @@ describe('components/SharedChannelIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -65,7 +65,7 @@ describe('components/SharedChannelIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -86,7 +86,7 @@ describe('components/SharedChannelIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -107,7 +107,7 @@ describe('components/SharedChannelIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -137,7 +137,7 @@ describe('components/SharedChannelIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedChannelIcon');
+        const icon = screen.getByTestId('shared_channel_icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});

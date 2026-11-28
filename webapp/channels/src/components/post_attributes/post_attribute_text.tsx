@@ -86,6 +86,7 @@ function TextSubtype({field, value}: Props) {
             field={field}
             value={value}
             metadata={metadata}
+            testIdScope='post_attributes.value'
         />
     );
 }

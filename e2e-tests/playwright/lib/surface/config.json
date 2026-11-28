@@ -38,13 +38,93 @@
                     "field": "id",
                     "value": "plugin_tab",
                     "reason": "A plugin's settings tab is identified by the id its registration returned: the channel settings modal names the tab plugin_<id>."
+                },
+                {
+                    "entity": "PluginComponent",
+                    "module": "types/store/plugins",
+                    "field": "pluginId",
+                    "value": "plugin",
+                    "freeForm": true,
+                    "reason": "The plugin registry records the owning plugin's raw id on each registered component; the host slot is keyed by that plugin id."
+                },
+                {
+                    "entity": "Value",
+                    "module": "components/multiselect/multiselect",
+                    "field": "id",
+                    "reason": "A multi-select option is identified by its id: the options are users, group conversations and other pickable records."
+                },
+                {
+                    "entity": "SuggestionResultsUngrouped",
+                    "module": "@mattermost/shared/types/global/suggestions",
+                    "field": "terms",
+                    "value": "term",
+                    "reason": "A suggestion row is identified by the term it inserts (@jane.doe, ~town-square, :smile:, /away): the providers return unrelated item types with no common id."
+                },
+                {
+                    "entity": "SuggestionResultsGroup",
+                    "module": "@mattermost/shared/types/global/suggestions",
+                    "field": "terms",
+                    "value": "term",
+                    "reason": "A suggestion row is identified by the term it inserts (@jane.doe, ~town-square, :smile:, /away): the providers return unrelated item types with no common id."
+                },
+                {
+                    "entity": "Props",
+                    "module": "components/post_emoji/post_emoji",
+                    "field": "name",
+                    "value": "emoji",
+                    "reason": "A markdown emoji is identified by its name; the name arrives from parsed HTML, which has no type."
+                },
+                {
+                    "entity": "MmButtonBlock",
+                    "field": "action_id",
+                    "reason": "A button's action id names the action it sends within its message."
+                },
+                {
+                    "entity": "SystemEmoji",
+                    "field": "short_name",
+                    "value": "emoji",
+                    "reason": "A system emoji's short name is its identifier: system emoji have no id."
+                },
+                {
+                    "entity": "CustomEmoji",
+                    "field": "name",
+                    "value": "emoji",
+                    "reason": "A custom emoji's name is its identifier in a message."
+                },
+                {
+                    "entity": "AppBinding",
+                    "module": "@mattermost/types/apps",
+                    "field": "location",
+                    "reason": "The external app binding API identifies each binding within a post by its location path, including form bindings with no entity id."
+                },
+                {
+                    "entity": "PropertyField",
+                    "module": "@mattermost/types/properties",
+                    "field": "name",
+                    "reason": "Content-flagging schemas use unique server-defined machine field names, with labels translated separately. Specs address these fields by name without a schema fetch; generated field ids are unreadable to the spec author."
+                },
+                {
+                    "entity": "Channel",
+                    "module": "@mattermost/types/channels",
+                    "field": "name",
+                    "reason": "The sidebar is scoped to one team and uses the unique channel route name, distinct from display_name. Specs can address a default channel by name without fetching its id, including notification replies to the known default channel."
                 }
             ]
         }
     },
+    "keyValues": [{"function": "timeKey", "module": "components/datetime_input/datetime_input"}],
+    "pageParams": {
+        "team": {"entity": "Team", "field": "name", "module": "@mattermost/types/teams"},
+        "identifier": {"as": "channel", "entity": "Channel", "field": "name", "module": "@mattermost/types/channels"}
+    },
     "pageNames": {
         "ChannelIdentifierRouter": "ChannelsPage",
         "GlobalThreads": "ThreadsPage"
+    },
+    "familyNames": {"send_post_options": "SendPostOptionsList"},
+    "setNames": {
+        "admin.attributes.resource_type_filter.menu.option": "AdminAttributesResourceTypeFilterOptionKey",
+        "admin.attributes.source_filter.menu.option": "AdminAttributesSourceFilterOptionKey"
     },
     "lookupPortals": [
         {
@@ -62,5 +142,62 @@
             "name": "FloatingPortal",
             "reason": "The library FloatingPortal content is rendered in a document portal."
         }
-    ]
+    ],
+    "pluginSlots": {
+        "app_bar_button": {
+            "template": "app_bar.plugin:{key}--button",
+            "registry": ["registerAppBarComponent", "registerChannelHeaderButtonAction"]
+        },
+        "channel_header_bookmarks_menu_item": {
+            "template": "channel_header.menu.bookmarks.plugin:{key}--menuitem",
+            "registry": ["registerChannelBookmarksMenuAction"]
+        },
+        "channel_header_dropdown_item": {
+            "template": "channel_header.plugin_actions.menu.action:{key}--link",
+            "registry": ["registerChannelHeaderButtonAction"]
+        },
+        "channel_header_menu_item": {
+            "template": "channel_header.menu.plugin:{key}--menuitem",
+            "registry": ["registerChannelHeaderMenuAction"]
+        },
+        "file_menu_item": {
+            "template": "*.file_card.menu.plugin:{key}--menuitem",
+            "registry": ["registerFileDropdownMenuAction"]
+        },
+        "file_upload_method": {
+            "template": "*.attach_menu.plugin:{key}--menuitem",
+            "registry": ["registerFileUploadMethod"]
+        },
+        "lhs_browse_or_add_menu_item": {
+            "template": "lhs.browse_or_add_menu.plugin:{key}--menuitem",
+            "registry": ["registerSidebarBrowseOrAddChannelMenuAction"]
+        },
+        "lhs_team_menu_item": {
+            "template": "lhs.team_menu.plugin:{key}--menuitem",
+            "registry": ["registerMainMenuAction"]
+        },
+        "post_menu_item": {
+            "template": "*.actions_menu.plugin:{key}--menuitem",
+            "registry": ["registerPostDropdownMenuAction"]
+        },
+        "rhs_panel": {"template": "rhs.plugin:{key}--region", "registry": ["registerRightHandSidebarComponent"]},
+        "search_file_menu_item": {
+            "template": "search.results.file.menu.plugin:{key}--menuitem",
+            "registry": ["registerFileDropdownMenuAction"]
+        }
+    },
+    "pageReady": {
+        "ChannelsPage": ["center.composer", "center.archived_notice"],
+        "ChannelPopoutPage": ["center.composer", "center.archived_notice"],
+        "DraftsPage": ["drafts.header"],
+        "ScheduledPostsPage": ["drafts.header"],
+        "ThreadsPage": ["threads.feed", "no_results"],
+        "ThreadPopoutPage": ["threads.pane.channel--button"],
+        "TeamPage": {
+            "ready": null,
+            "reason": "redirects to the team's default channel: open a channel with app.channelsPage.goto()."
+        },
+        "RhsPopoutPage": {"ready": null, "reason": "renders no testid of its own yet."},
+        "PopoutPage": {"ready": null, "reason": "only routes to a popout below it (channel, thread, RHS, help)."}
+    }
 }

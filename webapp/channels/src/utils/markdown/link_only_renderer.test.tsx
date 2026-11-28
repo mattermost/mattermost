@@ -114,8 +114,8 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
         {
             description: 'heading: multiline with header and links',
             inputText: '###### H6 header\n[link 1](https://mattermost.com) - [link 2](https://mattermost.com)',
-            outputText: 'H6 header <a class="theme markdown__link" href="https://mattermost.com" target="_blank">' +
-            'link 1</a> - <a class="theme markdown__link" href="https://mattermost.com" target="_blank">link 2</a>',
+            outputText: 'H6 header <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="https://mattermost.com" target="_blank">' +
+            'link 1</a> - <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="https://mattermost.com" target="_blank">link 2</a>',
         },
         {
             description: 'list: 1. First ordered list item',
@@ -187,7 +187,7 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
         {
             description: 'links: [inline-style link](http://localhost:8065)',
             inputText: '[inline-style link](http://localhost:8065)',
-            outputText: '<a class="theme markdown__link" href="http://localhost:8065" target="_blank">' +
+            outputText: '<a data-testid="markdown.plain_link--link" class="theme markdown__link" href="http://localhost:8065" target="_blank">' +
             'inline-style link</a>',
         },
         {
@@ -263,30 +263,30 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
         {
             description: 'link: link without a scheme',
             inputText: 'Do you like www.mattermost.com?',
-            outputText: 'Do you like <a class="theme markdown__link" href="http://www.mattermost.com" target="_blank">' +
+            outputText: 'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="http://www.mattermost.com" target="_blank">' +
             'www.mattermost.com</a>?',
         },
         {
             description: 'link: link with a scheme',
             inputText: 'Do you like http://www.mattermost.com?',
-            outputText: 'Do you like <a class="theme markdown__link" href="http://www.mattermost.com" target="_blank">' +
+            outputText: 'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="http://www.mattermost.com" target="_blank">' +
             'http://www.mattermost.com</a>?',
         },
         {
             description: 'link: link with a title',
             inputText: 'Do you like [Mattermost](http://www.mattermost.com)?',
-            outputText: 'Do you like <a class="theme markdown__link" href="http://www.mattermost.com" target="_blank">' +
+            outputText: 'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="http://www.mattermost.com" target="_blank">' +
             'Mattermost</a>?',
         },
         {
             description: 'link: link with curly brackets',
             inputText: 'Let\'s try http://example/result?things={stuff}',
-            outputText: 'Let&#39;s try <a class="theme markdown__link" href="http://example/result?things={stuff}" target="_blank">http://example/result?things={stuff}</a>',
+            outputText: 'Let&#39;s try <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="http://example/result?things={stuff}" target="_blank">http://example/result?things={stuff}</a>',
         },
         {
             description: 'link: link with a full-length punctuation',
             inputText: 'Do you like https://mattermost.com/，這是第二個網址。?',
-            outputText: 'Do you like <a class="theme markdown__link" href="https://mattermost.com/" target="_blank">' +
+            outputText: 'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="https://mattermost.com/" target="_blank">' +
                 'https://mattermost.com/</a>，這是第二個網址。?',
         },
     ];

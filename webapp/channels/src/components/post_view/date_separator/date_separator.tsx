@@ -14,11 +14,14 @@ const DATE_RANGES = [
 
 type Props = {
     date: number | Date;
+
+    // The list's date line, e.g. `center.post_list.date_separator`.
+    testId?: string;
 };
 
-const DateSeparator: FC<Props> = ({date}) => {
+const DateSeparator: FC<Props> = ({date, testId}) => {
     return (
-        <BasicSeparator>
+        <BasicSeparator testId={testId}>
             <Timestamp
                 value={date}
                 useTime={false}

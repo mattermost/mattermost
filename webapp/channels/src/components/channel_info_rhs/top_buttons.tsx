@@ -134,6 +134,7 @@ export default function TopButtons({
                     disabled={isInManagedCategory}
                     aria-label={favoriteText}
                     id='channelInfoRHSAddFavoriteButton'
+                    data-testid='rhs.channel_info.favorite--button'
                     icon={<Icon glyph={favoriteIcon}/>}
                     label={favoriteText}
                 />
@@ -146,6 +147,7 @@ export default function TopButtons({
                     toggled={isMuted}
                     aria-label={mutedText}
                     id='channelInfoRHSMuteChannelButton'
+                    data-testid='rhs.channel_info.mute--button'
                     icon={<Icon glyph={mutedIcon}/>}
                     label={mutedText}
                 />
@@ -157,6 +159,7 @@ export default function TopButtons({
                     <TileButton
                         onClick={actions.addPeople}
                         id='channelInfoRHSAddPeopleButton'
+                        data-testid='rhs.channel_info.add_people--button'
                         aria-label={formatMessage({id: 'channel_info_rhs.top_buttons.add_people', defaultMessage: 'Add People'})}
                         aria-haspopup='dialog'
                         icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
@@ -176,6 +179,7 @@ export default function TopButtons({
                     <TileButton
                         onClick={copyLink.onClick}
                         aria-label={copyText}
+                        data-testid='rhs.channel_info.copy_link--button'
                         icon={<Icon glyph={copyIcon}/>}
                         label={copyText}
                     />

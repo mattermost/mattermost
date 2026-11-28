@@ -16,13 +16,14 @@ describe('DataSpillageAction', () => {
 
         renderWithContext(
             <DataSpillageAction
+                testIdScope='rhs.thread.post.spillage_report.actions'
                 flaggedPost={flaggedPost}
                 reportingUser={reportingUser}
             />,
         );
 
-        expect(screen.getByTestId('data-spillage-action')).toBeInTheDocument();
-        expect(screen.getByTestId('data-spillage-action-remove-message')).toBeInTheDocument();
-        expect(screen.getByTestId('data-spillage-action-keep-message')).toBeInTheDocument();
+        expect(screen.getByTestId('rhs.thread.post.spillage_report.actions')).toBeInTheDocument();
+        expect(screen.getByTestId('rhs.thread.post.spillage_report.actions.remove--button')).toBeInTheDocument();
+        expect(screen.getByTestId('rhs.thread.post.spillage_report.actions.keep--button')).toBeInTheDocument();
     });
 });

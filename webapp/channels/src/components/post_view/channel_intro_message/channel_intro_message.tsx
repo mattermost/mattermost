@@ -202,6 +202,7 @@ function createGMIntroMessage(
                     size='xl-custom-GM'
                     userId={profile.id}
                     username={profile.username}
+                    testId='center.post_list.channel_intro.member'
                 />
             ));
 
@@ -226,6 +227,7 @@ function createGMIntroMessage(
             <div
                 id={channelIntroId}
                 className={'channel-intro ' + centeredIntro}
+                data-testid='center.post_list.channel_intro'
             >
                 <div className='post-profile-img__container channel-intro-img channel-intro-img__group'>
                     {pictures}
@@ -249,6 +251,7 @@ function createGMIntroMessage(
         <div
             id={channelIntroId}
             className={'channel-intro ' + centeredIntro}
+            data-testid='center.post_list.channel_intro'
         >
             <p className='channel-intro__text'>
                 <FormattedMessage
@@ -296,6 +299,7 @@ function createDMIntroMessage(
             <div
                 id={channelIntroId}
                 className={'channel-intro ' + centeredIntro}
+                data-testid='center.post_list.channel_intro'
             >
                 <div className='post-profile-img__container channel-intro-img'>
                     <ProfilePicture
@@ -329,6 +333,7 @@ function createDMIntroMessage(
         <div
             id={channelIntroId}
             className={'channel-intro ' + centeredIntro}
+            data-testid='center.post_list.channel_intro'
         >
             <p className='channel-intro__text'>
                 <FormattedMessage
@@ -409,6 +414,7 @@ function createOffTopicIntroMessage(
         <div
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
+            data-testid='center.post_list.channel_intro'
         >
             <ChannelIntroPublicSvg/>
             <h2 className='channel-intro__title'>
@@ -489,6 +495,7 @@ function createDefaultIntroMessage(
                     <ToggleModalButton
                         className='intro-links color--link'
                         modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
+                        testId='center.post_list.channel_intro.add_groups_to_team'
                         dialogType={AddGroupsToTeamModal}
                         dialogProps={{channel}}
                     >
@@ -536,6 +543,7 @@ function createDefaultIntroMessage(
         <div
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
+            data-testid='center.post_list.channel_intro'
         >
             <ChannelIntroTownSquareSvg/>
             <h2 className='channel-intro__title'>
@@ -822,6 +830,7 @@ function createStandardIntroMessage(
         <div
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
+            data-testid='center.post_list.channel_intro'
         >
             <ChannelIntroBody channel={channel}>
                 {isPrivate ? <ChannelIntroPrivateSvg/> : <ChannelIntroPublicSvg/>}
@@ -867,6 +876,7 @@ const SetHeaderButton = ({channel}: {channel: Channel}) => {
         <TileButton
             aria-label={label}
             aria-haspopup='dialog'
+            data-testid='center.post_list.channel_intro.set_header--button'
             icon={<Icon glyph={<PencilOutlineIcon/>}/>}
             label={label}
             onClick={handleClick}
@@ -893,6 +903,7 @@ const NotificationPrefsButton = ({channel, currentUser}: {channel: Channel; curr
             id='channelIntroNotificationPreferencesButton'
             aria-label={label}
             aria-haspopup='dialog'
+            data-testid='center.post_list.channel_intro.notifications--button'
             icon={<Icon glyph={<BellRingOutlineIcon/>}/>}
             label={label}
             onClick={handleClick}
@@ -915,6 +926,7 @@ const FavoriteButton = ({
     const button = (
         <TileButton
             id='toggleFavoriteIntroButton'
+            data-testid='center.post_list.channel_intro.favorite--button'
             toggled={isFavorite}
             onClick={toggleFavorite}
             disabled={disabled}

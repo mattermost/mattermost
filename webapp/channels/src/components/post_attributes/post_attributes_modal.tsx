@@ -161,7 +161,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
         <GenericModal
             id='postAttributesModal'
             className='PostAttributesModal'
-            dataTestId='post-attributes-modal'
+            testId='post_attributes_modal'
             compassDesign={true}
             bodyPadding={false}
             modalHeaderText={
@@ -198,7 +198,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
                             {errors[field.id] && (
                                 <div
                                     className='PostAttributesModal__error'
-                                    data-testid={`post-attribute-error-${field.name}`}
+                                    data-testid={`post_attributes_modal.error:${field.id}--alert`}
                                     role='alert'
                                 >
                                     {errors[field.id]}
@@ -211,7 +211,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
                 {isEmpty && (
                     <div
                         className='PostAttributesModal__empty'
-                        data-testid='post-attributes-empty'
+                        data-testid='post_attributes_modal.empty--text'
                     >
                         <FormattedMessage
                             id='post_attributes.modal.empty'
@@ -227,6 +227,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
                   */}
                 {addable.length > 0 && (
                     <PostAttributesFieldPicker
+                        testIdScope='post_attributes_modal.add'
                         fields={addable}
                         onSelect={handleAdd}
                     />
@@ -280,7 +281,7 @@ function PostReprise({post, author, authorName}: {post: Post; author?: UserProfi
     return (
         <div
             className='PostAttributesModal__reprise'
-            data-testid='post-attributes-reprise'
+            data-testid='post_attributes_modal.reprise'
         >
             <Avatar
                 size='sm'

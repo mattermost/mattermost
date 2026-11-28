@@ -118,10 +118,11 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
                 onKeyDown={onKeyDown}
                 tabIndex={0}
                 role='searchbox'
+                data-testid='search_box.input--searchbox'
             />
             {searchTerms.length > 0 && (
                 <ClearButton
-                    data-testid='input-clear'
+                    data-testid='search_box.clear--button'
                     className='btn btn-sm input-clear-x'
                     onClick={clearSearch}
                 >

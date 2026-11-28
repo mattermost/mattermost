@@ -51,7 +51,7 @@ const LatexBlock = ({
         return (
             <div
                 className='post-body--code tex'
-                data-testid='latex-error'
+                data-testid='latex.block.error'
             >
                 <FormattedMessage
                     id='katex.error'
@@ -65,7 +65,7 @@ const LatexBlock = ({
         <div
             className='post-body--code tex'
             dangerouslySetInnerHTML={{__html: html}}
-            data-testid='latex-enabled'
+            data-testid='latex.block.rendered'
         />
     );
 };

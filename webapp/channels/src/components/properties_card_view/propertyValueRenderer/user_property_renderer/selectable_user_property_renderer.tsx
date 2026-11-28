@@ -14,9 +14,10 @@ type Props = {
     field: PropertyField;
     metadata?: UserPropertyMetadata;
     initialValue?: string;
+    testIdScope?: string;
 };
 
-export function SelectableUserPropertyRenderer({field, metadata, initialValue}: Props) {
+export function SelectableUserPropertyRenderer({field, metadata, initialValue, testIdScope}: Props) {
     const {formatMessage} = useIntl();
     const [value, setValue] = useState('');
 
@@ -43,7 +44,7 @@ export function SelectableUserPropertyRenderer({field, metadata, initialValue}: 
     return (
         <div
             className='SelectableUserPropertyRenderer'
-            data-testid='selectable-user-property'
+            data-testid={testIdScope ? `${testIdScope}.selectable_user` : undefined}
         >
             <UserSelector
                 isMulti={false}

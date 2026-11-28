@@ -1,7 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, type Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
+
+import {Api, expect, lastPost as lastPostOf, postWith, settle, type App} from '@mattermost/playwright-lib';
+
+type Post = ReturnType<App['center']['postList']['post']>;
+
+/** The center channel's most recent post, once the list has one. */
+export function lastPost(app: App): Promise<Post> {
+    return lastPostOf(app.center.postList);
+}
+
+/** Sends a message from the center composer, and returns the new post once it shows. */
+export async function sendMessage(app: App, message: string): Promise<Post> {
+    await app.center.postCreate.message.container.fill(message);
+    await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    return postWith(app.center.postList, {text: message});
+}
+
+/** The link (`markdown.link--link`) a post's message holds, once it shows with target `href`. */
+export async function linkIn(app: App, post: ReturnType<App['center']['postList']['post']>, href: string) {
+    const link = post.markdown.linkLink;
+    await expect(link).toHaveAttribute('href', href);
+    return link;
+}
 
 export type ScrollObservation = {
     distanceFromBottom: number | null;
@@ -35,15 +58,20 @@ export async function watchPostListScroll(page: Page, channelId: string): Promis
             (window as unknown as Record<string, WatcherState>)[key] = state;
 
             const sample = () => {
-                const container = document.querySelector(
-                    `#postListContent[data-channel-id="${channelId}"] #postListScrollContainer`,
-                );
+                // The init script runs in the page before the app loads, where page objects do not exist, so the
+                // scroller and the new-messages separator (`center.post_list.scroller`, `center.post_list.new_messages`)
+                // are found by their test ids.
+                // eslint-disable-next-line test-surface/e2e-no-literal-locators -- in-page init script cannot use page objects
+                const scrollerSelector = `[data-channel-id="${channelId}"] [data-testid="center.post_list.scroller"]`;
+                // eslint-disable-next-line test-surface/e2e-no-literal-locators -- in-page init script cannot use page objects
+                const container = document.querySelector(scrollerSelector);
 
                 if (container) {
                     const containerRect = container.getBoundingClientRect();
                     const distanceFromBottom = container.scrollHeight - container.clientHeight - container.scrollTop;
 
-                    const separator = document.querySelector('.NotificationSeparator');
+                    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- in-page init script cannot use page objects
+                    const separator = document.querySelector('[data-testid="center.post_list.new_messages"]');
                     const separatorViewportTop = separator ? separator.getBoundingClientRect().top : null;
                     const separatorTop =
                         separator && separatorViewportTop !== null ? separatorViewportTop - containerRect.top : null;
@@ -110,7 +138,7 @@ export async function watchPostListScroll(page: Page, channelId: string): Promis
                     const now = await page.evaluate(() => Math.round(performance.now()));
                     return now - observations[observations.length - 1].at >= quietMs;
                 },
-                {timeout: 5000, intervals: [100, 200, 300]},
+                {intervals: [100, 200, 300]},
             )
             .toBe(true);
 

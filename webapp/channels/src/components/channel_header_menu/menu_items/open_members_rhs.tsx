@@ -42,6 +42,7 @@ const OpenMembersRHS = ({
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.members--menuitem'
             leadingElement={<AccountOutlineIcon size={16}/>}
             id={id}
             onClick={openRHSIfNotOpen}

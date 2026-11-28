@@ -59,6 +59,7 @@ const ToggleFavoriteChannel = ({
             >
                 <div>
                     <Menu.Item
+                        data-testid='channel_header.menu.toggle_favorite--menuitem'
                         onClick={toggleFavorite}
                         labels={text}
                         disabled={true}
@@ -70,6 +71,7 @@ const ToggleFavoriteChannel = ({
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.toggle_favorite--menuitem'
             onClick={toggleFavorite}
             labels={text}
         />

@@ -31,3 +31,11 @@ export function createRandomPost(post?: Partial<Post>): Post {
 
     throw new Error('Post is missing channel_id or user_id or both');
 }
+
+/** The ids of the files a post carries; a post sent with files and found without them is an error. */
+export function fileIdsOf(post: Pick<Post, 'file_ids'>): string[] {
+    if (!post.file_ids?.length) {
+        throw new Error('Expected the post to carry files');
+    }
+    return post.file_ids;
+}

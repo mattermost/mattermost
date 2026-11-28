@@ -341,6 +341,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         return (
             <GenericModal
                 id='moreDmModal'
+                testId='direct_messages_modal'
                 className='a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal'
                 show={this.state.show}
                 modalHeaderText={modalHeaderText}

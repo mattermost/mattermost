@@ -208,7 +208,7 @@ describe('Forward Message', () => {
             cy.get('.GenericModal__button.confirm').should('not.be.disabled');
 
             // * Assert Notification is shown
-            cy.findByTestId('notification_forward_post').should('be.visible').should('contain.text', `This message is from a private conversation and can only be shared with ${participants}`);
+            cy.findByTestId('forward_post_modal.notification').should('be.visible').should('contain.text', `This message is from a private conversation and can only be shared with ${participants}`);
 
             if (comment) {
                 // # Enter comment

@@ -148,6 +148,8 @@ export type Props = {
      */
     disabledByPolicy?: boolean;
 
+    testIdScope?: string;
+
     /**
      * Plugin file upload methods to be added
      */
@@ -673,6 +675,7 @@ export class FileUpload extends PureComponent<Props, State> {
                     <button
                         id='fileUploadButton'
                         type='button'
+                        data-testid={this.props.testIdScope ? `${this.props.testIdScope}.attach--button` : undefined}
                         onClick={onActivate}
                         onTouchEnd={onActivate}
                     />
@@ -695,6 +698,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         aria-label={formatMessage(holders.uploadFile)}
                         ref={this.fileInput}
                         type='file'
+                        data-testid={this.props.testIdScope ? `${this.props.testIdScope}.upload_input` : undefined}
                         onChange={this.handleChange}
                         onClick={this.handleLocalFileUploaded}
                         multiple={true}
@@ -713,7 +717,11 @@ export class FileUpload extends PureComponent<Props, State> {
                             this.setState({menuOpen: false});
                         }}
                     >
-                        <a href='#'>
+                        <a
+                            href='#'
+                            role='menuitem'
+                            data-testid={this.props.testIdScope ? `${this.props.testIdScope}.attach_menu.plugin:${item.pluginId}--menuitem` : undefined}
+                        >
                             <span className='mr-2'>
                                 {item.icon}
                             </span>
@@ -729,6 +737,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         aria-label={formatMessage(holders.uploadFile)}
                         ref={this.fileInput}
                         type='file'
+                        data-testid={this.props.testIdScope ? `${this.props.testIdScope}.upload_input` : undefined}
                         className='file-attachment-menu-item-input'
                         onChange={this.handleChange}
                         onClick={this.handleLocalFileUploaded}
@@ -742,10 +751,12 @@ export class FileUpload extends PureComponent<Props, State> {
                             openUp={true}
                             ariaLabel={formatMessage({id: 'file_upload.menuAriaLabel', defaultMessage: 'Upload type selector'})}
                             customStyles={customStyles}
+                            testId={this.props.testIdScope ? `${this.props.testIdScope}.attach_menu` : undefined}
                         >
                             <li>
                                 <a
                                     href='#'
+                                    data-testid={this.props.testIdScope ? `${this.props.testIdScope}.attach_menu.your_computer--link` : undefined}
                                     onClick={this.simulateInputClick}
                                     onTouchEnd={this.simulateInputClick}
                                 >

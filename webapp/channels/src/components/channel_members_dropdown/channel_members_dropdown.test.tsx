@@ -45,6 +45,8 @@ describe('components/channel_members_dropdown', () => {
     } as ChannelMembership;
 
     const baseProps = {
+
+        testIdScope: 'rhs.channel_members.member' as const,
         channel,
         user,
         channelMember,
@@ -68,6 +70,16 @@ describe('components/channel_members_dropdown', () => {
         },
     };
 
+    test('the role menu items have their own testids (Remove was rendered as "undefined-button")', async () => {
+        renderWithContext(
+            <ChannelMembersDropdown {...baseProps}/>,
+        );
+
+        await userEvent.click(screen.getByTestId('rhs.channel_members.member.open_role_menu--button'));
+        expect(screen.getByTestId('rhs.channel_members.member.role_menu.remove--menuitem')).toHaveTextContent('Remove from Channel');
+        expect(screen.queryByTestId('undefined-button')).not.toBeInTheDocument();
+    });
+
     test('If a removal is in progress do not execute another removal', async () => {
         const removeMock = jest.fn().mockImplementation(() => {
             const myPromise = new Promise<ActionResult>((resolve) => {
@@ -79,6 +91,7 @@ describe('components/channel_members_dropdown', () => {
         });
 
         const props = {
+
             ...baseProps,
             actions: {
                 ...baseProps.actions,
@@ -107,6 +120,7 @@ describe('components/channel_members_dropdown', () => {
         });
 
         const props = {
+
             ...baseProps,
             actions: {
                 ...baseProps.actions,
@@ -134,6 +148,7 @@ describe('components/channel_members_dropdown', () => {
         });
 
         const props = {
+
             ...baseProps,
             actions: {
                 ...baseProps.actions,
@@ -165,6 +180,7 @@ describe('components/channel_members_dropdown', () => {
         });
 
         const props = {
+
             ...baseProps,
             currentUserId: 'user-1',
             channel: {

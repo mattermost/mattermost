@@ -38,11 +38,12 @@ describe('components/post_view/DateSeparator', () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+1200 (+12)');
         renderWithContext(
             <DateSeparator
+                testId='test.date_separator'
                 date={value}
             />, initialState,
         );
 
-        expect(screen.getByTestId('basicSeparator')).toBeInTheDocument();
+        expect(screen.getByTestId('test.date_separator')).toBeInTheDocument();
 
         expect(screen.getByText('January 12, 2018')).toBeInTheDocument();
     });
@@ -60,6 +61,7 @@ describe('components/post_view/DateSeparator', () => {
         test('should relabel a Today separator as Yesterday without remounting', () => {
             renderWithContext(
                 <DateSeparator
+                    testId='test.date_separator'
                     date={new Date('2019-05-03T20:00:00Z')}
                 />, initialState,
             );
@@ -82,6 +84,7 @@ describe('components/post_view/DateSeparator', () => {
             const {rerender} = renderWithContext(
                 <>
                     <DateSeparator
+                        testId='test.date_separator'
                         key={beforeMidnight.getTime()}
                         date={beforeMidnight}
                     />
@@ -97,10 +100,12 @@ describe('components/post_view/DateSeparator', () => {
             rerender(
                 <>
                     <DateSeparator
+                        testId='test.date_separator'
                         key={afterMidnight.getTime()}
                         date={afterMidnight}
                     />
                     <DateSeparator
+                        testId='test.date_separator'
                         key={beforeMidnight.getTime()}
                         date={beforeMidnight}
                     />
@@ -114,6 +119,7 @@ describe('components/post_view/DateSeparator', () => {
         test('should roll over at midnight in the timezone the user selected', () => {
             renderWithContext(
                 <DateSeparator
+                    testId='test.date_separator'
                     date={new Date('2019-05-03T20:00:00Z')}
                 />, stateForTimezone('Asia/Tokyo'),
             );

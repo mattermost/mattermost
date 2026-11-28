@@ -182,6 +182,8 @@ type Props = {
     disabled?: boolean;
     readOnly?: boolean;
     id?: string;
+
+    testId?: string;
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
     onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
@@ -226,6 +228,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     disabled = false,
     readOnly = false,
     id,
+    testId,
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
     onKeyDown,
@@ -373,6 +376,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         }
     }, []);
 
+    const editorTestId = testId ? `${testId}--textbox` : id;
+
     const editor = useEditor({
         extensions: baseExtensions,
         content: initialContent,
@@ -388,7 +393,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             // A function, not an object: the editor is built once, so a static map
             // would freeze these at their value on mount.
             attributes: () => ({
-                ...(id ? {id, 'data-testid': id} : {}),
+                ...(id ? {id} : {}),
+                ...(editorTestId ? {'data-testid': editorTestId} : {}),
                 ...(readOnlyRef.current ? {} : {
                     role: 'textbox',
                     ...(disabledRef.current ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
@@ -743,6 +749,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     channelId={channelId}
                     rootId={rootId}
                     onSubmit={submit}
+                    testId={testId ? `${testId}.suggestions` : undefined}
                 />
             )}
         </div>

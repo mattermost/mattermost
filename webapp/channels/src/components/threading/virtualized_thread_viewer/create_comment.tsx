@@ -83,8 +83,11 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             />
         );
         return (
-            <div className='channel-archived-warning__container'>
-                <BasicSeparator/>
+            <div
+                className='channel-archived-warning__container'
+                data-testid='rhs.thread.archived_warning'
+            >
+                <BasicSeparator testId='rhs.thread.archived_warning.separator'/>
                 <div className='channel-archived-warning__content'>
                     {archiveIconEl}
                     <FormattedMessage
@@ -103,7 +106,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         <div
             className='post-create__container'
             ref={ref}
-            data-testid='comment-create'
+            data-testid='rhs.thread.composer'
         >
             <ChannelComposerBanner channelId={channel.id}/>
             <AdvancedCreateComment

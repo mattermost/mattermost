@@ -232,7 +232,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     },
                 }),
             );
-            const textbox = screen.getByTestId('post_textbox');
+            const textbox = screen.getByTestId('center.post_create.message--textbox');
 
             await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
 
@@ -260,7 +260,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     },
                 }),
             );
-            const textbox = screen.getByTestId('edit_textbox');
+            const textbox = screen.getByTestId('post_edit.editor.message--textbox');
             await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
             expect(textbox).not.toHaveFocus();
 
@@ -329,14 +329,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        const textbox = screen.getByTestId('post_textbox');
+        const textbox = screen.getByTestId('center.post_create.message--textbox');
 
         // SuggestionBox listens to onInput, not onChange.
         fireEvent.input(textbox, {target: {value: message}});
         expect(textbox).toHaveValue(message);
 
         await act(async () => {
-            fireEvent.click(screen.getByTestId('SendMessageButton'));
+            fireEvent.click(screen.getByTestId('center.post_create.send--button'));
         });
 
         expect(mockedOnSubmit).toHaveBeenCalledWith(
@@ -390,7 +390,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     return;
                 }
 
-                screen.getByTestId('SendMessageButton').click();
+                screen.getByTestId('center.post_create.send--button').click();
             }, [sendDestinationMessage]);
 
             return (
@@ -724,7 +724,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'first message');
-        await userEvent.click(screen.getByTestId('SendMessageButton'));
+        await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
         // The channel switches while that submit is still in flight, exactly as
         // /msg does when redirecting to a DM that already exists in the store.
@@ -778,7 +778,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         await userEvent.type(screen.getByPlaceholderText('Reply to this thread...'), 'first reply');
-        await userEvent.click(screen.getByTestId('SendMessageButton'));
+        await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
         rerender(
             <AdvancedTextEditor
@@ -905,7 +905,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        await userEvent.type(screen.getByTestId('edit_textbox'), ' edited');
+        await userEvent.type(screen.getByTestId('post_edit.editor.message--textbox'), ' edited');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
@@ -1747,7 +1747,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 store.dispatch(quoteTextInDraft(channelId, '', 'Diam sapien\npellentesque'));
             });
 
-            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft\n\n> Diam sapien\n> pellentesque\n\n');
+            expect(screen.getByTestId('center.post_create.message--textbox')).toHaveValue('original draft\n\n> Diam sapien\n> pellentesque\n\n');
             expect(store.getState().views.drafts.pendingQuote).toBeNull();
         });
 
@@ -1763,14 +1763,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 store.dispatch(quoteTextInDraft(channelId, 'some_root_id', 'Diam sapien'));
             });
 
-            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft');
+            expect(screen.getByTestId('center.post_create.message--textbox')).toHaveValue('original draft');
             expect(store.getState().views.drafts.pendingQuote).not.toBeNull();
 
             act(() => {
                 store.dispatch(quoteTextInDraft(otherChannelId, '', 'Diam sapien'));
             });
 
-            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft');
+            expect(screen.getByTestId('center.post_create.message--textbox')).toHaveValue('original draft');
         });
 
         it('should not quote into a message being edited', () => {
@@ -1781,7 +1781,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 />,
                 stateWithDraft,
             );
-            const textbox = screen.getByTestId('edit_textbox');
+            const textbox = screen.getByTestId('post_edit.editor.message--textbox');
             const valueBefore = (textbox as HTMLTextAreaElement).value;
 
             act(() => {
@@ -1893,10 +1893,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await stageAttributes();
 
-            const textbox = screen.getByTestId('post_textbox');
+            const textbox = screen.getByTestId('center.post_create.message--textbox');
             fireEvent.input(textbox, {target: {value: 'a message with attributes'}});
 
-            await userEvent.click(screen.getByTestId('SendMessageButton'));
+            await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -1936,9 +1936,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
             await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument());
 
-            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+            fireEvent.input(screen.getByTestId('center.post_create.message--textbox'), {target: {value: 'a message with attributes'}});
 
-            await userEvent.click(screen.getByTestId('SendMessageButton'));
+            await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -1963,9 +1963,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await stageAttributes();
 
-            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+            fireEvent.input(screen.getByTestId('center.post_create.message--textbox'), {target: {value: 'a message with attributes'}});
 
-            await userEvent.click(screen.getByTestId('SendMessageButton'));
+            await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
             expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
             expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
@@ -1985,10 +1985,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await stageAttributes();
 
-            const textbox = screen.getByTestId('post_textbox');
+            const textbox = screen.getByTestId('center.post_create.message--textbox');
             fireEvent.input(textbox, {target: {value: '/echo hello'}});
 
-            await userEvent.click(screen.getByTestId('SendMessageButton'));
+            await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -2017,10 +2017,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await stageAttributes();
 
-            const textbox = screen.getByTestId('post_textbox');
+            const textbox = screen.getByTestId('center.post_create.message--textbox');
             fireEvent.input(textbox, {target: {value: '+:smile:'}});
 
-            await userEvent.click(screen.getByTestId('SendMessageButton'));
+            await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -2047,7 +2047,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             // The message is typed and then cleared, so the draft changed and
             // is flushed when leaving the channel. With only a staged value
             // left it is empty, so it is removed, not saved.
-            const textbox = screen.getByTestId('post_textbox');
+            const textbox = screen.getByTestId('center.post_create.message--textbox');
             fireEvent.input(textbox, {target: {value: 'x'}});
             fireEvent.input(textbox, {target: {value: ''}});
 
@@ -2072,7 +2072,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await stageAttributes();
 
-            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+            fireEvent.input(screen.getByTestId('center.post_create.message--textbox'), {target: {value: 'a message with attributes'}});
 
             rerender(
                 <AdvancedTextEditor
@@ -2158,20 +2158,20 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     withScheduling,
                 );
 
-                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+                fireEvent.input(screen.getByTestId('center.post_create.message--textbox'), {target: {value: 'a message with attributes'}});
 
                 expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled();
-                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+                expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
 
                 await stageClassification();
 
                 expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
-                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+                expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
 
                 await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
 
                 await waitFor(() => expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled());
-                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+                expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
             });
         });
 
@@ -2202,7 +2202,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     withBurnOnRead,
                 );
 
-                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+                fireEvent.input(screen.getByTestId('center.post_create.message--textbox'), {target: {value: 'a message with attributes'}});
                 expect(burnOnReadButton()).toBeEnabled();
 
                 await stageClassification();
@@ -2212,7 +2212,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
                 // Another control's tooltip may still be open from the click before.
                 expect((await screen.findByText('Messages with attributes can’t be burn-on-read')).closest('[role="tooltip"]')).not.toBeNull();
-                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+                expect(screen.getByTestId('center.post_create.send--button')).toBeEnabled();
 
                 await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
 

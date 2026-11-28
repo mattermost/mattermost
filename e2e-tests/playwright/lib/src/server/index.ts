@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export {makeClient} from './client';
+export {makeClient, postAs} from './client';
 export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
+export {ignoreMissing, runCleanups} from './cleanup';
 export {initSetup, getAdminClient} from './init';
 export {clearAdminLoginLockout, getAdminClientHealing} from './admin_lockout';
 export {clearAdminLockout} from './lockout';
@@ -11,7 +12,7 @@ export {restorePendingConfigPatches} from './patch_config';
 export type {RestoreConfig} from './patch_config';
 export {resetConfig} from './reset_config';
 export {resetRoles} from './roles';
-export {createRandomPost} from './post';
+export {createRandomPost, fileIdsOf} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {
     createNewUserProfile,
@@ -47,6 +48,8 @@ export {
     verifyUserInChannel,
     verifyUserNotInChannel,
     updateUserAttributes,
+    deleteAccessControlPolicyIfPresent,
+    deleteAccessControlPoliciesNamed,
 } from './abac_helpers';
 export {
     defaultEnabledPluginIds,
@@ -73,6 +76,7 @@ export {
     createLdapUser,
     updateLdapUser,
     deleteLdapUser,
+    deleteLdapUserIfPresent,
     ldapServerConfig,
     ensureOpenldap,
 } from './openldap';

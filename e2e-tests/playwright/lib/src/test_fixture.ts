@@ -33,6 +33,7 @@ import {
     createUserWithAttributes,
     deleteKeycloakUser,
     deleteLdapUser,
+    deleteLdapUserIfPresent,
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
@@ -70,6 +71,7 @@ import {
     listMattermostDataFiles,
     listMinioObjectKeys,
     makeClient,
+    postAs,
     openidServerConfig,
     opensearchServerConfig,
     recapCompletion,
@@ -87,6 +89,7 @@ import {
     updateLdapUser,
     upgradeServerImage,
 } from './server';
+import type {LdapUser} from './server';
 import {
     toBeFocusedWithFocusVisible,
     hideDynamicChannelsContent,
@@ -122,6 +125,9 @@ export type ExtendedFixtures = {
 type AxeBuilderOptions = {
     disableColorContrast?: boolean;
     disableLinkInTextBlock?: boolean;
+
+    /** Analyze only this generated scope's element: `axe.builder(page, {within: app.postDotMenu})`. */
+    within?: {readonly scope: string};
 };
 
 let lastSpecFile: string | undefined;
@@ -148,7 +154,11 @@ export const test = base.extend<ExtendedFixtures>({
     pw: async ({browser, page, isMobile}, use) => {
         const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
-        await pw.testBrowser.close();
+        try {
+            await pw.deleteTestLdapUsers();
+        } finally {
+            await pw.testBrowser.close();
+        }
     },
     // Reset config and roles before every test. Role defaults are generated from current
     // master and can reference permissions an upgrade-path from-image predates, so skip the
@@ -188,6 +198,8 @@ export const test = base.extend<ExtendedFixtures>({
 });
 
 export class PlaywrightExtended {
+    private readonly testLdapUsers: string[] = [];
+
     // ./browser_context
     readonly testBrowser;
 
@@ -285,6 +297,7 @@ export class PlaywrightExtended {
     readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
+    readonly postAs;
     readonly setDefaultOnboardingPreferences;
 
     // ./visual
@@ -435,6 +448,7 @@ export class PlaywrightExtended {
         this.createNewUserProfile = createNewUserProfile;
         this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
+        this.postAs = postAs;
         this.setDefaultOnboardingPreferences = setDefaultOnboardingPreferences;
 
         // ./visual
@@ -461,6 +475,20 @@ export class PlaywrightExtended {
             return waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
         };
     }
+
+    /** Creates an LDAP user that is deleted when the test ends, whether it passed or failed. */
+    async createTestLdapUser(user?: LdapUser): Promise<LdapUser> {
+        const created = await createLdapUser(user);
+        this.testLdapUsers.push(created.username);
+        return created;
+    }
+
+    /** Deletes the users made with `createTestLdapUser`. One that is already gone is fine; any other failure is not. */
+    async deleteTestLdapUsers(): Promise<void> {
+        for (const username of this.testLdapUsers.splice(0)) {
+            await deleteLdapUserIfPresent(username);
+        }
+    }
 }
 
 export class AxeBuilderExtended {
@@ -486,7 +514,8 @@ export class AxeBuilderExtended {
                 disabledRules.push('link-in-text-block');
             }
 
-            return new AxeBuilder({page}).withTags(this.tags).disableRules(disabledRules);
+            const builder = new AxeBuilder({page}).withTags(this.tags).disableRules(disabledRules);
+            return options.within ? builder.include(`[data-testid="${options.within.scope}"]`) : builder;
         };
     }
 

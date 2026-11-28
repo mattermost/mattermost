@@ -1,16 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, type App} from '@mattermost/playwright-lib';
+
+import {pickerDay} from './search_date_filter_helpers';
+
+/** Opens the search box empty. */
+async function openEmptySearch(app: App) {
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await app.searchBox.inputSearchbox.fill('');
+    await expect(app.searchBox.inputSearchbox).toHaveValue('');
+    return app.searchBox.inputSearchbox;
+}
 
 /**
  * @objective Verify the "on:" search date filter can be set by clicking a day in the calendar picker,
  * and that the resulting date-filtered search returns the matching post.
  */
 test('MM-T596 sets the search date with the calendar picker', {tag: '@search'}, async ({pw}) => {
-    const {adminClient, team, user} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
-
+    const {adminClient, team, user, townSquare: channel} = await pw.initSetup();
     // # Pin the user's timezone and clock so "today" in the picker is a fixed, known date
     await adminClient.patchUser({
         id: user.id,
@@ -19,36 +27,39 @@ test('MM-T596 sets the search date with the calendar picker', {tag: '@search'}, 
     const todayTimestamp = Date.UTC(2020, 5, 15, 12, 0);
     const todayFilter = toDateFilter(todayTimestamp);
     const message = `Calendar Picker ${pw.random.id()}`;
-    await adminClient.createPost({
+
+    // only an admin can backdate a post (create_at), so the admin posts it
+    const post = await adminClient.createPost({
         channel_id: channel.id,
-        user_id: user.id,
         message,
         create_at: todayTimestamp,
     });
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
+    const {app, page} = await pw.testBrowser.login(user);
     await page.clock.setFixedTime(todayTimestamp);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel});
 
     // # Type "on:" to open the day picker, then click today's date
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill('on:');
-    await channelsPage.searchBox.getDayPickerDay(15).click();
+    const input = await openEmptySearch(app);
+    await input.fill('on:');
+    await pickerDay(app, 15).click();
 
     // * Verify the search box auto-populates with the selected date in YYYY-MM-DD format
-    await expect(channelsPage.searchBox.searchInput).toHaveValue(`on:${todayFilter} `);
+    await expect(input).toHaveValue(`on:${todayFilter} `);
 
     // # Complete the query with the message text and submit
-    await channelsPage.searchBox.searchInput.press('End');
-    await channelsPage.searchBox.searchInput.pressSequentially(message);
-    await channelsPage.searchBox.searchInput.press('Enter');
-    await expect(channelsPage.searchResultsContainer).toBeVisible();
+    await input.press('End');
+    // The caret must be after the completed filter before the message is appended.
+    await expect
+        .poll(() =>
+            input.locator.evaluate((element: HTMLInputElement) => element.selectionStart === element.value.length),
+        )
+        .toBe(true);
+    await input.type(message);
+    await input.press('Enter');
 
     // * Verify the post created on that date is returned
-    await expect(channelsPage.searchResultItems).toHaveCount(1);
-    await expect(channelsPage.getSearchResultItem(message)).toBeVisible();
+    await expect(app.search.results.postList).toHaveKeys([post.id]);
 });
 
 /**
@@ -56,9 +67,7 @@ test('MM-T596 sets the search date with the calendar picker', {tag: '@search'}, 
  * date returns the post, and a later date does not.
  */
 test('MM-T600 updates the search date with the keyboard', {tag: '@search'}, async ({pw}) => {
-    const {adminClient, team, user} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'off-topic');
-
+    const {adminClient, team, user, offTopic: channel} = await pw.initSetup();
     // # Pin the user's timezone and post a message on a known date
     await adminClient.patchUser({
         id: user.id,
@@ -68,70 +77,63 @@ test('MM-T600 updates the search date with the keyboard', {tag: '@search'}, asyn
     const postDateFilter = toDateFilter(postTimestamp);
     const laterDateFilter = toDateFilter(postTimestamp + 7 * 24 * 60 * 60 * 1000);
     const message = `Date ${pw.random.id()}`;
-    await adminClient.createPost({
+
+    // only an admin can backdate a post (create_at), so the admin posts it
+    const post = await adminClient.createPost({
         channel_id: channel.id,
-        user_id: user.id,
         message,
         create_at: postTimestamp,
     });
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
 
     // # Search for the message filtered to the date it was posted
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill(`on:${postDateFilter} ${message}`);
-    await channelsPage.searchBox.searchInput.press('Enter');
-    await expect(channelsPage.searchResultsContainer).toBeVisible();
+    let input = await openEmptySearch(app);
+    await input.fill(`on:${postDateFilter} ${message}`);
+    await input.press('Enter');
 
     // * Verify the post is returned for its own date
-    await expect(channelsPage.searchResultItems).toHaveCount(1);
-    await expect(channelsPage.getSearchResultItem(message)).toBeVisible();
+    await expect(app.search.results.postList).toHaveKeys([post.id]);
 
     // # Reopen the search box and change the date filter to a week later, keeping the same message text
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.toBeVisible();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill(`on:${laterDateFilter} ${message}`);
-    await channelsPage.searchBox.searchInput.press('Enter');
+    input = await openEmptySearch(app);
+    await input.fill(`on:${laterDateFilter} ${message}`);
+    await input.press('Enter');
 
     // * Verify the post is no longer returned for the later date
-    await expect(channelsPage.searchResultItems).toHaveCount(0);
+    await expect(app.noResults.titleText).toBeVisible();
+    await expect(app.search.results.postList).toHaveKeyCount(0);
 });
 
 /**
  * @objective Verify that pressing Backspace after a completed date filter reopens the calendar day picker.
  */
 test('MM-T3997 reopens the date picker when backspacing after a date filter', {tag: '@search'}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {user, team, townSquare} = await pw.initSetup();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
 
     // # Open search and type a "before:" date filter to open the day picker
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill('before:');
-    await expect(channelsPage.searchBox.getDayPickerDay(15)).toBeVisible();
+    const input = await openEmptySearch(app);
+    await input.fill('before:');
+    const day15 = pickerDay(app, 15);
+    await expect(day15).toBeVisible();
 
     // # Select a day from the picker
-    await channelsPage.searchBox.getDayPickerDay(15).click();
+    await day15.click();
 
     // * Verify the date is added to the query and the picker closes
-    await expect(channelsPage.searchBox.searchInput).toHaveValue(/before:\d{4}-\d{2}-\d{2} /);
-    await expect(channelsPage.searchBox.getDayPickerDay(15)).not.toBeVisible();
+    await expect(input).toHaveValue(/before:\d{4}-\d{2}-\d{2} /);
+    await expect(day15).not.toBeVisible();
 
     // # Backspace into the completed date filter so the date becomes partial again
-    await channelsPage.searchBox.searchInput.click();
-    await page.keyboard.press('End');
-    await page.keyboard.press('Backspace');
-    await page.keyboard.press('Backspace');
+    await input.focus();
+    await input.press('End', 'Backspace', 'Backspace');
 
     // * Verify the search input now holds a partial date and the day picker reappears
-    await expect(channelsPage.searchBox.searchInput).toHaveValue(/before:\d{4}-\d{2}-1$/);
-    await expect(channelsPage.searchBox.getDayPickerDay(15)).toBeVisible();
+    await expect(input).toHaveValue(/before:\d{4}-\d{2}-1$/);
+    await expect(day15).toBeVisible();
 });
 
 function toDateFilter(timestamp: number): string {

@@ -138,7 +138,7 @@ Cypress.Commands.add('uiClickSidebarItem', (name) => {
         });
         cy.get('#tutorial-threads-mobile-header span.Button_label').contains('Followed threads');
     } else {
-        cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last().scrollIntoView().should('be.visible');
     }
 });
 

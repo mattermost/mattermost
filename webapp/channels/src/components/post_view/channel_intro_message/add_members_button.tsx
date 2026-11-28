@@ -74,6 +74,7 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
                     emphasis='primary'
                     size='small'
                     modalId={ModalIdentifiers.INVITATION}
+                    testId='center.post_list.channel_intro.invite'
                     dialogType={InvitationModal}
                     dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
@@ -134,6 +135,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                         onClick={handleAddPeople}
                         aria-label={addLabel}
                         aria-haspopup='dialog'
+                        data-testid='center.post_list.channel_intro.add_members--button'
                         icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
                         label={addLabel}
                     />

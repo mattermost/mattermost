@@ -19,6 +19,9 @@ type State = {
 
 type Props = WrappedComponentProps & {
 
+    testId?: string;
+    testKey?: number;
+
     /*
      * The post to render the reaction for
      */
@@ -315,6 +318,7 @@ export class Reaction extends React.PureComponent<Props, State> {
             >
                 <button
                     id={`postReaction-${this.props.post.id}-${this.props.emojiName}`}
+                    data-testid={this.props.testId && this.props.testKey !== undefined ? `${this.props.testId}:${this.props.testKey}--button` : undefined}
                     aria-label={ariaLabelEmoji}
                     className={`Reaction ${this.state.reactedClass} ${readOnlyClass}`}
                     onClick={this.handleClick}

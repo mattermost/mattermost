@@ -28,6 +28,8 @@ import PostEditedIndicator from './post_edited_indicator';
 type OwnProps = {
     postId?: string;
     editedAt?: number;
+
+    testId?: string;
 };
 
 type StateProps = {

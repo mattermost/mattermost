@@ -18,9 +18,14 @@ describe('TextPropertyRenderer', () => {
     };
 
     test('should render text property value', () => {
-        renderWithContext(<TextPropertyRenderer {...baseProps}/>);
+        renderWithContext(
+            <TextPropertyRenderer
+                {...baseProps}
+                testIdScope='x.card.field.value'
+            />,
+        );
 
-        const textElement = screen.getByTestId('text-property');
+        const textElement = screen.getByTestId('x.card.field.value.text--text');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('Test text value');
         expect(textElement).toHaveClass('TextProperty');
@@ -33,9 +38,19 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<string>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
 
-        const textElement = screen.getByTestId('text-property');
+            <TextPropertyRenderer
+
+                {...props}
+
+                testIdScope='x.card.field.value'
+
+            />,
+
+        );
+
+        const textElement = screen.getByTestId('x.card.field.value.text--text');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('');
         expect(textElement).toHaveClass('TextProperty');
@@ -48,9 +63,19 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<number>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
 
-        const textElement = screen.getByTestId('text-property');
+            <TextPropertyRenderer
+
+                {...props}
+
+                testIdScope='x.card.field.value'
+
+            />,
+
+        );
+
+        const textElement = screen.getByTestId('x.card.field.value.text--text');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('123');
         expect(textElement).toHaveClass('TextProperty');
@@ -63,9 +88,19 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<null>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
 
-        const textElement = screen.getByTestId('text-property');
+            <TextPropertyRenderer
+
+                {...props}
+
+                testIdScope='x.card.field.value'
+
+            />,
+
+        );
+
+        const textElement = screen.getByTestId('x.card.field.value.text--text');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('');
         expect(textElement).toHaveClass('TextProperty');
@@ -78,9 +113,19 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<undefined>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
 
-        const textElement = screen.getByTestId('text-property');
+            <TextPropertyRenderer
+
+                {...props}
+
+                testIdScope='x.card.field.value'
+
+            />,
+
+        );
+
+        const textElement = screen.getByTestId('x.card.field.value.text--text');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('');
         expect(textElement).toHaveClass('TextProperty');
@@ -93,9 +138,14 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<number>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
+            <TextPropertyRenderer
+                {...props}
+                testIdScope='post_attributes.value'
+            />,
+        );
 
-        expect(screen.getByTestId('text-property')).toHaveTextContent('0');
+        expect(screen.getByTestId('post_attributes.value.text--text')).toHaveTextContent('0');
     });
 
     test('should render a boolean false rather than treating it as unset', () => {
@@ -105,9 +155,14 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<boolean>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
+            <TextPropertyRenderer
+                {...props}
+                testIdScope='post_attributes.value'
+            />,
+        );
 
-        expect(screen.getByTestId('text-property')).toHaveTextContent('false');
+        expect(screen.getByTestId('post_attributes.value.text--text')).toHaveTextContent('false');
     });
 
     describe('placeholder', () => {
@@ -120,12 +175,13 @@ describe('TextPropertyRenderer', () => {
         ])('shows the placeholder for %s', (_label, raw) => {
             renderWithContext(
                 <TextPropertyRenderer
+                    testIdScope='post_attributes.value'
                     value={{value: raw} as PropertyValue<unknown>}
                     metadata={metadata}
                 />,
             );
 
-            expect(screen.getByTestId('text-property')).toHaveTextContent('Not set');
+            expect(screen.getByTestId('post_attributes.value.text--text')).toHaveTextContent('Not set');
         });
 
         test.each([
@@ -134,12 +190,13 @@ describe('TextPropertyRenderer', () => {
         ])('shows %s in place of the placeholder', (_label, raw, expected) => {
             renderWithContext(
                 <TextPropertyRenderer
+                    testIdScope='post_attributes.value'
                     value={{value: raw} as PropertyValue<unknown>}
                     metadata={metadata}
                 />,
             );
 
-            const textElement = screen.getByTestId('text-property');
+            const textElement = screen.getByTestId('post_attributes.value.text--text');
             expect(textElement).toHaveTextContent(expected as string);
             expect(textElement).not.toHaveTextContent('Not set');
         });
@@ -152,9 +209,19 @@ describe('TextPropertyRenderer', () => {
             } as PropertyValue<string>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        renderWithContext(
 
-        const textElement = screen.getByTestId('text-property');
+            <TextPropertyRenderer
+
+                {...props}
+
+                testIdScope='x.card.field.value'
+
+            />,
+
+        );
+
+        const textElement = screen.getByTestId('x.card.field.value.text--text');
         expect(textElement).toBeVisible();
         expect(textElement).toHaveTextContent('!@#$%^&*()_+-=[]{}|;:,.<>?');
         expect(textElement).toHaveClass('TextProperty');

@@ -72,6 +72,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         createNewChannelMenuItem = (
             <Menu.Item
                 id='createNewChannelMenuItem'
+                data-testid='lhs.browse_or_add_menu.create_channel--menuitem'
                 onClick={props.onCreateNewChannelClick}
                 leadingElement={<PlusIcon size={18}/>}
                 labels={(
@@ -91,6 +92,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         browseChannelsMenuItem = (
             <Menu.Item
                 id='browseChannelsMenuItem'
+                data-testid='lhs.browse_or_add_menu.browse_channels--menuitem'
                 onClick={props.onBrowseChannelClick}
                 leadingElement={<GlobeIcon size={18}/>}
                 labels={<FormattedMessage {...browseMessages[productRailKind]}/>}
@@ -102,6 +104,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const createDirectMessageMenuItem = (
         <Menu.Item
             id='openDirectMessageMenuItem'
+            data-testid='lhs.browse_or_add_menu.open_direct_message--menuitem'
             onClick={props.onOpenDirectMessageClick}
             leadingElement={<AccountOutlineIcon size={18}/>}
             labels={(
@@ -119,6 +122,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         createUserGroupMenuItem = (
             <Menu.Item
                 id='createUserGroupMenuItem'
+                data-testid='lhs.browse_or_add_menu.create_user_group--menuitem'
                 onClick={props.onCreateNewUserGroupClick}
                 leadingElement={<AccountMultiplePlusOutlineIcon size={18}/>}
                 labels={(
@@ -137,6 +141,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         createNewCategoryMenuItem = (
             <Menu.Item
                 id='createCategoryMenuItem'
+                data-testid='lhs.browse_or_add_menu.create_category--menuitem'
                 onClick={props.onCreateNewCategoryClick}
                 leadingElement={<FolderPlusOutlineIcon size={18}/>}
                 labels={(
@@ -153,6 +158,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const invitePeopleMenuItem = (
         <Menu.Item
             id='invitePeopleMenuItem'
+            data-testid='lhs.browse_or_add_menu.invite_people--menuitem'
             onClick={props.onInvitePeopleClick}
             leadingElement={<AccountPlusOutlineIcon size={18}/>}
             labels={(
@@ -186,6 +192,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                 <Menu.Item
                     id={item.id + '_pluginmenuitem'}
                     key={item.id + '_pluginmenuitem'}
+                    data-testid={`lhs.browse_or_add_menu.plugin:${item.pluginId}--menuitem`}
                     onClick={handlePluginItemClick}
                     leadingElement={item.icon}
                     labels={<span>{item.text}</span>}
@@ -200,6 +207,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         <Menu.Container
             menuButton={{
                 id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON,
+                testId: 'lhs.header.open_browse_or_add_menu',
                 'aria-label': formatMessage({
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',

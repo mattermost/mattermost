@@ -7,12 +7,10 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 
 type Props = {
     fullname: string;
-    username: string;
     remoteId?: string;
 };
 const ProfilePopoverFullName = ({
     fullname,
-    username,
     remoteId,
 }: Props) => {
     if (!fullname) {
@@ -31,7 +29,7 @@ const ProfilePopoverFullName = ({
 
     return (
         <div
-            data-testid={`popover-fullname-${username}`}
+            data-testid='profile_popover.full_name--text'
             className='user-profile-popover__heading'
         >
             <p title={fullname}>{fullname}</p>

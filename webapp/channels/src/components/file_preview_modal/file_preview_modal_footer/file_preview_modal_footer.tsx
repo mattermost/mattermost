@@ -33,11 +33,13 @@ const FilePreviewModalFooter: React.FC<Props> = ({post, ...actionProps}: Props) 
                 showFileName={false}
                 post={post}
                 filename={actionProps.filename}
+                testIdScope='file_preview_modal.footer'
             />
             <FilePreviewModalMainActions
                 {...actionProps}
                 showClose={false}
                 showOnlyClose={false}
+                testIdScope='file_preview_modal.footer'
             />
         </div>
     );

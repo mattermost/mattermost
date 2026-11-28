@@ -1,53 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, Api, postWith, settle} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify Ctrl/Cmd+B and Ctrl/Cmd+I wrap the message text in bold and italic markdown and
  * that the posted message renders the formatting.
  */
 test('MM-T3405 formats text as bold and italic with keyboard shortcuts', {tag: '@keyboard_shortcuts'}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {user, team, townSquare: channel} = await pw.initSetup();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
 
-    const postCreate = channelsPage.centerView.postCreate;
+    const composer = app.center.postCreate;
+    const input = composer.message.container;
 
-    // # Type a message, select it, and apply the bold shortcut
-    await postCreate.input.click();
-    await postCreate.input.fill('bolded text');
-    await page.keyboard.press('ControlOrMeta+A');
-    await page.keyboard.press('ControlOrMeta+B');
+    // # Type text, select it and press Ctrl/Cmd+B
+    await input.fill('bolded text');
+    await input.press('ControlOrMeta+A', 'ControlOrMeta+B');
 
     // * Verify the text is wrapped in bold markdown
-    await expect(postCreate.input).toHaveValue('**bolded text**');
+    await expect(input).toHaveValue('**bolded text**');
 
-    // # Post the bold message
-    await postCreate.sendMessage();
+    // # Send it
+    await settle(composer.sendButton, {wait: Api.CreatePost}).click();
+    await expect(input).toHaveValue('');
 
-    // * Verify the posted message renders as bold without literal markdown characters
-    const boldPost = await channelsPage.getLastPost();
-    await expect(boldPost.container.locator('strong')).toHaveText('bolded text');
-    await boldPost.toNotContainText('**');
+    // * Verify the post renders bold text without the markdown
+    const boldPost = await postWith(app.center.postList, {text: 'bolded text'});
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- rendered markdown has no ids; the strong role is what is under test
+    await expect(boldPost.message.container.locator.getByRole('strong')).toHaveText('bolded text');
+    await expect(boldPost.message.container).not.toContainText('**');
 
-    // # Type another message, select it, and apply the italic shortcut
-    await postCreate.input.click();
-    await postCreate.input.fill('italic text');
-    await page.keyboard.press('ControlOrMeta+A');
-    await page.keyboard.press('ControlOrMeta+I');
+    // # Type text, select it and press Ctrl/Cmd+I
+    await input.fill('italic text');
+    await input.press('ControlOrMeta+A', 'ControlOrMeta+I');
 
     // * Verify the text is wrapped in italic markdown
-    await expect(postCreate.input).toHaveValue('*italic text*');
+    await expect(input).toHaveValue('*italic text*');
 
-    // # Post the italic message
-    await postCreate.sendMessage();
+    // # Send it
+    await settle(composer.sendButton, {wait: Api.CreatePost}).click();
+    await expect(input).toHaveValue('');
 
-    // * Verify the posted message renders as italic without literal markdown characters
-    const italicPost = await channelsPage.getLastPost();
-    await expect(italicPost.container.locator('em')).toHaveText('italic text');
-    await italicPost.toNotContainText('*');
+    // * Verify the post renders italic text without the markdown
+    const italicPost = await postWith(app.center.postList, {text: 'italic text'});
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- rendered markdown has no ids; the emphasis role is what is under test
+    await expect(italicPost.message.container.locator.getByRole('emphasis')).toHaveText('italic text');
+    await expect(italicPost.message.container).not.toContainText('*');
 });
 
 /**
@@ -55,24 +55,22 @@ test('MM-T3405 formats text as bold and italic with keyboard shortcuts', {tag: '
  * and that it can be dismissed.
  */
 test('MM-T4693 opens the emoji picker with the keyboard shortcut', {tag: '@keyboard_shortcuts'}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {user, team, userClient, townSquare: channel} = await pw.initSetup();
+    await userClient.createPost({channel_id: channel.id, message: 'this is a test'});
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
 
-    // # Post a message so there is a last message to react to
-    await channelsPage.centerView.postCreate.postMessage('this is a test');
-    await channelsPage.centerView.postCreate.input.focus();
-
-    // # Press the emoji picker shortcut
-    await page.keyboard.press('ControlOrMeta+Shift+\\');
+    // # Press Ctrl/Cmd+Shift+\ in the message box
+    const input = app.center.postCreate.message.container;
+    await input.focus();
+    await input.press('ControlOrMeta+Shift+\\');
 
     // * Verify the emoji picker opens
-    await expect(channelsPage.reactionEmojiPicker.container).toBeVisible();
+    await expect(app.emojiPicker.searchTextbox).toBeVisible();
 
-    // # Dismiss the emoji picker
-    await page.keyboard.press('Escape');
+    // # Press Escape
+    await app.emojiPicker.searchTextbox.press('Escape');
 
-    // * Verify the emoji picker is closed
-    await expect(channelsPage.reactionEmojiPicker.container).not.toBeVisible();
+    // * Verify the emoji picker closes
+    await expect(app.emojiPicker.searchTextbox).not.toBeVisible();
 });

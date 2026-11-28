@@ -211,7 +211,7 @@ function setTimezoneDisplayToManual(value) {
 function verifyLocalTimeIsTimezoneFormatted(localTime, timeFormat) {
     // * Verify that the local time of each post is in timezone format
     const formattedTime = localTime.dateInTimezone.format(timeFormat);
-    cy.findAllByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).
+    cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/, {timeout: TIMEOUTS.ONE_MIN}).
         eq(localTime.postIndex).find('time', {timeout: TIMEOUTS.HALF_SEC}).
         should('have.text', formattedTime);
 }

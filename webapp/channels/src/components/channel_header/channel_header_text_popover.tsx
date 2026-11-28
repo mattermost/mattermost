@@ -125,6 +125,7 @@ export function ChannelHeaderTextPopover(props: Props) {
             <div
                 ref={rootRef}
                 className='header-description__text'
+                data-testid='channel_header.description'
                 {...getReferenceProps()}
                 onClick={handleClick}
             >
@@ -145,6 +146,8 @@ export function ChannelHeaderTextPopover(props: Props) {
                         <div
                             ref={setFloating}
                             className='channel-header-text-popover'
+                            role='tooltip'
+                            data-testid='channel_header.description_popover'
                             style={{
                                 maxWidth: maxWidthOfPopover,
                                 ...floatingStyles,

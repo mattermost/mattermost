@@ -219,7 +219,7 @@ const ProfilePopover = ({
             </div>
             <div
                 className='user-profile-popover-bottom-row'
-                data-testid='user-profile-popover-bottom-row'
+                data-testid='profile_popover.actions'
             >
                 <hr className='user-popover__bottom-row-hr'/>
                 <ProfilePopoverOverrideDisclaimer
