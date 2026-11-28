@@ -1,0 +1,317 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package eventbus
+
+import (
+	"cmp"
+	"maps"
+	"slices"
+	"sync"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
+// SetSubscriptions validates subs and swaps them in whole for the plugin's current set. An empty
+// set removes the plugin's queue. Deliveries already queued for removed subscriptions are dropped
+// when dequeued.
+func (b *Bus) SetSubscriptions(pluginID string, subs []model.EventSubscription, opts model.SubscriptionOptions) error {
+	if !b.isEnabled() {
+		return model.ErrEventBusDisabled
+	}
+	if !b.hooks.Implements(pluginID, plugin.OnEventID) {
+		return model.ErrSubscriberHookMissing
+	}
+	if opts.QueueSize < 0 || opts.Workers < 0 {
+		return model.ErrEventSubscriptionInvalid.Wrapf("queue size and workers must not be negative")
+	}
+	if err := model.ValidateEventSubscriptions(subs); err != nil {
+		return err
+	}
+
+	normalized := make([]*model.EventSubscription, 0, len(subs))
+	for _, sub := range subs {
+		n, err := b.normalizeSubscription(sub)
+		if err != nil {
+			return err
+		}
+		normalized = append(normalized, n)
+	}
+
+	b.subs.set(pluginID, normalized, func(prevDone <-chan struct{}) *queue {
+		return newQueue(pluginID, b.queueSize, prevDone, b.deliver)
+	})
+	return nil
+}
+
+// normalizeSubscription copies sub and checks its filters against the declared fields when the
+// pattern names a registered event. Filters on other patterns are checked when matching.
+func (b *Bus) normalizeSubscription(sub model.EventSubscription) (*model.EventSubscription, error) {
+	pattern, err := model.ParseEventPattern(sub.Event)
+	if err != nil {
+		return nil, model.ErrEventSubscriptionInvalid.Wrapf("subscription %q: %v", sub.ID, err)
+	}
+
+	var declared map[string]model.EventValueType
+	if pattern.Kind == model.EventPatternExact {
+		if event, ok := b.registry.event(pattern.Publisher, pattern.Name); ok {
+			declared = make(map[string]model.EventValueType, len(event.Fields))
+			for _, field := range event.Fields {
+				declared[field.Key] = field.Type
+			}
+		}
+	}
+
+	filters := make(map[string]model.EventValue, len(sub.Filters))
+	for key, value := range sub.Filters {
+		fieldType := value.Type
+		if declared != nil {
+			var ok bool
+			if fieldType, ok = declared[key]; !ok {
+				return nil, model.ErrEventSubscriptionInvalid.Wrapf("subscription %q filters on undeclared field %q", sub.ID, key)
+			}
+		}
+		if err := value.Validate(fieldType, model.EventTextMaxRunes, false); err != nil {
+			return nil, model.ErrEventSubscriptionInvalid.Wrapf("subscription %q filter %q: %v", sub.ID, key, err)
+		}
+		filters[key] = value
+	}
+	sub.Filters = filters
+
+	return &sub, nil
+}
+
+type subscriber struct {
+	byID  map[string]*model.EventSubscription
+	queue *queue
+}
+
+type subRef struct {
+	pluginID string
+	sub      *model.EventSubscription
+}
+
+// subscriptionIndex is rebuilt whole on every change, so matching never sees a partial update.
+type subscriptionIndex struct {
+	exact     map[string][]subRef // publisher/name
+	group     map[string][]subRef // publisher/group
+	publisher map[string][]subRef // publisher
+	all       []subRef
+}
+
+type subscriptionSet struct {
+	mu          sync.RWMutex
+	subscribers map[string]*subscriber
+	// retired holds the done channel of each plugin's last closed queue, whose worker may still be
+	// mid-delivery. The plugin's next queue waits for it. Only the channel is kept so the closed
+	// queue's pending deliveries can be released.
+	retired map[string]<-chan struct{}
+	index   subscriptionIndex
+}
+
+func newSubscriptionSet() *subscriptionSet {
+	s := &subscriptionSet{subscribers: map[string]*subscriber{}, retired: map[string]<-chan struct{}{}}
+	s.rebuildIndex()
+	return s
+}
+
+// retire closes the plugin's queue and removes it. The caller must hold the write lock.
+func (s *subscriptionSet) retire(pluginID string) {
+	existing := s.subscribers[pluginID]
+	if existing == nil {
+		return
+	}
+	existing.queue.close()
+	s.retired[pluginID] = existing.queue.done
+	delete(s.subscribers, pluginID)
+	s.rebuildIndex()
+}
+
+func (s *subscriptionSet) set(pluginID string, subs []*model.EventSubscription, newQueue func(prevDone <-chan struct{}) *queue) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(subs) == 0 {
+		s.retire(pluginID)
+		return
+	}
+	existing := s.subscribers[pluginID]
+
+	// A subscription kept unchanged keeps its pointer, which is how current tells it apart from
+	// one that was removed and then restored.
+	byID := make(map[string]*model.EventSubscription, len(subs))
+	for _, sub := range subs {
+		if existing != nil {
+			if cur, ok := existing.byID[sub.ID]; ok && cur.Equal(sub) {
+				sub = cur
+			}
+		}
+		byID[sub.ID] = sub
+	}
+	if existing == nil {
+		prev := s.retired[pluginID]
+		delete(s.retired, pluginID)
+		existing = &subscriber{queue: newQueue(prev)}
+		s.subscribers[pluginID] = existing
+	}
+	existing.byID = byID
+	s.rebuildIndex()
+}
+
+func (s *subscriptionSet) drop(pluginID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.retire(pluginID)
+}
+
+func (s *subscriptionSet) dropAll() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, existing := range s.subscribers {
+		existing.queue.close()
+	}
+	s.subscribers = map[string]*subscriber{}
+	s.retired = map[string]<-chan struct{}{}
+	s.rebuildIndex()
+}
+
+// rebuildIndex must be called with the write lock held.
+func (s *subscriptionSet) rebuildIndex() {
+	index := subscriptionIndex{
+		exact:     map[string][]subRef{},
+		group:     map[string][]subRef{},
+		publisher: map[string][]subRef{},
+	}
+	for pluginID, existing := range s.subscribers {
+		for _, sub := range existing.byID {
+			ref := subRef{pluginID: pluginID, sub: sub}
+			// Patterns were validated by SetSubscriptions.
+			pattern, _ := model.ParseEventPattern(sub.Event)
+			switch pattern.Kind {
+			case model.EventPatternExact:
+				key := pattern.Publisher + "/" + pattern.Name
+				index.exact[key] = append(index.exact[key], ref)
+			case model.EventPatternGroup:
+				key := pattern.Publisher + "/" + pattern.Group
+				index.group[key] = append(index.group[key], ref)
+			case model.EventPatternPublisher:
+				index.publisher[pattern.Publisher] = append(index.publisher[pattern.Publisher], ref)
+			case model.EventPatternAll:
+				index.all = append(index.all, ref)
+			}
+		}
+	}
+	s.index = index
+}
+
+type subscriberMatch struct {
+	pluginID string
+	queue    *queue
+	matched  []*model.EventSubscription
+}
+
+// match returns one entry per subscriber with every subscription the envelope matches.
+func (s *subscriptionSet) match(env *eventEnvelope) []subscriberMatch {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	candidates := slices.Concat(
+		s.index.exact[env.fullName()],
+		s.index.publisher[env.PublisherID],
+		s.index.all,
+	)
+	if env.Group != "" {
+		candidates = append(candidates, s.index.group[env.PublisherID+"/"+env.Group]...)
+	}
+
+	byPlugin := map[string]*subscriberMatch{}
+	for _, ref := range candidates {
+		if !subscriptionMatches(ref, env) {
+			continue
+		}
+		m := byPlugin[ref.pluginID]
+		if m == nil {
+			m = &subscriberMatch{pluginID: ref.pluginID, queue: s.subscribers[ref.pluginID].queue}
+			byPlugin[ref.pluginID] = m
+		}
+		m.matched = append(m.matched, ref.sub)
+	}
+
+	matches := make([]subscriberMatch, 0, len(byPlugin))
+	for _, pluginID := range slices.Sorted(maps.Keys(byPlugin)) {
+		m := byPlugin[pluginID]
+		slices.SortFunc(m.matched, func(a, b *model.EventSubscription) int {
+			return cmp.Compare(a.ID, b.ID)
+		})
+		matches = append(matches, *m)
+	}
+	return matches
+}
+
+func subscriptionMatches(ref subRef, env *eventEnvelope) bool {
+	if ref.pluginID == env.PublisherID && !ref.sub.IncludeOwn {
+		return false
+	}
+	if !env.isVisibleTo(ref.pluginID) {
+		return false
+	}
+	for key, want := range ref.sub.Filters {
+		got, ok := env.Payload[key]
+		if !ok || !got.Equal(want) {
+			return false
+		}
+	}
+	return true
+}
+
+// current returns the IDs of the matched subscriptions the plugin has held unchanged since the
+// delivery was queued.
+func (s *subscriptionSet) current(pluginID string, matched []*model.EventSubscription) []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	existing := s.subscribers[pluginID]
+	if existing == nil {
+		return nil
+	}
+	var ids []string
+	for _, sub := range matched {
+		if existing.byID[sub.ID] == sub {
+			ids = append(ids, sub.ID)
+		}
+	}
+	return ids
+}
+
+// dispatch is the transport consumer: it matches the envelope and queues one delivery per
+// subscriber without blocking.
+func (b *Bus) dispatch(env *eventEnvelope) {
+	for _, m := range b.subs.match(env) {
+		ids := make([]string, len(m.matched))
+		for i, sub := range m.matched {
+			ids[i] = sub.ID
+		}
+		d := &model.EventDelivery{
+			ID:              env.ID + ":" + m.pluginID,
+			EnvelopeID:      env.ID,
+			Event:           env.fullName(),
+			PublisherID:     env.PublisherID,
+			Version:         env.Version,
+			Payload:         env.Payload,
+			SubscriptionIDs: ids,
+			TraceID:         env.TraceID,
+			Hop:             env.Hop,
+			OriginUserID:    env.OriginUserID,
+			Cause:           env.Cause,
+			EmittedAt:       env.EmittedAt,
+		}
+		if !m.queue.enqueue(&queuedDelivery{delivery: d, matched: m.matched}) {
+			b.logger.Warn("Dropped event delivery because the subscriber queue is full",
+				mlog.String("subscriber", m.pluginID),
+				mlog.String("event", d.Event),
+				mlog.String("delivery_id", d.ID),
+			)
+		}
+	}
+}

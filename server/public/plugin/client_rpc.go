@@ -176,6 +176,10 @@ func encodableError(err error) error {
 		return err
 	}
 
+	if _, ok := err.(*model.EventBusError); ok {
+		return err
+	}
+
 	ret := &ErrorString{
 		Err: err.Error(),
 	}
@@ -238,6 +242,7 @@ func init() {
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
 	gob.Register(&ErrorString{})
+	gob.Register(&model.EventBusError{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})

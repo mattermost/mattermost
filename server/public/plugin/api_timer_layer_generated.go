@@ -1958,3 +1958,52 @@ func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.Ent
 	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) RegisterEventGroup(group model.EventGroup) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEventGroup(group)
+	api.recordTime(startTime, "RegisterEventGroup", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEvent(event model.EventDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEvent(event)
+	api.recordTime(startTime, "RegisterEvent", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterAction(action model.ActionDescriptor) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterAction(action)
+	api.recordTime(startTime, "RegisterAction", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SetSubscriptions(subs []model.EventSubscription, opts model.SubscriptionOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetSubscriptions(subs, opts)
+	api.recordTime(startTime, "SetSubscriptions", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) EmitEvent(name string, payload map[string]model.EventValue, cause model.EventCause, opts *model.EmitOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.EmitEvent(name, payload, cause, opts)
+	api.recordTime(startTime, "EmitEvent", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) ExecuteAction(req *model.ActionRequest, cause model.EventCause) (*model.ActionResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ExecuteAction(req, cause)
+	api.recordTime(startTime, "ExecuteAction", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListEventContributions() (*model.EventCatalog, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListEventContributions()
+	api.recordTime(startTime, "ListEventContributions", _returnsB == nil)
+	return _returnsA, _returnsB
+}

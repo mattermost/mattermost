@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/eventbus"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -54,6 +55,8 @@ type Channels struct {
 	pluginConfigListenerID        string
 	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string
+
+	eventBus *eventbus.Bus
 
 	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
 	guardCache atomic.Pointer[sync.Map]
@@ -120,6 +123,11 @@ func NewChannels(s *Server) (*Channels, error) {
 		interruptQuitChan: make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
+
+	var err error
+	if ch.eventBus, err = newEventBus(ch); err != nil {
+		return nil, errors.Wrap(err, "failed to create the plugin event bus")
+	}
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
@@ -325,6 +333,9 @@ func (ch *Channels) Start() error {
 
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
+	if ch.eventBus != nil {
+		ch.eventBus.Close()
+	}
 
 	ch.dndTask.stop()
 	ch.postReminderTask.stop()

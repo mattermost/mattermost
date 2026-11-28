@@ -40,6 +40,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     NotificationMonitoring: 'true',
     OpenIdAttributeSync: 'true',
     PermissionPolicies: 'true',
+    PluginEventBus: 'false',
     PolicySimulation: 'true',
     PostAttributes: 'false',
     PostDeliveryTracking: 'false',

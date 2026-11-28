@@ -2019,6 +2019,57 @@ type API interface {
 	//
 	// Minimum server version: 12.2
 	RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError
+
+	// RegisterEventGroup registers a palette group for the calling plugin's events and actions.
+	// Registering a group with the same name again replaces it.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	RegisterEventGroup(group model.EventGroup) error
+
+	// RegisterEvent registers an event the calling plugin can emit. If the event names a group,
+	// the plugin must register that group first. Registering an event with the same name again
+	// replaces it.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	RegisterEvent(event model.EventDescriptor) error
+
+	// RegisterAction registers an action other plugins can call. The calling plugin must
+	// implement the OnActionCall hook. Registering an action with the same type again replaces it.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	RegisterAction(action model.ActionDescriptor) error
+
+	// SetSubscriptions replaces the calling plugin's event subscriptions. The plugin must
+	// implement the OnEvent hook. Deliveries already queued for removed subscriptions are dropped.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	SetSubscriptions(subs []model.EventSubscription, opts model.SubscriptionOptions) error
+
+	// EmitEvent emits an event the calling plugin registered. It returns once the event is
+	// queued for subscribers, without waiting for them. Pass the cause from the delivery or
+	// action call that led to this emit, or an empty cause to start a new chain.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	EmitEvent(name string, payload map[string]model.EventValue, cause model.EventCause, opts *model.EmitOptions) error
+
+	// ExecuteAction calls an action another plugin registered and returns its declared results.
+	// Pass the cause from the delivery that led to this call, or an empty cause for a call that
+	// starts a new chain.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	ExecuteAction(req *model.ActionRequest, cause model.EventCause) (*model.ActionResponse, error)
+
+	// ListEventContributions returns every group, event and action registered on this node.
+	//
+	// @tag EventBus
+	// Minimum server version: 12.3
+	ListEventContributions() (*model.EventCatalog, error)
 }
 
 var handshake = plugin.HandshakeConfig{
