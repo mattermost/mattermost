@@ -15,6 +15,7 @@ import * as Menu from 'components/menu';
 import {resolveOption} from 'utils/property_options';
 
 import PostAttributeText from './post_attribute_text';
+import {limitTextValue, validateTextValue} from './text_value';
 import {hasValueControl, storedEntries} from './utils';
 
 /*
@@ -284,6 +285,10 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
  * Enter blurs rather than writing directly, so blur stays the single commit path
  * and Enter cannot fire a second PATCH on the way out.
  *
+ * Input stops at the server's length limit, and a value the field's
+ * `value_type` refuses is never committed: it stays in the input with an
+ * inline error, rather than failing the send or the PATCH.
+ *
  * A bare `<input>` rather than the `Input` widget: that widget draws a bordered
  * fieldset, which would make one row of the modal a form control while every
  * other row is a line of text. The styling matches the option menu's trigger, so
@@ -291,10 +296,19 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
  * under the pointer.
  */
 function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
+    const {formatMessage} = useIntl();
     const instanceId = useId();
     const stored = storedText(value);
     const [draft, setDraft] = useState(stored);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Shown from the first attempt to commit rather than on the first
+    // keystroke, so a half-typed address isn't flagged; it then follows the
+    // draft and goes away once the draft is fixed.
+    const [showError, setShowError] = useState(false);
+    const error = showError ? validateTextValue(field, draft) : undefined;
+    const inputId = `postAttributeValueInput-${field.id}-${instanceId}`;
+    const errorId = `${inputId}-error`;
 
     // Focused from an effect rather than through `autoFocus`, which also
     // steals focus on any page load that happens to mount the input; this
@@ -305,34 +319,68 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
         }
     }, [autoOpen]);
 
-    const handleBlur = useCallback(() => {
-        if (draft !== stored) {
-            onChange(field.id, draft);
+    // An untouched value is never validated: a stored value can predate the
+    // field's `value_type`, and leaving it as it is commits nothing.
+    const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
+        if (draft === stored) {
+            setShowError(false);
+            return;
         }
-    }, [draft, stored, field.id, onChange]);
+
+        if (validateTextValue(field, draft)) {
+            setShowError(true);
+
+            // Keeps the composer's chip from returning to rest, which would
+            // drop the draft along with its error.
+            event.stopPropagation();
+            return;
+        }
+
+        onChange(field.id, draft);
+    }, [draft, stored, field, onChange]);
 
     const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            event.currentTarget.blur();
+        if (event.key !== 'Enter') {
+            return;
         }
-    }, []);
+
+        event.preventDefault();
+        if (draft !== stored && validateTextValue(field, draft)) {
+            setShowError(true);
+            return;
+        }
+        event.currentTarget.blur();
+    }, [field, draft, stored]);
 
     return (
-        <input
-            id={`postAttributeValueInput-${field.id}-${instanceId}`}
-            name={`postAttributeValueInput-${field.name}`}
-            data-testid={`post-attribute-input-${field.name}`}
-            type='text'
-            className='PostAttributesModalRow__input'
-            value={draft}
-            disabled={disabled}
-            aria-label={getPropertyFieldLabel(field)}
-            ref={inputRef}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-        />
+        <span className='PostAttributesModalRow__textField'>
+            <input
+                id={inputId}
+                name={`postAttributeValueInput-${field.name}`}
+                data-testid={`post-attribute-input-${field.name}`}
+                type='text'
+                className='PostAttributesModalRow__input'
+                value={draft}
+                disabled={disabled}
+                aria-label={getPropertyFieldLabel(field)}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? errorId : undefined}
+                ref={inputRef}
+                onChange={(event) => setDraft(limitTextValue(event.target.value, draft))}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+            />
+            {error && (
+                <span
+                    id={errorId}
+                    className='PostAttributesModalRow__inputError'
+                    data-testid={`post-attribute-input-error-${field.name}`}
+                    role='alert'
+                >
+                    {formatMessage(error)}
+                </span>
+            )}
+        </span>
     );
 }
 

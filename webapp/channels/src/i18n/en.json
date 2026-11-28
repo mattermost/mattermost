@@ -29131,6 +29131,18 @@
     "defaultMessage": "Search attributes",
     "description": "Placeholder and accessible name of the search box at the top of the menu that lists the attributes that can be added to a post. Filters the list as the user types."
   },
+  "post_attributes.text_value.invalid_email": {
+    "defaultMessage": "Enter a valid email address",
+    "description": "Inline error under a post attribute text input whose attribute holds an email address, shown when the value typed is not one."
+  },
+  "post_attributes.text_value.invalid_url": {
+    "defaultMessage": "Enter a valid URL, such as https://example.com",
+    "description": "Inline error under a post attribute text input whose attribute holds a URL, shown when the value typed is not a full URL."
+  },
+  "post_attributes.text_value.uppercase_email": {
+    "defaultMessage": "Use lowercase letters only",
+    "description": "Inline error under a post attribute text input whose attribute holds an email address, shown when the value typed contains uppercase letters, which are not accepted."
+  },
   "post_body.check_for_out_of_channel_groups_mentions.message": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
     "description": "Ephemeral notice shown after mentioning group members who are not in the channel; concatenated after the list of mentioned usernames (e.g. '@user did not get notified...'); channel membership is controlled by linked LDAP groups."

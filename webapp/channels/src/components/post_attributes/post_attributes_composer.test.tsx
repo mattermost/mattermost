@@ -539,6 +539,46 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Note: hello there');
     });
 
+    test('a text chip whose value its value type rejects stays in its input with an inline error, and stages nothing', async () => {
+        const field = makeField({type: 'text', attrs: {display_name: 'Contact', value_type: 'email'}});
+
+        renderComposer([field, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
+
+        await addAttribute('classification');
+
+        const input = screen.getByTestId('post-attribute-input-classification');
+        await userEvent.type(input, 'not-an-email');
+        await userEvent.tab();
+
+        expect(screen.getByTestId('post-attribute-input-classification')).toHaveValue('not-an-email');
+        expect(screen.getByRole('alert')).toHaveTextContent('Enter a valid email address');
+        expect(screen.queryByTestId('post-attribute-rest-classification')).not.toBeInTheDocument();
+        expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
+
+        await userEvent.clear(input);
+        await userEvent.type(input, 'foo@bar.com');
+        await userEvent.tab();
+
+        await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'foo@bar.com'}));
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Contact: foo@bar.com');
+    });
+
+    test('a text chip whose untouched staged value its value type rejects returns to rest on blur, with no error', async () => {
+        const field = makeField({type: 'text', attrs: {display_name: 'Contact', value_type: 'email'}});
+
+        renderComposer([field], [{field_id: 'field_1', value: 'Foo@bar.com'}]);
+
+        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
+        await waitFor(() => expect(screen.getByTestId('post-attribute-input-classification')).toHaveFocus());
+
+        await userEvent.keyboard('{Enter}');
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Contact: Foo@bar.com');
+        expect(stagedValues()).toEqual([{field_id: 'field_1', value: 'Foo@bar.com'}]);
+    });
+
     test('pressing the × on a text chip being edited keeps focus in its input, so one click removes the chip', async () => {
         renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 

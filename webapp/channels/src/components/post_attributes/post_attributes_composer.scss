@@ -88,6 +88,24 @@
             box-shadow: 0 0 0 1px var(--button-bg);
             outline: none;
         }
+
+        &[aria-invalid='true'] {
+            box-shadow: 0 0 0 1px var(--error-text);
+        }
+    }
+
+    // Beside the input rather than under it, so the row keeps its height.
+    .PostAttributesModalRow__textField {
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        gap: var(--spacing-xxs);
+    }
+
+    .PostAttributesModalRow__inputError {
+        padding: 0;
+        font-size: var(--font-size-25);
+        white-space: nowrap;
     }
 
     .PostAttributesModalRow__users {
