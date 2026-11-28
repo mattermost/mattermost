@@ -40,29 +40,29 @@ describe('AttributeAppliesToChannelItem', () => {
 
     it('renders the Channels label', () => {
         renderComponent();
-        expect(screen.getByTestId('attributeAppliesToRow-channel')).toHaveTextContent('Channels');
+        expect(screen.getByTestId('admin.attribute.applies_to.channel')).toHaveTextContent('Channels');
     });
 
     it('starts collapsed, with no Remove button, and clicking the toggle reveals the channel settings and Remove', async () => {
         renderComponent();
 
-        expect(screen.queryByTestId('attributeAppliesToRow-channel-body')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeAppliesToRow-channel-remove')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.body--region')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.remove--button')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        expect(screen.getByTestId('channelsResourceSettings')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeVisible();
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.remove--button')).toBeVisible();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        expect(screen.queryByTestId('attributeAppliesToRow-channel-body')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeAppliesToRow-channel-remove')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.body--region')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.remove--button')).not.toBeInTheDocument();
     });
 
     it('calls onRemove exactly once when Remove is clicked, once expanded', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.remove--button'));
         expect(onRemove).toHaveBeenCalledTimes(1);
     });
 
@@ -71,52 +71,52 @@ describe('AttributeAppliesToChannelItem', () => {
 
         // Expand while enabled, then disable -- isOpen is local state, so it survives
         // the prop change, letting Remove's own disabled state be asserted directly.
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
         const disabledProps = {config: DEFAULT_CHANNEL_RESOURCE_CONFIG, onConfigChange, onRemove, disabled: true};
         rerender(<AttributeAppliesToChannelItem {...disabledProps}/>);
 
-        expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeDisabled();
-        expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.remove--button')).toBeDisabled();
     });
 
     it('removeLockedTooltip locks only Remove behind a tooltip wrap', async () => {
         renderComponent({removeLockedTooltip: 'Locked'});
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
 
-        expect(screen.getByTestId('attributeAppliesToRow-channel-removeLockWrap')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.remove_locked')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.remove--button')).toBeDisabled();
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.remove--button'));
         expect(onRemove).not.toHaveBeenCalled();
 
-        expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeEnabled();
-        await userEvent.click(screen.getByTestId('channelsResourceLocation-display_label_header'));
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.location:display_label_header--checkbox'));
         expect(onConfigChange).toHaveBeenCalled();
     });
 
     it('renders no Remove lock wrap and enables Remove without removeLockedTooltip', async () => {
         renderComponent();
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
 
-        expect(screen.queryByTestId('attributeAppliesToRow-channel-removeLockWrap')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.remove_locked')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.remove--button')).toBeEnabled();
     });
 
     it('states the configuration in the row summary', async () => {
         renderComponent({config: {required: true, changePolicy: 'never', displayLocations: ['display_label_header']}});
 
-        expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.summary--text')).
             toHaveTextContent('Required · Display: Header · Locked once set');
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.summary--text')).
             toHaveTextContent('Required · Display: Header · Locked once set');
     });
 
     it('reports a settings change without holding it itself', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        await userEvent.click(screen.getByTestId('channelsResourceLocation-display_label_header'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.location:display_label_header--checkbox'));
 
         expect(onConfigChange).toHaveBeenCalledWith(expect.objectContaining({
             displayLocations: ['display_label_header'],
@@ -128,8 +128,8 @@ describe('AttributeAppliesToChannelItem', () => {
         const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');
 
         renderComponent();
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.remove--button'));
 
         expect(createPropertyField).not.toHaveBeenCalled();
         expect(deletePropertyField).not.toHaveBeenCalled();

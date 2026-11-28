@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {expect, runCleanups, test, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {
@@ -20,7 +20,7 @@ import {
     createChannelTextField,
     createParentPolicyViaAPI,
     deleteParentPolicy,
-    deletePropertyFieldQuietly,
+    deletePropertyFieldIfPresent,
     expectAddToChannelDenied,
     setChannelAttributeValue,
     triggerSyncJob,
@@ -48,10 +48,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         // Reverse order, so a policy goes before the fields its rules reference: while
         // attribute-value masking is on, deleting a policy whose field is already gone
         // is refused outright and the policy can no longer be removed at all.
-        for (const cleanup of cleanups.reverse()) {
-            await cleanup().catch(() => {});
-        }
-        cleanups.length = 0;
+        await runCleanups(cleanups);
     });
 
     test('mixed user/resource scalar policy syncs and enforces joins', async ({pw}) => {
@@ -72,7 +69,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, userAttribute);
         cleanups.push(() => deleteCustomProfileAttributes(adminClient, attributeFieldsMap));
         const channelFieldId = await createChannelTextField(adminClient, attr);
-        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
+        cleanups.push(() => deletePropertyFieldIfPresent(adminClient, 'channel', channelFieldId));
 
         const matchingUserNotInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: attr, type: 'text', value: 'us'},
@@ -141,7 +138,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         // channel below never sets a value → the referenced field is missing for
         // that channel → deny-on-miss.
         const channelFieldId = await createChannelTextField(adminClient, attr);
-        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
+        cleanups.push(() => deletePropertyFieldIfPresent(adminClient, 'channel', channelFieldId));
 
         const member = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: attr, type: 'text', value: 'us'},

@@ -39,7 +39,7 @@ export default function SourceFilter({value, onChange}: Props) {
     return (
         <FilterMenu
             id='globalAttributesSourceFilter'
-            testId='global-attributes-source-filter'
+            testId='admin.attributes.source_filter'
             label={messages.label}
             menuButtonAriaLabel={messages.menuButtonAriaLabel}
             menuAriaLabel={messages.menuAriaLabel}

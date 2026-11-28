@@ -138,15 +138,15 @@ describe('SessionAttributesPage', () => {
 
         expect(await screen.findByText('Client IP')).toBeInTheDocument();
 
-        const typeLabels = screen.getAllByTestId('session-attribute-type').map((cell) => cell.textContent);
+        const typeLabels = screen.getAllByTestId('admin.session_attributes.row.type--text').map((cell) => cell.textContent);
         expect(typeLabels).toContain('String');
         expect(typeLabels).toContain('Boolean');
 
-        const statuses = screen.getAllByTestId('session-attribute-status').map((cell) => cell.textContent);
+        const statuses = screen.getAllByTestId('admin.session_attributes.row.status--text').map((cell) => cell.textContent);
         expect(statuses).toContain('Enabled');
         expect(statuses).toContain('Disabled');
 
-        expect(screen.getAllByTestId('session-attribute-platforms').length).toBe(representativeFields.length);
+        expect(screen.getAllByTestId('admin.session_attributes.row.platforms').length).toBe(representativeFields.length);
     });
 
     it('renders rows when fields resolve under a real group UUID distinct from the group name', async () => {
@@ -156,7 +156,7 @@ describe('SessionAttributesPage', () => {
         renderWithContext(<SessionAttributesPage disabled={false}/>, getBaseState());
 
         expect(await screen.findByText('Client IP')).toBeInTheDocument();
-        expect(screen.getAllByTestId('session-attribute-status')).toHaveLength(representativeFields.length);
+        expect(screen.getAllByTestId('admin.session_attributes.row.status--text')).toHaveLength(representativeFields.length);
         expect(screen.queryByText('No session attributes found.')).not.toBeInTheDocument();
     });
 
@@ -209,15 +209,15 @@ describe('SessionAttributesPage', () => {
 
         await screen.findByText('Client IP');
 
-        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-client_ip_address'));
+        await userEvent.click(within(screen.getByTestId('admin.session_attributes.row:session-client_ip_address--row')).getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
-        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-client_ip_address-3600'));
+        await userEvent.click(await screen.findByTestId('admin.session_attributes.actions_menu.ttl:3600--menuitemradio'));
 
         const saveButton = screen.getByRole('button', {name: /Save/});
         expect(saveButton).toBeEnabled();
 
         const stagedRow = screen.getAllByText('Client IP')[0].closest('tr') as HTMLElement;
-        expect(within(stagedRow).getByTestId('session-attribute-ttl')).toHaveTextContent('1h');
+        expect(within(stagedRow).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('1h');
 
         await userEvent.click(saveButton);
 
@@ -235,7 +235,7 @@ describe('SessionAttributesPage', () => {
         });
 
         const savedRow = screen.getAllByText('Client IP')[0].closest('tr') as HTMLElement;
-        expect(within(savedRow).getByTestId('session-attribute-ttl')).toHaveTextContent('1h');
+        expect(within(savedRow).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('1h');
     });
 
     it('blocks navigation while dirty and clears the guard after a successful Save', async () => {
@@ -252,9 +252,9 @@ describe('SessionAttributesPage', () => {
         await screen.findByText('Client IP');
         expect(store.getState().views.admin.navigationBlock.blocked).toBe(false);
 
-        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-client_ip_address'));
+        await userEvent.click(within(screen.getByTestId('admin.session_attributes.row:session-client_ip_address--row')).getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
-        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-client_ip_address-3600'));
+        await userEvent.click(await screen.findByTestId('admin.session_attributes.actions_menu.ttl:3600--menuitemradio'));
 
         await waitFor(() => {
             expect(store.getState().views.admin.navigationBlock.blocked).toBe(true);
@@ -274,12 +274,12 @@ describe('SessionAttributesPage', () => {
 
         await screen.findByText('Client IP');
 
-        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-client_ip_address'));
+        await userEvent.click(within(screen.getByTestId('admin.session_attributes.row:session-client_ip_address--row')).getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
-        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-client_ip_address-3600'));
+        await userEvent.click(await screen.findByTestId('admin.session_attributes.actions_menu.ttl:3600--menuitemradio'));
 
         const stagedRow = screen.getAllByText('Client IP')[0].closest('tr') as HTMLElement;
-        expect(within(stagedRow).getByTestId('session-attribute-ttl')).toHaveTextContent('1h');
+        expect(within(stagedRow).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('1h');
         expect(screen.getByRole('button', {name: /Save/})).toBeEnabled();
 
         await waitFor(() => {
@@ -291,7 +291,7 @@ describe('SessionAttributesPage', () => {
 
         await waitFor(() => {
             const revertedRow = screen.getAllByText('Client IP')[0].closest('tr') as HTMLElement;
-            expect(within(revertedRow).getByTestId('session-attribute-ttl')).toHaveTextContent('5m');
+            expect(within(revertedRow).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('5m');
         });
 
         // Dirty state cleared, save bar disabled, and the navigation guard released —

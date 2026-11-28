@@ -61,7 +61,7 @@ function RemoveChannelResourceModal({onConfirm, onCancel, onExited}: Props) {
             modalHeaderText={formatMessage(messages.title)}
             onExited={onExited}
             compassDesign={true}
-            dataTestId='removeChannelResourceModal'
+            testId='admin.classification.remove_channel_modal'
         >
             <FormattedMessage {...messages.body}/>
         </GenericModal>

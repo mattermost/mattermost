@@ -21,11 +21,8 @@ import Localization from '@/ui/components/system_console/sections/site_configura
 import Notices from '@/ui/components/system_console/sections/site_configuration/notices';
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
-import BoardAttributes from '@/ui/components/system_console/sections/system_attributes/board_attributes';
 import GlobalAttributes from '@/ui/components/system_console/sections/system_attributes/global_attributes';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
-import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
-import MembershipPolicies from '@/ui/components/system_console/sections/system_attributes/membership_policies';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
 import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
@@ -68,9 +65,6 @@ export default class SystemConsolePage {
     // System Attributes
     readonly globalAttributes: GlobalAttributes;
     readonly systemProperties: SystemProperties;
-    readonly sessionAttributes: SessionAttributes;
-    readonly membershipPolicies: MembershipPolicies;
-    readonly boardAttributes: BoardAttributes;
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
@@ -124,9 +118,6 @@ export default class SystemConsolePage {
         // System Attributes
         this.globalAttributes = new GlobalAttributes(adminConsoleWrapper);
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
-        this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
-        this.membershipPolicies = new MembershipPolicies(adminConsoleWrapper);
-        this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
 
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);

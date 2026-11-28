@@ -36,7 +36,7 @@ const RANK_OPTIONS = [
     {id: 'top', name: 'Top', color: '', rank: 3},
     {id: 'mid', name: 'Mid', color: '#c8102e', rank: 2},
 ];
-const COMBOBOX_ID = 'user-detail-custom-attribute-combobox-field-1';
+const COMBOBOX_ID = 'test.attribute-combobox-field-1';
 
 const chipLabels = (root: HTMLElement) => Array.from(root.querySelectorAll('[data-chip]')).map((chip) => chip.textContent);
 
@@ -50,6 +50,7 @@ describe('UserAttributeFields', () => {
                 errors={{}}
                 onChange={onChange}
                 canEditAdminManaged={true}
+                testIdScope='test.attribute'
                 {...props}
             />,
             {plugins: {plugins: {}}},
@@ -57,17 +58,11 @@ describe('UserAttributeFields', () => {
         return {...result, onChange};
     };
 
-    test('uses the System Console test id by default and honors testIdPrefix', () => {
-        const {unmount} = renderFields();
-        expect(screen.getByTestId('user-detail-custom-attribute-label-field-1')).toBeInTheDocument();
-        expect(screen.getByTestId('user-detail-custom-attribute-list')).toBeInTheDocument();
-        unmount();
-
-        renderFields({testIdPrefix: 'bot-attribute', onRemove: jest.fn()});
-        expect(screen.getByTestId('bot-attribute-label-field-1')).toBeInTheDocument();
-        expect(screen.getByTestId('bot-attribute-list')).toBeInTheDocument();
-        expect(screen.getByTestId('bot-attribute-remove-field-1')).toBeInTheDocument();
-        expect(screen.queryByTestId('user-detail-custom-attribute-label-field-1')).not.toBeInTheDocument();
+    test('keys each field by its id under the scope, with its value and remove button inside', () => {
+        renderFields({onRemove: jest.fn()});
+        const field = screen.getByTestId('test.attribute:field-1');
+        expect(within(field).getByTestId('test.attribute.value_input--textbox')).toBeInTheDocument();
+        expect(within(field).getByTestId('test.attribute.remove--button')).toBeInTheDocument();
     });
 
     test('renders fields in the order given with their values and labels', () => {
@@ -107,17 +102,17 @@ describe('UserAttributeFields', () => {
 
     test('renders the trash button only when onRemove is set and the row is removable', async () => {
         const {unmount} = renderFields();
-        expect(screen.queryByTestId('user-detail-custom-attribute-remove-field-1')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('test.attribute.remove--button')).not.toBeInTheDocument();
         unmount();
 
         const notRemovable = renderFields({onRemove: jest.fn(), isRemovable: () => false});
-        expect(screen.queryByTestId('user-detail-custom-attribute-remove-field-1')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('test.attribute.remove--button')).not.toBeInTheDocument();
         notRemovable.unmount();
 
         const onRemove = jest.fn();
         renderFields({onRemove});
         const trash = screen.getByRole('button', {name: 'Remove department'});
-        expect(trash).toHaveAttribute('data-testid', 'user-detail-custom-attribute-remove-field-1');
+        expect(trash).toHaveAttribute('data-testid', 'test.attribute.remove--button');
 
         await userEvent.click(trash);
         expect(onRemove).toHaveBeenCalledWith('field-1');
@@ -142,22 +137,23 @@ describe('UserAttributeFields', () => {
             canEditAdminManaged: false,
         });
 
-        expect(screen.queryByTestId('user-detail-custom-attribute-remove-protected')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('user-detail-custom-attribute-remove-synced')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('user-detail-custom-attribute-remove-admin')).not.toBeInTheDocument();
-        expect(screen.getByTestId('user-detail-custom-attribute-remove-open')).toBeInTheDocument();
+        const removeIn = (id: string) => within(screen.getByTestId(`test.attribute:${id}`)).queryByTestId('test.attribute.remove--button');
+        expect(removeIn('protected')).not.toBeInTheDocument();
+        expect(removeIn('synced')).not.toBeInTheDocument();
+        expect(removeIn('admin')).not.toBeInTheDocument();
+        expect(removeIn('open')).toBeInTheDocument();
     });
 
     test('wraps the field in a row only when there is a trailing element', () => {
         const {unmount} = renderFields();
-        const bare = screen.getByTestId('user-detail-custom-attribute-label-field-1');
+        const bare = screen.getByTestId('test.attribute:field-1');
         expect(bare.parentElement).toHaveClass('UserAttributeFields');
         unmount();
 
         renderFields({onRemove: jest.fn()});
-        const label = screen.getByTestId('user-detail-custom-attribute-label-field-1');
-        expect(label.parentElement).toHaveClass('UserAttributeField__row');
-        expect(label.querySelector('button')).toBeNull();
+        const row = screen.getByTestId('test.attribute:field-1');
+        expect(row).toHaveClass('UserAttributeField__row');
+        expect(row.querySelector('label button')).toBeNull();
         expect(screen.getByRole('textbox', {name: 'department'})).toBeInTheDocument();
     });
 
@@ -235,21 +231,21 @@ describe('UserAttributeFields', () => {
     });
 
     test('renders an empty list without fields', () => {
-        renderFields({fields: []});
+        const {container} = renderFields({fields: []});
 
-        expect(screen.getByTestId('user-detail-custom-attribute-list')).toBeEmptyDOMElement();
+        expect(container.querySelector('.UserAttributeFields')).toBeEmptyDOMElement();
     });
 
     describe('select, multiselect and rank comboboxes', () => {
         test.each(['select', 'multiselect', 'rank'] as const)('renders a %s as a combobox in a div root named by a label', (type) => {
             renderFields({fields: [buildField({type}, {options: OPTIONS})]});
 
-            const root = screen.getByTestId('user-detail-custom-attribute-label-field-1');
+            const root = screen.getByTestId('test.attribute:field-1');
             const input = screen.getByRole('combobox', {name: 'department'});
             expect(root.tagName).toBe('DIV');
             expect(root).toContainElement(input);
             expect(input).toHaveAttribute('id', COMBOBOX_ID);
-            expect(input).toHaveAttribute('data-testid', COMBOBOX_ID);
+            expect(input).toHaveAttribute('data-testid', 'test.attribute.value_choice--combobox');
 
             const labels = root.querySelectorAll('label');
             expect(labels).toHaveLength(1);
@@ -269,7 +265,7 @@ describe('UserAttributeFields', () => {
         ] as const)('names a %s field the same way: a div root whose first child labels the control', (_, field, role) => {
             renderFields({fields: [field]});
 
-            const root = screen.getByTestId(`user-detail-custom-attribute-label-${field.id}`);
+            const root = screen.getByTestId(`test.attribute:${field.id}`);
             const control = screen.getByRole(role, {name: 'department'});
             expect(root.tagName).toBe('DIV');
             expect(root.children[0].tagName).toBe('LABEL');
@@ -281,7 +277,7 @@ describe('UserAttributeFields', () => {
             const user = userEvent.setup();
             const field = buildField({type: 'multiselect'}, {options: OPTIONS});
             const {onChange} = renderFields({fields: [field], values: {'field-1': ['opt-1']}});
-            const root = screen.getByTestId('user-detail-custom-attribute-label-field-1');
+            const root = screen.getByTestId('test.attribute:field-1');
 
             await user.click(screen.getByText('department'));
 
@@ -313,6 +309,7 @@ describe('UserAttributeFields', () => {
                         errors={{}}
                         onChange={jest.fn()}
                         canEditAdminManaged={true}
+                        testIdScope='test.attribute'
                     />
                     <button type='submit'/>
                 </form>,
@@ -341,20 +338,20 @@ describe('UserAttributeFields', () => {
                 values: {single: 'opt-1', multi: ['opt-1', 'opt-2'], rank: 'low'},
             });
 
-            const single = screen.getByTestId('user-detail-custom-attribute-combobox-single');
+            const single = within(screen.getByTestId('test.attribute:single')).getByTestId('test.attribute.value_choice--combobox');
             expect(single).toBeDisabled();
             expect(single).toHaveValue('One');
-            expect(screen.queryByTestId('user-detail-custom-attribute-combobox-single-clear')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('test.attribute:single')).queryByTestId('test.attribute.clear--button')).not.toBeInTheDocument();
 
-            const multiRoot = screen.getByTestId('user-detail-custom-attribute-label-multi');
-            expect(screen.getByTestId('user-detail-custom-attribute-combobox-multi')).toBeDisabled();
+            const multiRoot = screen.getByTestId('test.attribute:multi');
+            expect(within(screen.getByTestId('test.attribute:multi')).getByTestId('test.attribute.value_choice--combobox')).toBeDisabled();
             expect(chipLabels(multiRoot)).toEqual(['One', 'Two']);
             expect(multiRoot.querySelector('[data-chip-remove]')).toBeNull();
 
-            const rank = screen.getByTestId('user-detail-custom-attribute-combobox-rank');
+            const rank = within(screen.getByTestId('test.attribute:rank')).getByTestId('test.attribute.value_choice--combobox');
             expect(rank).toBeDisabled();
             expect(rank).toHaveValue('Low');
-            expect(screen.queryByTestId('user-detail-custom-attribute-combobox-rank-clear')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('test.attribute:rank')).queryByTestId('test.attribute.clear--button')).not.toBeInTheDocument();
         });
 
         test('a disabled list hides the clear and chip remove buttons of unlocked fields', () => {
@@ -364,17 +361,17 @@ describe('UserAttributeFields', () => {
             ];
             const values = {single: 'opt-1', multi: ['opt-1', 'opt-2']};
             const {unmount} = renderFields({fields, values});
-            expect(screen.getByTestId('user-detail-custom-attribute-combobox-single-clear')).toBeInTheDocument();
-            expect(screen.getByTestId('user-detail-custom-attribute-label-multi').querySelector('[data-chip-remove]')).toBeInTheDocument();
+            expect(within(screen.getByTestId('test.attribute:single')).getByTestId('test.attribute.clear--button')).toBeInTheDocument();
+            expect(screen.getByTestId('test.attribute:multi').querySelector('[data-chip-remove]')).toBeInTheDocument();
             unmount();
 
             renderFields({fields, values, disabled: true});
 
-            expect(screen.getByTestId('user-detail-custom-attribute-combobox-single')).toBeDisabled();
-            expect(screen.queryByTestId('user-detail-custom-attribute-combobox-single-clear')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('test.attribute:single')).getByTestId('test.attribute.value_choice--combobox')).toBeDisabled();
+            expect(within(screen.getByTestId('test.attribute:single')).queryByTestId('test.attribute.clear--button')).not.toBeInTheDocument();
 
-            const multiRoot = screen.getByTestId('user-detail-custom-attribute-label-multi');
-            expect(screen.getByTestId('user-detail-custom-attribute-combobox-multi')).toBeDisabled();
+            const multiRoot = screen.getByTestId('test.attribute:multi');
+            expect(within(screen.getByTestId('test.attribute:multi')).getByTestId('test.attribute.value_choice--combobox')).toBeDisabled();
             expect(chipLabels(multiRoot)).toEqual(['One', 'Two']);
             expect(multiRoot.querySelector('[data-chip-remove]')).toBeNull();
         });
@@ -385,7 +382,7 @@ describe('UserAttributeFields', () => {
             const {onChange} = renderFields({fields: [field], values: {'field-1': 'gone'}});
 
             expect(screen.getByRole('combobox', {name: 'department'})).toHaveValue('gone');
-            await user.click(screen.getByTestId(`${COMBOBOX_ID}-clear`));
+            await user.click(screen.getByTestId('test.attribute.clear--button'));
 
             expect(onChange).toHaveBeenCalledWith('field-1', '');
         });
@@ -402,7 +399,7 @@ describe('UserAttributeFields', () => {
             const field = buildField({type: 'multiselect'}, {options: OPTIONS});
             const {onChange} = renderFields({fields: [field], values: {'field-1': 'opt-1'}});
 
-            expect(chipLabels(screen.getByTestId('user-detail-custom-attribute-label-field-1'))).toEqual(['One']);
+            expect(chipLabels(screen.getByTestId('test.attribute:field-1'))).toEqual(['One']);
             await user.click(screen.getByRole('combobox', {name: 'department'}));
             await user.click(screen.getByRole('option', {name: 'Two'}));
 
@@ -423,8 +420,8 @@ describe('UserAttributeFields', () => {
             const user = userEvent.setup();
             renderFields({fields: [buildField({type: 'rank'}, {options: RANK_OPTIONS})], values: {'field-1': 'low'}});
 
-            const root = screen.getByTestId('user-detail-custom-attribute-label-field-1');
-            expect(within(root).getByTestId('rank-badge')).toHaveTextContent('1');
+            const root = screen.getByTestId('test.attribute:field-1');
+            expect(within(root).getByTestId(/^test\.attribute\.(choice\.)?badge--text$/)).toHaveTextContent('1');
             expect(screen.getByRole('combobox', {name: 'department'})).toHaveAccessibleDescription('Rank 1');
 
             await user.click(screen.getByRole('combobox', {name: 'department'}));
@@ -434,13 +431,13 @@ describe('UserAttributeFields', () => {
                 `${COMBOBOX_ID}-listbox-option-mid`,
                 `${COMBOBOX_ID}-listbox-option-low`,
             ]);
-            const top = within(screen.getByTestId(`${COMBOBOX_ID}-option-top`));
-            const mid = within(screen.getByTestId(`${COMBOBOX_ID}-option-mid`));
-            expect(top.getByTestId('rank-badge')).toHaveTextContent('3');
-            expect(mid.getByTestId('attribute-option-swatch')).toBeInTheDocument();
-            expect(mid.queryByTestId('rank-badge')).not.toBeInTheDocument();
-            expect(screen.getByTestId(`${COMBOBOX_ID}-option-top`)).toHaveAccessibleName('Top, Rank 3');
-            expect(screen.getByTestId(`${COMBOBOX_ID}-option-mid`)).toHaveAccessibleName('Mid, Rank 2');
+            const top = within(screen.getByTestId('test.attribute.choice:top--option'));
+            const mid = within(screen.getByTestId('test.attribute.choice:mid--option'));
+            expect(top.getByTestId(/^test\.attribute\.(choice\.)?badge--text$/)).toHaveTextContent('3');
+            expect(mid.getByTestId(/^test\.attribute\.(choice\.)?swatch$/)).toBeInTheDocument();
+            expect(mid.queryByTestId(/^test\.attribute\.(choice\.)?badge--text$/)).not.toBeInTheDocument();
+            expect(screen.getByTestId('test.attribute.choice:top--option')).toHaveAccessibleName('Top, Rank 3');
+            expect(screen.getByTestId('test.attribute.choice:mid--option')).toHaveAccessibleName('Mid, Rank 2');
         });
 
         test('emits the picked rank id as a string and an empty string on clear', async () => {
@@ -451,18 +448,18 @@ describe('UserAttributeFields', () => {
             await user.click(screen.getByRole('option', {name: 'Top, Rank 3'}));
             expect(onChange).toHaveBeenLastCalledWith('field-1', 'top');
 
-            await user.click(screen.getByTestId(`${COMBOBOX_ID}-clear`));
+            await user.click(screen.getByTestId('test.attribute.clear--button'));
             expect(onChange).toHaveBeenLastCalledWith('field-1', '');
         });
 
         test('uses the bot prefix for the combobox id and label', () => {
-            renderFields({testIdPrefix: 'bot-attribute', fields: [buildField({type: 'select'}, {options: OPTIONS})]});
+            renderFields({testIdScope: 'bot.attribute', fields: [buildField({type: 'select'}, {options: OPTIONS})]});
 
-            const root = screen.getByTestId('bot-attribute-label-field-1');
-            const input = screen.getByTestId('bot-attribute-combobox-field-1');
-            expect(input).toHaveAttribute('id', 'bot-attribute-combobox-field-1');
+            const root = screen.getByTestId('bot.attribute:field-1');
+            const input = within(root).getByTestId('bot.attribute.value_choice--combobox');
+            expect(input).toHaveAttribute('id', 'bot.attribute-combobox-field-1');
             expect(root).toContainElement(input);
-            expect(root.querySelector('label')).toHaveAttribute('for', 'bot-attribute-combobox-field-1');
+            expect(root.querySelector('label')).toHaveAttribute('for', 'bot.attribute-combobox-field-1');
         });
     });
 });

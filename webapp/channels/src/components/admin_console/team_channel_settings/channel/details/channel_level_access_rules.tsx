@@ -142,6 +142,7 @@ const ChannelLevelAccessRules: React.FC<ChannelLevelAccessRulesProps> = ({
                 {/* TableEditor for creating access rules */}
                 <div className='channel-access-rules__editor'>
                     <TableEditor
+                        testId='admin.channel.access_rules.rules'
                         value={expression}
                         onChange={handleExpressionChange}
                         onValidate={() => setFormError('')}

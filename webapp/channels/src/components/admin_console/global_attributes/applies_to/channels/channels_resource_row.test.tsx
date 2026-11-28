@@ -73,14 +73,14 @@ describe('ChannelsResourceRow', () => {
     it('offers the display locations the server renders, and not the ones it does not', () => {
         renderRow();
 
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`)).toBeInTheDocument();
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`)).toBeInTheDocument();
+        expect(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`)).toBeInTheDocument();
+        expect(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_BANNER_TOP}--checkbox`)).toBeInTheDocument();
 
         // Channel Info lists every attribute, so a checkbox would not change where it appears.
-        expect(screen.queryByTestId('channelsResourceLocation-display_label_info')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.channel.settings.location:display_label_info--checkbox')).not.toBeInTheDocument();
 
         // Validates server-side, but always renders at the top.
-        expect(screen.queryByTestId('channelsResourceLocation-display_banner_bottom')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.channel.settings.location:display_banner_bottom--checkbox')).not.toBeInTheDocument();
 
         expect(screen.getByText(/You can always view and set the attribute value in the Channel Info sidebar/)).toBeInTheDocument();
         expect(screen.getByText(/Unset values do not appear in the channel/)).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe('ChannelsResourceRow', () => {
     it('toggles required', async () => {
         const {onChange} = renderRow({required: false});
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.settings.required--switch'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
     });
@@ -109,10 +109,10 @@ describe('ChannelsResourceRow', () => {
     // opening them.
     it('shows which change policy is selected', () => {
         const {rerender} = renderRow({changePolicy: 'any'});
-        expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Can be changed at any time');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.settings.change_policy--button')).toHaveTextContent('Can be changed at any time');
 
         rerender({changePolicy: 'never'});
-        expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Cannot be changed once set');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.settings.change_policy--button')).toHaveTextContent('Cannot be changed once set');
     });
 
     it('explains why raising and lowering are unavailable on an unranked attribute', () => {
@@ -131,13 +131,13 @@ describe('ChannelsResourceRow', () => {
         // Set while the attribute was ranked, then the type changed underneath it.
         renderRow({changePolicy: 'raise_only'}, {ordered: false});
 
-        expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Can only be raised, never lowered');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.settings.change_policy--button')).toHaveTextContent('Can only be raised, never lowered');
     });
 
     it('adds a display location', async () => {
         const {onChange} = renderRow({displayLocations: []});
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+        await userEvent.click(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({displayLocations: [DISPLAY_LABEL_HEADER]}));
     });
@@ -145,7 +145,7 @@ describe('ChannelsResourceRow', () => {
     it('removes a display location', async () => {
         const {onChange} = renderRow({displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP]});
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+        await userEvent.click(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({displayLocations: [DISPLAY_BANNER_TOP]}));
     });
@@ -153,7 +153,7 @@ describe('ChannelsResourceRow', () => {
     it('keeps a UI-hidden display_label_info action when toggling another location', async () => {
         const {onChange} = renderRow({displayLocations: [DISPLAY_LABEL_INFO, DISPLAY_BANNER_TOP]});
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+        await userEvent.click(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
             displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP, DISPLAY_LABEL_INFO],
@@ -163,7 +163,7 @@ describe('ChannelsResourceRow', () => {
     it('stores display locations in a stable order regardless of tick order', async () => {
         const {onChange} = renderRow({displayLocations: [DISPLAY_BANNER_TOP]});
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+        await userEvent.click(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
 
         // Header first, even though Banner was ticked first.
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
@@ -185,7 +185,7 @@ describe('ChannelsResourceRow', () => {
 
         expect(screen.getByRole('button', {name: 'Collapse channel settings'})).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('channelsResourceRowDisclosure'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.toggle--button'));
 
         expect(screen.getByRole('button', {name: 'Expand channel settings'})).toBeInTheDocument();
     });
@@ -202,36 +202,36 @@ describe('ChannelsResourceRow', () => {
             displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP],
         });
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Banner');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.summary--text')).toHaveTextContent('Required · Display: Header + Banner');
     });
 
     it('says so in the summary when the attribute is displayed nowhere or locked', () => {
         renderRow({displayLocations: [], changePolicy: 'never'});
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Channel Info only · Locked once set');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.summary--text')).toHaveTextContent('Optional · Channel Info only · Locked once set');
     });
 
     it('summarises a directional policy too', () => {
         renderRow({changePolicy: 'raise_only', displayLocations: [DISPLAY_LABEL_HEADER]}, {ordered: true});
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Display: Header · Raise only');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.summary--text')).toHaveTextContent('Optional · Display: Header · Raise only');
     });
 
     it('collapses and expands its body', async () => {
         renderRow();
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel.settings.required--switch')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('channelsResourceRowDisclosure'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.toggle--button'));
 
-        expect(screen.queryByTestId('channelsResourceRequired-button')).not.toBeInTheDocument();
-        expect(screen.getByTestId('channelsResourceRowSummary')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.channel.settings.required--switch')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel.summary--text')).toBeInTheDocument();
     });
 
     it('removes the resource', async () => {
         const {onRemove} = renderRow();
 
-        await userEvent.click(screen.getByTestId('channelsResourceRowRemove'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.remove--button'));
 
         expect(onRemove).toHaveBeenCalled();
     });
@@ -239,8 +239,8 @@ describe('ChannelsResourceRow', () => {
     it('does not accept changes while disabled', async () => {
         const {onChange, onRemove} = renderRow({}, {disabled: true});
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
-        await userEvent.click(screen.getByTestId('channelsResourceRowRemove'));
+        await userEvent.click(screen.getByTestId(`admin.classification.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.remove--button'));
 
         expect(onChange).not.toHaveBeenCalled();
         expect(onRemove).not.toHaveBeenCalled();

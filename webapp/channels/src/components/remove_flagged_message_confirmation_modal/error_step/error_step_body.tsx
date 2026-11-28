@@ -45,7 +45,7 @@ export default function ErrorStepBody({
             />
             <ReportNotice
                 variant='warning'
-                testId='error-section'
+                testId='flagged_message_modal.error'
                 icon={<span className='icon icon-information-outline'/>}
                 title={
                     <FormattedMessage
@@ -64,7 +64,7 @@ export default function ErrorStepBody({
                             className='GenericModal__button errorRetryBtn'
                             emphasis='primary'
                             onClick={onRetry}
-                            data-testid='error-retry-button'
+                            data-testid='flagged_message_modal.error.retry--button'
                         >
                             {tryAgainText}
                         </Button>

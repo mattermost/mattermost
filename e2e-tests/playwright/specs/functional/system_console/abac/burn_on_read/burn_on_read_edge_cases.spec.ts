@@ -18,7 +18,25 @@
  * burn_on_read_policy_scope.spec.ts.
  */
 
-import {expect, test, getRandomId, licenseTier} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {
+    expect,
+    test,
+    getRandomId,
+    licenseTier,
+    openChannel,
+    type App,
+    type PlaywrightExtended,
+    DefaultChannel,
+    Api,
+    settle,
+} from '@mattermost/playwright-lib';
+
+import {lastPost} from '../../../channels/burn_on_read/support';
+import {scheduleMessage} from '../../../channels/scheduled_messages/support';
 
 import {
     cleanupPolicy,
@@ -32,7 +50,7 @@ import {
 
 let policyName = '';
 let grantPolicyName = '';
-let savedAdminClient: any;
+let savedAdminClient: Client4 | undefined;
 
 test.beforeEach(async ({pw}) => {
     await pw.ensureLicense();
@@ -59,6 +77,58 @@ test.afterEach(async () => {
 });
 
 /**
+ * Grants the admin burn-on-read (or the pre-existing policy denies it), returning a System Console session to revoke
+ * it from later and the admin's town-square. The two are separate sessions so the revoke doesn't navigate away from
+ * the composer under test.
+ */
+async function grantAndOpenTownSquare(
+    pw: PlaywrightExtended,
+    adminUser: UserProfile,
+    adminClient: Client4,
+    team: Team,
+) {
+    const {app: console} = await pw.testBrowser.login(adminUser);
+    grantPolicyName = await grantBurnOnRead(console, adminClient, adminUser);
+    await ensureABACEnabled(adminClient);
+    const app = await openChannel(pw, adminUser, {team, channel: DefaultChannel.TownSquare});
+    return {console, app};
+}
+
+/** Revokes burn-on-read by policy and reloads the user's page so it picks up the decision. */
+async function revokeAndReload(console: App, app: App, adminClient: Client4) {
+    policyName = await revokeBurnOnRead(console, adminClient);
+    await ensureABACEnabled(adminClient);
+    await app.page.reload();
+    await expect(app.center.postCreate.message.container).toBeVisible();
+}
+
+/** Schedules a burn-on-read post two days out, so it cannot fire mid-test. */
+async function scheduleBurnOnRead(app: App, message: string) {
+    const composer = app.center.postCreate;
+    await composer.burnOnReadButton.click();
+    await expect(composer.burnOnReadLabel).toBeVisible();
+    await scheduleMessage(app, composer, message, 2, 0);
+}
+
+/** The scheduled post with this text on the scheduled posts page, hovered so its actions show. */
+async function scheduledPostWith(app: App, team: Team, message: string) {
+    await app.scheduledPostsPage.goto({team});
+    const {scheduled} = app.drafts;
+    const post = await scheduled.postList.itemWith({text: message});
+    await post.container.hover();
+    // Delete is always offered, so it shows the actions are revealed (Send now may be withdrawn).
+    await expect(post.deleteButton).toBeVisible();
+    return post;
+}
+
+// Asserts that no individual remove button appears inside the burn-on-read label.
+async function expectNoIndividualRemove(composer: App['center']['postCreate']) {
+    // The individual control is absent from this mount's API; assert that no button appears inside the label.
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the absence of any button role is the subject; the label's individual remove control is not rendered, so it has no testid
+    await expect(composer.burnOnReadLabel.locator.getByRole('button')).toHaveCount(0);
+}
+
+/**
  * @objective Verify a burn-on-read draft offers exactly one remove control.
  * UnifiedLabelsWrapper's remove-all is the one that belongs in the main composer; the
  * label's own X is gated on showIndividualCloseButton, which advanced_text_editor passes as
@@ -67,37 +137,29 @@ test.afterEach(async () => {
 test('shows only the remove-all control on a burn-on-read draft label', {tag: '@abac_burn_on_read'}, async ({pw}) => {
     test.setTimeout(pw.duration.four_min);
 
-    const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
+    const {adminUser, adminClient, team} = await pw.initSetup();
     savedAdminClient = adminClient;
     await ensureBurnOnReadEnabled(adminClient);
     await ensureABACEnabled(adminClient);
 
-    // # Grant the action to this user, or the pre-existing policy denies it
-    const {systemConsolePage: grantConsole} = await pw.testBrowser.login(adminUser);
-    grantPolicyName = await grantBurnOnRead(grantConsole.page, adminClient, adminUser);
-    await ensureABACEnabled(adminClient);
+    // # Grant the action to this user, then mark a draft as burn-on-read
+    const {console, app} = await grantAndOpenTownSquare(pw, adminUser, adminClient, team);
+    const composer = app.center.postCreate;
+    await composer.message.container.fill(`draft ${getRandomId()}`);
+    await composer.burnOnReadButton.click();
+    await expect(composer.burnOnReadLabel).toBeVisible();
 
-    // # Mark a draft as burn-on-read
-    const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
-    await app.channelsPage.goto({team, channel: townSquare});
-    await channelsPage.centerView.postCreate.writeMessage(`draft ${getRandomId()}`);
-    await channelsPage.centerView.postCreate.toggleBurnOnRead();
-    await channelsPage.centerView.postCreate.toHaveBurnOnReadLabel();
-
-    // * Verify one remove affordance, and that it is the remove-all
-    await expect(channelsPage.centerView.postCreate.removeAllLabelsButton).toBeVisible();
-    await expect(channelsPage.centerView.postCreate.burnOnReadLabelRemoveButton).toHaveCount(0);
+    // * Verify the remove-all control is offered
+    await expect(composer.removeAllLabelsButton).toBeVisible();
+    await expectNoIndividualRemove(composer);
 
     // # Revoke the action by policy
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    policyName = await revokeBurnOnRead(systemConsolePage.page, adminClient);
-    await ensureABACEnabled(adminClient);
-    await page.reload();
-    await expect(app.center.composer.locator).toBeVisible();
+    await revokeAndReload(console, app, adminClient);
 
-    // * Verify revocation does not add a second remove control
-    await expect(channelsPage.centerView.postCreate.removeAllLabelsButton).toBeVisible();
-    await expect(channelsPage.centerView.postCreate.burnOnReadLabelRemoveButton).toHaveCount(0);
+    // * Verify the label and its remove-all control remain
+    await expect(composer.burnOnReadLabel).toBeVisible();
+    await expect(composer.removeAllLabelsButton).toBeVisible();
+    await expectNoIndividualRemove(composer);
 });
 
 /**
@@ -123,69 +185,58 @@ test(
 
         const message = `bor revoked ${getRandomId()}`;
 
-        // # Grant the action to this user, or the pre-existing policy denies it
-        const {systemConsolePage: grantConsole} = await pw.testBrowser.login(adminUser);
-        grantPolicyName = await grantBurnOnRead(grantConsole.page, adminClient, adminUser);
-        await ensureABACEnabled(adminClient);
-
-        // # Mark a draft as burn-on-read while still allowed
-        const {channelsPage, draftsPage, app, page} = await pw.testBrowser.login(adminUser);
-        await app.channelsPage.goto({team, channel: townSquare});
-        await channelsPage.centerView.postCreate.writeMessage(message);
-        await channelsPage.centerView.postCreate.toggleBurnOnRead();
-        await channelsPage.centerView.postCreate.toHaveBurnOnReadLabel();
+        // # Grant the action to this user, then mark a draft as burn-on-read while still allowed
+        const {console, app} = await grantAndOpenTownSquare(pw, adminUser, adminClient, team);
+        const composer = app.center.postCreate;
+        await composer.message.container.fill(message);
+        await composer.burnOnReadButton.click();
+        await expect(composer.burnOnReadLabel).toBeVisible();
+        await expect(composer.sendButton).toBeEnabled();
 
         // # Revoke the action by policy
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        policyName = await revokeBurnOnRead(systemConsolePage.page, adminClient);
-        await ensureABACEnabled(adminClient);
-        await page.reload();
-        await expect(app.center.composer.locator).toBeVisible();
+        await revokeAndReload(console, app, adminClient);
 
-        // * Verify the control is gone, the label remains, and sending is blocked
-        await channelsPage.centerView.postCreate.toHaveBurnOnReadHidden();
-        await channelsPage.centerView.postCreate.toHaveBurnOnReadLabel();
-        await expect(channelsPage.centerView.postCreate.sendMessageButton).toBeDisabled();
+        // * Verify the control is gone (not rendered at all), the label remains, and sending is blocked
+        await expect(composer.burnOnReadButton).not.toBeAttached();
+        await expect(composer.burnOnReadLabel).toBeVisible();
+        await expect(composer.sendButton).toBeDisabled();
 
         // # The Drafts list is a second way to send the same draft, so check it too
-        await draftsPage.goto(team.name);
-        await draftsPage.toBeVisible();
-        const draft = await draftsPage.getLastPost();
-        await draft.hover();
-
-        // * Verify Send and Schedule are withdrawn there as well. Schedule goes with
-        // Send because creating a scheduled post is enforced the same way, so offering
-        // it would only move the rejection later.
-        await expect(draft.sendButton).toHaveCount(0);
-        await expect(draft.scheduleButton).toHaveCount(0);
+        await app.draftsPage.goto({team});
+        const list = app.drafts.saved;
+        const draft = await list.draftList.itemWith({text: message});
+        await expect(draft.message).toContainText(message);
+        await draft.container.hover();
 
         // * Verify the ways out of the state are still offered — Edit returns to the
         // composer, where the label can be cleared, and Delete discards the draft
         await expect(draft.editButton).toBeVisible();
         await expect(draft.deleteButton).toBeVisible();
 
+        // * Verify Send and Schedule are withdrawn there as well. Schedule goes with
+        // Send because creating a scheduled post is enforced the same way, so offering
+        // it would only move the rejection later.
+        await expect(draft.sendButton).toHaveCount(0);
+        await expect(draft.rescheduleButton).toHaveCount(0);
+
         // # Back to the composer, and clear the burn-on-read label
         await app.channelsPage.goto({team, channel: townSquare});
-        await channelsPage.centerView.postCreate.removeAllLabelsButton.click();
+        await expect(composer.burnOnReadLabel).toBeVisible();
+        await composer.removeAllLabelsButton.click();
 
         // * Verify sending is offered again once the draft is no longer burn-on-read
-        await channelsPage.centerView.postCreate.toHaveNoBurnOnReadLabel();
-        await expect(channelsPage.centerView.postCreate.sendMessageButton).toBeEnabled();
+        await expect(composer.burnOnReadLabel).not.toBeVisible();
+        await expect(composer.sendButton).toBeEnabled();
 
         // # Send the draft
-        await channelsPage.centerView.postCreate.sendMessage();
+        await settle(composer.sendButton, {wait: Api.CreatePost}).click();
 
         // * Verify it posted as an ordinary message, with no burn-on-read markers
-        await pw.waitUntil(
-            async () => {
-                const post = await channelsPage.getLastPost();
-                return (await post.container.textContent())?.includes(message);
-            },
-            {timeout: pw.duration.one_min},
-        );
-        const posted = await channelsPage.getLastPost();
-        await expect(posted.container.getByTestId(/\.burn_on_read--button$/)).toHaveCount(0);
-        await expect(posted.container.getByTestId(/\.reveal--button$/)).toHaveCount(0);
+        // The post-body container has no text-reading driver; include the burn-on-read wrapper's content.
+        await expect.poll(async () => (await lastPost(app)).post.body.locator.textContent()).toContain(message);
+        const {post} = await lastPost(app);
+        await expect(post.burnOnReadButton).toHaveCount(0);
+        await expect(post.revealButton).toHaveCount(0);
     },
 );
 
@@ -207,34 +258,29 @@ test(
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
 
-        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
 
         const original = `bor scheduled ${getRandomId()}`;
 
-        // # Grant the action to this user, or the pre-existing policy denies it
-        const {systemConsolePage: grantConsole} = await pw.testBrowser.login(adminUser);
-        grantPolicyName = await grantBurnOnRead(grantConsole.page, adminClient, adminUser);
-        await ensureABACEnabled(adminClient);
-
-        // # Schedule a burn-on-read post two days out so it cannot fire mid-test
-        const {channelsPage, scheduledPostsPage, app} = await pw.testBrowser.login(adminUser);
-        await app.channelsPage.goto({team, channel: townSquare});
-        await channelsPage.centerView.postCreate.toggleBurnOnRead();
-        await channelsPage.scheduleMessage(original, 2, 0);
+        // # Grant the action to this user, then schedule a burn-on-read post
+        const {console, app} = await grantAndOpenTownSquare(pw, adminUser, adminClient, team);
+        await scheduleBurnOnRead(app, original);
 
         // # Revoke the action by policy
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        policyName = await revokeBurnOnRead(systemConsolePage.page, adminClient);
-        await ensureABACEnabled(adminClient);
+        await revokeAndReload(console, app, adminClient);
 
         // # Open the scheduled posts list and reveal the row's actions
-        await scheduledPostsPage.goto(team.name);
-        await scheduledPostsPage.toBeVisible();
-        const scheduled = await scheduledPostsPage.getLastPost();
-        await scheduled.hover();
+        const scheduled = await scheduledPostWith(app, team, original);
+
+        // * Verify the scheduled post itself is untouched
+        await expect(scheduled.message).toContainText(original);
+
+        // * Verify the two that always work are still offered
+        await expect(scheduled.deleteButton).toBeVisible();
+        await expect(scheduled.copyTextButton).toBeVisible();
 
         // * Verify the three actions that would be rejected are not offered. Absence from
         // the DOM, not invisibility: a disabled-but-present control would be a different
@@ -242,13 +288,6 @@ test(
         await expect(scheduled.editButton).toHaveCount(0);
         await expect(scheduled.rescheduleButton).toHaveCount(0);
         await expect(scheduled.sendNowButton).toHaveCount(0);
-
-        // * Verify the two that always work are still offered
-        await expect(scheduled.deleteButton).toBeVisible();
-        await expect(scheduled.copyTextButton).toBeVisible();
-
-        // * Verify the scheduled post itself is untouched
-        await expect(scheduledPostsPage.page.getByText(original)).toBeVisible();
     },
 );
 
@@ -268,41 +307,30 @@ test(
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
 
-        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
 
         const message = `queued bor ${getRandomId()}`;
 
-        // # Grant the action to this user, or the pre-existing policy denies it
-        const {systemConsolePage: grantConsole} = await pw.testBrowser.login(adminUser);
-        grantPolicyName = await grantBurnOnRead(grantConsole.page, adminClient, adminUser);
-        await ensureABACEnabled(adminClient);
-
-        // # Schedule a burn-on-read post two days out so it cannot fire mid-test
-        const {channelsPage, scheduledPostsPage, app} = await pw.testBrowser.login(adminUser);
-        await app.channelsPage.goto({team, channel: townSquare});
-        await channelsPage.centerView.postCreate.toggleBurnOnRead();
-        await channelsPage.scheduleMessage(message, 2, 0);
+        // # Grant the action to this user, then schedule a burn-on-read post
+        const {console, app} = await grantAndOpenTownSquare(pw, adminUser, adminClient, team);
+        await scheduleBurnOnRead(app, message);
 
         // # Revoke the action while the post sits queued
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        policyName = await revokeBurnOnRead(systemConsolePage.page, adminClient);
-        await ensureABACEnabled(adminClient);
+        await revokeAndReload(console, app, adminClient);
 
         // # Open the scheduled posts list and reveal the row's actions
-        await scheduledPostsPage.goto(team.name);
-        await scheduledPostsPage.toBeVisible();
-        const scheduled = await scheduledPostsPage.getLastPost();
-        await scheduled.hover();
-
-        // * Verify Send Now is no longer offered for the queued post
-        await expect(scheduled.sendNowButton).toHaveCount(0);
+        const scheduled = await scheduledPostWith(app, team, message);
 
         // * Verify the post is still queued, and still stored as burn-on-read — the client
         // withdrew a control, it did not rewrite the record
-        await expect(scheduledPostsPage.page.getByText(message)).toBeVisible();
+        await expect(scheduled.message).toContainText(message);
         expect(await getStoredScheduledPostType(adminClient, team.id, message)).toBe('burn_on_read');
+
+        // * Verify Delete is still offered, and Send Now no longer is
+        await expect(scheduled.deleteButton).toBeVisible();
+        await expect(scheduled.sendNowButton).toHaveCount(0);
     },
 );

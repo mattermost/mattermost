@@ -46,7 +46,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
             aria-expanded={isOpen}
             aria-controls={BODY_ID}
             aria-label={toggleLabel}
-            data-testid='attributeAppliesToRow-channel-toggle'
+            data-testid='admin.attribute.applies_to.channel.toggle--button'
         >
             <ChevronDownIcon
                 size={16}
@@ -59,7 +59,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                 </span>
                 <span
                     className='AttributeAppliesToItem__summary'
-                    data-testid='attributeAppliesToRow-channel-summary'
+                    data-testid='admin.attribute.applies_to.channel.summary--text'
                 >
                     {summary}
                 </span>
@@ -76,7 +76,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
             className='AttributeAppliesToItem__remove'
             onClick={onRemove}
             disabled={disabled || Boolean(removeLockedTooltip)}
-            data-testid='attributeAppliesToRow-channel-remove'
+            data-testid='admin.attribute.applies_to.channel.remove--button'
         >
             <FormattedMessage {...messages.removeLabel}/>
         </Button>
@@ -85,7 +85,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
     return (
         <div
             className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
-            data-testid='attributeAppliesToRow-channel'
+            data-testid='admin.attribute.applies_to.channel'
         >
             <div className='AttributeAppliesToItem__header'>
                 {lockedTooltip ? (
@@ -93,7 +93,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         <span
                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled toggle is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                             tabIndex={0}
-                            data-testid='attributeAppliesToRow-channel-toggleLockWrap'
+                            data-testid='admin.attribute.applies_to.channel.toggle_locked'
                         >
                             {toggleButton}
                         </span>
@@ -104,7 +104,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         <span
                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Remove is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                             tabIndex={0}
-                            data-testid='attributeAppliesToRow-channel-removeLockWrap'
+                            data-testid='admin.attribute.applies_to.channel.remove_locked'
                         >
                             {removeButton}
                         </span>
@@ -117,7 +117,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                     role='region'
                     aria-label={label}
                     className='AttributeAppliesToItem__body'
-                    data-testid='attributeAppliesToRow-channel-body'
+                    data-testid='admin.attribute.applies_to.channel.body--region'
                 >
                     <ChannelsResourceSettings
                         value={config}
@@ -126,6 +126,7 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         disabled={disabled}
                         channelFieldId={channelFieldId}
                         attributeDisplayName={attributeDisplayName}
+                        testIdScope='admin.attribute.applies_to.channel.settings'
                     />
                 </div>
             )}

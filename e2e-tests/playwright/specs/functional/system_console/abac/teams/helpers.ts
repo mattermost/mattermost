@@ -4,7 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Locator, Page} from '@playwright/test';
 
-import {openSystemConsoleSection, expect, type App} from '@mattermost/playwright-lib';
+import {Api, App, Msg, openSystemConsoleSection, expect, waitForApi} from '@mattermost/playwright-lib';
 
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
@@ -137,8 +137,12 @@ export async function openTeamConfig(app: App, teamDisplayName: string): Promise
     await row.editLink.click();
 
     await expect(app.page).toHaveURL(/\/admin_console\/user_management\/teams\/[a-z0-9]+$/, {timeout: 15_000});
-    // The generated header also holds actions; the heading has no separate member.
-    await expect(app.admin.header.locator.getByText('Team Management', {exact: true})).toBeVisible({timeout: 15_000});
+    // The Team Management panel's title has no test id; its toggles do. One of them shows once the panel has loaded:
+    // the anyone-can-join toggle is hidden for a synced team, and the policy toggle is only there with ABAC.
+    const {team} = app.admin;
+    await expect(team.allowAll.container.locator.or(team.policyEnforce.container.locator).first()).toBeVisible({
+        timeout: 15_000,
+    });
 }
 
 /**
@@ -149,20 +153,43 @@ export async function openTeamConfig(app: App, teamDisplayName: string): Promise
  * load (which would otherwise show the first page of unrelated policies).
  */
 export async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
-    await scope
-        // The policy chooser has no generated grid parts; use the supplied dialog to bound its native rows and search.
-        .locator('.DataGrid_row')
-        .first()
-        .waitFor({state: 'visible', timeout: 15000})
-        .catch(() => {
-            // Empty list is fine — the search below will populate it.
-        });
-    // The policy chooser has no generated grid parts; use the supplied dialog to bound its native rows and search.
-    await scope.locator('[data-testid="searchInput"]').fill(policyName);
-    // The policy chooser has no generated grid parts; use the supplied dialog to bound its native rows and search.
-    const row = scope.locator('.DataGrid_row').filter({hasText: policyName}).first();
-    await expect(row).toBeVisible({timeout: 15000});
-    return row;
+    const page = 'page' in scope ? scope.page() : scope;
+    const policies = new App(page).policySelectionModal.policies;
+    await expect(policies.container).toBeVisible({timeout: 15_000});
+    // DataGrid renders the loading message in its generated rows scope until the initial fetch has landed.
+    await expect(policies.rows).not.toContainMessage(Msg.admin.data_grid.loading, undefined, {timeout: 15_000});
+    await expect(policies.searchTextbox).toBeVisible();
+
+    // Filling the current term again does not fire React's onChange, so do not wait for a nonexistent request.
+    if ((await policies.searchTextbox.locator.inputValue()) !== policyName) {
+        await Promise.all([waitForApi(page, Api.SearchAccessControlPolicies), policies.searchTextbox.fill(policyName)]);
+    }
+    await expect(policies.searchTextbox).toHaveValue(policyName);
+    await expect(policies.rows).not.toContainMessage(Msg.admin.data_grid.loading, undefined, {timeout: 15_000});
+
+    // A search term can match multiple policy names; resolve the generated row ID from its exact name cell.
+    let matchingKey: string | undefined;
+    await expect
+        .poll(
+            async () => {
+                for (const key of await policies.rowList.keys()) {
+                    if ((await policies.row(key).cell('name').locator.textContent()) === policyName) {
+                        matchingKey = key;
+                        return true;
+                    }
+                }
+                return false;
+            },
+            {timeout: 15_000},
+        )
+        .toBe(true);
+    if (matchingKey === undefined) {
+        throw new Error(`Policy row not found: ${policyName}`);
+    }
+    const row = policies.row(matchingKey);
+    await expect(row).toBeVisible({timeout: 15_000});
+    await expect(row.cell('name')).toHaveText(policyName);
+    return row.container.locator;
 }
 
 export async function setToggle(app: App, on: boolean): Promise<void> {
@@ -211,43 +238,38 @@ export async function loginRaw(baseRoute: string, loginId: string, password: str
 }
 
 export async function switchTeamRulesMode(page: Page): Promise<void> {
-    // The rules mode toggle has no generated part; its DOM id identifies the control beside the Monaco editor.
-    const toggle = page.getByTestId('team-rules-editor-mode-toggle');
-    // The Monaco/CEL rules editor is a third-party widget without declared parts: addressed by its own classes inside the team rules panel.
-    const editor = page.locator('#team_level_access_rules .monaco-editor');
-    const wasCel = await editor.isVisible();
-    await expect(toggle).toBeEnabled({timeout: 60_000});
-    await toggle.click();
+    const rules = new App(page).admin.team.accessRules;
+    const wasCel = await rules.rules.input.isVisible();
+    await expect(rules.switchModeButton).toBeEnabled({timeout: 60_000});
+    await rules.switchModeButton.click();
     if (wasCel) {
-        await expect(editor).not.toBeVisible();
+        await expect(rules.rules.input).not.toBeVisible();
+        await expect(rules.rules.container).toBeVisible();
     } else {
-        await expect(editor).toBeVisible();
+        await expect(rules.rules.input).toBeVisible();
     }
 }
 
 export async function typeTeamRulesCel(page: Page, expression: string): Promise<void> {
-    // The report exposes no Monaco editing surface for these existing policy rules.
-    const panel = page.locator('#team_level_access_rules');
-    await panel.locator('.monaco-editor').waitFor({state: 'visible', timeout: 10_000});
-    // Monaco exposes its editable textarea and rendered lines through native classes within the rules panel.
-    const input = panel.locator('.monaco-editor textarea.inputarea');
-    // Monaco exposes its editable textarea and rendered lines through native classes within the rules panel.
-    await panel.locator('.monaco-editor .view-lines').click({force: true});
+    const rules = new App(page).admin.team.accessRules.rules;
+    await expect(rules.input).toBeVisible({timeout: 10_000});
+    // Monaco owns its native textbox and rendered lines; scope both to the generated CELEditor input.
+    const input = rules.input.locator.getByRole('textbox');
+    await input.focus();
     await expect(input).toBeFocused();
-    await page.keyboard.press('ControlOrMeta+a');
+    await input.press('ControlOrMeta+a');
     await expect(input).toBeFocused();
-    await page.keyboard.type(expression, {delay: 10});
-    // The Monaco/CEL rules editor is a third-party widget without declared parts: addressed by its own classes inside the team rules panel.
+    // Pace input so Monaco's paired brackets and quotes are overtyped rather than duplicated.
+    await input.type(expression, {delay: 10});
     await expect
-        .poll(async () => (await panel.locator('.monaco-editor .view-lines').innerText()).replace(/\s/g, ''))
+        .poll(async () => (await rules.input.locator.locator('.view-lines').innerText()).replace(/\s/g, ''))
         .toBe(expression.replace(/\s/g, ''));
 }
 
 export async function waitForTeamRulesValidation(page: Page, state: 'validated' | 'error'): Promise<void> {
-    // Validation lives in the undeclared Monaco status bar, so retain the existing scoped assertion.
-    await expect(page.locator('#team_level_access_rules .cel-editor__status-bar')).toHaveAttribute(
-        'data-validation-state',
-        state,
-        {timeout: 10_000},
-    );
+    const rules = new App(page).admin.team.accessRules.rules;
+    // CELEditor puts the exact validation state on the status text's parent, which has no generated part.
+    await expect(rules.statusText.locator.locator('..')).toHaveAttribute('data-validation-state', state, {
+        timeout: 10_000,
+    });
 }

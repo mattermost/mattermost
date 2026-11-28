@@ -4,21 +4,19 @@
 import {
     expect,
     test,
-    enableABAC,
-    navigateToABACPage,
-    runSyncJob,
     verifyUserInChannel,
     updateUserAttributes,
     createUserWithAttributes,
+    duration,
 } from '@mattermost/playwright-lib';
 
 import {
     ensureUserAttributes,
     createPrivateChannelForABAC,
-    createBasicPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
+    getUserAttributeFieldByName,
 } from '../support';
+import {createMembershipPolicy, policyIdByName, runSyncJob, setAbacEnabled, waitForSyncJob} from '../surface';
 
 /**
  * ABAC User Attributes - Attribute Changes
@@ -36,7 +34,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
      * 4. Scroll down to the required custom attribute, click Edit, and add the required value
      */
     test('MM-T5794 User auto-added when qualifying attribute is added to profile', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
 
@@ -61,36 +59,23 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // STEP 1: Create ABAC policy with auto-add enabled
         // Policy requirement: Department == "Engineering"
         // ============================================================
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
         const policyName = `Engineering Access ${pw.random.id()}`;
-        const jobId = await createBasicPolicy(systemConsolePage.page, {
+        const jobId = await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: true, // ✅ Auto-add enabled
-            channels: [privateChannel.display_name],
+            rules: [{field: await getUserAttributeFieldByName(adminClient, 'Department'), value: 'Engineering'}],
+            channels: [privateChannel],
+            autoAdd: true, // ✅ Auto-add enabled
         });
 
         // Activate policy (EXACT same pattern as MM-T5800)
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-        const idMatch = policyName.match(/([a-z0-9]+)$/i);
-        const uniqueId = idMatch ? idMatch[1] : policyName;
-        await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
-        const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
-
-        if (policyId) {
-            await activatePolicy(adminClient, policyId);
+        if (!jobId) {
+            throw new Error('Saving a policy with channels starts no sync job');
         }
-        await searchInput.clear();
+        await waitForSyncJob(adminClient, jobId);
+        await activatePolicy(adminClient, await policyIdByName(adminClient, policyName));
 
         // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and sync
         await adminClient.patchConfig({
@@ -100,8 +85,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // ============================================================
         // STEP 2: Verify user is NOT in channel initially
         // ============================================================
-        const syncJob1 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob1);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
         expect(initialInChannel).toBe(false);
@@ -123,8 +107,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Get the Department field to check its value
         await adminClient.getCustomProfileAttributeFields();
 
-        const syncJob2 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob2);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         // ============================================================
         // VERIFICATION: User should now be auto-added to channel

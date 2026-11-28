@@ -116,7 +116,7 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        const labels = screen.getAllByTestId('session-attribute-type').map((cell) => cell.textContent);
+        const labels = screen.getAllByTestId('admin.session_attributes.row.type--text').map((cell) => cell.textContent);
 
         const counts = labels.reduce<Record<string, number>>((acc, label) => {
             const key = label ?? '';
@@ -140,15 +140,15 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        expect(screen.getAllByTestId('session-attribute-server-label')).toHaveLength(2);
+        expect(screen.getAllByTestId('admin.session_attributes.row.server_label--text')).toHaveLength(2);
 
-        expect(within(rowFor('ip_address')).getByTestId('session-attribute-server-label')).toBeInTheDocument();
-        expect(within(rowFor('user_agent_os')).getByTestId('session-attribute-server-label')).toBeInTheDocument();
+        expect(within(rowFor('ip_address')).getByTestId('admin.session_attributes.row.server_label--text')).toBeInTheDocument();
+        expect(within(rowFor('user_agent_os')).getByTestId('admin.session_attributes.row.server_label--text')).toBeInTheDocument();
 
         // client_ip_address is seeded but not request-derived, so it must not be flagged.
-        expect(within(rowFor('client_ip_address')).queryByTestId('session-attribute-server-label')).not.toBeInTheDocument();
-        expect(within(rowFor('client_type')).queryByTestId('session-attribute-server-label')).not.toBeInTheDocument();
-        expect(within(rowFor('os_version')).queryByTestId('session-attribute-server-label')).not.toBeInTheDocument();
+        expect(within(rowFor('client_ip_address')).queryByTestId('admin.session_attributes.row.server_label--text')).not.toBeInTheDocument();
+        expect(within(rowFor('client_type')).queryByTestId('admin.session_attributes.row.server_label--text')).not.toBeInTheDocument();
+        expect(within(rowFor('os_version')).queryByTestId('admin.session_attributes.row.server_label--text')).not.toBeInTheDocument();
     });
 
     it('reflects attrs.platforms in the platform icons', () => {
@@ -159,7 +159,7 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        const platforms = within(rowFor('Client IP')).getByTestId('session-attribute-platforms');
+        const platforms = within(rowFor('Client IP')).getByTestId('admin.session_attributes.row.platforms');
 
         expect(platforms.querySelector('[data-platform="desktop"]')).toHaveAttribute('data-active', 'true');
         expect(platforms.querySelector('[data-platform="browser"]')).toHaveAttribute('data-active', 'true');
@@ -174,11 +174,11 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        const enabled = within(rowFor('Client IP')).getByTestId('session-attribute-status');
+        const enabled = within(rowFor('Client IP')).getByTestId('admin.session_attributes.row.status--text');
         expect(enabled).toHaveTextContent('Enabled');
         expect(enabled).toHaveAttribute('data-enabled', 'true');
 
-        const disabled = within(rowFor('client_ip_address')).getByTestId('session-attribute-status');
+        const disabled = within(rowFor('client_ip_address')).getByTestId('admin.session_attributes.row.status--text');
         expect(disabled).toHaveTextContent('Disabled');
         expect(disabled).toHaveAttribute('data-enabled', 'false');
     });
@@ -192,8 +192,8 @@ describe('SessionAttributesTable', () => {
         );
 
         const row = rowFor('client_ip_address');
-        expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('5m');
-        expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('1m');
+        expect(within(row).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('5m');
+        expect(within(row).getByTestId('admin.session_attributes.row.grace--text')).toHaveTextContent('1m');
     });
 
     it('shows a dash for TTL and Grace on server-sourced attributes', () => {
@@ -205,8 +205,8 @@ describe('SessionAttributesTable', () => {
         );
 
         const row = rowFor('Client IP');
-        expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('—');
-        expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('—');
+        expect(within(row).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('—');
+        expect(within(row).getByTestId('admin.session_attributes.row.grace--text')).toHaveTextContent('—');
     });
 
     it('falls back to the field name when display_name is absent', () => {
@@ -217,8 +217,8 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        expect(within(rowFor('Client IP')).getByTestId('session-attribute-display-name')).toHaveTextContent('Client IP');
-        expect(within(rowFor('os_version')).getByTestId('session-attribute-display-name')).toHaveTextContent('os_version');
+        expect(within(rowFor('Client IP')).getByTestId('admin.session_attributes.row.name--text')).toHaveTextContent('Client IP');
+        expect(within(rowFor('os_version')).getByTestId('admin.session_attributes.row.name--text')).toHaveTextContent('os_version');
     });
 
     it('renders default/zero TTL, grace and platforms sensibly', () => {
@@ -230,10 +230,10 @@ describe('SessionAttributesTable', () => {
         );
 
         const row = rowFor('os_version');
-        expect(within(row).getByTestId('session-attribute-ttl')).toHaveTextContent('0s');
-        expect(within(row).getByTestId('session-attribute-grace')).toHaveTextContent('0s');
+        expect(within(row).getByTestId('admin.session_attributes.row.ttl--text')).toHaveTextContent('0s');
+        expect(within(row).getByTestId('admin.session_attributes.row.grace--text')).toHaveTextContent('0s');
 
-        const slots = within(row).getByTestId('session-attribute-platforms').querySelectorAll('[data-active]');
+        const slots = within(row).getByTestId('admin.session_attributes.row.platforms').querySelectorAll('[data-active]');
         expect(slots).toHaveLength(3);
         expect(Array.from(slots).every((slot) => slot.getAttribute('data-active') === 'false')).toBe(true);
     });
@@ -246,7 +246,7 @@ describe('SessionAttributesTable', () => {
             />,
         );
 
-        const buttons = fields.map((field) => screen.getByTestId(`session-attribute-dotmenu-${field.id}`));
+        const buttons = fields.map((field) => within(screen.getByTestId(`admin.session_attributes.row:${field.id}--row`)).getByTestId('admin.session_attributes.row.actions--button'));
         expect(buttons).toHaveLength(fields.length);
         buttons.forEach((button) => expect(button.tagName).toBe('BUTTON'));
     });

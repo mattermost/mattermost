@@ -1,13 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Client4} from '@mattermost/client';
+import {ClientError, type Client4} from '@mattermost/client';
 import type {PropertyField, PropertyFieldOptionPage} from '@mattermost/types/properties';
 
-import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {Api, expect, getAdminClient, licenseTier, settle, test} from '@mattermost/playwright-lib';
+import type {App, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/manage_attributes';
+
+/** The Attribute Management list's route, as the app places it. */
+export function attributesPath(app: App): string {
+    return `${app.adminConsolePage.pathFor()}/system_attributes/manage_attributes`;
+}
+
+/** The attribute form's route: the New attribute page, or an existing attribute's page when `fieldId` is given. */
+export function attributeDetailsPath(app: App, fieldId?: string): string {
+    return `${attributesPath(app)}/attribute_details${fieldId ? `/${fieldId}` : ''}`;
+}
+
+/** The value, or a failure naming what the test expected to find (narrows a lookup without `!`). */
+export function defined<T>(value: T | null | undefined, what = 'the value'): T {
+    if (value === undefined || value === null) {
+        throw new Error(`Expected ${what} to exist`);
+    }
+    return value;
+}
+
+/** Runs a delete that may find its target already gone (a 404); any other failure is the test's to see. */
+export async function ignoreNotFound(deletion: () => Promise<unknown>): Promise<void> {
+    try {
+        await deletion();
+    } catch (error) {
+        if (!(error instanceof ClientError) || error.status_code !== 404) {
+            throw error;
+        }
+    }
+}
 
 // Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
 // (cross-package import not feasible between e2e-tests and webapp)
@@ -50,6 +79,62 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     return {adminUser, adminClient};
 }
 
+/** Opens System Console > Attribute Management, waiting for its page frame. */
+export async function openAttributeManagement(app: App): Promise<App['admin']['attributes']> {
+    await app.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+    await expect(app.admin.attributes.subtitleText).toBeVisible();
+    return app.admin.attributes;
+}
+
+/** The listed attribute showing `displayName`: rows are keyed by field id. */
+export async function listedAttribute(attributes: App['admin']['attributes'], displayName: string) {
+    const id = await attributes.rowList.keyWith({text: displayName});
+    await expect(attributes.row(id).nameText).toHaveText(displayName);
+    return {id};
+}
+
+/** Opens the New attribute form. */
+export async function openNewAttribute(app: App): Promise<App['admin']['attribute']> {
+    await app.page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details`);
+    await expect(app.admin.attribute.displayName.container).toBeVisible();
+    return app.admin.attribute;
+}
+
+/** Opens classification's own attribute page, whose definition is read-only; only its Applies to card is editable. */
+export async function openClassificationAttribute(app: App): Promise<App['admin']['classification']> {
+    await app.page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/classification`);
+    await expect(app.admin.classification.name.container).toBeVisible();
+    return app.admin.classification;
+}
+
+/**
+ * Saves edits to classification's existing linked channel field before reading its persisted settings.
+ */
+export async function saveInPlace(app: App) {
+    // The attribute page's own Save button (the classification markings page has a different save panel).
+    const {saveButton} = app.admin;
+    await expect(saveButton).toBeEnabled();
+    await settle(saveButton, {
+        wait: Api.UpdatePropertyField,
+        params: {group_name: 'access_control', object_type: 'channel'},
+    }).click();
+    await expect(saveButton).toBeSaved();
+}
+
+/** Adds the Channels resource to the form's Applies to card and opens its settings, which start collapsed. */
+export async function addChannelResource(
+    form: App['admin']['attribute'],
+): Promise<App['admin']['attribute']['appliesTo']['channel']['settings']> {
+    await form.appliesTo.add.container.click();
+    await expect(form.appliesTo.add.resource('channel')).toBeVisible();
+    await form.appliesTo.add.resource('channel').click();
+    const {channel} = form.appliesTo;
+    await expect(channel).toBeVisible();
+    await channel.toggleButton.click();
+    await expect(channel.settings).toBeVisible();
+    return channel.settings;
+}
+
 export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabled: boolean) {
     await adminClient.patchConfig({
         FeatureFlags: {
@@ -69,21 +154,16 @@ export async function requireHierarchicalAttributesEnabled(pw: PlaywrightExtende
 }
 
 /**
- * Removes any access_control/template field with the given name (clean slate for E2E),
- * ignoring failures — the property routes may be unavailable below Enterprise tier, or
- * the field may simply not exist yet.
+ * Removes any access_control/template field with the given name (clean slate for E2E).
+ * A field that is already gone is fine; any other failure surfaces.
  */
 export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, name: string) {
-    try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
-            targetType: TARGET_TYPE,
-            perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
-        });
-        for (const field of fields.filter((f) => f.name === name && f.delete_at === 0)) {
-            await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, field.id);
-        }
-    } catch {
-        // May not exist, or routes unavailable; ignore.
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+        targetType: TARGET_TYPE,
+        perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+    });
+    for (const field of fields.filter((f) => f.name === name && f.delete_at === 0)) {
+        await ignoreNotFound(() => adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, field.id));
     }
 }
 
@@ -146,24 +226,20 @@ export async function getGlobalAttributeFieldOptions(adminClient: Client4, field
 }
 
 /**
- * Best-effort cleanup for an Applies-to save: delete linked fields first
+ * Cleanup for an Applies-to save: delete linked fields first
  * (looked up from the live template, not from the test's success-path locals)
  * so the template delete is not 409'd by leftover dependents.
  */
 export async function deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient: Client4, name: string) {
-    try {
-        const templates = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
-            targetType: TARGET_TYPE,
-            perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
-        });
-        for (const template of templates.filter((field) => field.name === name && field.delete_at === 0)) {
-            const linked = await fetchLinkedFieldsForTemplate(adminClient, template.id);
-            for (const field of linked) {
-                await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
-            }
+    const templates = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+        targetType: TARGET_TYPE,
+        perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+    });
+    for (const template of templates.filter((field) => field.name === name && field.delete_at === 0)) {
+        const linked = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+        for (const field of linked) {
+            await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
         }
-    } catch {
-        // Listing may fail below Enterprise tier; still try the template delete below.
     }
     await deleteGlobalAttributeFieldIfExists(adminClient, name);
 }
@@ -217,8 +293,8 @@ export async function createLinkedDependentField(
 }
 
 /**
- * Deletes a linked property field, ignoring failures -- mirrors deleteGlobalAttributeFieldIfExists'
- * best-effort cleanup style, since a test's own save/rollback assertions may have already deleted it.
+ * Deletes a linked property field, tolerating only "already gone" (a test's own save/rollback
+ * assertions may have already deleted it).
  * Must run BEFORE deleting the field it points at -- the source delete stays blocked with a 409
  * for as long as a live dependent exists.
  */
@@ -227,11 +303,7 @@ export async function deleteLinkedDependentField(
     fieldId: string,
     objectType: ResourceObjectType = 'user',
 ) {
-    try {
-        await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, fieldId);
-    } catch {
-        // May already be gone (e.g. a prior rollback already deleted it); ignore.
-    }
+    await ignoreNotFound(() => adminClient.deletePropertyField(PROPERTY_GROUP, objectType, fieldId));
 }
 
 /**

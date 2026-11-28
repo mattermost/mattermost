@@ -646,10 +646,14 @@ function TeamMembershipTab({
     }
 
     return (
-        <div className='TeamMembershipTab'>
+        <div
+            className='TeamMembershipTab'
+            data-testid='team_settings_modal.membership'
+        >
             {policiesLoaded && systemPolicies.length > 0 && (
                 <div className='TeamMembershipTab__systemPolicies'>
                     <SystemPolicyIndicator
+                        testId='team_settings_modal.membership.system_policies'
                         policies={systemPolicies}
                         resourceType='team'
                         showPolicyNames={true}
@@ -659,7 +663,10 @@ function TeamMembershipTab({
             )}
 
             <div className='TeamMembershipTab__header'>
-                <h3 className='TeamMembershipTab__title'>
+                <h3
+                    className='TeamMembershipTab__title'
+                    data-testid='team_settings_modal.membership.title--text'
+                >
                     {formatMessage({
                         id: 'team_settings.membership_tab.title',
                         defaultMessage: 'Team Membership Rules',
@@ -676,7 +683,7 @@ function TeamMembershipTab({
             {rulesLocked && (
                 <div
                     className='TeamMembershipTab__lockedRules'
-                    data-testid='team-membership-locked-rules'
+                    data-testid='team_settings_modal.membership.locked_rules'
                 >
                     <div
                         className='TeamMembershipTab__lockedNotice'
@@ -714,6 +721,7 @@ function TeamMembershipTab({
             {attributesLoaded && rulesEditable && (
                 <div className='TeamMembershipTab__editor'>
                     <TableEditor
+                        testId='team_settings_modal.membership.rules'
                         value={expression}
                         onChange={handleExpressionChange}
                         onValidate={() => setFormError('')}
@@ -739,6 +747,7 @@ function TeamMembershipTab({
                         disabled={isEmptyRulesState || !rulesEditable}
                         id='autoAddMembersCheckbox'
                         name='autoAddMembers'
+                        data-testid='team_settings_modal.membership.auto_add--checkbox'
                     >
                         <span className={`TeamMembershipTab__autoAddText${isEmptyRulesState || !rulesEditable ? ' disabled' : ''}`}>
                             {formatMessage({
@@ -748,28 +757,41 @@ function TeamMembershipTab({
                         </span>
                     </Checkbox>
                 </div>
-                <p className='TeamMembershipTab__autoAddDescription'>
+                <p
+                    className='TeamMembershipTab__autoAddDescription'
+                    data-testid='team_settings_modal.membership.auto_add_description--text'
+                >
                     {autoAddDescription}
                 </p>
             </div>
 
             {hasPolicy && syncLoaded && (
-                <div className='SyncStatusFooter'>
+                <div
+                    className='SyncStatusFooter'
+                    data-testid='team_settings_modal.membership.sync_status'
+                >
                     <i className='icon icon-information-outline SyncStatusFooter__icon'/>
-                    <span className='SyncStatusFooter__text'>
+                    <span
+                        className='SyncStatusFooter__text'
+                        data-testid='team_settings_modal.membership.sync_status.time--text'
+                    >
                         {getSyncTimeText(lastSyncedAt, formatMessage)}
                     </span>
                     {syncing ? (
                         <>
-                            <span className='SyncStatusFooter__syncing'>
+                            <span
+                                className='SyncStatusFooter__syncing'
+                                data-testid='team_settings_modal.membership.sync_status.syncing--text'
+                            >
                                 {formatMessage({id: 'team_settings.sync_status.syncing', defaultMessage: 'Syncing...'})}
                             </span>
-                            <LoadingSpinner/>
+                            <LoadingSpinner testId='team_settings_modal.membership.sync_status.loading_spinner'/>
                         </>
                     ) : (
                         <button
                             className='style--none SyncStatusFooter__link'
                             onClick={handleSyncNow}
+                            data-testid='team_settings_modal.membership.sync_status.sync_now--button'
                         >
                             {formatMessage({id: 'team_settings.sync_status.sync_now', defaultMessage: 'Sync now'})}
                         </button>
@@ -779,6 +801,7 @@ function TeamMembershipTab({
 
             {shouldShowPanel && (
                 <SaveChangesPanel
+                    testId='team_settings_modal.save_panel'
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
@@ -794,6 +817,7 @@ function TeamMembershipTab({
             )}
 
             <ConfirmModal
+                testId='team_settings_modal.membership.self_exclusion_modal'
                 show={showSelfExclusionModal}
                 title={
                     <FormattedMessage
@@ -820,6 +844,7 @@ function TeamMembershipTab({
             />
 
             <ConfirmModal
+                testId='team_settings_modal.membership.rules_change_modal'
                 show={showConfirmModal}
                 title={isRemovingAllRules ? (
                     <FormattedMessage

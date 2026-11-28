@@ -6,7 +6,7 @@
  * @reference MM-67594
  */
 
-import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import {Api, settle, expect, newTestPassword, test, duration, Msg, type App} from '@mattermost/playwright-lib';
 
 import {
     enableABACConfig,
@@ -17,9 +17,16 @@ import {
     createPrivateChannel,
     createTeamAdmin,
     setUserAttribute,
-    addAttributeRule,
-    addChannelToPolicy,
+    addRule,
 } from './helpers';
+import {addChannel, closeTeamSettings, policyRow, policyRows, openAccessPoliciesTab, openTeam} from './surface';
+
+/** Removes the first channel assigned to the policy being edited. */
+async function removeFirstChannel(editor: App['teamSettingsModal']['accessPolicies']['editor']) {
+    const [first] = await editor.channels.rowList.keys();
+    await editor.channels.row(first).removeLink.click();
+    await expect(editor.channels.row(first)).toHaveCount(0);
+}
 
 test.describe('Team Settings Modal - Policy Editor', () => {
     test('MM-67594_1 Add policy button opens the editor view', async ({pw}) => {
@@ -30,29 +37,25 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Click Add policy
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await teamSettings.accessPolicies.addPolicyButton.click();
 
         // * Editor view shown with back button and name input
-        await expect(teamSettings.container.locator('.TeamPolicyEditor__back-btn')).toBeVisible();
-        await expect(teamSettings.container.locator('#input_policyName')).toBeVisible();
+        await expect(teamSettings.accessPolicies.editor.backButton).toBeVisible();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_2 Team Admin creates a new policy', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
-        await ensureDepartmentAttribute(adminClient);
+        const department = await ensureDepartmentAttribute(adminClient);
 
         // # Create private channel and team admin with Department=Engineering
         const channel = await createPrivateChannel(adminClient, team.id);
@@ -60,52 +63,49 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await adminClient.addToChannel(teamAdmin.id, channel.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Click Add policy
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         // # Fill policy name
         const policyName = `TA Policy ${Date.now()}`;
-        await teamSettings.container.locator('#input_policyName').fill(policyName);
+        await teamSettings.accessPolicies.editor.name.container.fill(policyName);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policyName);
 
         // # Add a rule row and fill in a value
-        await addAttributeRule(teamSettings.container, page, 'Engineering');
+        await addRule(teamSettings.accessPolicies.editor.rules, department, 'Engineering');
 
         // # Add channel via channel selector
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await addChannel(app, teamSettings.accessPolicies.editor, channel);
 
         // * Confirm the channel appears in the editor list before saving
-        await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
+        await expect(teamSettings.accessPolicies.editor.channels.row(channel.id)).toContainText(channel.display_name);
 
-        // Re-apply guard: a concurrent initSetup() on another shard may have disabled ABAC
-        // between the initial enableABACConfig call and this save. Without ABAC enabled the
-        // server may not create the policy and the confirmation modal will never appear.
+        // Enable attribute-based access before saving so policy validation can complete.
         await enableABACConfig(adminClient);
 
         // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty).
-        const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
-        await expect(saveBtn).toBeEnabled({timeout: 20000});
+        const saveBtn = teamSettings.savePanel.saveButton;
+        await expect(saveBtn).toBeEnabled({timeout: duration.half_min});
         await saveBtn.click();
+        await expect(teamSettings.accessPolicies.editor.policyChangeModal.container).toBeVisible();
 
-        // Re-apply guard post-click: a concurrent initSetup() reset between the guard above
-        // and the server processing the save request causes the confirmation modal to skip.
+        // Keep attribute-based access enabled before confirming the new policy.
         await enableABACConfig(adminClient);
 
         // # Confirm in PolicyConfirmationModal
-        await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
-        await page.getByRole('button', {name: /Apply policy/}).click();
+        const confirm = teamSettings.accessPolicies.editor.policyChangeModal;
+        await expect(confirm.confirmButton).toHaveText(/Apply policy/);
+        await settle(confirm.confirmButton, {wait: Api.CreateAccessControlPolicy}).click();
 
         // * Auto-navigated back to list, policy name visible.
-        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 15000});
+        await expect(await policyRow(teamSettings, policyName)).toBeVisible({timeout: duration.half_min});
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_3 Team Admin edits existing policy via row click', async ({pw}) => {
@@ -120,32 +120,30 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Click policy row
-        await teamSettings.container.getByText(policy.name).click();
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
 
         // * Editor shown with pre-populated name
-        await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policy.name);
 
         // # Modify name
         const newName = `TA Updated ${Date.now()}`;
-        await teamSettings.container.locator('#input_policyName').clear();
-        await teamSettings.container.locator('#input_policyName').fill(newName);
+        await teamSettings.accessPolicies.editor.name.container.clear();
+        await teamSettings.accessPolicies.editor.name.container.fill(newName);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(newName);
 
         // # Save via SaveChangesPanel (name-only change skips confirmation modal)
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        await settle(teamSettings.savePanel.saveButton, {wait: Api.CreateAccessControlPolicy}).click();
 
         // * Auto-navigated back to list, updated name visible
-        await expect(teamSettings.container.getByText(newName)).toBeVisible();
+        await expect(await policyRow(teamSettings, newName)).toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_4 Team Admin uses three-dot Edit menu', async ({pw}) => {
@@ -160,23 +158,21 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Click three-dot menu then Edit
-        const menuButton = teamSettings.container.locator(`button[id="policy-menu-${policy.id}"]`);
-        await menuButton.click();
-        await page.getByRole('menuitem', {name: 'Edit'}).click();
+        const policyItem = teamSettings.accessPolicies.policies.row(policy.id);
+        await policyItem.openMenuButton.click();
+        const menu = app.accessPolicyRowMenu;
+        await expect(menu.editMenuItem).toBeVisible();
+        await menu.editMenuItem.click();
 
         // * Editor shown with pre-populated name
-        await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policy.name);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_5 Undo discards changes', async ({pw}) => {
@@ -191,27 +187,26 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open editor and modify name
-        await teamSettings.container.getByText(policy.name).click();
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
-        await teamSettings.container.locator('#input_policyName').clear();
-        await teamSettings.container.locator('#input_policyName').fill('Changed Name');
+        await teamSettings.accessPolicies.editor.name.container.clear();
+        await teamSettings.accessPolicies.editor.name.container.fill('Changed Name');
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue('Changed Name');
 
         // # Click Undo in SaveChangesPanel
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__cancel-btn"]').click();
+        await teamSettings.savePanel.cancelButton.click();
 
         // * Name reverted to original
-        await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policy.name);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_5b Back button then Undo navigates back to list', async ({pw}) => {
@@ -226,30 +221,30 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open editor and make a change so the SaveChangesPanel is shown
-        await teamSettings.container.getByText(policy.name).click();
-        await teamSettings.container.locator('#input_policyName').fill('Changed Name');
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
+        await teamSettings.accessPolicies.editor.name.container.fill('Changed Name');
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue('Changed Name');
 
         // # Click the back button — sets navigation intent but stays in editor because of unsaved changes
-        await teamSettings.container.locator('.TeamPolicyEditor__back-btn').click();
+        await teamSettings.accessPolicies.editor.backButton.click();
+        await expect(teamSettings.savePanel).toHaveClass(/error/);
 
         // # Click Undo — should revert changes AND navigate back to the list.
         // This validates the fix for the bug where the navigation intent expired after 3 seconds,
         // causing Undo to revert changes but leave the user stranded in the editor.
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__cancel-btn"]').click();
+        await teamSettings.savePanel.cancelButton.click();
 
         // * List view restored (back navigation happened)
-        await expect(teamSettings.container.getByRole('button', {name: 'Add policy'})).toBeVisible({timeout: 10000});
+        await expect(teamSettings.accessPolicies.addPolicyButton).toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_6 Back button returns to list', async ({pw}) => {
@@ -260,22 +255,19 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open editor then click back
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        await teamSettings.container.locator('.TeamPolicyEditor__back-btn').click();
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
+        await teamSettings.accessPolicies.editor.backButton.click();
 
         // * List view restored
-        await expect(teamSettings.container.getByRole('button', {name: 'Add policy'})).toBeVisible();
+        await expect(teamSettings.accessPolicies.addPolicyButton).toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_7 Delete policy from editor view', async ({pw}) => {
@@ -288,34 +280,30 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const policy = await createParentPolicy(adminClient, `Delete Test ${Date.now()}`);
         await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, adminUser, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open editor
-        await teamSettings.container.getByText(policy.name).click();
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         // # Remove the channel to enable delete (click Remove link in channel list)
-        await teamSettings.policyChannelRemoveLink.click();
+        await removeFirstChannel(teamSettings.accessPolicies.editor);
 
         // # Click Delete in the delete section
-        await teamSettings.container
-            .locator('.TeamPolicyEditor__section--delete button')
-            .filter({hasText: 'Delete'})
-            .click();
+        await teamSettings.accessPolicies.editor.deleteButton.click();
+        const deleteModal = teamSettings.accessPolicies.editor.deleteModal;
 
         // # Confirm in delete confirmation modal
-        await page.locator('.TeamPolicyEditor__delete-modal').waitFor();
-        await page.locator('.TeamPolicyEditor__delete-modal').getByRole('button', {name: 'Delete'}).click();
+        await expect(deleteModal.confirmButton).toHaveText('Delete');
+        await settle(deleteModal.confirmButton, {wait: Api.DeleteAccessControlPolicy}).click();
 
         // * Back to list, policy removed
-        await expect(teamSettings.container.getByText(policy.name)).not.toBeVisible();
+        await expect(policyRows(teamSettings, policy.name)).not.toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     // Delete action is hidden in the team settings three-dot menu (all listed policies have channels).
@@ -324,64 +312,60 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
-        await ensureDepartmentAttribute(adminClient);
+        const department = await ensureDepartmentAttribute(adminClient);
 
         const channel = await createPrivateChannel(adminClient, team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         await adminClient.addToChannel(teamAdmin.id, channel.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open create editor, add rule + channel but leave name empty
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        await addAttributeRule(teamSettings.container, page, 'Engineering');
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
+        await addRule(teamSettings.accessPolicies.editor.rules, department, 'Engineering');
+        await addChannel(app, teamSettings.accessPolicies.editor, channel);
 
         // # Click Save
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        await teamSettings.savePanel.saveButton.click();
 
         // * Error state shown in SaveChangesPanel (name required)
-        await expect(teamSettings.container.locator('.SaveChangesPanel.error')).toBeVisible();
+        await expect(teamSettings.savePanel).toHaveClass(/error/);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_10 Save without channels shows validation error', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
-        await ensureDepartmentAttribute(adminClient);
+        const department = await ensureDepartmentAttribute(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open create editor, add name + rule but no channels
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        await teamSettings.container.locator('#input_policyName').fill(`No Channels ${Date.now()}`);
-        await addAttributeRule(teamSettings.container, page, 'Engineering');
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
+        const policyName = `No Channels ${Date.now()}`;
+        await teamSettings.accessPolicies.editor.name.container.fill(policyName);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policyName);
+        await addRule(teamSettings.accessPolicies.editor.rules, department, 'Engineering');
 
         // # Click Save
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        await teamSettings.savePanel.saveButton.click();
 
         // * Error state shown in SaveChangesPanel (channels required)
-        await expect(teamSettings.container.locator('.SaveChangesPanel.error')).toBeVisible();
+        await expect(teamSettings.savePanel).toHaveClass(/error/);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_11 Delete button disabled when policy has channels', async ({pw}) => {
@@ -396,24 +380,19 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open editor
-        await teamSettings.container.getByText(policy.name).click();
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         // * Delete button is disabled (policy has channels)
-        const deleteBtn = teamSettings.container
-            .locator('.TeamPolicyEditor__section--delete button')
-            .filter({hasText: 'Delete'});
-        await expect(deleteBtn).toBeDisabled();
+        await expect(teamSettings.accessPolicies.editor.deleteButton).toBeDisabled();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_11b Add channels modal excludes channels already assigned to the policy', async ({pw}) => {
@@ -432,36 +411,31 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await adminClient.addToChannel(teamAdmin.id, assignedChannel.id);
         await adminClient.addToChannel(teamAdmin.id, unassignedChannel.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open the existing policy editor
-        await teamSettings.container.getByText(policy.name).click();
-        await expect(teamSettings.container.locator('#input_policyName')).toBeVisible({timeout: 10000});
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         // # Open Add channels modal
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        await teamSettings.accessPolicies.editor.addChannelsButton.click();
+        const selector = app.channelSelectorModal;
+        await expect(selector.container).toBeVisible();
+        const {results} = selector.channels;
+        await expect(results.channelList).not.toHaveKeyCount(0);
 
         // * Already assigned channel is NOT shown in the modal
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: assignedChannel.display_name}),
-        ).not.toBeVisible();
+        await expect(results.channel(assignedChannel)).toHaveCount(0);
 
         // * Unassigned channel IS shown in the modal
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: unassignedChannel.display_name}),
-        ).toBeVisible();
+        await expect(results.channel(unassignedChannel)).toBeVisible();
 
-        await page.keyboard.press('Escape');
-        await teamSettings.close();
+        await selector.closeButton.click();
+        await expect(results.channelList.locator).toHaveCount(0);
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_12 Success message shown after saving policy', async ({pw}) => {
@@ -476,28 +450,28 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Edit policy name (name-only change — no confirmation modal)
-        await teamSettings.container.getByText(policy.name).click();
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policy.name)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
-        await teamSettings.container.locator('#input_policyName').clear();
-        await teamSettings.container.locator('#input_policyName').fill(`Updated ${Date.now()}`);
+        await teamSettings.accessPolicies.editor.name.container.clear();
+        const updatedName = `Updated ${Date.now()}`;
+        await teamSettings.accessPolicies.editor.name.container.fill(updatedName);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(updatedName);
 
         // # Save
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        await settle(teamSettings.savePanel.saveButton, {wait: Api.CreateAccessControlPolicy}).click();
 
         // * Success message visible on list view
-        await expect(teamSettings.container.locator('.SaveChangesPanel.saved')).toBeVisible();
-        await expect(teamSettings.container.getByText('Policy updated')).toBeVisible();
+        await expect(teamSettings.savePanel).toHaveClass(/saved/);
+        await expect(teamSettings.savePanel.messageText).toHaveMessage(Msg.team_settings.policy_editor.policy_updated);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_13 System Admin can also create policy from Team Settings', async ({pw}) => {
@@ -508,57 +482,54 @@ test.describe('Team Settings Modal - Policy Editor', () => {
             const cfg = await adminClient.getConfig();
             return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
         });
-        await ensureDepartmentAttribute(adminClient);
+        const department = await ensureDepartmentAttribute(adminClient);
 
         // # Create private channel and set admin's Department attribute
         const channel = await createPrivateChannel(adminClient, team.id);
         await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        // # Navigate and wait for all API calls to settle (custom profile attributes
-        // must be fetched before the self-inclusion check can validate the admin's Department)
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
+        // # Navigate
+        const app = await openTeam(pw, adminUser, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Create policy
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         const policyName = `SysAdmin Policy ${Date.now()}`;
-        await teamSettings.container.locator('#input_policyName').fill(policyName);
+        await teamSettings.accessPolicies.editor.name.container.fill(policyName);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policyName);
 
         // # Add a rule row and fill in a value
-        await addAttributeRule(teamSettings.container, page, 'Engineering');
+        await addRule(teamSettings.accessPolicies.editor.rules, department, 'Engineering');
 
         // # Add channel via channel selector
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
+        await addChannel(app, teamSettings.accessPolicies.editor, channel);
 
         // * Confirm the channel appears in the editor list before saving
-        await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
+        await expect(teamSettings.accessPolicies.editor.channels.row(channel.id)).toContainText(channel.display_name);
 
         // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty)
-        const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
-        await expect(saveBtn).toBeEnabled({timeout: 10000});
-        // Re-apply guard: concurrent initSetup() may reset ABAC between setup and save
+        const saveBtn = teamSettings.savePanel.saveButton;
+        await expect(saveBtn).toBeEnabled();
+        // Enable attribute-based access before saving so policy validation can complete.
         await enableABACConfig(adminClient);
         await saveBtn.click();
+        await expect(teamSettings.accessPolicies.editor.policyChangeModal.container).toBeVisible();
 
-        // Re-apply guard post-click: a concurrent initSetup() reset between the guard above
-        // and the server processing the save request causes the confirmation modal to skip.
+        // Keep attribute-based access enabled before confirming the new policy.
         await enableABACConfig(adminClient);
 
         // # Confirm in PolicyConfirmationModal
-        await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
-        await page.getByRole('button', {name: /Apply policy/}).click();
+        const confirm = teamSettings.accessPolicies.editor.policyChangeModal;
+        await expect(confirm.confirmButton).toHaveText(/Apply policy/);
+        await settle(confirm.confirmButton, {wait: Api.CreateAccessControlPolicy}).click();
 
         // * Auto-navigated back to list, policy appears
-        await expect(teamSettings.container.getByText(policyName)).toBeVisible();
+        await expect(await policyRow(teamSettings, policyName)).toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67967_1 Team admin can trigger sync and see updated status', async ({pw}) => {
@@ -573,13 +544,9 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // initSetup() on another worker can disable ABAC — without it the sync footer never completes reliably.
         await enableABACConfig(adminClient);
@@ -589,23 +556,27 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         });
 
         // * Footer visible with "Sync now" action
-        const footer = teamSettings.container.locator('.SyncStatusFooter');
-        await expect(footer).toBeVisible({timeout: 10000});
-        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible();
+        const {syncStatus} = teamSettings.accessPolicies;
+        await expect(syncStatus).toBeVisible();
+        await expect(syncStatus.syncNowButton).toBeVisible();
 
         // # Click Sync now
-        await teamSettings.container.getByText(/Sync now/).click();
+        await settle(teamSettings.accessPolicies.syncStatus.syncNowButton, {wait: Api.CreateJob}).click();
 
         // * Syncing state appears
-        await expect(teamSettings.container.getByText(/Syncing/)).toBeVisible({timeout: 5000});
+        await expect(teamSettings.accessPolicies.syncStatus.syncingText).toBeVisible();
 
         // * Wait for sync to complete and "Sync now" to reappear
-        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 90000});
+        await expect(teamSettings.accessPolicies.syncStatus.syncNowButton).toBeVisible({
+            timeout: duration.two_min,
+        });
 
         // * Status updates to "Last synced just now" confirming a fresh sync completed
-        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible({timeout: 30000});
+        await expect(teamSettings.accessPolicies.syncStatus.timeText).toHaveText(/Last synced just now/, {
+            timeout: duration.half_min,
+        });
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67967_2 System admin can trigger sync from team settings', async ({pw}) => {
@@ -622,27 +593,27 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const policy = await createParentPolicy(adminClient, `SysAdmin Sync ${Date.now()}`);
         await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, adminUser, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // * Footer visible with "Sync now" action
-        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 15000});
+        await expect(teamSettings.accessPolicies.syncStatus.syncNowButton).toBeVisible({
+            timeout: duration.half_min,
+        });
 
         // # Click Sync now
-        await teamSettings.container.getByText(/Sync now/).click();
+        await settle(teamSettings.accessPolicies.syncStatus.syncNowButton, {wait: Api.CreateJob}).click();
 
         // * Wait for sync to complete and "Sync now" to reappear
-        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 30000});
+        await expect(teamSettings.accessPolicies.syncStatus.syncNowButton).toBeVisible({
+            timeout: duration.half_min,
+        });
 
         // * Status updates to "Last synced just now" confirming a fresh sync completed
-        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
+        await expect(teamSettings.accessPolicies.syncStatus.timeText).toHaveText(/Last synced just now/);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_1 Team admin can delete policy after removing all channels', async ({pw}) => {
@@ -665,41 +636,34 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await adminClient.addToChannel(teamAdmin.id, channel.id);
 
         // # Team admin logs in and opens team settings
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // * Policy is visible
-        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
+        await expect(await policyRow(teamSettings, policyName)).toBeVisible();
 
         // # Open editor by clicking policy row
-        await teamSettings.container.getByText(policyName).click();
+        // The DataGrid name cell handles navigation without an interactive role.
+        await (await policyRow(teamSettings, policyName)).cell('name').click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         // # Remove the channel to enable delete
-        const removeLink = teamSettings.policyChannelRemoveLink;
-        await expect(removeLink).toBeVisible({timeout: 10000});
-        await removeLink.click();
+        await removeFirstChannel(teamSettings.accessPolicies.editor);
 
         // # Click Delete in the delete section
-        const deleteBtn = teamSettings.container
-            .locator('.TeamPolicyEditor__section--delete button')
-            .filter({hasText: 'Delete'});
-        await expect(deleteBtn).toBeEnabled({timeout: 10000});
-        await deleteBtn.click();
+        await expect(teamSettings.accessPolicies.editor.deleteButton).toBeEnabled();
+        await teamSettings.accessPolicies.editor.deleteButton.click();
+        const deleteModal = teamSettings.accessPolicies.editor.deleteModal;
 
         // # Confirm deletion
-        const deleteModal = page.locator('.TeamPolicyEditor__delete-modal');
-        await expect(deleteModal).toBeVisible({timeout: 10000});
-        await deleteModal.getByRole('button', {name: 'Delete'}).click();
+        await expect(deleteModal.confirmButton).toHaveText('Delete');
+        await settle(deleteModal.confirmButton, {wait: Api.DeleteAccessControlPolicy}).click();
 
         // * Back to list, policy is removed
-        await expect(teamSettings.container.getByText(policyName)).not.toBeVisible();
+        await expect(policyRows(teamSettings, policyName)).not.toBeVisible();
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67594_2 System admin cross-team channel changes toggle team admin visibility', async ({pw}) => {
@@ -733,38 +697,32 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await assignChannelsToPolicy(adminClient, policy.id, [channelA.id]);
 
         // # Team admin logs in and opens team settings
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
         // # Step 1: Team admin can see the policy (all channels in their team)
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
-        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
-        await teamSettings.close();
+        await expect(await policyRow(teamSettings, policyName)).toBeVisible();
+        await closeTeamSettings(teamSettings);
 
         // # Step 2: System admin adds a channel from team B (cross-team)
         await assignChannelsToPolicy(adminClient, policy.id, [channelB.id]);
 
         // # Team admin reopens team settings — policy should NOT be visible (cross-team)
-        const teamSettings2 = await channelsPage.openTeamSettings();
-        await teamSettings2.openAccessPoliciesTab();
+        const teamSettings2 = await openAccessPoliciesTab(app);
 
-        await expect(teamSettings2.container.getByText(policyName)).not.toBeVisible({timeout: 10000});
-        await teamSettings2.close();
+        await expect(policyRows(teamSettings2, policyName)).not.toBeVisible();
+        await closeTeamSettings(teamSettings2);
 
         // # Step 3: System admin removes team B channel (back to single-team)
         await unassignChannelsFromPolicy(adminClient, policy.id, [channelB.id]);
 
         // # Team admin reopens team settings — policy should be visible again
-        const teamSettings3 = await channelsPage.openTeamSettings();
-        await teamSettings3.openAccessPoliciesTab();
+        const teamSettings3 = await openAccessPoliciesTab(app);
 
-        await expect(teamSettings3.container.getByText(policyName)).toBeVisible({timeout: 10000});
+        await expect(await policyRow(teamSettings3, policyName)).toBeVisible();
 
-        await teamSettings3.close();
+        await closeTeamSettings(teamSettings3);
     });
 
     test.fixme('MM-67594_14 Add channels modal shows only private member channels even when team has >50 public channels', async ({
@@ -800,38 +758,29 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await adminClient.addToChannel(teamAdmin.id, gcChannel.id);
         await adminClient.patchChannel(gcChannel.id, {group_constrained: true} as any);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
         // # Open the policy editor and click Add channels
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        await expect(teamSettings.container.locator('#input_policyName')).toBeVisible({timeout: 10000});
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
+        await teamSettings.accessPolicies.editor.addChannelsButton.click();
+        const selector = app.channelSelectorModal;
+        await expect(selector.container).toBeVisible();
+        const {results} = selector.channels;
+        await expect(results.channelList).not.toHaveKeyCount(0);
 
         // * Both private channels appear despite 55 public channels exceeding the cap
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: privateChannel1.display_name}),
-        ).toBeVisible();
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: privateChannel2.display_name}),
-        ).toBeVisible();
+        await expect(results.channel(privateChannel1)).toBeVisible();
+        await expect(results.channel(privateChannel2)).toBeVisible();
 
         // * Group-constrained channel does not appear
-        await expect(
-            channelModal.locator('.more-modal__row').filter({hasText: gcChannel.display_name}),
-        ).not.toBeVisible();
+        await expect(results.channel(gcChannel)).toHaveCount(0);
 
-        await page.keyboard.press('Escape');
-        await teamSettings.close();
+        await selector.closeButton.click();
+        await expect(results.channelList.locator).toHaveCount(0);
+        await closeTeamSettings(teamSettings);
     });
 
     test('MM-67920_sync_1 Sync job created on policy save adds matching user to channel', async ({pw}) => {
@@ -845,7 +794,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
-        await ensureDepartmentAttribute(adminClient);
+        const department = await ensureDepartmentAttribute(adminClient);
 
         // # Create channel — target user should be added here by the sync
         const channel = await createPrivateChannel(adminClient, team.id);
@@ -870,56 +819,49 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await setUserAttribute(adminClient, targetUser.id, 'Department', 'Engineering');
 
         // # Log in as team admin and open policy editor
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
+        const app = await openTeam(pw, teamAdmin, team);
 
-        const teamSettings = await channelsPage.openTeamSettings();
-        await teamSettings.openAccessPoliciesTab();
+        const teamSettings = await openAccessPoliciesTab(app);
 
-        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await teamSettings.accessPolicies.addPolicyButton.click();
+        await expect(teamSettings.accessPolicies.editor.name.container).toBeVisible();
 
         // # Fill policy name and add attribute rule
         const policyName = `Sync Bug Fix ${Date.now()}`;
-        await teamSettings.container.locator('#input_policyName').fill(policyName);
-        await addAttributeRule(teamSettings.container, page, 'Engineering');
+        await teamSettings.accessPolicies.editor.name.container.fill(policyName);
+        await expect(teamSettings.accessPolicies.editor.name.container).toHaveValue(policyName);
+        await addRule(teamSettings.accessPolicies.editor.rules, department, 'Engineering');
 
         // # Add channel
-        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
-        await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
+        await addChannel(app, teamSettings.accessPolicies.editor, channel);
+        await expect(teamSettings.accessPolicies.editor.channels.row(channel.id)).toContainText(channel.display_name);
 
         // # Enable Auto-add members for the channel so the sync job adds matching users
-        await teamSettings.container.locator(`#auto-add-checkbox-${channel.id}`).click();
+        await teamSettings.accessPolicies.editor.channels.row(channel.id).autoAddCheckbox.set(true);
+        await expect(teamSettings.accessPolicies.editor.channels.row(channel.id).autoAddCheckbox).toBeChecked();
 
         // # Save — triggers confirmation modal
-        const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
-        await expect(saveBtn).toBeEnabled({timeout: 20000});
+        const saveBtn = teamSettings.savePanel.saveButton;
+        await expect(saveBtn).toBeEnabled({timeout: duration.half_min});
         await saveBtn.click();
+        await expect(teamSettings.accessPolicies.editor.policyChangeModal.container).toBeVisible();
 
         // # Confirm "Apply policy" (add users immediately)
-        await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
-        await page.getByRole('button', {name: /Apply policy/}).click();
+        const confirm = teamSettings.accessPolicies.editor.policyChangeModal;
+        await expect(confirm.confirmButton).toHaveText(/Apply policy/);
+        await settle(confirm.confirmButton, {wait: Api.CreateAccessControlPolicy}).click();
 
         // * Navigate back to policy list — confirms save succeeded (no 403 on job creation)
-        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 15000});
+        await expect(await policyRow(teamSettings, policyName)).toBeVisible({timeout: duration.half_min});
 
         // * Target user is added to the channel by the sync job
         await expect
-            .poll(
-                async () => {
-                    try {
-                        await adminClient.getChannelMember(channel.id, targetUser.id);
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                },
-                {timeout: 90000, intervals: [2000, 4000, 6000]},
-            )
-            .toBe(true);
+            .poll(async () => (await adminClient.getChannelMembersByIds(channel.id, [targetUser.id])).length, {
+                timeout: duration.two_min,
+                intervals: [2000, 4000, 6000],
+            })
+            .toBe(1);
 
-        await teamSettings.close();
+        await closeTeamSettings(teamSettings);
     });
 });

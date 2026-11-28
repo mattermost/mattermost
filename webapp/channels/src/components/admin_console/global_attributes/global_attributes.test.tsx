@@ -65,7 +65,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attributes.empty--text')).toBeInTheDocument();
         });
     });
 
@@ -125,10 +125,10 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         expect(screen.getByText('Department')).toBeInTheDocument();
 
         const header = within(screen.getByTestId('admin.header'));
-        expect(header.getByTestId('newAttributeButton')).toBeInTheDocument();
-        expect(header.queryByTestId('global-attributes-search')).not.toBeInTheDocument();
+        expect(header.getByTestId('admin.attributes.new--button')).toBeInTheDocument();
+        expect(header.queryByTestId('admin.attributes.search--textbox')).not.toBeInTheDocument();
 
-        const search = screen.getByTestId('global-attributes-search');
+        const search = screen.getByTestId('admin.attributes.search--textbox');
 
         // The server rejects a term longer than a field name can be.
         expect(search).toHaveAttribute('maxLength', '255');
@@ -146,15 +146,15 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
 
     describe('source filter', () => {
         const pickSource = async (label: string) => {
-            await userEvent.click(screen.getByTestId('global-attributes-source-filter'));
+            await userEvent.click(screen.getByTestId('admin.attributes.source_filter--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
         };
-        const shownSource = () => within(screen.getByTestId('global-attributes-source-filter')).getByRole('textbox', {hidden: true});
+        const shownSource = () => within(screen.getByTestId('admin.attributes.source_filter--button')).getByRole('textbox', {hidden: true});
 
         test('renders beside the search field, defaulting to All, and sends no source', async () => {
             renderWithContext(<GlobalAttributes/>);
 
-            expect(screen.getByTestId('global-attributes-search').closest('.GlobalAttributes__actions')).toContainElement(screen.getByTestId('global-attributes-source-filter'));
+            expect(screen.getByTestId('admin.attributes.search--textbox').closest('.GlobalAttributes__actions')).toContainElement(screen.getByTestId('admin.attributes.source_filter--button'));
             expect(shownSource()).toHaveValue('All');
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
             expect(searchGlobalAttributes.mock.calls[0][0].source).toBeUndefined();
@@ -181,7 +181,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
 
             await pickSource('SAML');
-            await userEvent.type(screen.getByTestId('global-attributes-search'), 'dept');
+            await userEvent.type(screen.getByTestId('admin.attributes.search--textbox'), 'dept');
 
             await waitFor(() => {
                 expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dept', source: 'saml'});
@@ -203,20 +203,20 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             renderWithContext(<GlobalAttributes/>);
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
 
-            await userEvent.type(screen.getByTestId('global-attributes-search'), 'zzz');
+            await userEvent.type(screen.getByTestId('admin.attributes.search--textbox'), 'zzz');
             await pickSource('OpenID Connect');
 
-            expect(await screen.findByTestId('global-attributes-empty-search')).toBeInTheDocument();
-            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attributes.empty_search--text')).toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attributes.empty--text')).not.toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
 
-            expect(screen.getByTestId('global-attributes-search')).toHaveValue('');
+            expect(screen.getByTestId('admin.attributes.search--textbox')).toHaveValue('');
             expect(shownSource()).toHaveValue('All');
             await waitFor(() => {
                 expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: undefined, source: undefined});
             });
-            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attributes.empty--text')).toBeInTheDocument();
         });
     });
 
@@ -237,7 +237,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             };
         }
 
-        const trigger = () => screen.getByTestId('global-attributes-resource-type-filter');
+        const trigger = () => screen.getByTestId('admin.attributes.resource_type_filter--button');
         const pickResourceType = async (label: string) => {
             await userEvent.click(trigger());
             await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
@@ -248,7 +248,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         test('renders beside the source filter, defaulting to All, and sends no resource type', async () => {
             renderWithContext(<GlobalAttributes/>, stateOffering());
 
-            expect(screen.getByTestId('global-attributes-source-filter').closest('.GlobalAttributes__actions')).toContainElement(trigger());
+            expect(screen.getByTestId('admin.attributes.source_filter--button').closest('.GlobalAttributes__actions')).toContainElement(trigger());
             expect(shownResourceType()).toHaveValue('All');
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
             expect(searchGlobalAttributes.mock.calls[0][0].resource_type).toBeUndefined();
@@ -266,7 +266,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             renderWithContext(<GlobalAttributes/>, stateOffering({channel: false, post: false}));
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
 
-            expect(screen.queryByTestId('global-attributes-resource-type-filter')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attributes.resource_type_filter--button')).not.toBeInTheDocument();
             expect(lastSearch().resource_type).toBeUndefined();
         });
 
@@ -290,7 +290,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
 
             await pickResourceType('Posts');
             await pickSourceIn('SAML');
-            await userEvent.type(screen.getByTestId('global-attributes-search'), 'dept');
+            await userEvent.type(screen.getByTestId('admin.attributes.search--textbox'), 'dept');
 
             await waitFor(() => {
                 expect(searchGlobalAttributes).toHaveBeenLastCalledWith({term: 'dept', source: 'saml', resource_type: 'post'});
@@ -302,19 +302,19 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
             await waitFor(() => expect(searchGlobalAttributes).toHaveBeenCalledTimes(1));
 
             await pickResourceType('Users');
-            expect(await screen.findByTestId('global-attributes-empty-search')).toHaveTextContent('No attributes match your search or filters.');
-            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attributes.empty_search--text')).toHaveTextContent('No attributes match your search or filters.');
+            expect(screen.queryByTestId('admin.attributes.empty--text')).not.toBeInTheDocument();
 
-            await userEvent.type(screen.getByTestId('global-attributes-search'), 'zzz');
+            await userEvent.type(screen.getByTestId('admin.attributes.search--textbox'), 'zzz');
             await pickSourceIn('Plugin');
             await userEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
 
-            expect(screen.getByTestId('global-attributes-search')).toHaveValue('');
+            expect(screen.getByTestId('admin.attributes.search--textbox')).toHaveValue('');
             expect(shownResourceType()).toHaveValue('All');
             await waitFor(() => {
                 expect(lastSearch()).toEqual({term: undefined, source: undefined, resource_type: undefined});
             });
-            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attributes.empty--text')).toBeInTheDocument();
         });
 
         test('drops a picked type the server stops offering', async () => {
@@ -331,7 +331,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         });
 
         async function pickSourceIn(label: string) {
-            await userEvent.click(screen.getByTestId('global-attributes-source-filter'));
+            await userEvent.click(screen.getByTestId('admin.attributes.source_filter--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: label}));
         }
     });

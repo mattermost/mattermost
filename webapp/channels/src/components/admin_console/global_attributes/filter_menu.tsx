@@ -39,13 +39,14 @@ export default function FilterMenu<T extends string>({id, testId, label, menuBut
                 menuButton={{
                     id: `${id}Button`,
                     class: 'inputWithMenu',
-                    dataTestId: testId,
+                    dataTestId: `${testId}--button`,
                     'aria-label': formatMessage(menuButtonAriaLabel),
                     as: 'div',
                     children: (
                         <Input
                             label={formatMessage(label)}
                             name={id}
+                            testId={`${testId}.input`}
                             value={formatMessage(selected.label)}
                             readOnly={true}
                             tabIndex={-1}
@@ -56,6 +57,7 @@ export default function FilterMenu<T extends string>({id, testId, label, menuBut
                 menu={{
                     id: `${id}Menu`,
                     'aria-label': formatMessage(menuAriaLabel),
+                    testId: `${testId}.menu`,
                 }}
             >
                 {options.map((option) => {
@@ -65,6 +67,7 @@ export default function FilterMenu<T extends string>({id, testId, label, menuBut
                         <Menu.Item
                             key={key}
                             id={`${id}-${key}`}
+                            data-testid={`${testId}.menu.option:${key}--menuitemradio`}
                             role='menuitemradio'
                             aria-checked={checked}
                             forceCloseOnSelect={true}

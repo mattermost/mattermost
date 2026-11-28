@@ -128,7 +128,7 @@ export const GraphRow = React.memo(({
             })}
             onClick={() => toggleMenu('parents')}
             disabled={disabled}
-            data-testid='attributeOptionsGraphRow__parentsBadge'
+            data-testid='admin.attribute.graph.row.parents_badge--button'
         >
             <LinkVariantIcon
                 size={12}
@@ -149,7 +149,7 @@ export const GraphRow = React.memo(({
                 'attribute-options-graph-values__row--highlight': highlighted,
             })}
             style={{['--attribute-options-graph-values-indent' as string]: occurrence.depth}}
-            data-testid='attributeOptionsGraphRow'
+            data-testid={`admin.attribute.graph.row:${index}`}
             data-option-name={occurrence.option.name}
             data-parent-name={parentName ?? ''}
             data-depth={String(occurrence.depth)}
@@ -164,7 +164,7 @@ export const GraphRow = React.memo(({
                         aria-label={formatMessage(expanded ? messages.collapse : messages.expand, {name: occurrence.option.name})}
                         aria-expanded={expanded}
                         onClick={() => onToggleCollapse(occurrence.key)}
-                        data-testid='attributeOptionsGraphRow__collapse'
+                        data-testid='admin.attribute.graph.row.collapse--button'
                     >
                         {expanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
                     </button>
@@ -186,7 +186,7 @@ export const GraphRow = React.memo(({
                         })}
                         tabIndex={-1}
                         aria-hidden={true}
-                        data-testid='attributeOptionsGraphRow__dragHandle'
+                        data-testid='admin.attribute.graph.row.drag_handle'
                     >
                         <DragVerticalIcon size={16}/>
                     </span>
@@ -195,12 +195,12 @@ export const GraphRow = React.memo(({
 
             <span
                 className='attribute-options-graph-values__name-wrap'
-                data-testid='attributeOptionsGraphRow__nameWrap'
+                data-testid='admin.attribute.graph.row.name_wrap'
             >
                 {disabled ? (
                     <span
                         className='attribute-options-graph-values__name attribute-options-graph-values__name--static'
-                        data-testid='attributeOptionsGraphRow__name'
+                        data-testid='admin.attribute.graph.row.name--text'
                     >
                         {occurrence.option.name}
                     </span>
@@ -209,7 +209,7 @@ export const GraphRow = React.memo(({
                         type='button'
                         className='attribute-options-graph-values__name'
                         onClick={() => toggleMenu('main')}
-                        data-testid='attributeOptionsGraphRow__name'
+                        data-testid='admin.attribute.graph.row.rename--button'
                     >
                         {occurrence.option.name}
                     </button>
@@ -221,11 +221,12 @@ export const GraphRow = React.memo(({
                             as: 'div',
                             class: 'attribute-options-graph-values__parents-anchor',
                             'aria-label': editValueLabel,
-                            dataTestId: 'attributeOptionsGraphRow__parentsAnchor',
+                            dataTestId: 'admin.attribute.graph.row.menu_anchor--button',
                             children: <span className='sr-only'>{editValueLabel}</span>,
                         }}
                         menu={{
                             id: `attribute-options-graph-row-parents-menu-${index}`,
+                            testId: 'admin.attribute.graph.pane',
                             className: 'attribute-graph-parents-pane',
                             width: '368px',
                             'aria-label': editValueLabel,
@@ -276,7 +277,7 @@ export const GraphRow = React.memo(({
                             aria-label={addChildLabel}
                             disabled={atMax}
                             onClick={() => onOpenMenuAddChild(occurrence, index)}
-                            data-testid='attributeOptionsGraphRow__addChild'
+                            data-testid='admin.attribute.graph.row.add_child--button'
                         />
                     </WithTooltip>
                     <WithTooltip title={formatMessage(messages.parentsActionTooltip)}>
@@ -286,7 +287,7 @@ export const GraphRow = React.memo(({
                             icon={<Icon glyph={<SitemapIcon/>}/>}
                             aria-label={formatMessage(messages.parentsAria, {name: occurrence.option.name})}
                             onClick={() => toggleMenu('parents')}
-                            data-testid='attributeOptionsGraphRow__parents'
+                            data-testid='admin.attribute.graph.row.parents--button'
                         />
                     </WithTooltip>
                     <WithTooltip title={deleteLabel}>
@@ -297,7 +298,7 @@ export const GraphRow = React.memo(({
                             icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
                             aria-label={deleteLabel}
                             onClick={() => onDelete(occurrence.option.name)}
-                            data-testid='attributeOptionsGraphRow__delete'
+                            data-testid='admin.attribute.graph.row.delete--button'
                         />
                     </WithTooltip>
                 </div>

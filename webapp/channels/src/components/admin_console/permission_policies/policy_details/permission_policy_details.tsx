@@ -539,10 +539,14 @@ function PermissionPolicyDetails({
                                     labelClassName='col-sm-4 vertically-centered-label'
                                     inputClassName='col-sm-8'
                                     autoFocus={policyId === undefined}
+                                    testIdScope='admin.permission_policies.edit.name'
                                 />
                             </div>
 
-                            <div className='pp-info-notice'>
+                            <div
+                                className='pp-info-notice'
+                                data-testid='admin.permission_policy.evaluation_info'
+                            >
                                 <SectionNotice
                                     type='info'
                                     title={
@@ -598,11 +602,15 @@ function PermissionPolicyDetails({
                             {/* "Who this policy applies to" */}
                             <AdminPanel
                                 id='permission_policy_who'
+                                testId='admin.permission_policy.who'
                                 title={panelMessages.whoTitle}
                                 subtitle={whoSubtitleMessages[scope]}
                             >
                                 <div className='pp-role-selector'>
-                                    <span className='pp-role-selector-label'>
+                                    <span
+                                        className='pp-role-selector-label'
+                                        data-testid='admin.permission_policy.role_label--text'
+                                    >
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.who.role_label'
                                             defaultMessage='Select a role from the predefined list of system roles'
@@ -612,6 +620,7 @@ function PermissionPolicyDetails({
                                         menuButton={{
                                             id: 'pp-role-selector-btn',
                                             class: 'pp-role-dropdown-button',
+                                            dataTestId: 'admin.permission_policy.role--button',
                                             children: (
                                                 <>
                                                     <span>{(() => {
@@ -634,6 +643,7 @@ function PermissionPolicyDetails({
                                             <Menu.Item
                                                 key={role.value}
                                                 id={`pp-role-option-${role.value}`}
+                                                data-testid={`admin.permission_policy.role_menu.role:${role.value}--menuitem`}
                                                 onClick={() => {
                                                     setSelectedRole(role.value);
                                                     markDirty();
@@ -755,6 +765,7 @@ function PermissionPolicyDetails({
                                         menuButton={{
                                             id: 'pp-add-permission-btn',
                                             as: AddPermissionMenuTrigger,
+                                            dataTestId: 'admin.permission_policy.add_permission--button',
                                             children: (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.edit.permissions.add'
@@ -774,6 +785,7 @@ function PermissionPolicyDetails({
                                             <Menu.Item
                                                 key={perm.value}
                                                 id={`pp-add-permission-${perm.value}`}
+                                                data-testid={`admin.permission_policy.permission_menu.permission:${perm.value}--menuitem`}
                                                 onClick={() => addPermission(perm.value)}
                                                 labels={
                                                     <>
@@ -879,6 +891,7 @@ function PermissionPolicyDetails({
 
                     <div className='admin-console-save'>
                         <SaveButton
+                            testId='admin.save'
                             disabled={!saveNeeded || saving}
                             saving={saving}
                             onClick={handleSubmit}
@@ -893,7 +906,10 @@ function PermissionPolicyDetails({
                             asChild={true}
                             emphasis='tertiary'
                         >
-                            <BlockableLink to='/admin_console/system_attributes/permission_policies'>
+                            <BlockableLink
+                                to='/admin_console/system_attributes/permission_policies'
+                                data-testid='admin.permission_policy.cancel--link'
+                            >
                                 <FormattedMessage
                                     id='admin.permission_policies.edit.cancel'
                                     defaultMessage='Cancel'
@@ -901,7 +917,10 @@ function PermissionPolicyDetails({
                             </BlockableLink>
                         </Button>
                         {serverError && (
-                            <span className='pp-error'>
+                            <span
+                                className='pp-error'
+                                data-testid='admin.permission_policy.error--text'
+                            >
                                 <i className='icon icon-alert-outline'/>
                                 <FormattedMessage
                                     id='admin.permission_policies.edit.serverError'

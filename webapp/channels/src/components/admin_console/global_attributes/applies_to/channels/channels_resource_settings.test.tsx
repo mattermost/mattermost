@@ -88,6 +88,7 @@ describe('ChannelsResourceSettings', () => {
                 onChange={onChange}
                 channelFieldId={props.channelFieldId}
                 attributeDisplayName={props.attributeDisplayName}
+                testIdScope='admin.attribute.applies_to.channel.settings'
                 disabled={props.disabled}
                 ordered={props.ordered}
             />,
@@ -99,14 +100,14 @@ describe('ChannelsResourceSettings', () => {
     it('hides the Required toggle by default (ChannelAttributesRequired off)', () => {
         renderComponent({}, {});
 
-        expect(screen.queryByTestId('channelsResourceRequired-button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.settings.required--switch')).not.toBeInTheDocument();
         expect(screen.queryByText('Required')).not.toBeInTheDocument();
     });
 
     it('shows the Required toggle when ChannelAttributesRequired is on', () => {
         renderComponent();
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch')).toBeInTheDocument();
         expect(screen.getByText('Required')).toBeInTheDocument();
     });
 
@@ -120,8 +121,8 @@ describe('ChannelsResourceSettings', () => {
     it('renders Header and Banner location checkboxes', () => {
         renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, displayLocations: [DISPLAY_LABEL_HEADER]}}, {});
 
-        const header = screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`);
-        const banner = screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`);
+        const header = screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`);
+        const banner = screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_BANNER_TOP}--checkbox`);
 
         expect(header).toBeChecked();
         expect(banner).not.toBeChecked();
@@ -132,7 +133,7 @@ describe('ChannelsResourceSettings', () => {
     it('toggles a display location via Compass Checkbox', async () => {
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, displayLocations: []}}, {});
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+        await userEvent.click(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
             displayLocations: [DISPLAY_LABEL_HEADER],
@@ -142,14 +143,14 @@ describe('ChannelsResourceSettings', () => {
     it('disables location checkboxes when disabled', () => {
         renderComponent({disabled: true}, {});
 
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`)).toBeDisabled();
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`)).toBeDisabled();
+        expect(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`)).toBeDisabled();
+        expect(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_BANNER_TOP}--checkbox`)).toBeDisabled();
     });
 
     it('keeps the Required control as a switch, not a Compass Checkbox', () => {
         renderComponent();
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toHaveAttribute('role', 'switch');
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch')).toHaveAttribute('role', 'switch');
     });
 
     it('renders no banner when nothing is missing', () => {
@@ -171,7 +172,7 @@ describe('ChannelsResourceSettings', () => {
 
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
 
-        const toggle = screen.getByTestId('channelsResourceRequired-button');
+        const toggle = screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch');
         expect(toggle).not.toBeDisabled();
 
         await userEvent.click(toggle);
@@ -197,7 +198,7 @@ describe('ChannelsResourceSettings', () => {
         expect(banner).toHaveClass('info');
         expect(banner).not.toHaveClass('warning');
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
 
         expect(banner).toHaveClass('warning');
         expect(banner).not.toHaveClass('info');
@@ -237,7 +238,7 @@ describe('ChannelsResourceSettings', () => {
 
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true}});
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: false}));
     });
@@ -257,7 +258,7 @@ describe('ChannelsResourceSettings', () => {
         // re-renders with the unsaved value.
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}, channelFieldId: 'field1'});
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
         expect(screen.getByTestId('channelsMissingValuesBanner')).not.toHaveClass('warning');
@@ -276,7 +277,7 @@ describe('ChannelsResourceSettings', () => {
         }}));
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
     });
@@ -285,21 +286,21 @@ describe('ChannelsResourceSettings', () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({loading: true}));
         renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch')).toBeDisabled();
     });
 
     it('can still be turned off while the counts load', () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({loading: true}));
         renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true}});
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toBeEnabled();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch')).toBeEnabled();
     });
 
     it('leaves the decision to the server when the counts fail to load', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({failed: true}));
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
     });

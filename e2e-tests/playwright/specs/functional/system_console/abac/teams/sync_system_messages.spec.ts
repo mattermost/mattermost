@@ -7,7 +7,7 @@
  * @reference MM-69100
  */
 
-import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import {expect, newTestPassword, test, type App, duration} from '@mattermost/playwright-lib';
 
 import {
     enableTeamMembershipABACConfig,
@@ -23,8 +23,20 @@ import {enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
 
 const SYSTEM_BOT_USERNAME = 'system-bot';
 
+/**
+ * Opens the user's DM with the system bot and checks it holds the access-control message. Matched by its text, which
+ * names this run's team: the DM keeps messages from earlier runs.
+ */
+async function expectSystemMessage(app: App, team: {name: string}, dm: {name: string}, text: RegExp) {
+    await app.channelsPage.goto({team, channel: dm.name});
+    await expect(app.center.postList.postList.locator.filter({hasText: text})).toBeVisible();
+    await expect(app.center.postList.postList.locator.filter({hasText: text})).toHaveCount(1, {
+        timeout: duration.half_min,
+    });
+}
+
 test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']}, () => {
-    test.setTimeout(120000);
+    test.setTimeout(duration.two_min);
 
     let createdTeamIds: string[] = [];
     let createdUserIds: string[] = [];
@@ -99,10 +111,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
 
         // # Log in as joiner and navigate to the DM
         const joinerWithPassword = {...joiner, password: joinerPassword};
-        const {page} = await pw.testBrowser.login(joinerWithPassword);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, dmChannel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(joinerWithPassword);
 
         // * Addition system message rendered in the DM (scoped to this run's team name
         // to avoid matching accumulated messages from prior test runs in the same DM).
@@ -111,9 +120,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             `You have been added to ${escapedName} because you now meet the membership requirements`,
             'i',
         );
-        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible({
-            timeout: 15000,
-        });
+        await expectSystemMessage(app, team, dmChannel, expectedText);
     });
 
     test('MM-69100-T7 removed member receives a removal DM after a sync job', async ({pw}) => {
@@ -169,10 +176,7 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
 
         // # Log in as mkt1 and open the system-bot DM from the retained team's context
         const mkt1WithPassword = {...mkt1, password: mkt1Password};
-        const {page} = await pw.testBrowser.login(mkt1WithPassword);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(homeTeam.name, dmChannel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(mkt1WithPassword);
 
         // * Removal system message rendered (scoped to this run's team name).
         const escapedName = team.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -180,8 +184,6 @@ test.describe('ABAC - Sync System Messages', {tag: ['@abac', '@team_membership']
             `You have been removed from ${escapedName} because you no longer meet the membership requirements`,
             'i',
         );
-        await expect(page.locator('.post--system__access-control').filter({hasText: expectedText})).toBeVisible({
-            timeout: 15000,
-        });
+        await expectSystemMessage(app, homeTeam, dmChannel, expectedText);
     });
 });

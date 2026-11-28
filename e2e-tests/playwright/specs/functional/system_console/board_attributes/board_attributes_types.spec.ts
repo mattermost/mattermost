@@ -6,107 +6,95 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, test} from '@mattermost/playwright-lib';
 
 import {
-    BOARDS_GROUP,
-    OBJECT_TYPE_POST,
-    SYSTEM_TARGET_TYPE,
-    setupBoardAttributesTest,
+    TYPE_LABEL,
+    addAttribute,
+    addOption,
+    changeType,
     cleanupCustomBoardFields,
+    fieldByName,
+    openBoardAttributes,
+    rowByName,
+    save,
+    setupBoardAttributesTest,
 } from './setup';
-import type {BoardAttributeType} from './setup';
 
-const SERVER_TYPE_BY_UI_LABEL: Record<BoardAttributeType, string> = {
-    Text: 'text',
-    Select: 'select',
-    'Multi-select': 'multiselect',
-    Date: 'date',
-    User: 'user',
-};
-
-const TYPES: BoardAttributeType[] = ['Text', 'Select', 'Multi-select', 'Date', 'User'];
+const TYPES = ['text', 'select', 'multiselect', 'date', 'user'] as const;
 
 test.describe('Board Attributes - attribute types', {tag: '@board_attributes'}, () => {
     test.afterEach(async () => {
         await cleanupCustomBoardFields();
     });
 
-    for (const uiType of TYPES) {
-        test(`adds a new attribute and changes its type to ${uiType} — persists across reload`, async ({pw}) => {
-            const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
-            const ba = systemConsolePage.boardAttributes;
+    for (const type of TYPES) {
+        const label = TYPE_LABEL[type];
 
-            await ba.goto();
-            await ba.toBeVisible();
-
-            const name = `Type_${uiType.replace(/[^A-Za-z]/g, '')}_${Date.now()}`;
+        test(`adds a new attribute and changes its type to ${label} — persists across reload`, async ({pw}) => {
+            const {adminClient, app} = await setupBoardAttributesTest(pw);
+            let ba = await openBoardAttributes(app);
 
             // # Add a new attribute, fill its name, change the type
-            const row = await ba.addAttribute(name);
-            await ba.changeTypeInRow(row, uiType);
+            const name = `Type_${label.replace(/[^A-Za-z]/g, '')}_${Date.now()}`;
+            const row = await addAttribute(ba, name);
+            await changeType(row, type);
 
             // # Select / Multi-select require at least one option, otherwise
             //   validation gates save (ValidationWarningOptionsRequired).
-            if (uiType === 'Select' || uiType === 'Multi-select') {
-                await ba.addOptionInRow(row, 'Initial');
+            if (type === 'select' || type === 'multiselect') {
+                await addOption(row, 'Initial');
             }
 
             // # Save
-            await ba.saveAndWaitForSettled();
+            await save(ba, Api.CreatePropertyField);
 
             // * Server reflects the chosen type
-            const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, {
-                targetType: SYSTEM_TARGET_TYPE,
-            });
-            const created = (fields ?? []).find((f) => f.name === name);
-            expect(created).toBeDefined();
-            expect(created!.type).toBe(SERVER_TYPE_BY_UI_LABEL[uiType]);
+            const created = await fieldByName(adminClient, name);
+            expect(created.type).toBe(type);
 
             // # Reload
-            await ba.goto();
-            await ba.toBeVisible();
+            ba = await openBoardAttributes(app);
 
             // * Row is still rendered
-            await expect(ba.nameInputByValue(name)).toBeVisible();
+            await expect(ba.row(created.id).nameTextbox).toHaveValue(name);
 
             // * Row's type selector reflects the chosen type
-            await expect(ba.typeSelectorByName(name)).toContainText(uiType);
+            await expect(ba.row(created.id).typeButton).toContainText(label);
         });
     }
 
     test('type menu opens with all five types and the default (Text) is checked', async ({pw}) => {
-        const {systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
+        const {app} = await setupBoardAttributesTest(pw);
+        const ba = await openBoardAttributes(app);
 
         // # Add a row (defaults to Text)
-        const row = await ba.addAttribute(`Menu_${Date.now()}`);
+        const row = await addAttribute(ba, `Menu_${Date.now()}`);
 
         // # Open the type menu
-        await ba.openTypeMenuInRow(row);
+        await row.typeButton.click();
+        const menu = app.boardAttributeTypeMenu;
 
         // * All five types are listed
-        for (const uiType of TYPES) {
-            await expect(ba.container.page().getByRole('menuitemradio', {name: uiType, exact: true})).toBeVisible();
+        await expect(menu.typeList).toHaveKeyCount(TYPES.length);
+        for (const type of TYPES) {
+            await expect(menu.type(type)).toBeVisible();
         }
 
         // * Default type (Text) is marked as the current selection
-        const textItem = ba.container.page().getByRole('menuitemradio', {name: 'Text', exact: true});
-        await expect(textItem).toHaveAttribute('aria-checked', 'true');
+        await expect(menu.type('text')).toHaveAttribute('aria-checked', 'true');
+        await expect(menu.type('select')).toHaveAttribute('aria-checked', 'false');
     });
 
     test('type selector is disabled on protected (seeded) rows', async ({pw}) => {
-        const {systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
+        const {adminClient, app} = await setupBoardAttributesTest(pw);
+        const ba = await openBoardAttributes(app);
 
-        await ba.goto();
-        await ba.toBeVisible();
+        // * A new row's type selector is enabled
+        await expect((await addAttribute(ba, `Enabled_${Date.now()}`)).typeButton).toBeEnabled();
 
         // * Status and Assignee type selectors are disabled
-        await expect(ba.typeSelectorByName('status')).toBeDisabled();
-        await expect(ba.typeSelectorByName('assignee')).toBeDisabled();
+        await expect((await rowByName(ba, adminClient, 'status')).typeButton).toBeDisabled();
+        await expect((await rowByName(ba, adminClient, 'assignee')).typeButton).toBeDisabled();
     });
 });

@@ -42,6 +42,8 @@ type Props = {
 
     /** Optional color override for icons */
     iconColor?: string;
+
+    testId?: string;
 };
 
 export default function PlatformIcons({
@@ -51,6 +53,7 @@ export default function PlatformIcons({
     className = 'SessionAttributes__platforms',
     iconClassName,
     iconColor,
+    testId,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -59,7 +62,7 @@ export default function PlatformIcons({
     return (
         <span
             className={className}
-            data-testid='session-attribute-platforms'
+            data-testid={testId}
         >
             {platformsToRender.map((platform) => {
                 const Icon = PLATFORM_ICONS[platform];

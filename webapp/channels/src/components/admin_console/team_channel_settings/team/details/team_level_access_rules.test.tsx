@@ -582,7 +582,7 @@ describe('TeamLevelAccessRules', () => {
             mockAccessControlSettings.EnableUserManagedAttributes = true;
         });
 
-        const getToggle = () => screen.getByTestId('team-rules-editor-mode-toggle');
+        const getToggle = () => screen.getByTestId('admin.team.access_rules.switch_mode--button');
 
         test('defaults to the table editor with a switch to advanced button', () => {
             renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
@@ -953,8 +953,8 @@ describe('TeamLevelAccessRules', () => {
             renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
 
             expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-            expect(screen.queryByTestId('team-rules-editor-mode-toggle')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('team-rules-advanced-locked')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.team.access_rules.switch_mode--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.team.access_rules.advanced_locked--text')).not.toBeInTheDocument();
         });
 
         test('shows a complex rule read-only with a notice and auto-add disabled', () => {
@@ -966,9 +966,9 @@ describe('TeamLevelAccessRules', () => {
             );
 
             expect(screen.getByTestId('cel-editor')).toHaveAttribute('data-disabled', 'true');
-            expect(screen.getByTestId('team-rules-advanced-locked')).toHaveTextContent('Only a System Admin can change them.');
-            expect(screen.getByTestId('team-auto-add-members-checkbox')).toBeDisabled();
-            expect(screen.queryByTestId('team-rules-editor-mode-toggle')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.team.access_rules.advanced_locked--text')).toHaveTextContent('Only a System Admin can change them.');
+            expect(screen.getByTestId('admin.team.auto_add_members--checkbox')).toBeDisabled();
+            expect(screen.queryByTestId('admin.team.access_rules.switch_mode--button')).not.toBeInTheDocument();
         });
 
         test('locks when the table fails to parse the rule', async () => {
@@ -977,7 +977,7 @@ describe('TeamLevelAccessRules', () => {
             await userEvent.click(screen.getByTestId('trigger-parse-error'));
 
             expect(screen.getByTestId('cel-editor')).toHaveAttribute('data-disabled', 'true');
-            expect(screen.getByTestId('team-rules-advanced-locked')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.team.access_rules.advanced_locked--text')).toBeInTheDocument();
         });
     });
 });

@@ -6,6 +6,7 @@ import type {Bot} from '@mattermost/types/bots';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {
+    deleteAccessControlPolicyIfPresent,
     expect,
     test,
     enableABAC,
@@ -25,6 +26,7 @@ import {
     navigateToPermissionPoliciesPage,
 } from '../support';
 import {ensureABACEnabled, waitForPolicy} from '../file_access/helpers';
+import {PERMISSION_POLICIES_PATH, permissionPolicyIdByName} from '../surface';
 
 const ABAC_UPLOAD_DENIED = 'api.file.upload_file.abac_denied.app_error';
 const ABAC_DOWNLOAD_DENIED = 'api.file.get_file.abac_denied.app_error';
@@ -53,8 +55,8 @@ async function downloadStatus(client: Client4, fileId: string): Promise<ApiResul
         await response.body?.cancel();
         return {status: response.status};
     }
-    const body = await response.json().catch(() => null);
-    return {status: response.status, errorId: body?.id};
+    const body: {id?: string} = await response.json();
+    return {status: response.status, errorId: body.id};
 }
 
 function tokenClient(token: string): PlaywrightClient4 {
@@ -229,11 +231,11 @@ test.describe('Permission Policies - Bot accounts scope', () => {
         if (!adminClient) {
             return;
         }
-        await ensureABACEnabled(adminClient).catch(() => {});
+        await ensureABACEnabled(adminClient);
 
         for (const bot of [botSecret, botMember]) {
             if (bot?.user_id) {
-                await adminClient.disableBot(bot.user_id).catch(() => {});
+                await adminClient.disableBot(bot.user_id);
             }
         }
 
@@ -241,8 +243,8 @@ test.describe('Permission Policies - Bot accounts scope', () => {
         if (!id && policyName) {
             const candidate = await getPolicyIdByName(adminClient, policyName, 1);
             if (candidate) {
-                const policy = await adminClient.getAccessControlPolicy(candidate).catch(() => null);
-                if (policy?.name === policyName) {
+                const policy = await adminClient.getAccessControlPolicy(candidate);
+                if (policy.name === policyName) {
                     id = candidate;
                 }
             }
@@ -252,7 +254,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
         // deleted once a 404 proves every policy is gone. Any other outcome fails here and keeps the field.
         const ids = [id, ...downloadPolicyIds].filter(Boolean);
         for (const pid of ids) {
-            await adminClient.deleteAccessControlPolicy(pid).catch(() => {});
+            await deleteAccessControlPolicyIfPresent(adminClient, pid);
         }
         for (const pid of ids) {
             await expect
@@ -263,7 +265,7 @@ test.describe('Permission Policies - Bot accounts scope', () => {
                 .toBe(404);
         }
         if (fieldId) {
-            await adminClient.deleteCustomProfileAttributeField(fieldId).catch(() => {});
+            await adminClient.deleteCustomProfileAttributeField(fieldId);
         }
     });
 
@@ -282,8 +284,8 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             test.setTimeout(pw.duration.four_min);
 
             // # Log in as sysadmin and open Permission Policies
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
+            const {app} = await pw.testBrowser.login(adminUser);
+            const page = app.page;
             await enableABAC(page);
             await ensureABACEnabled(adminClient);
             await navigateToPermissionPoliciesPage(page);
@@ -300,61 +302,63 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             });
 
             await waitForPolicy(adminClient, policyName);
-            policyId = (await getPolicyIdByName(adminClient, policyName))!;
-            expect(policyId).toBeTruthy();
+            policyId = await permissionPolicyIdByName(adminClient, policyName);
 
             // * Verify the stored policy uses the system_bot role and the plain expression
             const stored = await adminClient.getAccessControlPolicy(policyId);
             expect(stored.name).toBe(policyName);
             expect(stored.roles).toEqual(['system_bot']);
-            expect(stored.rules?.length).toBe(1);
-            expect(stored.rules![0].expression.trim()).toBe(typedRule);
-            expect(stored.rules![0].actions).toEqual(['upload_file_attachment']);
+            expect(stored.rules?.map((rule) => rule.expression.trim())).toEqual([typedRule]);
+            expect(stored.rules?.map((rule) => rule.actions)).toEqual([['upload_file_attachment']]);
             expect(stored.props?.bot_scope).toBeUndefined();
 
             // * Verify the list shows the policy as Bot accounts, not Members
             await navigateToPermissionPoliciesPage(page);
-            await page.getByPlaceholder('Search').fill(policyName);
-            const row = page.locator('.DataGrid_row').filter({hasText: policyName});
+            const list = app.admin.permissionPolicies;
+            await list.searchTextbox.fill(policyName);
+            await expect(list.searchTextbox).toHaveValue(policyName);
+            const row = list.row({id: policyId});
             await expect(row).toBeVisible({timeout: 15_000});
-            await expect(row.getByText('Bot accounts', {exact: true})).toBeVisible();
-            await expect(row.getByText('Members', {exact: true})).toHaveCount(0);
-            await expect(row.getByText('Upload Files')).toBeVisible();
+            await expect(row.cell('role')).toBeVisible();
+            await expect(row.cell('role')).toHaveText('Bot accounts');
+            await expect(row.cell('role')).not.toContainText('Members');
+            await expect(row.cell('policyActions')).toBeVisible();
+            await expect(row.cell('policyActions')).toHaveText('Upload Files');
 
             // # Reopen the policy
-            await row.locator('.policy-name').click();
-            await expect(page).toHaveURL(new RegExp(`/permission_policies/edit_policy/${policyId}`));
-            await page.waitForLoadState('networkidle');
+            // DataGrid navigates from the row's click handler; its generated name cell has no separate clickable part.
+            await row.cell('name').click();
+            await expect(page).toHavePath(`${PERMISSION_POLICIES_PATH}/edit_policy/${policyId}`);
 
             // * Verify the details page shows the Bot accounts scope and the rule in table mode
-            await expect(page.locator('#pp-role-selector-btn')).toContainText('Bot accounts');
-            const table = page.getByTestId('table-editor');
+            const policy = app.admin.permissionPolicy;
+            await expect(policy.roleButton).toContainText('Bot accounts');
+            const table = policy.rules;
             await expect(table).toBeVisible({timeout: 15_000});
-            await expect(table.locator('.table-editor__row')).toHaveCount(1);
-            await expect(page.locator('#attribute-selector-button-0')).toContainText(fieldName);
-            await expect(
-                table.locator('.table-editor__row').first().locator('.values-editor__simple-input'),
-            ).toHaveValue('Secret');
+            await expect(table.rowList).toHaveKeyCount(1);
+            await expect(table.row(0).attributeButton).toContainText(fieldName);
+            await expect(table.row(0).valueInputTextbox).toHaveValue('Secret');
 
             // * Verify simulation is available for a Bot accounts policy
-            await expect(page.getByRole('button', {name: 'Simulate rules'})).toBeEnabled();
+            await expect(table.testButton).toBeEnabled();
 
-            // * Verify Bot accounts is the last role option
-            await page.locator('#pp-role-selector-btn').click();
-            const options = page.locator('[id^="pp-role-option-"]');
-            await expect(options.last()).toHaveAttribute('id', 'pp-role-option-system_bot');
+            // * Verify Bot accounts is the last role option (key order is the rendered menu order)
+            await policy.roleButton.click();
+            await expect(policy.roleMenu.role('system_bot')).toBeVisible();
+            await expect.poll(async () => (await policy.roleMenu.roleList.keys()).at(-1)).toBe('system_bot');
             await page.keyboard.press('Escape');
+            await expect(policy.roleMenu.role('system_bot')).not.toBeVisible();
 
             // # Switch to Advanced Mode
-            await page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();
+            await policy.switchModeButton.click();
+            await expect(policy.cel.input).toBeVisible();
 
             // * Verify the CEL editor shows the stored rule
-            const editorLines = page.locator('.monaco-editor .view-lines').first();
-            await expect(editorLines).toBeVisible({timeout: 10_000});
-            await expect(editorLines).toContainText(fieldName);
+            // Monaco renders the rule's text inside the CEL input's own element.
+            await expect(policy.cel.input).toContainText(fieldName, {timeout: 10_000});
 
             // # Leave without saving
-            await page.goto('/admin_console/system_attributes/permission_policies');
+            await navigateToPermissionPoliciesPage(page);
         },
     );
 

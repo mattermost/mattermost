@@ -133,7 +133,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        const banner = screen.getByTestId('global-classification-banner-top');
+        const banner = screen.getByTestId('classification_banner.top');
         expect(banner).toBeInTheDocument();
         expect(banner).toHaveStyle({backgroundColor: '#C8102E'});
         expect(screen.getByText('SECRET')).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value, featureFlagEnabled: false}),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.top')).not.toBeInTheDocument();
     });
 
     test('does not render when linked field has no display actions', () => {
@@ -162,7 +162,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.top')).not.toBeInTheDocument();
     });
 
     test('does not render when system property value is absent', () => {
@@ -174,7 +174,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: null}),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.top')).not.toBeInTheDocument();
     });
 
     test('does not render when option ID in value does not match any template option', () => {
@@ -187,7 +187,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.top')).not.toBeInTheDocument();
     });
 
     test('renders bottom banner when linked field has display_banner_bottom action', () => {
@@ -200,7 +200,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        expect(screen.getByTestId('global-classification-banner-bottom')).toBeInTheDocument();
+        expect(screen.getByTestId('classification_banner.bottom')).toBeInTheDocument();
         expect(screen.getByText('SECRET')).toBeInTheDocument();
     });
 
@@ -214,7 +214,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-bottom')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.bottom')).not.toBeInTheDocument();
     });
 
     test('renders top banner when both actions are present', () => {
@@ -227,7 +227,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        expect(screen.getByTestId('global-classification-banner-top')).toBeInTheDocument();
+        expect(screen.getByTestId('classification_banner.top')).toBeInTheDocument();
     });
 
     test('does not render when linked field is not in store', () => {
@@ -238,7 +238,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: null, systemValue: value}),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.top')).not.toBeInTheDocument();
     });
 
     test('does not render when no fields are in store', () => {
@@ -247,7 +247,7 @@ describe('GlobalClassificationBanner', () => {
             makeState(),
         );
 
-        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classification_banner.top')).not.toBeInTheDocument();
     });
 
     test('derives color from the correct option in template field by option ID', () => {
@@ -263,7 +263,7 @@ describe('GlobalClassificationBanner', () => {
             makeState({linkedField: linked, systemValue: value}),
         );
 
-        const banner = screen.getByTestId('global-classification-banner-top');
+        const banner = screen.getByTestId('classification_banner.top');
         expect(banner).toHaveStyle({backgroundColor: '#FCE83A'});
         expect(screen.getByText('TOP SECRET')).toBeInTheDocument();
     });

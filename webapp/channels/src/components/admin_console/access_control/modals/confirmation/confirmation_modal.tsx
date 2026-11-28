@@ -53,6 +53,7 @@ export default function PolicyConfirmationModal({autoAdd, onExited, onConfirm, c
 
     return (
         <GenericModal
+            testId='admin.access_control.policy.confirm_modal'
             className={'PolicyConfirmationModal'}
             show={true}
             onExited={onExited}
@@ -76,6 +77,7 @@ export default function PolicyConfirmationModal({autoAdd, onExited, onConfirm, c
                     <button
                         type='button'
                         className='btn-cancel'
+                        data-testid='admin.access_control.policy.confirm_modal.cancel--button'
                         onClick={onExited}
                     >
                         {formatMessage({id: 'admin.access_control.edit_policy.cancel', defaultMessage: 'Cancel'})}
@@ -83,6 +85,7 @@ export default function PolicyConfirmationModal({autoAdd, onExited, onConfirm, c
                     <button
                         type='button'
                         className={enforceImmediately ? 'btn-apply' : 'btn-save'}
+                        data-testid='admin.access_control.policy.confirm_modal.confirm--button'
                         onClick={() => onConfirm(enforceImmediately)}
                     >
                         {enforceImmediately ?
@@ -102,6 +105,7 @@ export default function PolicyConfirmationModal({autoAdd, onExited, onConfirm, c
                 <label className='enforce-checkbox-label'>
                     <input
                         type='checkbox'
+                        data-testid='admin.access_control.policy.confirm_modal.enforce--checkbox'
                         checked={enforceImmediately}
                         onChange={(e) => setEnforceImmediately(e.target.checked)}
                     />

@@ -370,7 +370,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     return (
         <div
             className='attribute-options-graph-values'
-            data-testid='attributeOptionsGraphValues'
+            data-testid='admin.attribute.graph'
         >
             <p className='attribute-options-graph-values__helper'>
                 <FormattedMessage {...messages.helper}/>
@@ -381,13 +381,13 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                     childName={dropAlert.childName}
                     parentName={dropAlert.parentName}
                     className='attribute-options-graph-values__drop-alert'
-                    testId='attributeOptionsGraphValues__dropAlert'
+                    testId='admin.attribute.graph.drop'
                 />
             )}
             {options.length === 0 ? (
                 <div
                     className='attribute-options-graph-values__empty-canvas'
-                    data-testid='attributeOptionsGraphEmpty'
+                    data-testid='admin.attribute.graph.empty'
                 >
                     <div
                         className='attribute-options-graph-values__empty-icon'
@@ -407,7 +407,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 <>
                     <ul
                         className='attribute-options-graph-values__list'
-                        data-testid='attributeOptionsGraphList'
+                        data-testid='admin.attribute.graph.rows--list'
                     >
                         {listItems}
                     </ul>

@@ -48,6 +48,7 @@ export default function ChannelAccessConfirmModal({
         <GenericModal
             className='ChannelAccessConfirmModal a11y__modal'
             id='channel-access-confirm-modal'
+            testId='admin.permission_policy.channel_access_confirm'
             show={show}
             onHide={onHide}
             onExited={onHide}
@@ -65,6 +66,7 @@ export default function ChannelAccessConfirmModal({
                         emphasis='tertiary'
                         onClick={onHide}
                         disabled={isSaving}
+                        data-testid='admin.permission_policy.channel_access_confirm.cancel--button'
                     >
                         <FormattedMessage
                             id='admin.permission_policies.channel_read_access_confirm.cancel'
@@ -75,6 +77,7 @@ export default function ChannelAccessConfirmModal({
                         variant='destructive'
                         onClick={onConfirm}
                         disabled={isSaving}
+                        data-testid='admin.permission_policy.channel_access_confirm.confirm--button'
                     >
                         <FormattedMessage
                             id='admin.permission_policies.channel_read_access_confirm.confirm'

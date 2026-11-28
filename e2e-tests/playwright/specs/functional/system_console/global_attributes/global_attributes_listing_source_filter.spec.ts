@@ -11,10 +11,10 @@
  * test seeded.
  */
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
-import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
-import {ListingSeeder} from './listing_helpers';
+import {openAttributeManagement, requireGlobalAttributesEnabled} from './global_attributes_helpers';
+import {ListingSeeder, searchListing, filterListing} from './listing_helpers';
 
 test.describe('System Console - Global Attributes listing source filter', {tag: '@system_console'}, () => {
     /**
@@ -42,10 +42,9 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
                 {id: `e2e-plugin-${suffix}`, type: 'plugin'},
             ]);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await globalAttributes.search(suffix);
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await searchListing(app, suffix);
 
             const all = [managed, ldap, saml, openid, plugin];
             const cases: Array<{
@@ -60,24 +59,24 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             ];
 
             // * The filter defaults to All, and every seeded row shows
-            await expect(globalAttributes.sourceFilter.getByRole('textbox')).toHaveValue('All');
-            await expect(globalAttributes.rows).toHaveCount(all.length);
+            await expect(attributes.sourceFilter.input.container).toHaveValue('All');
+            await expect(attributes.rowList).toHaveKeyCount(all.length);
 
             for (const {source, shown} of cases) {
                 // # Pick the source
-                await globalAttributes.selectSourceFilter(source);
+                await filterListing(app, 'source', source);
 
                 // * Only that source's row shows, and the filter shows the pick
-                await expect(globalAttributes.rows).toHaveCount(1);
-                await expect(globalAttributes.rowByLabel(shown)).toBeVisible();
-                await expect(globalAttributes.sourceFilter.getByRole('textbox')).toHaveValue(source);
+                await expect(attributes.rowList).toHaveKeyCount(1);
+                await expect(attributes.row(seeder.idForLabel(shown))).toBeVisible();
+                await expect(attributes.sourceFilter.input.container).toHaveValue(source);
             }
 
             // # Return to All
-            await globalAttributes.selectSourceFilter('All');
+            await filterListing(app, 'source', 'All');
 
             // * Every seeded row shows again
-            await expect(globalAttributes.rows).toHaveCount(all.length);
+            await expect(attributes.rowList).toHaveKeyCount(all.length);
         } finally {
             await seeder.cleanup();
         }
@@ -99,21 +98,18 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
                 {id: `e2e-service-${suffix}`, type: 'service'},
             ]);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await globalAttributes.search(suffix);
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await searchListing(app, suffix);
 
             // * Visible under the default All, rendered as managed by its owner
-            await expect(globalAttributes.rowByLabel(label)).toBeVisible();
-            await expect(globalAttributes.rowByLabel(label).getByTestId('global-attribute-source')).toContainText(
-                'Managed by',
-            );
+            await expect(attributes.row(seeder.idForLabel(label))).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(label)).sourceText).toContainText('Managed by');
 
             // * Absent under every specific source
             for (const source of ['Managed here', 'AD/LDAP', 'SAML', 'OpenID Connect', 'Plugin'] as const) {
-                await globalAttributes.selectSourceFilter(source);
-                await expect(globalAttributes.rowByLabel(label)).toHaveCount(0);
+                await filterListing(app, 'source', source);
+                await expect(attributes.row(seeder.idForLabel(label))).toHaveCount(0);
             }
         } finally {
             await seeder.cleanup();
@@ -133,28 +129,27 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             const label = `Dual Source ${suffix}`;
             await seeder.syncedTemplate({key: 'dual_source', displayName: label}, ['ldap', 'saml']);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await globalAttributes.search(suffix);
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await searchListing(app, suffix);
 
             // # Filter by LDAP
-            await globalAttributes.selectSourceFilter('AD/LDAP');
+            await filterListing(app, 'source', 'AD/LDAP');
 
             // * The row shows
-            await expect(globalAttributes.rowByLabel(label)).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(label))).toBeVisible();
 
             // # Filter by SAML
-            await globalAttributes.selectSourceFilter('SAML');
+            await filterListing(app, 'source', 'SAML');
 
             // * The same row shows
-            await expect(globalAttributes.rowByLabel(label)).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(label))).toBeVisible();
 
             // # Filter by OpenID
-            await globalAttributes.selectSourceFilter('OpenID Connect');
+            await filterListing(app, 'source', 'OpenID Connect');
 
             // * It does not match a source it is not mapped to
-            await expect(globalAttributes.rowByLabel(label)).toHaveCount(0);
+            await expect(attributes.row(seeder.idForLabel(label))).toHaveCount(0);
         } finally {
             await seeder.cleanup();
         }
@@ -178,24 +173,23 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             await seeder.syncedTemplate({key: 'combo_ldap_beta', displayName: ldapBeta}, ['ldap']);
             await seeder.template({key: 'combo_managed_alpha', displayName: managedAlpha});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Filter to LDAP, then search for the shared stem
-            await globalAttributes.selectSourceFilter('AD/LDAP');
-            await globalAttributes.search(`Alpha ${suffix}`);
+            await filterListing(app, 'source', 'AD/LDAP');
+            await searchListing(app, `Alpha ${suffix}`);
 
             // * Only the LDAP row that also matches the term shows
-            await expect(globalAttributes.rows).toHaveCount(1);
-            await expect(globalAttributes.rowByLabel(ldapAlpha)).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
+            await expect(attributes.row(seeder.idForLabel(ldapAlpha))).toBeVisible();
 
             // # Switch the source with the term kept
-            await globalAttributes.selectSourceFilter('Managed here');
+            await filterListing(app, 'source', 'Managed here');
 
             // * Now only the managed row matching the term shows
-            await expect(globalAttributes.rows).toHaveCount(1);
-            await expect(globalAttributes.rowByLabel(managedAlpha)).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
+            await expect(attributes.row(seeder.idForLabel(managedAlpha))).toBeVisible();
         } finally {
             await seeder.cleanup();
         }
@@ -215,29 +209,27 @@ test.describe('System Console - Global Attributes listing source filter', {tag: 
             const label = `Clear Me ${suffix}`;
             await seeder.template({key: 'clear_managed', displayName: label});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await globalAttributes.search(suffix);
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await searchListing(app, suffix);
 
             // # Filter to a source the row is not from
-            await globalAttributes.selectSourceFilter('OpenID Connect');
+            await filterListing(app, 'source', 'OpenID Connect');
 
             // * The no-match state shows with Clear filters, not the empty-listing state
-            await expect(globalAttributes.emptySearchState).toContainText(
-                'No attributes match your search or filters.',
-            );
-            await expect(globalAttributes.emptyState).toHaveCount(0);
-            await expect(globalAttributes.clearFiltersButton).toBeVisible();
+            await expect(attributes.emptySearchText).toContainText('No attributes match your search or filters.');
+            await expect(attributes.emptyText).toHaveCount(0);
+            await expect(attributes.clearFiltersButton).toBeVisible();
 
             // # Clear filters
-            await globalAttributes.clearFilters();
+            await settle(attributes.clearFiltersButton, {wait: Api.SearchGlobalAttributes}).click();
+            await expect(attributes.clearFiltersButton).not.toBeVisible();
 
             // * The search is empty, the source is back to All, and the row shows again
-            await expect(globalAttributes.searchInput).toHaveValue('');
-            await expect(globalAttributes.sourceFilter.getByRole('textbox')).toHaveValue('All');
-            await expect(globalAttributes.rowByLabel(label)).toBeVisible();
-            await expect(globalAttributes.emptySearchState).toHaveCount(0);
+            await expect(attributes.search.container).toHaveValue('');
+            await expect(attributes.sourceFilter.input.container).toHaveValue('All');
+            await expect(attributes.row(seeder.idForLabel(label))).toBeVisible();
+            await expect(attributes.emptySearchText).toHaveCount(0);
         } finally {
             await seeder.cleanup();
         }

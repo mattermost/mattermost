@@ -4,21 +4,26 @@
 import {
     expect,
     test,
-    enableABAC,
-    navigateToABACPage,
-    runSyncJob,
     verifyUserInChannel,
     updateUserAttributes,
     createUserWithAttributes,
+    duration,
 } from '@mattermost/playwright-lib';
 
 import {
     ensureUserAttributes,
     createPrivateChannelForABAC,
-    createBasicPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
+    getUserAttributeFieldByName,
 } from '../support';
+import {
+    createMembershipPolicy,
+    policyIdByName,
+    runSyncJob,
+    setAbacEnabled,
+    syncJobId,
+    waitForSyncJob,
+} from '../surface';
 
 /**
  * ABAC LDAP Integration - Sync
@@ -37,7 +42,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
     test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async ({pw}) => {
         // 4 x waitForLatestSyncJob at up to 180 s each, plus policy creation and browser
         // navigation — CI LDAP sync jobs can take significantly longer than the default 90 s.
-        test.setTimeout(300000);
+        test.setTimeout(duration.ten_min);
 
         await pw.skipIfNoLicense();
 
@@ -56,42 +61,25 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // ============================================================
         // Create policy for Engineering with auto-add
         // ============================================================
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
         const policyName = `Dynamic Policy ${pw.random.id()}`;
-        const createJobId = await createBasicPolicy(systemConsolePage.page, {
+        const createJobId = await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: true,
-            channels: [privateChannel.display_name],
+            rules: [{field: await getUserAttributeFieldByName(adminClient, 'Department'), value: 'Engineering'}],
+            channels: [privateChannel],
+            autoAdd: true,
         });
 
-        // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, createJobId, 180_000);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-        const idMatch = policyName.match(/([a-z0-9]+)$/i);
-        const uniqueId = idMatch ? idMatch[1] : policyName;
-        await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
-        const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
-
-        if (policyId) {
-            await activatePolicy(adminClient, policyId);
-        }
-        await searchInput.clear();
+        // # Wait for the sync the save started, then activate the policy
+        await waitForSyncJob(adminClient, syncJobId(createJobId), 180_000);
+        await activatePolicy(adminClient, await policyIdByName(adminClient, policyName));
 
         // ============================================================
         // PHASE 1: User should NOT be added (Department=Sales)
         // ============================================================
-        const syncJob1 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob1, 180_000);
+        await waitForSyncJob(adminClient, await runSyncJob(app), 180_000);
 
         const phase1InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase1InChannel).toBe(false);
@@ -101,8 +89,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // ============================================================
         await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
-        const syncJob2 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob2, 180_000);
+        await waitForSyncJob(adminClient, await runSyncJob(app), 180_000);
 
         const phase2InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase2InChannel).toBe(true);
@@ -112,8 +99,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // ============================================================
         await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
-        const syncJob3 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob3, 180_000);
+        await waitForSyncJob(adminClient, await runSyncJob(app), 180_000);
 
         const phase3InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase3InChannel).toBe(false);

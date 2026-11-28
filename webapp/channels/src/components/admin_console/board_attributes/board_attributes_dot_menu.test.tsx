@@ -44,13 +44,13 @@ describe('Board attributes DotMenu', () => {
     it('disables the trigger button when the field is flagged for delete', () => {
         renderMenu({field: makeField({delete_at: 1700000099999})});
 
-        expect(screen.getByTestId('board-attribute-field_dotmenu-field-1')).toBeDisabled();
+        expect(screen.getByTestId('admin.board_attributes.row.actions--button')).toBeDisabled();
     });
 
     it('exposes Duplicate and Delete items when canCreate=true and field is not protected', async () => {
         renderMenu();
 
-        await userEvent.click(screen.getByTestId('board-attribute-field_dotmenu-field-1'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.actions--button'));
 
         expect(screen.getByText('Duplicate')).toBeInTheDocument();
         expect(screen.getByText('Delete attribute')).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('Board attributes DotMenu', () => {
     it('hides the Duplicate item when canCreate=false', async () => {
         renderMenu({canCreate: false});
 
-        await userEvent.click(screen.getByTestId('board-attribute-field_dotmenu-field-1'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.actions--button'));
 
         expect(screen.queryByText('Duplicate')).not.toBeInTheDocument();
         expect(screen.getByText('Delete attribute')).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe('Board attributes DotMenu', () => {
     it('disables both items when the field is protected (and clicking them does NOT call createField/deleteField)', async () => {
         const props = renderMenu({field: makeField({protected: true})});
 
-        await userEvent.click(screen.getByTestId('board-attribute-field_dotmenu-field-1'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.actions--button'));
 
         // Find the actual menuitem elements by role rather than walking up from
         // text — the role query asserts the menuitem exists, and toBeDisabled()
@@ -99,7 +99,7 @@ describe('Board attributes DotMenu', () => {
     it('invokes createField with the source field name when Duplicate is clicked', async () => {
         const props = renderMenu({field: makeField({name: 'Priority'})});
 
-        await userEvent.click(screen.getByTestId('board-attribute-field_dotmenu-field-1'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.actions--button'));
         const duplicate = screen.getByText('Duplicate').closest('[role="menuitem"]') as HTMLElement;
         await userEvent.click(duplicate);
 
@@ -121,7 +121,7 @@ describe('Board attributes DotMenu', () => {
         });
         const props = renderMenu({field: pendingField});
 
-        await userEvent.click(screen.getByTestId('board-attribute-field_dotmenu-pending_abc'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.actions--button'));
         const del = screen.getByText('Delete attribute').closest('[role="menuitem"]') as HTMLElement;
         await userEvent.click(del);
 
@@ -138,7 +138,7 @@ describe('Board attributes DotMenu', () => {
         // un-called after clicking Delete (proving the prompt branch was taken).
         const props = renderMenu();
 
-        await userEvent.click(screen.getByTestId('board-attribute-field_dotmenu-field-1'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.actions--button'));
         const del = screen.getByText('Delete attribute').closest('[role="menuitem"]') as HTMLElement;
         await userEvent.click(del);
 

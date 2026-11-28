@@ -19,34 +19,36 @@ import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {deleteAccessControlPoliciesNamed, expect, getRandomId, test, duration, Msg} from '@mattermost/playwright-lib';
 
 import {deleteCustomProfileAttributes} from '../../../channels/custom_profile_attributes/helpers';
+import {
+    addRule,
+    MEMBERSHIP_POLICIES_PATH,
+    openMembershipPolicies,
+    openPolicy,
+    policyIdByName,
+    savePolicy,
+} from '../surface';
 
 const APOSTROPHE_VALUE = "Matt's Department";
 
 test.describe('System Console - Membership Policy apostrophe values (MM-64357)', () => {
     let adminClient: Client4;
     let adminUser: UserProfile;
-    let field: UserPropertyField | undefined;
+    const fields: UserPropertyField[] = [];
+    const policyNames: string[] = [];
 
     test.beforeEach(async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
         const clientInfo = await pw.getAdminClient();
+        if (!clientInfo.adminUser) {
+            throw new Error('The admin user could not log in');
+        }
         adminClient = clientInfo.adminClient;
-        adminUser = clientInfo.adminUser!;
-
-        // # Create an admin-managed text attribute (admin-managed → usable in ABAC)
-        field = await adminClient.createCustomProfileAttributeField({
-            name: `department_${getRandomId()}`,
-            type: 'text',
-            attrs: {
-                sort_order: 0,
-                managed: 'admin',
-            },
-        } as any);
+        adminUser = clientInfo.adminUser;
 
         // # Make sure ABAC stays enabled (a concurrent initSetup can reset config)
         await adminClient.patchConfig({
@@ -55,12 +57,11 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
     });
 
     test.afterEach(async () => {
-        if (field) {
-            await deleteCustomProfileAttributes(adminClient, {
-                [field.id]: field,
-                __ownedIds: new Set([field.id]),
-            } as any);
-            field = undefined;
+        for (const policyName of policyNames.splice(0)) {
+            await deleteAccessControlPoliciesNamed(adminClient, policyName);
+        }
+        for (const field of fields.splice(0)) {
+            await deleteCustomProfileAttributes(adminClient, {[field.id]: field});
         }
     });
 
@@ -75,106 +76,60 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
      * An admin-managed text attribute exists.
      */
     test('round-trips an apostrophe "is" value and keeps the mode toggle switchable', {tag: '@abac'}, async ({pw}) => {
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
+        // # Create an admin-managed text attribute (admin-managed → usable in ABAC)
+        const field = await adminClient.createCustomProfileAttributeField({
+            name: `department_${getRandomId()}`,
+            type: 'text',
+            attrs: {
+                sort_order: 0,
+                managed: 'admin',
+            },
+        } as any);
+        fields.push(field);
+
+        const {app} = await pw.testBrowser.login(adminUser);
         const policyName = `Apostrophe RT ${getRandomId()}`;
-        let policyId: string | null = null;
+        policyNames.push(policyName);
 
-        try {
-            await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
+        // # Create a policy and add a text attribute rule with a value containing an apostrophe
+        const policies = await openMembershipPolicies(app);
+        await policies.addButton.click();
+        const {policy} = app.admin.accessControl;
+        await expect(policy.editPolicy.name.valueTextbox).toBeVisible();
+        await policy.editPolicy.name.valueTextbox.fill(policyName);
+        await expect(policy.editPolicy.name.valueTextbox).toHaveValue(policyName);
+        const row = await addRule(policy.rules, {field, value: APOSTROPHE_VALUE});
 
-            // # Create a policy and add a text attribute row
-            await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
-            const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-            await nameInput.waitFor({state: 'visible', timeout: 10000});
-            await nameInput.fill(policyName);
+        // * A text attribute defaults to the "is" operator
+        await expect(row.operatorButton).toContainMessage(Msg.admin.access_control.table_editor.operator.is);
+        await expect(row.valueInputTextbox).toHaveValue(APOSTROPHE_VALUE);
 
-            const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
-            await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
-            if (await addAttributeButton.isDisabled()) {
-                await page.reload();
-                await page.waitForLoadState('networkidle');
-                await nameInput.fill(policyName);
-                await expect(addAttributeButton).toBeEnabled({timeout: 15000});
-            }
-            await addAttributeButton.click();
+        // # Save the policy and reopen it
+        await savePolicy(app, app.admin.accessControl.policy);
+        await expect(app.page).toHavePath(MEMBERSHIP_POLICIES_PATH);
+        const policyId = await policyIdByName(adminClient, policyName);
+        const reopened = await openPolicy(app, policyId);
 
-            // # Select the text attribute by name
-            if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
-                await page.locator('[data-testid="attributeSelectorMenuButton"]').first().click();
-            }
-            await page
-                .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
-                .first()
-                .click({force: true});
-            // # Dismiss the attribute menu
-            await page.keyboard.press('Escape');
+        // # Switch to Advanced mode so the "Switch to Simple Mode" toggle is present.
+        await expect(reopened.switchModeButton).toHaveMessage(
+            Msg.admin.access_control.policy.edit_policy.switch_to_advanced,
+        );
+        await expect(reopened.switchModeButton).toBeEnabled({timeout: duration.one_min});
+        await reopened.switchModeButton.click();
 
-            // * Verify the attribute menu is hidden
-            await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
+        // * The stored apostrophe expression classifies as simple, so the
+        //   toggle back to Simple mode stays enabled (before the fix it was
+        //   disabled, trapping the admin in Advanced mode).
+        await expect(reopened.switchModeButton).toHaveMessage(
+            Msg.admin.access_control.policy.edit_policy.switch_to_simple,
+        );
+        await expect(reopened.switchModeButton).toBeEnabled();
 
-            // * A text attribute defaults to the "is" operator
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText('is');
-
-            // # Type a value containing an apostrophe
-            const valueInput = page.locator('.values-editor__simple-input, input[placeholder*="Add value" i]').first();
-            await valueInput.waitFor({state: 'visible', timeout: 10000});
-            await valueInput.fill(APOSTROPHE_VALUE);
-            await expect(valueInput).toHaveValue(APOSTROPHE_VALUE);
-
-            // # Save the policy
-            await page.getByRole('button', {name: 'Save'}).last().click();
-            await page.waitForLoadState('networkidle');
-
-            // # Reopen the policy from the list, searching for it since it may not be on the first page
-            await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
-            const policyRow = await systemConsolePage.membershipPolicies.searchPolicy(policyName);
-            const rowId = await policyRow.getAttribute('id');
-            policyId = rowId?.replace('customDescription-', '') ?? null;
-            await policyRow.click();
-            await page.waitForLoadState('networkidle');
-
-            // # Switch to Advanced mode so the "Switch to Simple Mode" toggle is present.
-            const toAdvanced = page.getByRole('button', {name: 'Switch to Advanced Mode'});
-            if (await toAdvanced.isVisible({timeout: 5000}).catch(() => false)) {
-                await expect(toAdvanced).toBeEnabled({timeout: 60_000});
-                await toAdvanced.click();
-            }
-
-            // * The stored apostrophe expression classifies as simple, so the
-            //   toggle back to Simple mode stays enabled (before the fix it was
-            //   disabled, trapping the admin in Advanced mode).
-            const toSimpleMode = page.getByRole('button', {name: 'Switch to Simple Mode'});
-            await expect(toSimpleMode).toBeVisible({timeout: 10_000});
-            await expect(toSimpleMode).toBeEnabled();
-
-            // # Return to Simple mode and confirm the value round-tripped intact
-            await toSimpleMode.click();
-            const reopenedValue = page
-                .locator('.values-editor__simple-input, input[placeholder*="Add value" i]')
-                .first();
-            await expect(reopenedValue).toHaveValue(APOSTROPHE_VALUE, {timeout: 10_000});
-        } finally {
-            // Clean up the policy. If we didn't capture the ID from the DOM (e.g. because
-            // save succeeded but navigation/assertion failed), search for it by name.
-            let idToDelete = policyId;
-            if (!idToDelete) {
-                try {
-                    const searchResult = await adminClient.searchAccessControlPolicies(policyName, 'parent', '', 10);
-                    const foundPolicy = searchResult.policies?.find((p) => p.name === policyName);
-                    if (foundPolicy) {
-                        idToDelete = foundPolicy.id;
-                    }
-                } catch {
-                    // Search failed; skip cleanup
-                }
-            }
-            if (idToDelete) {
-                await adminClient.deleteAccessControlPolicy(idToDelete).catch(() => {});
-            }
-        }
+        // # Return to Simple mode and confirm the value round-tripped intact
+        await reopened.switchModeButton.click();
+        await expect(reopened.rules.row(0).operatorButton).toContainMessage(
+            Msg.admin.access_control.table_editor.operator.is,
+        );
+        await expect(reopened.rules.row(0).valueInputTextbox).toHaveValue(APOSTROPHE_VALUE);
     });
 });

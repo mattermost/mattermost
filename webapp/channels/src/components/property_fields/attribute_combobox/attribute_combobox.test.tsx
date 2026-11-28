@@ -37,10 +37,10 @@ const RANKS_WITH_UNRANKED: PropertyFieldOption[] = [
     {id: 'top', name: 'Top', rank: 3},
 ];
 
-const TEST_ID = 'attr';
-const SWATCH = 'attribute-option-swatch';
-const PLACEHOLDER = 'attribute-option-visual-placeholder';
-const BADGE = 'rank-badge';
+const TEST_ID = 'x.attr' as const;
+const SWATCH = /^x\.attr\.(choice\.)?swatch$/;
+const PLACEHOLDER = 'x.attr.choice.placeholder';
+const BADGE = /^x\.attr\.(choice\.)?badge--text$/;
 
 type ExtraProps = Partial<Pick<AttributeComboboxProps, 'type' | 'options' | 'required' | 'onBlur'>>;
 
@@ -55,7 +55,7 @@ function SingleHarness({initialValue = '', onChange, options = OPTIONS, ...extra
         <AttributeCombobox
             {...extra}
             id='attr-input'
-            testId={TEST_ID}
+            testIdScope={TEST_ID}
             label='Department'
             options={options}
             value={value}
@@ -73,7 +73,7 @@ function MultiHarness({initialValue = [], onChange, options = OPTIONS, ...extra}
         <AttributeCombobox
             {...extra}
             type='multiselect'
-            testId={TEST_ID}
+            testIdScope={TEST_ID}
             label='Skills'
             options={options}
             value={value}
@@ -110,7 +110,7 @@ function FormHarness({type = 'select', initialValue, submitOnEnter, onChange, on
             />
             <AttributeCombobox
                 type={type}
-                testId={TEST_ID}
+                testIdScope={TEST_ID}
                 label={multiple ? 'Skills' : 'Department'}
                 options={OPTIONS}
                 value={value}
@@ -126,7 +126,7 @@ function FormHarness({type = 'select', initialValue, submitOnEnter, onChange, on
 }
 
 const getChips = () => Array.from(document.querySelectorAll<HTMLElement>('[data-chip]'));
-const getRow = (id: string) => within(screen.getByTestId(`${TEST_ID}-option-${id}`));
+const getRow = (id: string) => within(screen.getByTestId(`${TEST_ID}.choice:${id}--option`));
 const chipHasSwatch = (chip: HTMLElement) => within(chip).queryByTestId(SWATCH) !== null;
 const outsideChips = (elements: HTMLElement[]) => elements.filter((element) => !element.closest('[data-chip]'));
 
@@ -151,7 +151,7 @@ describe('AttributeCombobox', () => {
         renderWithContext(
             <AttributeCombobox
                 id='attr-input'
-                testId={TEST_ID}
+                testIdScope={TEST_ID}
                 label='Department'
                 options={OPTIONS}
                 value=''
@@ -162,7 +162,7 @@ describe('AttributeCombobox', () => {
 
         const input = screen.getByRole('combobox', {name: 'Department'});
         expect(input).toHaveAttribute('id', 'attr-input');
-        expect(input).toHaveAttribute('data-testid', TEST_ID);
+        expect(input).toHaveAttribute('data-testid', `${TEST_ID}.value_choice--combobox`);
         await userEvent.click(input);
 
         let layer: HTMLElement | null = screen.getByRole('listbox');
@@ -178,7 +178,7 @@ describe('AttributeCombobox', () => {
         await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
 
         expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3', 'Option 1', 'Option 2']);
-        expect(screen.getByTestId(`${TEST_ID}-option-opt1`)).toHaveAccessibleName('Option 1');
+        expect(screen.getByTestId(`${TEST_ID}.choice:opt1--option`)).toHaveAccessibleName('Option 1');
     });
 
     test('shows the no-results message when there are no options', async () => {
@@ -202,13 +202,13 @@ describe('AttributeCombobox', () => {
             renderWithContext(<SingleHarness initialValue='opt2'/>);
 
             expect(screen.getByRole('combobox', {name: 'Department'})).toHaveValue('Option 2');
-            expect(screen.getByTestId(`${TEST_ID}-clear`)).toHaveAccessibleName('Clear Department');
+            expect(screen.getByTestId(`${TEST_ID}.clear--button`)).toHaveAccessibleName('Clear Department');
         });
 
         test('inserts the field name literally into the clear label', () => {
             renderWithContext(
                 <AttributeCombobox
-                    testId={TEST_ID}
+                    testIdScope={TEST_ID}
                     label='R&D {team} <b>'
                     options={OPTIONS}
                     value='opt1'
@@ -216,7 +216,7 @@ describe('AttributeCombobox', () => {
                 />,
             );
 
-            expect(screen.getByTestId(`${TEST_ID}-clear`)).toHaveAccessibleName('Clear R&D {team} <b>');
+            expect(screen.getByTestId(`${TEST_ID}.clear--button`)).toHaveAccessibleName('Clear R&D {team} <b>');
         });
 
         test('renders a value missing from options with its raw id', () => {
@@ -234,7 +234,7 @@ describe('AttributeCombobox', () => {
         test('has no clear button while empty', () => {
             renderWithContext(<SingleHarness/>);
 
-            expect(screen.queryByTestId(`${TEST_ID}-clear`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${TEST_ID}.clear--button`)).not.toBeInTheDocument();
         });
 
         test('passes the picked id, and an empty string rather than null on clear', async () => {
@@ -245,7 +245,7 @@ describe('AttributeCombobox', () => {
             await userEvent.click(screen.getByRole('option', {name: 'Option 1'}));
             expect(onChange).toHaveBeenLastCalledWith('opt1');
 
-            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            await userEvent.click(screen.getByTestId(`${TEST_ID}.clear--button`));
             expect(onChange).toHaveBeenLastCalledWith('');
         });
 
@@ -278,7 +278,7 @@ describe('AttributeCombobox', () => {
                 />,
             );
 
-            act(() => screen.getByTestId(`${TEST_ID}-clear`).focus());
+            act(() => screen.getByTestId(`${TEST_ID}.clear--button`).focus());
             await user.keyboard('{Enter}');
 
             expect(onChange).toHaveBeenCalledWith('');
@@ -288,7 +288,7 @@ describe('AttributeCombobox', () => {
         test('keeps its value and hides the clear button when disabled', () => {
             renderWithContext(
                 <AttributeCombobox
-                    testId={TEST_ID}
+                    testIdScope={TEST_ID}
                     label='Department'
                     options={OPTIONS}
                     value='opt1'
@@ -300,7 +300,7 @@ describe('AttributeCombobox', () => {
 
             expect(input).toBeDisabled();
             expect(input).toHaveValue('Option 1');
-            expect(screen.queryByTestId(`${TEST_ID}-clear`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${TEST_ID}.clear--button`)).not.toBeInTheDocument();
         });
     });
 
@@ -328,7 +328,7 @@ describe('AttributeCombobox', () => {
         test('has no clear button', () => {
             renderWithContext(<MultiHarness initialValue={['opt1']}/>);
 
-            expect(screen.queryByTestId(`${TEST_ID}-clear`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${TEST_ID}.clear--button`)).not.toBeInTheDocument();
         });
 
         test('passes the new array on toggle, and an empty array after the last chip is removed', async () => {
@@ -584,7 +584,7 @@ describe('AttributeCombobox', () => {
                 />,
             );
 
-            await user.click(screen.getByTestId(`${TEST_ID}-clear`));
+            await user.click(screen.getByTestId(`${TEST_ID}.clear--button`));
 
             expect(onChange).toHaveBeenLastCalledWith('');
             expect(screen.getByRole('combobox', {name: 'Department'})).toHaveValue('');
@@ -641,7 +641,7 @@ describe('AttributeCombobox', () => {
             expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
             expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
             expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3', 'Option 1', 'Option 2']);
-            expect(screen.getByTestId(`${TEST_ID}-option-opt1`)).toHaveAccessibleName('Option 1');
+            expect(screen.getByTestId(`${TEST_ID}.choice:opt1--option`)).toHaveAccessibleName('Option 1');
         });
 
         test('a multiple field shows the swatch on coloured rows and their chips only', async () => {
@@ -693,7 +693,7 @@ describe('AttributeCombobox', () => {
             await userEvent.click(screen.getByRole('option', {name: 'Red'}));
             expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            await userEvent.click(screen.getByTestId(`${TEST_ID}.clear--button`));
             expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
         });
 
@@ -738,6 +738,7 @@ describe('AttributeCombobox', () => {
         test('a disabled single field still shows the swatch', () => {
             const {container} = renderWithContext(
                 <AttributeCombobox
+                    testIdScope={TEST_ID}
                     label='Department'
                     options={COLOURED}
                     value='red'
@@ -778,7 +779,7 @@ describe('AttributeCombobox', () => {
             const renderCombobox = (type: AttributeComboboxType) => (
                 <AttributeCombobox
                     type={type}
-                    testId={TEST_ID}
+                    testIdScope={TEST_ID}
                     label='Department'
                     options={COLOURED}
                     value='red'
@@ -881,8 +882,8 @@ describe('AttributeCombobox', () => {
                 'Low, Rank 1',
                 'Zero, Rank 0',
             ]);
-            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top, Rank 3');
-            expect(screen.getByTestId(`${TEST_ID}-option-mid`)).toHaveAccessibleName('Mid, Rank 2');
+            expect(screen.getByTestId(`${TEST_ID}.choice:top--option`)).toHaveAccessibleName('Top, Rank 3');
+            expect(screen.getByTestId(`${TEST_ID}.choice:mid--option`)).toHaveAccessibleName('Mid, Rank 2');
         });
 
         test.each<{options: PropertyFieldOption[]; value: string; description: string}>([
@@ -922,7 +923,7 @@ describe('AttributeCombobox', () => {
             await userEvent.click(screen.getByRole('option', {name: 'Low, Rank 1'}));
             expect(input).toHaveAccessibleDescription('Rank 1');
 
-            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            await userEvent.click(screen.getByTestId(`${TEST_ID}.clear--button`));
             expect(input).not.toHaveAttribute('aria-describedby');
         });
 
@@ -961,7 +962,7 @@ describe('AttributeCombobox', () => {
             ]);
             expect(getRow('odd').getByTestId(PLACEHOLDER)).toBeInTheDocument();
             expect(getRow('odd').queryByTestId(BADGE)).not.toBeInTheDocument();
-            expect(screen.getByTestId(`${TEST_ID}-option-odd`)).toHaveAccessibleName('Odd');
+            expect(screen.getByTestId(`${TEST_ID}.choice:odd--option`)).toHaveAccessibleName('Odd');
         });
 
         test.each<{options: PropertyFieldOption[]; value: string; badge: string | null; swatch: boolean}>([
@@ -1003,7 +1004,7 @@ describe('AttributeCombobox', () => {
             await userEvent.click(screen.getByRole('option', {name: 'Low, Rank 1'}));
             expect(onChange).toHaveBeenLastCalledWith('low');
 
-            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            await userEvent.click(screen.getByTestId(`${TEST_ID}.clear--button`));
             expect(onChange).toHaveBeenLastCalledWith('');
         });
 
@@ -1022,7 +1023,7 @@ describe('AttributeCombobox', () => {
             expect(optionIds()).toEqual(['attr-input-listbox-option-low', 'attr-input-listbox-option-top']);
             expect(screen.queryByTestId(BADGE)).not.toBeInTheDocument();
             expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
-            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top');
+            expect(screen.getByTestId(`${TEST_ID}.choice:top--option`)).toHaveAccessibleName('Top');
         });
 
         test('a multiselect ignores ranks but keeps colours', async () => {
@@ -1042,7 +1043,7 @@ describe('AttributeCombobox', () => {
             expect(getRow('top').queryByTestId(SWATCH)).not.toBeInTheDocument();
             expect(getChips().map((chip) => chip.textContent)).toEqual(['Mid', 'Top']);
             expect(getChips().map(chipHasSwatch)).toEqual([true, false]);
-            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top');
+            expect(screen.getByTestId(`${TEST_ID}.choice:top--option`)).toHaveAccessibleName('Top');
         });
     });
 

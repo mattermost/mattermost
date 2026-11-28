@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, test, Msg} from '@mattermost/playwright-lib';
+import {expect, test, type App, type PlaywrightExtended, Msg, Api, settle} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from './helpers';
 import {
@@ -20,6 +20,7 @@ import {
     editTextAttribute,
     editSelectAttribute,
     editMultiselectAttribute,
+    attributeSection,
     getFieldIdByName,
     TEST_PHONE,
     TEST_UPDATED_PHONE,
@@ -125,6 +126,46 @@ test.afterAll(async () => {
     await deleteCustomProfileAttributes(adminClient, attributeFieldsMap);
 });
 
+/** Logs the user in on the test channel and opens Profile settings. */
+async function openProfile(pw: PlaywrightExtended, who: UserProfile) {
+    const {app} = await pw.testBrowser.login(who);
+    await app.channelsPage.goto({team, channel: testChannel});
+    await app.globalHeader.openAccountMenuButton.clickTo(app.globalHeader.accountMenu.profileMenuItem);
+    const modal = await app.globalHeader.accountMenu.profileMenuItem.clickTo(app.userSettingsModal);
+    await expect(modal).toBeVisible();
+    return {app, modal};
+}
+
+/** Closes Profile settings. */
+async function closeProfile(modal: Awaited<ReturnType<typeof openProfile>>['modal']) {
+    await modal.closeButton.click();
+    await expect(modal).not.toBeVisible();
+}
+
+/** Posts a message from the composer and returns the post id once it shows. */
+async function postMessage(app: App, message: string) {
+    await app.center.postCreate.message.container.fill(message);
+    await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    let id = '';
+    await expect
+        .poll(async () => {
+            id = (await app.center.postList.postList.keys()).at(-1) ?? '';
+            return id ? app.center.postList.post({id}).message.container.text() : '';
+        })
+        .toBe(message);
+    return id;
+}
+
+/** Logs `viewer` in on the test channel and opens the profile popover from the post's avatar. */
+async function openPopoverAs(pw: PlaywrightExtended, viewer: UserProfile, postId: string) {
+    const {app} = await pw.testBrowser.login(viewer);
+    await app.channelsPage.goto({team, channel: testChannel});
+    // ProfilePicture exposes a role-free container, so the popover trigger has no click driver.
+    await app.center.postList.post({id: postId}).avatar.container.click();
+    await expect(app.profilePopover).toBeVisible();
+    return app;
+}
+
 /**
  * Verify that users can edit different types of custom profile attributes
  * (text, select, and multiselect fields) and that changes appear correctly in the profile popover.
@@ -145,45 +186,33 @@ test.afterAll(async () => {
  * 5. Both users are members of the same channel
  */
 test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-
-    // 2. Open profile settings modal
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.toBeVisible();
+    // 1. Login as the test user and open profile settings
+    const {app, modal} = await openProfile(pw, user);
 
     // * Verify that custom profile attributes section exists
-    await verifyAttributesExistInSettings(page, customAttributes);
+    await verifyAttributesExistInSettings(app, attributeFieldsMap, customAttributes);
 
-    // 3. Edit the DepartmentUS attribute and change to "Product"
-    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
+    // 2. Edit the DepartmentUS attribute and change to "Product"
+    await editTextAttribute(app, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
 
-    // 4. Edit the LocationUS attribute (select field) and select "Remote" (index 0)
-    await editSelectAttribute(page, attributeFieldsMap, 'LocationUS', 0); // Remote is the first option (index 0)
+    // 3. Edit the LocationUS attribute (select field) and select "Remote" (index 0)
+    await editSelectAttribute(app, attributeFieldsMap, 'LocationUS', 0);
 
-    // 5. Edit the SkillsUS attribute (multiselect field) and select "Python" and "Node.js"
-    await editMultiselectAttribute(page, attributeFieldsMap, 'SkillsUS', [3, 2]); // Python (index 3) and Node.js (index 2)
+    // 4. Edit the SkillsUS attribute (multiselect field) and select "Python" (index 3) and "Node.js" (index 2)
+    await editMultiselectAttribute(app, attributeFieldsMap, 'SkillsUS', [3, 2]);
 
-    // 6. Close the profile settings modal
-    await profileModal.closeModal();
+    // 5. Close the profile settings modal and post a message to make the user visible in the channel
+    await closeProfile(modal);
+    const postId = await postMessage(app, TEST_MESSAGE);
 
-    // 7. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 8. Login as the other user to view the profile popover
-    const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(otherUser);
-    await otherChannelsPage.goto();
-
-    // 9. View the test user's profile popover
-    const lastPost = await otherChannelsPage.getLastPost();
-    await otherChannelsPage.openProfilePopover(lastPost);
+    // 6. Login as the other user and view the test user's profile popover
+    const otherApp = await openPopoverAs(pw, otherUser, postId);
 
     // * Profile popover shows updated custom attributes
-    await verifyAttributeInPopover(otherChannelsPage, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
-    await verifyAttributeInPopover(otherChannelsPage, 'LocationUS', 'Remote'); // Remote is index 0 in TEST_LOCATION_OPTIONS
-    await verifyAttributeInPopover(otherChannelsPage, 'SkillsUS', 'Python');
-    await verifyAttributeInPopover(otherChannelsPage, 'SkillsUS', 'Node.js');
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'LocationUS', 'Remote');
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'SkillsUS', 'Python');
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'SkillsUS', 'Node.js');
 });
 
 /**
@@ -200,22 +229,15 @@ test(
     'select attribute keyboard picks without saving and Escape keeps the profile modal open',
     {tag: '@custom_profile_attributes'},
     async ({pw}) => {
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto();
-
-        // # Open the profile settings modal
-        const profileModal = await channelsPage.openProfileModal();
-        await profileModal.toBeVisible();
-        await verifyAttributesExistInSettings(page, customAttributes);
+        const {app, modal} = await openProfile(pw, user);
+        await verifyAttributesExistInSettings(app, attributeFieldsMap, customAttributes);
 
         // # Edit the LocationUS attribute
-        const fieldId = getFieldIdByName(attributeFieldsMap, 'LocationUS');
-        const editButton = profileModal.container.locator(`#customAttribute_${fieldId}Edit`);
-        await editButton.scrollIntoViewIfNeeded();
-        await editButton.click();
+        const section = attributeSection(app, attributeFieldsMap, 'LocationUS');
+        await section.editButton.click();
 
         // * The input takes focus when the section opens
-        const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        const input = section.valueChoiceCombobox.locator;
         await expect(input).toBeFocused();
         const valueBefore = await input.inputValue();
 
@@ -227,42 +249,39 @@ test(
         await expect(input).toHaveAttribute('aria-expanded', 'true');
 
         // # Press Escape with the menu open
-        await page.keyboard.press('Escape');
+        await app.page.keyboard.press('Escape');
 
-        // * The menu closes, while the modal and the section stay open. The modal is still
-        // visible while it fades out, so check that it keeps react-bootstrap's `in` class,
-        // which is dropped as soon as the modal starts closing.
-        const modalRoot = page.locator('#accountSettingsModal');
+        // * The menu closes, while the modal and the section stay open
         await expect(input).toHaveAttribute('aria-expanded', 'false');
         await expect(input).toBeFocused();
-        await expect(modalRoot).toHaveClass(/\bin\b/);
-        await expect(profileModal.saveButton).toBeVisible();
+        await expect(modal).toBeVisible();
+        await expect(section.saveButton).toBeVisible();
 
         // # Reopen the menu with ArrowDown, move to the next option and pick it with Enter
-        await page.keyboard.press('ArrowDown');
+        await app.page.keyboard.press('ArrowDown');
         await expect(input).toHaveAttribute('aria-expanded', 'true');
 
         // * The modal is still open after the Escape
-        await expect(modalRoot).toHaveClass(/\bin\b/);
-        await profileModal.toBeVisible();
+        await expect(modal).toBeVisible();
 
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('Enter');
+        await app.page.keyboard.press('ArrowDown');
+        await expect(input).toHaveAttribute('aria-activedescendant', /.+/);
+        await app.page.keyboard.press('Enter');
 
         // * The option is picked but the section has not saved
         await expect(input).not.toHaveValue(valueBefore);
         await expect(input).toHaveAttribute('aria-expanded', 'false');
-        await expect(editButton).not.toBeVisible();
-        await expect(profileModal.saveButton).toBeVisible();
+        await expect(section.editButton).not.toBeVisible();
+        await expect(section.saveButton).toBeVisible();
         const pickedValue = await input.inputValue();
         expect(TEST_LOCATION_OPTIONS.map((option) => option.name)).toContain(pickedValue);
 
         // # Save the section
-        await profileModal.saveButton.click();
+        await section.saveButton.click();
 
         // * The section closes and shows the picked value
-        await expect(editButton).toBeVisible();
-        await expect(profileModal.getAttributeValue('LocationUS', pickedValue)).toBeVisible();
+        await expect(section.editButton).toBeVisible();
+        await expect(section.describeText).toContainText(pickedValue);
     },
 );
 
@@ -278,19 +297,14 @@ test(
     'clicking the select attribute menu outside an option keeps focus and Escape keeps the profile modal open',
     {tag: '@custom_profile_attributes'},
     async ({pw}) => {
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto();
+        const {app, modal} = await openProfile(pw, user);
 
-        // # Open the profile settings modal and edit the LocationUS attribute
-        const profileModal = await channelsPage.openProfileModal();
-        await profileModal.toBeVisible();
-        const fieldId = getFieldIdByName(attributeFieldsMap, 'LocationUS');
-        const editButton = profileModal.container.locator(`#customAttribute_${fieldId}Edit`);
-        await editButton.scrollIntoViewIfNeeded();
-        await editButton.click();
+        // # Edit the LocationUS attribute
+        const section = attributeSection(app, attributeFieldsMap, 'LocationUS');
+        await section.editButton.click();
 
         // * The input takes focus when the section opens
-        const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        const input = section.valueChoiceCombobox.locator;
         await expect(input).toBeFocused();
 
         // # Click the input to open the menu
@@ -299,42 +313,47 @@ test(
         await expect(input).toHaveAttribute('aria-expanded', 'true');
 
         // # Click the menu padding just above its first option
-        const listboxId = `customProfileAttribute_${fieldId}-listbox`;
-        const firstOption = page.locator(`#${listboxId}`).getByRole('option').first();
+        const locationOptions = (attributeFieldsMap[getFieldIdByName(attributeFieldsMap, 'LocationUS')].attrs
+            ?.options ?? []) as Array<{id: string}>;
+        const firstOptionId = locationOptions.at(0)?.id;
+        if (!firstOptionId) {
+            throw new Error('Expected the LocationUS attribute to have options');
+        }
+        const firstChoice = section.choice({id: firstOptionId});
+        const firstOption = firstChoice.container.locator;
 
         // The menu ignores the pointer for a couple of frames after aria-expanded flips, then
         // scales in; a trial click waits until the option is stable and receives pointer events.
         await firstOption.click({trial: true});
+        await expect(firstOption).toBeVisible();
         const optionBox = await firstOption.boundingBox();
-        expect(optionBox).not.toBeNull();
-        const point = {x: optionBox!.x + optionBox!.width / 2, y: optionBox!.y - 3};
-        const hitsMenuPadding = await page.evaluate(
-            ({x, y, id}) => {
-                const el = document.elementFromPoint(x, y);
-                const popup = document.getElementById(id)?.closest('[class*="combobox__popup"]');
-                return Boolean(el && popup?.contains(el) && !el.closest('[role="option"]'));
-            },
-            {...point, id: listboxId},
-        );
+        if (!optionBox) {
+            throw new Error('Expected the first option to have a bounding box');
+        }
+        const point = {x: optionBox.x + optionBox.width / 2, y: optionBox.y - 3};
+        const hitsMenuPadding = await firstOption.evaluate((option, {x, y}) => {
+            const el = document.elementFromPoint(x, y);
+            const popup = option.closest('[class*="combobox__popup"]');
+            return Boolean(el && popup?.contains(el) && !el.closest('[role="option"]'));
+        }, point);
         expect(
             hitsMenuPadding,
             'the click point must land on the menu padding, not an option or outside the menu',
         ).toBe(true);
-        await page.mouse.click(point.x, point.y);
+        await app.page.mouse.click(point.x, point.y);
 
         // * The menu stays open and the input keeps focus
         await expect(input).toHaveAttribute('aria-expanded', 'true');
         await expect(input).toBeFocused();
 
         // # Press Escape
-        await page.keyboard.press('Escape');
+        await app.page.keyboard.press('Escape');
 
         // * The menu closes, while the modal and the section stay open
-        const modalRoot = page.locator('#accountSettingsModal');
         await expect(input).toHaveAttribute('aria-expanded', 'false');
         await expect(input).toBeFocused();
-        await expect(modalRoot).toHaveClass(/\bin\b/);
-        await expect(profileModal.saveButton).toBeVisible();
+        await expect(modal).toBeVisible();
+        await expect(section.saveButton).toBeVisible();
     },
 );
 
@@ -349,39 +368,26 @@ test(
  * 4. Two user accounts exist and are members of the same channel
  */
 test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-
-    // Prepare the environment by posting a message as other user
+    // 1. Login as the test user, after the other user has posted in the channel
     await pw.postAs(otherUser, {
         channel_id: testChannel.id,
         message: TEST_MESSAGE_OTHER,
     });
+    const {app, modal} = await openProfile(pw, user);
 
-    // 2. Open profile settings modal
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.toBeVisible();
+    // 2. Edit DepartmentUS field and delete all text to clear the value
+    await editTextAttribute(app, attributeFieldsMap, 'DepartmentUS', '');
 
-    // 3. Edit DepartmentUS field and delete all text to clear the value
-    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', '');
+    // 3. Close the profile settings modal and post a message to make the user visible in the channel
+    await closeProfile(modal);
+    const postId = await postMessage(app, 'Testing cleared attributes');
 
-    // 4. Close the profile settings modal
-    await profileModal.closeModal();
+    // 4. Login as the other user and view the test user's profile popover
+    const otherApp = await openPopoverAs(pw, otherUser, postId);
 
-    // 5. Post a message to make the user visible in the channel
-    await channelsPage.postMessage('Testing cleared attributes');
-
-    // 6. Login as the other user
-    const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(otherUser);
-    await otherChannelsPage.goto();
-
-    // 7. View the test user's profile popover
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
-
-    // * DepartmentUS attribute is not displayed in the profile popover
-    await verifyAttributeNotInPopover(otherChannelsPage, 'DepartmentUS');
+    // * DepartmentUS attribute is not displayed in the profile popover (other attributes are)
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'PhoneUS', TEST_PHONE);
+    await verifyAttributeNotInPopover(otherApp, attributeFieldsMap, 'DepartmentUS');
 });
 
 /**
@@ -394,34 +400,26 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
  * 3. Test user has Department value set to "Engineering"
  */
 test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    // 1. Login as the test user and open profile settings
+    const {app} = await openProfile(pw, user);
+    const section = attributeSection(app, attributeFieldsMap, 'DepartmentUS');
 
-    // 2. Open profile settings modal
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.toBeVisible();
+    // 2. Edit DepartmentUS field and change to "Changed Value"
+    await section.editButton.click();
+    await expect(section.value.container).toBeVisible();
+    await section.value.container.clear();
+    await section.value.container.fill(TEST_CHANGED_VALUE);
 
-    // 3. Edit DepartmentUS field and change to "Changed Value"
-    const department = 'DepartmentUS';
-    const fieldId = getFieldIdByName(attributeFieldsMap, department);
-    await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_CHANGED_VALUE);
+    // 3. Click Cancel button
+    await section.cancelButton.click();
+    await expect(section.editButton).toBeVisible();
 
-    // 4. Click Cancel button
-    await profileModal.cancelButton.click();
-
-    // 5. Open DepartmentUS field for editing again
-    await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
+    // 4. Open DepartmentUS field for editing again
+    await section.editButton.click();
+    await expect(section.value.container).toBeVisible();
 
     // * After cancelling, DepartmentUS field should still show original value "Engineering"
-    await expect(profileModal.container.locator(`#customAttribute_${fieldId}`)).toHaveValue(TEST_DEPARTMENT);
+    await expect(section.value.container).toHaveValue(TEST_DEPARTMENT);
 });
 
 /**
@@ -437,43 +435,27 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
  * 4. Two user accounts exist and are members of the same channel
  */
 test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-
-    // Prepare the environment by posting a message as other user
+    // 1. Login as the test user, after the other user has posted in the channel
     await pw.postAs(otherUser, {
         channel_id: testChannel.id,
         message: TEST_MESSAGE_OTHER,
     });
+    const {app, modal} = await openProfile(pw, user);
 
-    // 2. Open profile settings modal
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.toBeVisible();
+    // 2. Edit PhoneUS field and change to "555-987-6543", and WebsiteUS to "https://mattermost.com"
+    await editTextAttribute(app, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
+    await editTextAttribute(app, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
 
-    // 3. Edit PhoneUS field and change to "555-987-6543"
-    await editTextAttribute(page, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
+    // 3. Close the profile settings modal and post a message to make the user visible in the channel
+    await closeProfile(modal);
+    const postId = await postMessage(app, 'Testing phone and URL attributes');
 
-    // 4. Edit WebsiteUS field and change to "https://mattermost.com"
-    await editTextAttribute(page, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
-
-    // 5. Close the profile settings modal
-    await profileModal.closeModal();
-
-    // 6. Post a message to make the user visible in the channel
-    await channelsPage.postMessage('Testing phone and URL attributes');
-
-    // 7. Login as the other user
-    const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(otherUser);
-    await otherChannelsPage.goto();
-
-    // 8. View the test user's profile popover
-    const lastPost = await otherChannelsPage.getLastPost();
-    await otherChannelsPage.openProfilePopover(lastPost);
+    // 4. Login as the other user and view the test user's profile popover
+    const otherApp = await openPopoverAs(pw, otherUser, postId);
 
     // * Profile popover shows updated attributes
-    await verifyAttributeInPopover(otherChannelsPage, 'PhoneUS', TEST_UPDATED_PHONE);
-    await verifyAttributeInPopover(otherChannelsPage, 'WebsiteUS', TEST_UPDATED_URL);
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
+    await verifyAttributeInPopover(otherApp, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
 });
 
 /**
@@ -486,38 +468,27 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
  * 3. Test user has Website value set to "https://example.com"
  */
 test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    // 1. Login as the test user and open profile settings
+    const {app} = await openProfile(pw, user);
+    const section = attributeSection(app, attributeFieldsMap, 'WebsiteUS');
 
-    // 2. Open profile settings modal
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.toBeVisible();
+    // 2. Edit WebsiteUS field and enter an invalid URL
+    await section.editButton.click();
+    await expect(section.value.container).toBeVisible();
+    await section.value.container.clear();
+    await section.value.container.fill(TEST_INVALID_URL);
+    await section.value.container.blur();
 
-    // 3. Edit WebsiteUS field and enter an invalid URL
-    const fieldId = getFieldIdByName(attributeFieldsMap, 'WebsiteUS');
-    await profileModal.container.locator('text=WebsiteUS').scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_INVALID_URL);
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).blur();
+    // * The field shows the invalid URL error
+    await expect(section.value.validationAlert).toHaveMessage(Msg.user.settings.general.validUrl);
 
-    // * Save button doesn't complete the operation with invalid URL
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toBeVisible();
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toHaveMessage(
-        Msg.user.settings.general.validUrl,
-    );
-
-    // 5. Edit Website field and enter a valid URL
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_VALID_URL);
-
-    // 6. Save the changes
-    await profileModal.saveButton.click();
+    // 3. Enter a valid URL and save
+    await section.value.container.clear();
+    await section.value.container.fill(TEST_VALID_URL);
+    await section.saveButton.click();
 
     // * Valid URL saves successfully with no error message
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).not.toBeVisible();
-    await expect(profileModal.container).toContainText(TEST_VALID_URL);
+    await expect(section.editButton).toBeVisible();
+    await expect(section.value.validationAlert).not.toBeVisible();
+    await expect(section.describeText).toContainText(TEST_VALID_URL);
 });

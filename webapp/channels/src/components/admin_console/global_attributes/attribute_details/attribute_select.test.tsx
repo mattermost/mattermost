@@ -31,7 +31,7 @@ describe('AttributeSelect', () => {
     const renderComponent = (props: Partial<React.ComponentProps<typeof AttributeSelect>> = {}) => renderWithContext(
         <AttributeSelect
             idPrefix='attribute-type'
-            dataTestId='attributeSelect'
+            testId='admin.attribute.type'
             selected={text}
             options={[text, select]}
             ariaLabel='Type: Text'
@@ -44,7 +44,7 @@ describe('AttributeSelect', () => {
         const onChange = jest.fn();
         renderComponent({onChange});
 
-        const trigger = screen.getByTestId('attributeSelect');
+        const trigger = screen.getByTestId('admin.attribute.type--button');
         expect(trigger).toHaveTextContent('Text');
         expect(trigger).toHaveAccessibleName('Type: Text');
         expect(trigger).toBeEnabled();
@@ -69,15 +69,15 @@ describe('AttributeSelect', () => {
     it('names the selected option even when it is absent from the menu, so a type the picker no longer offers still reads correctly', () => {
         renderComponent({selected: email, options: [text, select]});
 
-        expect(screen.getByTestId('attributeSelect')).toHaveTextContent('Email');
-        expect(screen.getByTestId('attributeSelect')).not.toHaveTextContent('Text');
+        expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Email');
+        expect(screen.getByTestId('admin.attribute.type--button')).not.toHaveTextContent('Text');
     });
 
     it('opens no menu while disabled, and keeps the chevron since the value can still change later', async () => {
         const onChange = jest.fn();
         const {container} = renderComponent({disabled: true, onChange});
 
-        const trigger = screen.getByTestId('attributeSelect');
+        const trigger = screen.getByTestId('admin.attribute.type--button');
         expect(trigger).toBeDisabled();
         expect(container.querySelector('.icon-chevron-down')).toBeInTheDocument();
 
@@ -90,7 +90,7 @@ describe('AttributeSelect', () => {
         const onChange = jest.fn();
         const {container} = renderComponent({locked: true, onChange});
 
-        const trigger = screen.getByTestId('attributeSelect');
+        const trigger = screen.getByTestId('admin.attribute.type--button');
         expect(trigger).toHaveTextContent('Text');
         expect(trigger).toBeDisabled();
         expect(container.querySelector('.icon-chevron-down')).not.toBeInTheDocument();

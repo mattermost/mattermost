@@ -5,7 +5,7 @@ import React from 'react';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import AttributeExternalSource from './attribute_external_source';
 import {NO_EXTERNAL_SOURCE_LINKS} from './external_source';
@@ -54,11 +54,11 @@ describe('AttributeExternalSource', () => {
     it('renders no chips and offers both sources when neither is linked', async () => {
         renderComponent();
 
-        expect(screen.queryByTestId('attributeExternalSourceSynced')).not.toBeInTheDocument();
-        expect(screen.queryByTestId(/attributeExternalSourceChip-/)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.external_source.synced')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(/^admin\.attribute\.external_source\.source:/)).not.toBeInTheDocument();
         expect(screen.getByRole('separator')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         expect(screen.getByRole('menuitem', {name: /AD\/LDAP/})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: /^SAML/})).toBeInTheDocument();
     });
@@ -66,20 +66,20 @@ describe('AttributeExternalSource', () => {
     it('disables the add-source trigger when disableAdding is set, without disabling an existing chip\'s edit/remove actions', () => {
         renderComponent({links: links({ldap: 'department'}), disableAdding: true});
 
-        expect(screen.getByTestId('attributeExternalSourceTrigger')).toBeDisabled();
-        expect(screen.getByTestId('attributeExternalSourceTriggerLockWrap')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeExternalSourceChip-ldap-edit')).not.toBeDisabled();
-        expect(screen.getByTestId('attributeExternalSourceChip-ldap-remove')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.external_source.link--button')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.external_source.link_locked')).toBeInTheDocument();
+        expect(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.edit--button')).not.toBeDisabled();
+        expect(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button')).not.toBeDisabled();
     });
 
     it('renders a chip for a linked source prefixed by Synced with, and offers only the remaining source', async () => {
         renderComponent({links: links({ldap: 'department'})});
 
-        expect(screen.getByTestId('attributeExternalSourceSynced')).toHaveTextContent(/^Synced with/);
-        expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.external_source.synced')).toHaveTextContent(/^Synced with/);
+        expect(screen.getByTestId('admin.attribute.external_source.source:ldap')).toBeInTheDocument();
         expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         expect(screen.getByRole('menuitem', {name: /^SAML/})).toBeInTheDocument();
         expect(screen.queryByRole('menuitem', {name: /^AD\/LDAP/})).not.toBeInTheDocument();
     });
@@ -87,17 +87,17 @@ describe('AttributeExternalSource', () => {
     it('renders a chip\'s label as "<source>: <value>"', () => {
         renderComponent({links: links({ldap: 'department'})});
 
-        expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toHaveTextContent('AD/LDAP: department');
+        expect(screen.getByTestId('admin.attribute.external_source.source:ldap')).toHaveTextContent('AD/LDAP: department');
     });
 
     it('renders both chips once AD/LDAP and SAML are linked, offering OpenID Connect only as a disabled entry', async () => {
         renderComponent({links: links({ldap: 'department', saml: 'dept'})}, openIdState());
 
-        expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeExternalSourceChip-saml')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.external_source.source:ldap')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.external_source.source:saml')).toBeInTheDocument();
         expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         expect(screen.getAllByRole('menuitem')).toHaveLength(1);
         const openid = screen.getByRole('menuitem', {name: /^OpenID Connect/});
         expect(openid).toHaveAttribute('aria-disabled', 'true');
@@ -108,7 +108,7 @@ describe('AttributeExternalSource', () => {
         it('offers OpenID Connect, with its own modal copy, when it is licensed, set up and its flag is on', async () => {
             renderComponent({}, openIdState());
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             const openid = screen.getByRole('menuitem', {name: /^OpenID Connect/});
             expect(openid).not.toHaveAttribute('aria-disabled');
             expect(openid).toHaveTextContent('Map claims at sign-in');
@@ -130,12 +130,12 @@ describe('AttributeExternalSource', () => {
         ])('disables OpenID Connect when %p, saying why inline and in a tooltip', async (broken, label, tooltip) => {
             renderComponent({}, openIdState(broken));
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             const openid = screen.getByRole('menuitem', {name: /^OpenID Connect/});
             expect(openid).toHaveAttribute('aria-disabled', 'true');
             expect(openid).toHaveTextContent(label);
 
-            await userEvent.hover(screen.getByTestId('attributeExternalSourceBlocked-openid'));
+            await userEvent.hover(screen.getByTestId('admin.attribute.external_source.link_menu.blocked:openid'));
             expect(await screen.findByText(tooltip)).toBeInTheDocument();
 
             // AD/LDAP and SAML stay available.
@@ -146,33 +146,33 @@ describe('AttributeExternalSource', () => {
         it('keeps an existing OpenID Connect link as a chip even when OpenID Connect is no longer available', () => {
             renderComponent({links: links({openid: 'department'})}, openIdState({enabled: false}));
 
-            expect(screen.getByTestId('attributeExternalSourceChip-openid')).toHaveTextContent('OpenID Connect: department');
-            expect(screen.getByTestId('attributeExternalSourceChip-openid-edit')).not.toBeDisabled();
-            expect(screen.getByTestId('attributeExternalSourceChip-openid-remove')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.external_source.source:openid')).toHaveTextContent('OpenID Connect: department');
+            expect(within(screen.getByTestId('admin.attribute.external_source.source:openid')).getByTestId('admin.attribute.external_source.source.edit--button')).not.toBeDisabled();
+            expect(within(screen.getByTestId('admin.attribute.external_source.source:openid')).getByTestId('admin.attribute.external_source.source.remove--button')).not.toBeDisabled();
         });
 
         it('disables AD/LDAP and SAML while OpenID Connect is linked, and explains why', async () => {
             renderComponent({links: links({openid: 'department'})}, openIdState());
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             for (const name of [/^AD\/LDAP/, /^SAML/]) {
                 const item = screen.getByRole('menuitem', {name});
                 expect(item).toHaveAttribute('aria-disabled', 'true');
                 expect(item).toHaveTextContent('Can\'t be combined with OpenID Connect');
             }
 
-            await userEvent.hover(screen.getByTestId('attributeExternalSourceBlocked-saml'));
+            await userEvent.hover(screen.getByTestId('admin.attribute.external_source.link_menu.blocked:saml'));
             expect(await screen.findByText('An attribute synced from OpenID Connect can\'t also sync from AD/LDAP or SAML. Remove the OpenID Connect link to link SAML.')).toBeInTheDocument();
         });
 
         it('disables OpenID Connect while AD/LDAP is linked, and names the link to remove', async () => {
             renderComponent({links: links({ldap: 'department'})}, openIdState());
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             expect(screen.getByRole('menuitem', {name: /^SAML/})).not.toHaveAttribute('aria-disabled');
             expect(screen.getByRole('menuitem', {name: /^OpenID Connect/})).toHaveAttribute('aria-disabled', 'true');
 
-            await userEvent.hover(screen.getByTestId('attributeExternalSourceBlocked-openid'));
+            await userEvent.hover(screen.getByTestId('admin.attribute.external_source.link_menu.blocked:openid'));
             expect(await screen.findByText('An attribute synced from OpenID Connect can\'t also sync from AD/LDAP or SAML. Remove the AD/LDAP link to link OpenID Connect.')).toBeInTheDocument();
         });
     });
@@ -180,7 +180,7 @@ describe('AttributeExternalSource', () => {
     it('opens the modal pre-filled and empty when adding a new link, with no type-mismatch warning on a Text field', async () => {
         renderComponent({fieldType: 'text'});
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
 
         const input = await screen.findByRole('textbox');
@@ -191,7 +191,7 @@ describe('AttributeExternalSource', () => {
     it('shows the type-mismatch warning when the current field type cannot be synced', async () => {
         renderComponent({fieldType: 'rank'});
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
 
         await screen.findByRole('textbox');
@@ -201,7 +201,7 @@ describe('AttributeExternalSource', () => {
     it.each(['select', 'multiselect', 'phone'] as const)('shows no type-mismatch warning for %s, which a source can populate as it is', async (fieldType) => {
         renderComponent({fieldType});
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
 
         await screen.findByRole('textbox');
@@ -211,7 +211,7 @@ describe('AttributeExternalSource', () => {
     it('opens a linked chip\'s edit action pre-filled with the current value', async () => {
         renderComponent({links: links({ldap: 'department'})});
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-edit'));
+        await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.edit--button'));
 
         const input = await screen.findByRole('textbox');
         expect(input).toHaveValue('department');
@@ -220,7 +220,7 @@ describe('AttributeExternalSource', () => {
     it('calls onLink with the typed value when the modal is saved', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+        await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
         await userEvent.click(screen.getByRole('menuitem', {name: /^SAML/}));
 
         await userEvent.type(await screen.findByRole('textbox'), 'employeeID');
@@ -232,7 +232,7 @@ describe('AttributeExternalSource', () => {
     it('calls onLink with an empty value when the modal is saved blank', async () => {
         renderComponent({links: links({ldap: 'department'})});
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-edit'));
+        await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.edit--button'));
 
         const input = await screen.findByRole('textbox');
         await userEvent.clear(input);
@@ -244,7 +244,7 @@ describe('AttributeExternalSource', () => {
     it('calls onLink directly with an empty value when a chip\'s remove action is clicked, without opening the modal', async () => {
         renderComponent({links: links({ldap: 'department'})});
 
-        await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+        await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button'));
 
         expect(onLink).toHaveBeenCalledWith('ldap', '');
         expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
@@ -264,7 +264,7 @@ describe('AttributeExternalSource', () => {
             </div>,
         );
 
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceTrigger')).toHaveFocus());
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.link--button')).toHaveFocus());
     });
 
     it('moves focus to the trigger, rather than announcing a Type switch, when the last chip of a synced Select is removed', async () => {
@@ -281,8 +281,8 @@ describe('AttributeExternalSource', () => {
             </div>,
         );
 
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceTrigger')).toHaveFocus());
-        expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('');
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.link--button')).toHaveFocus());
+        expect(screen.getByTestId('admin.attribute.external_source.status--status')).toHaveTextContent('');
     });
 
     it('renders an explicit status message when both links are cleared by a Type switch, and does not steal focus from the Type control', async () => {
@@ -299,8 +299,8 @@ describe('AttributeExternalSource', () => {
             </div>,
         );
 
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('External source links removed'));
-        expect(screen.getByTestId('attributeExternalSourceTrigger')).not.toHaveFocus();
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.status--status')).toHaveTextContent('External source links removed'));
+        expect(screen.getByTestId('admin.attribute.external_source.link--button')).not.toHaveFocus();
     });
 
     it('renders the status message (not a focus move) when a Type switch clears a single link -- distinguished from a chip removal by the fieldType change, not link count', async () => {
@@ -317,8 +317,8 @@ describe('AttributeExternalSource', () => {
             </div>,
         );
 
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('External source link removed'));
-        expect(screen.getByTestId('attributeExternalSourceTrigger')).not.toHaveFocus();
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.status--status')).toHaveTextContent('External source link removed'));
+        expect(screen.getByTestId('admin.attribute.external_source.link--button')).not.toHaveFocus();
     });
 
     it('re-announces the status message on a second occurrence of the same transition', async () => {
@@ -346,12 +346,12 @@ describe('AttributeExternalSource', () => {
         );
 
         clearBoth();
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('External source links removed'));
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.status--status')).toHaveTextContent('External source links removed'));
 
         relinkBoth();
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent(''));
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.status--status')).toHaveTextContent(''));
 
         clearBoth();
-        await waitFor(() => expect(screen.getByTestId('attributeExternalSourceStatus')).toHaveTextContent('External source links removed'));
+        await waitFor(() => expect(screen.getByTestId('admin.attribute.external_source.status--status')).toHaveTextContent('External source links removed'));
     });
 });

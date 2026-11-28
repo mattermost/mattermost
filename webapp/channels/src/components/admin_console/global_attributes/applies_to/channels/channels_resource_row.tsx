@@ -60,7 +60,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, chan
     return (
         <div
             className={classNames('ChannelsResourceRow', {'ChannelsResourceRow--open': expanded})}
-            data-testid='channelsResourceRow'
+            data-testid='admin.classification.applies_to.channel'
         >
             <div className='ChannelsResourceRow__header'>
                 <button
@@ -70,7 +70,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, chan
                     aria-controls={BODY_ID}
                     aria-label={formatMessage(expanded ? messages.collapse : messages.expand)}
                     onClick={() => setExpanded((current) => !current)}
-                    data-testid='channelsResourceRowDisclosure'
+                    data-testid='admin.classification.applies_to.channel.toggle--button'
                 >
                     {expanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
                     <span className='ChannelsResourceRow__heading'>
@@ -80,7 +80,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, chan
                         </span>
                         <span
                             className='ChannelsResourceRow__summary'
-                            data-testid='channelsResourceRowSummary'
+                            data-testid='admin.classification.applies_to.channel.summary--text'
                         >
                             {summary}
                         </span>
@@ -95,7 +95,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, chan
                         className='ChannelsResourceRow__remove'
                         onClick={onRemove}
                         disabled={disabled}
-                        data-testid='channelsResourceRowRemove'
+                        data-testid='admin.classification.applies_to.channel.remove--button'
                     >
                         <FormattedMessage {...messages.remove}/>
                     </Button>
@@ -115,6 +115,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, chan
                         channelFieldId={channelFieldId}
                         attributeDisplayName={attributeDisplayName}
                         channelFieldUpdateAt={channelFieldUpdateAt}
+                        testIdScope='admin.classification.applies_to.channel.settings'
                     />
                 </div>
             )}

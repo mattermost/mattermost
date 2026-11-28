@@ -34,7 +34,7 @@ export default function ResourceTypeFilter({allowedTypes, value, onChange}: Prop
     return (
         <FilterMenu
             id='globalAttributesResourceTypeFilter'
-            testId='global-attributes-resource-type-filter'
+            testId='admin.attributes.resource_type_filter'
             label={messages.label}
             menuButtonAriaLabel={messages.menuButtonAriaLabel}
             menuAriaLabel={messages.menuAriaLabel}

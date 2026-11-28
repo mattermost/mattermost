@@ -62,7 +62,7 @@ const safeDeleteXOptions = [
 ];
 
 function getDeleteModalBody() {
-    const paragraph = screen.getByTestId('attributeGraphDeleteModal').querySelector('p');
+    const paragraph = screen.getByTestId('admin.attribute.graph.delete_modal').querySelector('p');
     expect(paragraph).not.toBeNull();
     return paragraph!;
 }
@@ -214,7 +214,7 @@ describe('AttributeGraphDeleteModal safe', () => {
     it('returns null for a leaf that is now a direct delete', () => {
         renderSafe(leafOptions, 'B');
 
-        expect(screen.queryByTestId('attributeGraphDeleteModal')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.delete_modal')).not.toBeInTheDocument();
         expect(screen.queryByRole('heading', {name: 'Delete B?'})).not.toBeInTheDocument();
     });
 

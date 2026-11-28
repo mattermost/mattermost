@@ -26,10 +26,10 @@ import {
  * these tests assert the console management UI and the resulting server state
  * (team.policy_enforced) only.
  */
-/** The team form's rules have no declared ancestor; locate its body by the declared name field. */
+/** The team form's rules have no declared ancestor; locate its body, the page's one content wrapper. */
 function teamContent(app: App) {
-    // The content wrapper has no test id; the generated team-name field identifies this form.
-    return app.page.locator('.admin-console__content').filter({has: app.admin.team.name.container.locator});
+    // The content wrapper has no test id.
+    return app.page.locator('.admin-console__content');
 }
 
 test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membership']}, () => {
@@ -211,8 +211,8 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // # Stage a team-page edit so the navigation-block flag is set, then open the
         // # linked policy in the editor (a plain link that never resets that flag).
         // The auto-add checkbox is reachable because the team is governed by a parent policy.
-        await teamContent(app).locator('[data-testid="team-auto-add-members-checkbox"]').check();
-        await expect(teamContent(app).locator('[data-testid="team-auto-add-members-checkbox"]')).toBeChecked();
+        await app.admin.team.autoAddMembersCheckbox.check();
+        await expect(app.admin.team.autoAddMembersCheckbox).toBeChecked();
         await policyPanel.getByLabel('Go to the policy').click();
 
         // * The policy editor loads
@@ -317,8 +317,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const rulesPanel = teamContent(app).locator('#team_level_access_rules');
         await expect(rulesPanel).toBeVisible();
 
-        // The auto-add checkbox has no generated part; its DOM id is scoped to this team form.
-        const autoAddCheckbox = teamContent(app).locator('[data-testid="team-auto-add-members-checkbox"]');
+        const autoAddCheckbox = app.admin.team.autoAddMembersCheckbox;
 
         // * Enabled purely because a parent policy governs the team (no custom expression),
         // * and off to start.
@@ -327,12 +326,13 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // # Turn auto-add on and save. Enabling auto-add backfills matching non-members,
         // # so the save raises the confirmation previewing the impact (UX spec §4.4).
-        await autoAddCheckbox.click();
+        await autoAddCheckbox.check();
         await expect(autoAddCheckbox).toBeChecked();
         await app.admin.team.savePanel.saveButton.click();
-        const confirmModal = app.admin.team.saveConfirmModal.locator;
+        const confirmModal = app.admin.team.saveConfirmModal;
         await expect(confirmModal).toBeVisible({timeout: duration.half_min});
-        await confirmModal.getByRole('button', {name: 'Apply'}).click();
+        await expect(confirmModal.confirmButton).toHaveText(/Apply/);
+        await confirmModal.confirmButton.click();
         await expect(confirmModal).not.toBeVisible();
 
         // * The team child policy's membership rule now carries the auto-add mode

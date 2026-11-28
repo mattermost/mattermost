@@ -8,7 +8,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
+import {addChannelResource, openNewAttribute, requireGlobalAttributesEnabled} from './global_attributes_helpers';
 
 test.describe(
     'System Console - ChannelAttributesRequired feature flag (on)',
@@ -25,16 +25,14 @@ test.describe(
 
             const suffix = pw.random.id();
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            const {attributeAppliesToChannels} = globalAttributes;
-
-            await globalAttributes.gotoNewAttribute();
-            await globalAttributes.setDisplayName(`Required Toggle On ${suffix}`);
-            await attributeAppliesToChannels.addResource();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const form = await openNewAttribute(app);
+            await form.displayName.container.fill(`Required Toggle On ${suffix}`);
+            await expect(form.displayName.container).toHaveValue(`Required Toggle On ${suffix}`);
+            const settings = await addChannelResource(form);
 
             // * Required toggle is visible — enforcement is on
-            await expect(attributeAppliesToChannels.requiredToggle).toBeVisible();
+            await expect(settings.requiredSwitch).toBeVisible();
 
             // The form was never saved, so there is no attribute field to clean up.
         });

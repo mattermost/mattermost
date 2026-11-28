@@ -14,9 +14,11 @@ export type ClassificationColorInputProps = {
     onChange: (color: string) => void;
     swatchAriaLabel: string;
     isDisabled?: boolean;
+
+    testId: string;
 };
 
-function ClassificationColorInput({id, value, onChange, swatchAriaLabel, isDisabled}: ClassificationColorInputProps) {
+function ClassificationColorInput({id, value, onChange, swatchAriaLabel, isDisabled, testId}: ClassificationColorInputProps) {
     const [focused, setFocused] = useState(false);
     const [isOpened, setIsOpened] = useState(false);
     const [localValue, setLocalValue] = useState(value);
@@ -140,7 +142,7 @@ function ClassificationColorInput({id, value, onChange, swatchAriaLabel, isDisab
                     onKeyDown={handleHexKeyDown}
                     maxLength={7}
                     disabled={isDisabled}
-                    data-testid='color-inputColorValue'
+                    data-testid={`${testId}--textbox`}
                 />
             </div>
             {isOpened && !isDisabled && (

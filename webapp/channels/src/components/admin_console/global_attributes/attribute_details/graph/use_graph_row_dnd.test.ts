@@ -90,7 +90,7 @@ function makeRow() {
 
 function graphRowEl(optionName: string, parentName: string) {
     const li = document.createElement('li');
-    li.setAttribute('data-testid', 'attributeOptionsGraphRow');
+    li.setAttribute('data-testid', 'admin.attribute.graph.row:0');
     li.setAttribute('data-option-name', optionName);
     li.setAttribute('data-parent-name', parentName);
     return li;

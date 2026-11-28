@@ -11,6 +11,7 @@ type Props = {
     childName: string;
     parentName: string;
     className: string;
+
     testId: string;
 };
 
@@ -38,7 +39,7 @@ export function GraphParentEdgeAlert({result, childName, parentName, className, 
         <div
             className={className}
             role='alert'
-            data-testid={testId}
+            data-testid={`${testId}--alert`}
         >
             {text}
         </div>

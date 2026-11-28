@@ -85,7 +85,7 @@ export default function SessionAttributesPage(props: Props) {
     return (
         <div
             className='wrapper--fixed'
-            data-testid='sessionAttributes'
+            data-testid='admin.session_attributes'
         >
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>
@@ -108,6 +108,7 @@ export default function SessionAttributesPage(props: Props) {
                 </div>
             </div>
             <SaveChangesPanel
+                testId='admin.session_attributes.save_panel'
                 saving={edits.saving}
                 saveNeeded={edits.hasChanges}
                 onClick={edits.save}
@@ -128,7 +129,7 @@ export default function SessionAttributesPage(props: Props) {
 
 function renderRegion(loaded: boolean, loadError: boolean, edits: SessionAttributeEdits, disabled: boolean) {
     if (!loaded) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId='admin.session_attributes.loading'/>;
     }
 
     if (loadError) {

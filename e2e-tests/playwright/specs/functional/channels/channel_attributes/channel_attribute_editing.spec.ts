@@ -6,7 +6,7 @@ import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {App, expect, test, Msg} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_LABEL_HEADER,
@@ -22,6 +22,21 @@ import {
     setChannelValue,
     valueFor,
 } from './helpers';
+import {
+    addSelect,
+    addText,
+    chip,
+    deselect,
+    editor,
+    labelChip,
+    labelChips,
+    openChannel,
+    openChannelInfo,
+    row,
+    select,
+    setText,
+    startEditing,
+} from './surface';
 
 // Editing in Channel Info is admin-only, whatever an attribute's own setter tier
 // says: useIsChannelAttributeAdmin gates the pencil, canSet only narrows further.
@@ -72,17 +87,15 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, note, 'first draft');
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, channelAdmin, team, channel);
 
             // # Replace the existing value and commit with Enter
-            const info = await channelsPage.openChannelInfo();
-            await expect(info.attributes.chip(note.name)).toHaveText('first draft');
-            await info.attributes.setText(note.name, 'second draft', 'enter');
+            const info = {attributes: await openChannelInfo(app)};
+            await expect(await chip(info.attributes, note)).toHaveText('first draft');
+            await setText(app, info.attributes, note, 'second draft', 'enter');
 
             // * The new value replaces the old one, in the panel and in the store
-            await expect(info.attributes.chip(note.name)).toHaveText('second draft');
+            await expect(await chip(info.attributes, note)).toHaveText('second draft');
             await expect
                 .poll(async () => {
                     return valueFor(await readChannelValues(adminClient, channel.id), note);
@@ -122,21 +135,19 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, note, 'original');
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, channelAdmin, team, channel);
 
-            const info = await channelsPage.openChannelInfo();
+            const info = {attributes: await openChannelInfo(app)};
 
             // # Type a new value and click away
-            await info.attributes.setText(note.name, 'blurred', 'blur');
-            await expect(info.attributes.chip(note.name)).toHaveText('blurred');
+            await setText(app, info.attributes, note, 'blurred', 'blur');
+            await expect(await chip(info.attributes, note)).toHaveText('blurred');
 
             // # Type again, then abandon with Escape
-            await info.attributes.setText(note.name, 'discarded', 'escape');
+            await setText(app, info.attributes, note, 'discarded', 'escape');
 
             // * Escape leaves the committed value untouched
-            await expect(info.attributes.chip(note.name)).toHaveText('blurred');
+            await expect(await chip(info.attributes, note)).toHaveText('blurred');
             await expect
                 .poll(async () => {
                     return valueFor(await readChannelValues(adminClient, channel.id), note);
@@ -188,14 +199,12 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, caveats, [optionId(caveats, 'NOFORN')]);
 
-            const {channelsPage, app} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, channelAdmin, team, channel);
 
-            const info = await channelsPage.openChannelInfo();
+            const info = {attributes: await openChannelInfo(app)};
 
             // # Add a second option to the existing one
-            await info.attributes.select(caveats.name, 'ORCON');
+            await select(app, info.attributes, caveats, 'ORCON');
 
             // * Both options are stored, in the order they were picked
             await expect
@@ -205,7 +214,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 .toEqual([optionId(caveats, 'NOFORN'), optionId(caveats, 'ORCON')]);
 
             // # Remove the first one from its chip in the trigger
-            await info.attributes.deselect(caveats.name, 'NOFORN');
+            await deselect(info.attributes, caveats, 'NOFORN');
 
             // * Only the remaining option survives, and the header agrees
             await expect
@@ -213,9 +222,8 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                     return valueFor(await readChannelValues(adminClient, channel.id), caveats);
                 })
                 .toEqual([optionId(caveats, 'ORCON')]);
-            const headerChips = app.channelHeader.attributes;
-            await expect(await headerChips.chipList.itemWith({text: 'ORCON'})).toBeVisible();
-            await expect(headerChips.container).not.toContainText('NOFORN');
+            await expect(await labelChip(app.channelHeader.attributes, 'ORCON')).toBeVisible();
+            await expect(labelChips(app.channelHeader.attributes, 'NOFORN')).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -250,34 +258,33 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, note, 'kept');
 
-            const {page, channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, channelAdmin, team, channel);
 
-            await page.route('**/api/v4/properties/groups/access_control/channel/values/**', (route) => {
+            await app.page.route('**/api/v4/properties/groups/access_control/channel/values/**', (route) => {
                 if (route.request().method() !== 'PATCH') {
                     return route.continue();
                 }
                 return route.fulfill({status: 500, body: '{"message":"forced failure"}'});
             });
 
-            const info = await channelsPage.openChannelInfo();
-            await info.attributes.setText(note.name, 'never saved', 'enter');
+            const info = {attributes: await openChannelInfo(app)};
+            await setText(app, info.attributes, note, 'never saved', 'enter');
 
             // * The row says the write failed, and keeps the edit open so it can be
             // * retried without retyping
-            await expect(info.attributes.error(note.name)).toBeVisible();
-            await expect(info.attributes.editor(note.name)).toHaveValue('never saved');
+            await expect(row(info.attributes, note).errorAlert).toBeVisible();
+            await expect(editor(info.attributes, note)).toHaveValue('never saved');
 
-            await page.unroute('**/api/v4/properties/groups/access_control/channel/values/**');
+            await app.page.unroute('**/api/v4/properties/groups/access_control/channel/values/**');
 
             // * Nothing was stored, so the previous value stands
             expect(valueFor(await readChannelValues(adminClient, channel.id), note)).toBe('kept');
 
             // # Retry now that the write succeeds
-            await info.attributes.editor(note.name).press('Enter');
+            await editor(info.attributes, note).press('Enter');
+            await expect(row(info.attributes, note).editButton).toBeVisible();
 
-            await expect(info.attributes.chip(note.name)).toHaveText('never saved');
+            await expect(await chip(info.attributes, note)).toHaveText('never saved');
             await expect
                 .poll(async () => {
                     return valueFor(await readChannelValues(adminClient, channel.id), note);
@@ -326,23 +333,23 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             created.push(marking);
             await adminClient.unarchiveChannel(channel.id);
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, channelAdmin, team, channel);
 
-            const info = await channelsPage.openChannelInfo();
+            const info = {attributes: await openChannelInfo(app)};
 
             // * A required attribute with no value shows as missing and is still editable
-            await expect(info.attributes.missingValue(marking.name)).toHaveText('Select a value');
-            await expect(info.attributes.lock(marking.name)).toHaveCount(0);
+            await expect(row(info.attributes, marking).locator).toContainMessage(
+                Msg.channel_attributes.info.select_a_value,
+            );
+            await expect(row(info.attributes, marking).locked).toHaveCount(0);
 
             // # Set it for the first time
-            await info.attributes.select(marking.name, 'FINAL');
-            await expect(info.attributes.chip(marking.name)).toHaveText('FINAL');
+            await select(app, info.attributes, marking, 'FINAL');
+            await expect(await chip(info.attributes, marking)).toHaveText('FINAL');
 
             // * Once set, the row is locked: no pencil, and the lock icon appears
-            await expect(info.attributes.lock(marking.name)).toBeVisible();
-            await expect(info.attributes.editButton(marking.name)).toHaveCount(0);
+            await expect(row(info.attributes, marking).locked).toBeVisible();
+            await expect(row(info.attributes, marking).editButton).toHaveCount(0);
 
             expect(valueFor(await readChannelValues(adminClient, channel.id), marking)).toBe(
                 optionId(marking, 'FINAL'),
@@ -383,26 +390,22 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await adminClient.addToChannel(user.id, channel.id);
 
             // # Look at it as the channel admin
-            const asAdmin = await pw.testBrowser.login(channelAdmin);
-            await asAdmin.channelsPage.goto(team.name, channel.name);
-            await asAdmin.channelsPage.toBeVisible();
-            const adminInfo = await asAdmin.channelsPage.openChannelInfo();
+            const asAdmin = await openChannel(pw, channelAdmin, team, channel);
+            const adminInfo = {attributes: await openChannelInfo(asAdmin)};
 
             // Added rather than edited: an unset optional attribute has no row until
             // it has a value.
             // * The channel admin clears the admin tier and can set it
-            await adminInfo.attributes.add(adminOnly.name, 'SET');
-            await expect(adminInfo.attributes.chip(adminOnly.name)).toHaveText('SET');
+            await addSelect(adminInfo.attributes, adminOnly, 'SET');
+            await expect(await chip(adminInfo.attributes, adminOnly)).toHaveText('SET');
 
             // # Look at the same attribute as an ordinary member
-            const asMember = await pw.testBrowser.login(user);
-            await asMember.channelsPage.goto(team.name, channel.name);
-            await asMember.channelsPage.toBeVisible();
-            const memberInfo = await asMember.channelsPage.openChannelInfo();
+            const asMember = await openChannel(pw, user, team, channel);
+            const memberInfo = {attributes: await openChannelInfo(asMember)};
 
             // * The member sees the value but is offered no way to change it
-            await expect(memberInfo.attributes.chip(adminOnly.name)).toHaveText('SET');
-            await expect(memberInfo.attributes.editButton(adminOnly.name)).toHaveCount(0);
+            await expect(await chip(memberInfo.attributes, adminOnly)).toHaveText('SET');
+            await expect(row(memberInfo.attributes, adminOnly).editButton).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -452,23 +455,22 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 `chanadmin-lists-${suffix}`,
             );
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
-            const info = await channelsPage.openChannelInfo();
+            const app = await openChannel(pw, channelAdmin, team, channel);
+            const info = {attributes: await openChannelInfo(app)};
 
             // * A required attribute that already has a value is listed and editable
-            await expect(info.attributes.chip(required.name)).toHaveText('DRAFT');
-            await expect(info.attributes.editButton(required.name)).toBeVisible();
+            await expect(await chip(info.attributes, required)).toHaveText('DRAFT');
+            await expect(row(info.attributes, required).editButton).toBeVisible();
 
             // * An unset optional attribute is reachable through Add Attribute, and
             // * becomes editable once added
-            await expect(info.attributes.row(optional.name)).toHaveCount(0);
-            await info.attributes.add(optional.name);
-            await info.attributes.editor(optional.name).fill('drafted');
-            await info.attributes.editor(optional.name).press('Enter');
-            await expect(info.attributes.chip(optional.name)).toHaveText('drafted');
-            await expect(info.attributes.editButton(optional.name)).toBeVisible();
+            await expect(row(info.attributes, optional)).toHaveCount(0);
+            await addText(info.attributes, optional);
+            await editor(info.attributes, optional).fill('drafted');
+            await editor(info.attributes, optional).press('Enter');
+            await expect(row(info.attributes, optional).editButton).toBeVisible();
+            await expect(await chip(info.attributes, optional)).toHaveText('drafted');
+            await expect(row(info.attributes, optional).editButton).toBeVisible();
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -509,17 +511,15 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await adminClient.addToChannel(user.id, channel.id);
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
-            const info = await channelsPage.openChannelInfo();
+            const app = await openChannel(pw, user, team, channel);
+            const info = {attributes: await openChannelInfo(app)};
 
             // * The required attribute's value is visible, but there is no pencil
-            await expect(info.attributes.chip(required.name)).toHaveText('DRAFT');
-            await expect(info.attributes.editButton(required.name)).toHaveCount(0);
+            await expect(await chip(info.attributes, required)).toHaveText('DRAFT');
+            await expect(row(info.attributes, required).editButton).toHaveCount(0);
 
             // * The unset optional attribute has no row, and there is no way to add one
-            await expect(info.attributes.row(optional.name)).toHaveCount(0);
+            await expect(row(info.attributes, optional)).toHaveCount(0);
             await expect(info.attributes.addButton).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
@@ -556,20 +556,23 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'SECRET'));
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, channelAdmin, team, channel);
 
-            const info = await channelsPage.openChannelInfo();
-            await expect(info.attributes.chip(marking.name)).toHaveText('SECRET');
+            const info = {attributes: await openChannelInfo(app)};
+            await expect(await chip(info.attributes, marking)).toHaveText('SECRET');
 
             // * No Clear menu item — clear lives on the chip
-            await info.attributes.startEditing(marking.name);
-            await expect(channelsPage.page.getByRole('menuitem', {name: /^Clear /})).toHaveCount(0);
-            await channelsPage.page.keyboard.press('Escape');
+            await startEditing(info.attributes, marking);
+            // The menu opens outside the row, so it is found from the app.
+            const editMenu = app.channelAttributeEditMenu;
+            await expect(await editMenu.optionList.itemWith({text: 'SECRET'})).toBeVisible();
+            // Only the two options, with no Clear item among them.
+            await expect(editMenu.optionList).toHaveKeyCount(2);
+            await app.page.keyboard.press('Escape');
+            await expect(editMenu.optionList).toHaveKeyCount(0);
 
             // # Clear it from the chip remove control
-            await info.attributes.deselect(marking.name, 'SECRET');
+            await deselect(info.attributes, marking, 'SECRET');
 
             // * The value is gone from the store
             await expect
@@ -614,33 +617,33 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await setChannelValue(adminClient, channel.id, owned, optionId(owned, 'NOFORN'));
             await assignAttributeOwner(adminClient, owned, 'com.example.markings');
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, adminUser, team, channel);
 
-            const info = await channelsPage.openChannelInfo();
+            const info = {attributes: await openChannelInfo(app)};
 
             // * The value is shown as a plain chip behind a lock, with nothing to open
-            await expect(info.attributes.chip(owned.name)).toHaveText('NOFORN');
-            await expect(info.attributes.lock(owned.name)).toBeVisible();
-            await expect(info.attributes.lock(owned.name)).toHaveAttribute(
+            await expect(await chip(info.attributes, owned)).toHaveText('NOFORN');
+            await expect(row(info.attributes, owned).locked).toBeVisible();
+            await expect(row(info.attributes, owned).locked).toHaveAttribute(
                 'aria-label',
                 'This attribute is managed by an integration and cannot be changed here',
             );
-            await expect(info.attributes.editButton(owned.name)).toHaveCount(0);
+            await expect(row(info.attributes, owned).editButton).toHaveCount(0);
 
             // # Click the chip where the editor's trigger would be
-            await info.attributes.chip(owned.name).click();
+            // The value label opens editing through its click handler, without an interactive role.
+            const value = await chip(info.attributes, owned);
+            await ('container' in value ? value.container : value).click();
 
             // * No option menu opens, so the write the server would refuse is never offered
-            await expect(channelsPage.page.getByText('RELIDO', {exact: true})).toHaveCount(0);
-            await expect(info.attributes.error(owned.name)).toHaveCount(0);
+            await expect(new App(info.attributes.page).channelAttributeEditMenu.optionList.locator).toHaveCount(0);
+            await expect(row(info.attributes, owned).errorAlert).toHaveCount(0);
 
             // * The ordinary attribute beside it is still offered for adding, so the
             // * lock is scoped to the owned one rather than the whole panel
             await info.attributes.addButton.click();
-            await expect(info.attributes.addMenuItem(ordinary.name)).toBeVisible();
-            await expect(info.attributes.addMenuItem(owned.name)).toHaveCount(0);
+            await expect(info.attributes.addMenu.attribute(ordinary)).toBeVisible();
+            await expect(info.attributes.addMenu.attribute(owned)).toHaveCount(0);
 
             // * The stored value is untouched
             expect(valueFor(await readChannelValues(adminClient, channel.id), owned)).toBe(optionId(owned, 'NOFORN'));

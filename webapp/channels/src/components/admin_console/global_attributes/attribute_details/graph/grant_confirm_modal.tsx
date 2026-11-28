@@ -74,7 +74,7 @@ function AttributeGraphGrantConfirmModal({
             handleConfirm={onConfirm}
             handleCancel={onCancel}
             onExited={onExited}
-            dataTestId='attributeGraphGrantConfirmModal'
+            testId='admin.attribute.graph.grant_modal'
         >
             <p className='attribute-graph-grant-confirm-modal__lead'>
                 <FormattedMessage

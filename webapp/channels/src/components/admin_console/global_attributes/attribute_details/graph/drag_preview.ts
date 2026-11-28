@@ -3,7 +3,7 @@
 
 import {GRAPH_ROW_DRAG_KIND, type GraphRowDragData} from './drop_classifier';
 
-const GRAPH_ROW_TEST_ID = 'attributeOptionsGraphRow';
+const GRAPH_ROW_TEST_ID_PREFIX = 'admin.attribute.graph.row:';
 const HONEY_POT_ATTR = 'data-pdnd-honey-pot';
 
 const DRAG_PREVIEW_HOST_CLASS = 'attribute-options-graph-values--drag-preview-host';
@@ -41,7 +41,7 @@ export function graphRowDragDataAtPoint(clientX: number, clientY: number): Graph
         if (!(node instanceof Element) || node.hasAttribute(HONEY_POT_ATTR)) {
             continue;
         }
-        const row = node.closest(`[data-testid="${GRAPH_ROW_TEST_ID}"]`);
+        const row = node.closest(`[data-testid^="${GRAPH_ROW_TEST_ID_PREFIX}"]`);
         if (!(row instanceof HTMLElement)) {
             continue;
         }
