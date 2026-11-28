@@ -5,6 +5,7 @@ package elasticsearch
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -60,10 +61,7 @@ func newIndexer(client *elastic.TypedClient, bulkSettings common.BulkSettings, l
 	// A zeroed FlushInterval means that there should be no time-based flush,
 	// but esutil.BulkIndexer defaults to 30 seconds if the interval is zero,
 	// so we pick a large enough interval
-	interval := bulkSettings.FlushInterval
-	if interval == 0 {
-		interval = 1 * time.Hour
-	}
+	interval := cmp.Or(bulkSettings.FlushInterval, 1*time.Hour)
 
 	return esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		FlushBytes:    bulkSettings.FlushBytes,

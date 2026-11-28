@@ -6,7 +6,6 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
-import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PunchOutCoordsHeightAndWidth} from '@mattermost/components';
 import {TourTip} from '@mattermost/components';
 
@@ -87,9 +86,7 @@ export const ChannelsTourTip = ({
             defaultMessage='Next'
         />
     );
-    let nextTrailingIcon: JSX.Element | undefined = (
-        <Icon glyph={<ChevronRightIcon/>}/>
-    );
+    let nextTrailingGlyph: JSX.Element | undefined = <ChevronRightIcon/>;
     if (singleTip) {
         nextBtn = (
             <FormattedMessage
@@ -97,7 +94,7 @@ export const ChannelsTourTip = ({
                 defaultMessage='Got it'
             />
         );
-        nextTrailingIcon = undefined;
+        nextTrailingGlyph = undefined;
     } else if (currentStep === lastStep) {
         nextBtn = (
             <FormattedMessage
@@ -105,7 +102,7 @@ export const ChannelsTourTip = ({
                 defaultMessage='Done'
             />
         );
-        nextTrailingIcon = undefined;
+        nextTrailingGlyph = undefined;
     }
 
     return (
@@ -118,9 +115,9 @@ export const ChannelsTourTip = ({
             imageURL={imageURL}
             overlayPunchOut={overlayPunchOut}
             nextBtn={nextBtn}
-            nextTrailingIcon={nextTrailingIcon}
+            nextTrailingGlyph={nextTrailingGlyph}
             prevBtn={singleTip ? undefined : prevBtn}
-            prevLeadingIcon={singleTip ? undefined : <Icon glyph={<ChevronLeftIcon/>}/>}
+            prevLeadingGlyph={singleTip ? undefined : <ChevronLeftIcon/>}
             step={currentStep}
             placement={placement}
             pulsatingDotPlacement={pulsatingDotPlacement}

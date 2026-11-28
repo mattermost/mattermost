@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -44,30 +45,33 @@ var PluginInstallURLCmd = &cobra.Command{
 }
 
 var PluginDeleteCmd = &cobra.Command{
-	Use:     "delete [plugins]",
-	Short:   "Delete plugins",
-	Long:    "Delete previously uploaded plugins from your Mattermost server.",
-	Example: `  plugin delete hovercardexample pluginexample`,
-	RunE:    withClient(pluginDeleteCmdF),
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "delete [plugins]",
+	Short:             "Delete plugins",
+	Long:              "Delete previously uploaded plugins from your Mattermost server.",
+	Example:           `  plugin delete hovercardexample pluginexample`,
+	RunE:              withClient(pluginDeleteCmdF),
+	Args:              cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(pluginIDCompletionF),
 }
 
 var PluginEnableCmd = &cobra.Command{
-	Use:     "enable [plugins]",
-	Short:   "Enable plugins",
-	Long:    "Enable plugins for use on your Mattermost server.",
-	Example: `  plugin enable hovercardexample pluginexample`,
-	RunE:    withClient(pluginEnableCmdF),
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "enable [plugins]",
+	Short:             "Enable plugins",
+	Long:              "Enable plugins for use on your Mattermost server.",
+	Example:           `  plugin enable hovercardexample pluginexample`,
+	RunE:              withClient(pluginEnableCmdF),
+	Args:              cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(pluginIDCompletionF),
 }
 
 var PluginDisableCmd = &cobra.Command{
-	Use:     "disable [plugins]",
-	Short:   "Disable plugins",
-	Long:    "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
-	Example: `  plugin disable hovercardexample pluginexample`,
-	RunE:    withClient(pluginDisableCmdF),
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "disable [plugins]",
+	Short:             "Disable plugins",
+	Long:              "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
+	Example:           `  plugin disable hovercardexample pluginexample`,
+	RunE:              withClient(pluginDisableCmdF),
+	Args:              cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(pluginIDCompletionF),
 }
 
 var PluginListCmd = &cobra.Command{
@@ -78,7 +82,44 @@ var PluginListCmd = &cobra.Command{
 	RunE:    withClient(pluginListCmdF),
 }
 
+var PluginPublicKeysCmd = &cobra.Command{
+	Use:   "keys",
+	Short: "List plugin signature public keys",
+	Long:  "List the names of the public keys used to verify plugin signatures on your Mattermost server. Only available in local mode.",
+	Example: `  plugin keys --local
+  plugin keys --verbose --local`,
+	Args:   cobra.NoArgs,
+	PreRun: localOnlyPrecheck,
+	RunE:   withClient(pluginPublicKeysCmdF),
+}
+
+var PluginAddPublicKeyCmd = &cobra.Command{
+	Use:     "add [keys]",
+	Short:   "Add plugin signature public keys",
+	Long:    "Add public keys used to verify plugin signatures on your Mattermost server. Each key is named after its file name, and must not already exist. Only available in local mode.",
+	Example: `  plugin keys add my-pk-file1.asc my-pk-file2.gpg --local`,
+	Args:    cobra.MinimumNArgs(1),
+	PreRun:  localOnlyPrecheck,
+	RunE:    withClient(pluginAddPublicKeyCmdF),
+}
+
+var PluginDeletePublicKeyCmd = &cobra.Command{
+	Use:     "delete [keys]",
+	Short:   "Delete plugin signature public keys",
+	Long:    "Delete public keys used to verify plugin signatures from your Mattermost server. Only available in local mode.",
+	Example: `  plugin keys delete my-pk-file1.asc my-pk-file2.gpg --local`,
+	Args:    cobra.MinimumNArgs(1),
+	PreRun:  localOnlyPrecheck,
+	RunE:    withClient(pluginDeletePublicKeyCmdF),
+}
+
 func init() {
+	PluginPublicKeysCmd.Flags().Bool("verbose", false, "Also print the contents of each public key")
+	PluginPublicKeysCmd.AddCommand(
+		PluginAddPublicKeyCmd,
+		PluginDeletePublicKeyCmd,
+	)
+
 	PluginAddCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 
@@ -89,6 +130,7 @@ func init() {
 		PluginEnableCmd,
 		PluginDisableCmd,
 		PluginListCmd,
+		PluginPublicKeysCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
 }
@@ -204,4 +246,71 @@ func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func pluginPublicKeysCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	names, _, err := c.GetPluginPublicKeys(context.TODO())
+	if err != nil {
+		return fmt.Errorf("unable to list plugin public keys: %w", err)
+	}
+
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	if !verbose {
+		for _, name := range names {
+			printer.Print(name)
+		}
+		return nil
+	}
+
+	var multiErr *multierror.Error
+	for _, name := range names {
+		key, _, err := c.GetPluginPublicKey(context.TODO(), name)
+		if err != nil {
+			printer.PrintError(fmt.Sprintf("Unable to get plugin public key %q. Error: %s", name, err))
+			multiErr = multierror.Append(multiErr, err)
+			continue
+		}
+		printer.Print(fmt.Sprintf("Plugin public key: %s\n%s", name, key))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+func pluginAddPublicKeyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var multiErr *multierror.Error
+	for _, path := range args {
+		if err := addPluginPublicKey(c, path); err != nil {
+			printer.PrintError(fmt.Sprintf("Unable to add plugin public key %q. Error: %s", path, err))
+			multiErr = multierror.Append(multiErr, err)
+		} else {
+			printer.Print("Added plugin public key: " + filepath.Base(path))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+func addPluginPublicKey(c client.Client, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = c.AddPluginPublicKey(context.TODO(), filepath.Base(path), f)
+	return err
+}
+
+func pluginDeletePublicKeyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var multiErr *multierror.Error
+	for _, name := range args {
+		if _, err := c.DeletePluginPublicKey(context.TODO(), name); err != nil {
+			printer.PrintError(fmt.Sprintf("Unable to delete plugin public key %q. Error: %s", name, err))
+			multiErr = multierror.Append(multiErr, err)
+		} else {
+			printer.Print("Deleted plugin public key: " + name)
+		}
+	}
+
+	return multiErr.ErrorOrNil()
 }

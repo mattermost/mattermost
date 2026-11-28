@@ -10,13 +10,15 @@ import (
 
 // CompleteOnboardingRequest describes parameters of the requested plugin.
 type CompleteOnboardingRequest struct {
-	Organization   string   `json:"organization"`    // Organization is the name of the organization
-	InstallPlugins []string `json:"install_plugins"` // InstallPlugins is a list of plugins to be installed
+	Organization   string   `json:"organization"`       // Organization is the name of the organization
+	InstallPlugins []string `json:"install_plugins"`    // InstallPlugins is a list of plugins to be installed
+	SiteURL        string   `json:"site_url,omitempty"` // SiteURL is saved as ServiceSettings.SiteURL if none is set yet
 }
 
 func (r *CompleteOnboardingRequest) Auditable() map[string]any {
 	return map[string]any{
 		"install_plugins": r.InstallPlugins,
+		"site_url":        r.SiteURL,
 	}
 }
 

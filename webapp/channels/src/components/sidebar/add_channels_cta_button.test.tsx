@@ -6,8 +6,8 @@ import React from 'react';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {WindowSizes} from 'utils/constants';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {ModalIdentifiers, WindowSizes} from 'utils/constants';
 
 import AddChannelsCtaButton from './add_channels_cta_button';
 
@@ -16,6 +16,11 @@ jest.mock('mattermost-redux/actions/preferences', () => ({
 }));
 
 const mockDispatch = jest.fn();
+let mockRailKind: 'channel' | 'board' = 'channel';
+
+jest.mock('hooks/useProductRailKind', () => ({
+    useProductRailKind: () => mockRailKind,
+}));
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -89,34 +94,81 @@ describe('components/new_channel_modal', () => {
     beforeEach(() => {
         mockDispatch.mockClear();
         (savePreferences as jest.Mock).mockClear();
+        mockRailKind = 'channel';
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, initialState);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when user has only join channel permissions', () => {
-        const joinOnlyState = {
+    describe('on the Boards item of the product rail', () => {
+        const createBoardAction = jest.fn();
+        const withBoardMenuItem = {
             ...initialState,
-            entities: {
-                ...initialState.entities,
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {
-                            id: 'current_user_id',
-                            roles: 'system_user_join_permissions',
-                        },
-                    },
+            plugins: {
+                components: {
+                    ChannelKind: [{id: 'board_kind', pluginId: 'boards', kind: 'board' as const, matcher: () => false}],
+                    SidebarBrowseOrAddChannelMenu: [{
+                        id: 'create_board',
+                        pluginId: 'boards',
+                        text: 'Create new board',
+                        action: createBoardAction,
+                        icon: <i className='icon-product-boards'/>,
+                        placement: 'afterCreateChannel' as const,
+                    }],
                 },
             },
         };
 
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, joinOnlyState);
+        beforeEach(() => {
+            mockRailKind = 'board';
+            createBoardAction.mockClear();
+        });
 
-        expect(container).toMatchSnapshot();
+        test('should offer board creation from the plugin instead of channel creation', async () => {
+            renderWithContext(<AddChannelsCtaButton/>, withBoardMenuItem);
+
+            await userEvent.click(screen.getByRole('button', {name: /add boards/i}));
+
+            expect(screen.queryByText('Create new channel')).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: /create new board/i}));
+
+            // Menu items run their action once the menu has closed.
+            await waitFor(() => expect(createBoardAction).toHaveBeenCalledWith('current_team_id'));
+        });
+
+        test('should browse boards, opening Browse Channels as Browse Boards', async () => {
+            renderWithContext(<AddChannelsCtaButton/>, withBoardMenuItem);
+
+            await userEvent.click(screen.getByRole('button', {name: /add boards/i}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Browse boards'}));
+
+            await waitFor(() => expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.MORE_CHANNELS,
+                dialogProps: {kind: 'board'},
+            })));
+        });
+
+        test('should keep the channel wording when only another plugin adds an item after Create new channel', () => {
+            renderWithContext(<AddChannelsCtaButton/>, {
+                ...withBoardMenuItem,
+                plugins: {
+                    components: {
+                        ...withBoardMenuItem.plugins.components,
+                        SidebarBrowseOrAddChannelMenu: [{
+                            ...withBoardMenuItem.plugins.components.SidebarBrowseOrAddChannelMenu[0],
+                            pluginId: 'tasks',
+                            text: 'Create task',
+                        }],
+                    },
+                },
+            });
+
+            expect(screen.getByRole('button', {name: /add channels/i})).toBeInTheDocument();
+        });
+
+        test('should keep the channel wording when no plugin offers board creation', () => {
+            renderWithContext(<AddChannelsCtaButton/>, initialState);
+
+            expect(screen.getByRole('button', {name: /add channels/i})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /add boards/i})).not.toBeInTheDocument();
+        });
     });
 
     test('should find the add channels button when user has permissions', () => {

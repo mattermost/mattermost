@@ -41,9 +41,16 @@ import (
 // fieldMasking is the resolved masking answer for one field: the masking
 // object that applies (nil when the field is not masked) and the ID of the
 // field the caller's holdings are read from.
+//
+// holdingsListDiffers is set for a masked rank or graph field whose holdings
+// field reads a different option list than the field does: ranks are
+// comparable only within one list, and option IDs repeat across fields (an
+// unlinked copy keeps its template's IDs), so matching IDs proves nothing.
+// Such a field shows its caller no options and no values.
 type fieldMasking struct {
-	masking         *model.Masking
-	holdingsFieldID string
+	masking             *model.Masking
+	holdingsFieldID     string
+	holdingsListDiffers bool
 }
 
 // maskingContext memoizes, within one hook call that reads or writes several
@@ -56,12 +63,19 @@ type fieldMasking struct {
 //
 // existingValues holds a row a delete path already loaded and handed in via
 // primeStoredValue, so the visibility check does not read it a second time.
+//
+// templateSyncs holds lateLinkedSyncAllows's answer to whether a template is
+// synced from a sync caller's source, which it would otherwise read from the
+// template once per value: a sync run reads every user's values on the fields
+// it maps.
 type maskingContext struct {
 	fieldMasking      map[string]fieldMasking
 	fieldMaskingErrs  map[string]error
 	holdingsValues    map[string][]*model.PropertyValue
 	holdingsOptionIDs map[string]map[string]struct{}
+	optionRanks       map[string]map[string]*int64
 	existingValues    map[[2]string]*model.PropertyValue
+	templateSyncs     map[[2]string]bool
 }
 
 // newMaskingContext returns an empty maskingContext, built once per hook call
@@ -73,7 +87,9 @@ func newMaskingContext() maskingContext {
 		fieldMaskingErrs:  make(map[string]error),
 		holdingsValues:    make(map[string][]*model.PropertyValue),
 		holdingsOptionIDs: make(map[string]map[string]struct{}),
+		optionRanks:       make(map[string]map[string]*int64),
 		existingValues:    make(map[[2]string]*model.PropertyValue),
+		templateSyncs:     make(map[[2]string]bool),
 	}
 }
 
@@ -121,6 +137,23 @@ func (c maskingContext) resolve(h *AccessControlHook, rctx request.CTX, field *m
 	return fm, nil
 }
 
+// isDefinitionSync is PropertyService.isDefinitionSync, reading a linked
+// field's template once per template and sync source for the lifetime of this
+// maskingContext. A field synced itself, or not linked, needs no template, so
+// it is answered directly.
+func (c maskingContext) isDefinitionSync(rctx request.CTX, ps *PropertyService, field *model.PropertyField, callerID string) bool {
+	if model.IsPropertyFieldSynced(field) || field.LinkSourceID() == "" {
+		return ps.isDefinitionSync(rctx, field, callerID)
+	}
+	key := [2]string{field.LinkSourceID(), model.PropertySyncSourceForCallerID(callerID)}
+	if synced, ok := c.templateSyncs[key]; ok {
+		return synced
+	}
+	synced := ps.isDefinitionSync(rctx, field, callerID)
+	c.templateSyncs[key] = synced
+	return synced
+}
+
 // callerValuesForHoldings returns the caller's raw values on holdingsFieldID,
 // searching the store once per holdings field ID for the lifetime of this
 // maskingContext -- every field masked against the same holdings field shares
@@ -153,6 +186,46 @@ func (c maskingContext) callerOptionIDsForHoldings(rctx request.CTX, h *AccessCo
 	return ids, nil
 }
 
+// ranksFor returns the rank of each of ids that field's option list ranks,
+// asking the store only about IDs not asked about before on this field. An ID
+// the store left out (unranked, deleted, not on the list) is remembered as
+// having no rank, so a batch of values holding one does not query again. A
+// failed read caches nothing.
+func (c maskingContext) ranksFor(h *AccessControlHook, field *model.PropertyField, ids []string) (map[string]int64, error) {
+	known := c.optionRanks[field.ID]
+	if known == nil {
+		known = make(map[string]*int64)
+		c.optionRanks[field.ID] = known
+	}
+	var missing []string
+	for _, id := range ids {
+		if _, ok := known[id]; !ok && !slices.Contains(missing, id) {
+			missing = append(missing, id)
+		}
+	}
+	if len(missing) > 0 {
+		fetched, err := h.propertyService.fieldStore.GetOptionRanks(field, missing)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read the ranks of a rank property field's options")
+		}
+		for _, id := range missing {
+			if rank, ok := fetched[id]; ok {
+				known[id] = &rank
+			} else {
+				known[id] = nil
+			}
+		}
+	}
+
+	ranks := make(map[string]int64, len(ids))
+	for _, id := range ids {
+		if rank := known[id]; rank != nil {
+			ranks[id] = *rank
+		}
+	}
+	return ranks, nil
+}
+
 // resolveFieldMasking answers what masks field and where the caller's
 // holdings for it are read from. An unmasked field resolves to a zero
 // fieldMasking (masking is nil).
@@ -173,7 +246,26 @@ func (h *AccessControlHook) resolveFieldMasking(rctx request.CTX, field *model.P
 	}
 
 	masking := target.Permissions.Masking
-	return fieldMasking{masking: masking, holdingsFieldID: holdingsFieldIDFor(field, masking)}, nil
+	fm := fieldMasking{masking: masking, holdingsFieldID: holdingsFieldIDFor(field, masking)}
+
+	if (field.Type == model.PropertyFieldTypeRank || field.Type == model.PropertyFieldTypeGraph) && fm.holdingsFieldID != field.ID {
+		holdings, err := h.propertyService.getPropertyField(rctx, field.GroupID, fm.holdingsFieldID)
+		if err != nil {
+			return fieldMasking{}, errors.Wrapf(err, "failed to resolve holdings field %q for field %q", fm.holdingsFieldID, field.ID)
+		}
+		fm.holdingsListDiffers = !ReadsOptionList(holdings, target.ID)
+	}
+	return fm, nil
+}
+
+// ReadsOptionList reports whether holdings is live and reads the option list
+// owned by listOwnerID: it is that field, or linked to it (a linked field reads
+// its template's list, any other field its own). A deleted holdings field, or one
+// unlinked from the template, does not read its list. The service refuses both
+// while the masking names the field, but the store does not re-check the masking
+// when the holdings field changes.
+func ReadsOptionList(holdings *model.PropertyField, listOwnerID string) bool {
+	return holdings.DeleteAt == 0 && (holdings.ID == listOwnerID || holdings.LinkSourceID() == listOwnerID)
 }
 
 // holdingsFieldIDFor returns the field ID whose values masking treats as the
@@ -279,12 +371,7 @@ func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field 
 // only from the read path that hides the value on this error
 // (applyValueReadAccessControl), whether the field's masking could not be
 // resolved or the value's filter failed; the write path that refuses on this
-// error reports it as a failure instead, so it has no log line of its own. The
-// legacy shared_only path's logHiddenGraphValue logs the equivalent failure
-// for its own graph-only clamp; the two stay separate because masking and
-// shared_only disagree on purpose about what a caller sees when they hold
-// only some of an option's ancestors, and merging the logging would blur
-// that.
+// error reports it as a failure instead, so it has no log line of its own.
 func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
 	rctx.Logger().Error(
 		"Hiding a masked property value because what the caller may see of it could not be established",
@@ -296,9 +383,9 @@ func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *mode
 
 // maskOptionValue answers select, multiselect, rank and graph alike: the
 // value the caller may see is the value's own option IDs narrowed to the
-// ones visibleOptionIDs reports true for -- exact membership for select,
-// multiselect and rank, CoveredBy for graph, the same rule the two
-// option-list filters (maskFieldOptions, filterMaskedOptionPage) already use.
+// ones visibleOptionIDs reports true for -- the same rule the two option-list
+// filters (maskFieldOptions, filterMaskedOptionPage) use. A rank value is
+// returned whole or not at all, never replaced by a lower option.
 // select and rank hold at most one option, so the narrowed set has at most
 // one element; multiselect's and graph's may have several. A caller holding
 // nothing, or a narrowed set of none, sees nothing -- reported as (nil, nil),
@@ -351,13 +438,14 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 }
 
 // visibleOptionIDs answers, for a field already known to carry masking, which
-// of candidateOptionIDs callerID may see: a graph field asks CoveredBy -- one
-// of the caller's own held options is at-or-above the candidate -- and every
-// other option-supporting type asks exact membership in what the caller
-// holds, the same holdings maskOptionValue checks a value's own options
-// against. A caller holding nothing sees nothing, without asking CoveredBy at
-// all.
+// of candidateOptionIDs callerID may see: those OptionsCoveredBy reports
+// covered by the options the caller holds on the holdings field (rank order for
+// rank, ancestry for graph, exact membership for select and multiselect). A
+// caller holding nothing sees nothing, without asking.
 func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, fm fieldMasking, candidateOptionIDs []string, callerID string) (map[string]bool, error) {
+	if fm.holdingsListDiffers {
+		return map[string]bool{}, nil
+	}
 	callerOptionIDs, err := c.callerOptionIDsForHoldings(rctx, h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
 	if err != nil {
 		return nil, err
@@ -366,27 +454,22 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 		return map[string]bool{}, nil
 	}
 
-	if field.Type == model.PropertyFieldTypeGraph {
-		return h.propertyService.CoveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
-	}
-
-	visible := make(map[string]bool, len(candidateOptionIDs))
-	for _, id := range candidateOptionIDs {
-		if _, ok := callerOptionIDs[id]; ok {
-			visible[id] = true
+	heldIDs := slices.Collect(maps.Keys(callerOptionIDs))
+	if field.Type == model.PropertyFieldTypeRank {
+		if len(candidateOptionIDs) == 0 {
+			return map[string]bool{}, nil
 		}
+		ranks, err := c.ranksFor(h, field, slices.Concat(candidateOptionIDs, heldIDs))
+		if err != nil {
+			return nil, err
+		}
+		return rankCovered(ranks, candidateOptionIDs, heldIDs), nil
 	}
-	return visible, nil
+	return h.propertyService.OptionsCoveredBy(rctx, field, candidateOptionIDs, heldIDs)
 }
 
-// maskFieldOptions returns a copy of field whose inline option list is
-// filtered to what callerID may see, given the masking fm already resolved
-// for it. Mirrors filterSharedOnlyFieldOptions's shape and Attrs handling
-// (access_control.go), using copyPropertyField and extractOptionIDList the
-// same way -- but never applies the rank ladder that function keeps for a
-// field with no permissions: a masked rank field's options are exact-option
-// membership, the same rule select and multiselect use, so
-// filterSharedOnlyRankFieldOptions is never called from here.
+// maskFieldOptions filters field's inline option list to what callerID may
+// see, by the same coverage rule as value reads.
 //
 // This runs only on the branch permissionsAllows already admitted for
 // option.read; a caller the gate refused never reaches it.
@@ -446,15 +529,8 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 	return filteredField
 }
 
-// filterMaskedOptionPage keeps the options in one page of a masked field's
-// paged option listing that callerID may see, and strips each kept option's
-// parents. Generalizes filterSharedOnlyGraphOptionPage (access_control.go)
-// off graph-only and access_mode onto every option-supporting type and
-// masking, via visibleOptionIDs -- same page-not-reach framing (judging the
-// page bounds the work to the page size, where building the caller's full
-// reach walks the whole hierarchy), same parent-stripping reasoning (an
-// option's parent is by definition above it, so reporting it would hand a
-// caller who holds an option exactly the name masking withholds).
+// filterMaskedOptionPage judges only this page so the work stays bounded by
+// page size; building the caller's full reach would walk the whole hierarchy.
 //
 // A resolution failure is returned as an error rather than answered with an
 // empty page: every other masking path hides because it has nowhere to put a
@@ -481,8 +557,9 @@ func (h *AccessControlHook) filterMaskedOptionPage(rctx request.CTX, c maskingCo
 		if !visible[option.ID] {
 			continue
 		}
-		// See filterSharedOnlyGraphOptionPage for why parents come off: an absent
-		// parents key means "not reported", not "this is a root".
+		// A parent is above the kept option, so reporting it would name
+		// something masking withholds. Clearing Parents means "not reported",
+		// not "this is a root".
 		copied := *option
 		copied.Parents = nil
 		shown = append(shown, &copied)

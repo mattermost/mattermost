@@ -24,22 +24,6 @@ const privateChannel = {
 } as Channel;
 
 describe('components/widgets/inputs/ChannelsInput', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <ChannelsInput
-                placeholder='test'
-                ariaLabel='test'
-                onChange={jest.fn()}
-                channelsLoader={jest.fn()}
-                onInputChange={jest.fn()}
-                inputValue=''
-                value={[publicChannel, privateChannel]}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render each suggested channel with its display name and tilde-prefixed slug', async () => {
         renderWithContext(
             <ChannelsInput

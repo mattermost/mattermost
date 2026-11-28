@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -30,6 +31,8 @@ type channelInviteMsg struct {
 	CreatorID            string            `json:"creator_id"`
 	DirectParticipantIDs []string          `json:"direct_participant_ids"`
 	DirectParticipants   []*model.User     `json:"direct_participants"`
+
+	syncCursorStart int64
 }
 
 func (cim channelInviteMsg) DirectParticipantsMap() map[string]*model.User {
@@ -57,6 +60,14 @@ func WithDirectParticipant(participant *model.User, remoteID string) InviteOptio
 func WithCreator(creatorID string) InviteOption {
 	return func(msg *channelInviteMsg) {
 		msg.CreatorID = creatorID
+	}
+}
+
+// WithSyncCursorStart makes a newly created shared channel remote sync posts created after
+// the given time, instead of only those created after the invite is confirmed.
+func WithSyncCursorStart(timestamp int64) InviteOption {
+	return func(msg *channelInviteMsg) {
+		msg.syncCursorStart = timestamp
 	}
 }
 
@@ -185,6 +196,10 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				return
 			}
 		} else {
+			cursorStart := curTime
+			if invite.syncCursorStart > 0 && invite.syncCursorStart < curTime {
+				cursorStart = invite.syncCursorStart
+			}
 			// the shared channel remote doesn't exists, so we create it
 			scr := &model.SharedChannelRemote{
 				ChannelId:         sc.ChannelId,
@@ -192,8 +207,8 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				RemoteId:          rc.RemoteId,
 				IsInviteAccepted:  true,
 				IsInviteConfirmed: true,
-				LastPostCreateAt:  curTime,
-				LastPostUpdateAt:  curTime,
+				LastPostCreateAt:  cursorStart,
+				LastPostUpdateAt:  cursorStart,
 				LastMembersSyncAt: 0,
 			}
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
@@ -357,10 +372,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
 		scs.NotifyMembershipChanged(channel.Id, "")
 	} else {
-		creatorID := channel.CreatorId
-		if creatorID == "" {
-			creatorID = invite.CreatorID
-		}
+		creatorID := cmp.Or(channel.CreatorId, invite.CreatorID)
 		scr := &model.SharedChannelRemote{
 			Id:                model.NewId(),
 			ChannelId:         channel.Id,
@@ -453,6 +465,8 @@ func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*m
 	}
 
 	var rctx request.CTX = request.EmptyContext(scs.server.Log())
+	// Preserve the original email before assigning the sender's RemoteId.
+	prepareRemoteEmailForSync(inviteUser)
 	inviteUser.RemoteId = new(rc.RemoteId)
 	user, iErr := scs.insertSyncUser(rctx, inviteUser, nil, rc)
 	if iErr != nil {

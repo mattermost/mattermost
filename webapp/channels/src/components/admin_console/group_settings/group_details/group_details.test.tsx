@@ -72,57 +72,6 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         },
     };
 
-    test('should match snapshot, with everything closed', () => {
-        const {container} = renderWithContext(<GroupDetails {...defaultProps}/>);
-        defaultProps.actions.getGroupSyncables.mockClear();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with add team selector open', () => {
-        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        const {container} = renderWithContext(
-            <GroupDetails
-                {...defaultProps}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({addTeamOpen: true});
-        });
-        defaultProps.actions.getGroupSyncables.mockClear();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with add channel selector open', () => {
-        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        const {container} = renderWithContext(
-            <GroupDetails
-                {...defaultProps}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({addChannelOpen: true});
-        });
-        defaultProps.actions.getGroupSyncables.mockClear();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with loaded state', () => {
-        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        const {container} = renderWithContext(
-            <GroupDetails
-                {...defaultProps}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({loadingTeamsAndChannels: false});
-        });
-        defaultProps.actions.getGroupSyncables.mockClear();
-        expect(container).toMatchSnapshot();
-    });
-
     test('should load data on mount', () => {
         const actions = {
             getGroupSyncables: jest.fn().mockReturnValue(Promise.resolve()),

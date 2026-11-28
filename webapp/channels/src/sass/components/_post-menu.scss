@@ -20,52 +20,19 @@
     white-space: normal;
 }
 
+// Layout / hover-reveal only. Sizing and colors come from Compass IconButton.
+// `button.` raises specificity so IconButton's display:inline-flex does not win the hide rule.
 .post-menu__item {
-    display: inline-flex;
-    width: 28px;
-    height: 28px;
-    align-items: center;
-    justify-content: center;
     border: none;
-    border-radius: 4px;
     background: transparent;
-    color: rgba(functions.v(center-channel-color-rgb), 0.4);
-    fill: rgba(functions.v(center-channel-color-rgb), 0.4);
-
-    &:active,
-    &--active,
-    &--active:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: functions.v(button-bg);
-        fill: functions.v(button-bg);
-    }
-
-    span {
-        display: flex;
-    }
 }
 
 .post-menu__item--show {
-    display: block;
+    display: inline-flex;
 }
 
 .post-menu__item--wide {
     width: auto;
-    padding: 0 6px;
-}
-
-.post-menu__item--selected { // Used for the flag icon when it is in the flagged state
-    color: var(--link-color);
-    fill: var(--link-color);
-}
-
-.post-menu__comment-count {
-    margin: 0 0 0 2px;
-    font-weight: 600;
-    -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none;    /* Firefox all */
-    -ms-user-select: none;     /* IE 10+ */
-    user-select: none;
 }
 
 .post-menu__emoticon {
@@ -73,12 +40,12 @@
 }
 
 @media (min-width: 768px) {
-    .post-menu__item {
+    button.post-menu__item {
         display: none;
     }
 
-    .post-menu__item--show {
-        display: block;
+    button.post-menu__item--show {
+        display: inline-flex;
     }
 
     .post {
@@ -99,24 +66,8 @@
                 }
             }
 
-            .post-menu__item {
+            button.post-menu__item {
                 display: inline-flex;
-                color: rgba(functions.v(center-channel-color-rgb), 0.64);
-                fill: rgba(functions.v(center-channel-color-rgb), 0.64);
-
-                &:hover {
-                    background: rgba(functions.v(center-channel-color-rgb), 0.08);
-                    color: rgba(functions.v(center-channel-color-rgb), 0.8);
-                    fill: rgba(functions.v(center-channel-color-rgb), 0.8);
-                }
-
-                &:active,
-                &--active,
-                &--active:hover {
-                    background: rgba(var(--button-bg-rgb), 0.08);
-                    color: functions.v(button-bg);
-                    fill: functions.v(button-bg);
-                }
             }
         }
     }

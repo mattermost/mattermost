@@ -10,6 +10,7 @@ import type {Dispatch} from 'redux';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {loadPostAttributeFields} from 'actions/post_attributes';
 import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms} from 'actions/views/rhs';
 import {selectCurrentProductId} from 'selectors/products';
 import {
@@ -17,6 +18,7 @@ import {
     getIsRhsOpen,
     getRhsState,
     getSelectedChannel,
+    getSelectedEntity,
     getSelectedPostId,
     getSelectedPostCardId,
     getPreviousRhsState,
@@ -52,9 +54,11 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
         isChannelMembers: rhsState === RHSStates.CHANNEL_MEMBERS,
         isPluginView: rhsState === RHSStates.PLUGIN,
         isPostEditHistory: rhsState === RHSStates.EDIT_HISTORY,
+        isEntityView: rhsState === RHSStates.ENTITY,
         isRecentMentions: rhsState === RHSStates.MENTION,
         isSavedPosts: rhsState === RHSStates.FLAG,
         rhsChannel: getSelectedChannel(state),
+        selectedEntity: getSelectedEntity(state),
         selectedPostId,
         selectedPostCardId,
         team,
@@ -74,6 +78,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateSearchTerms,
             showChannelFiles,
             showChannelInfo,
+            loadPostAttributeFields,
         }, dispatch),
     };
 }

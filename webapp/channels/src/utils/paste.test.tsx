@@ -456,8 +456,8 @@ describe('pasteHandler with a message copied out of the channel', () => {
     };
 
     // Pastes the html that a rendered post is made of, as a browser does when a message is copied out of the channel.
-    function pasteRenderedMessage(message: string) {
-        const {container} = renderWithContext(<Markdown message={message}/>, initialState);
+    function pasteRenderedMessage(message: string, state: typeof initialState = initialState) {
+        const {container} = renderWithContext(<Markdown message={message}/>, state);
 
         // Browsers put the copied markup on the clipboard inside a fragment of a full document.
         const html = `<html><body><!--StartFragment-->${container.innerHTML}<!--EndFragment--></body></html>`;
@@ -570,6 +570,20 @@ describe('pasteHandler with a message copied out of the channel', () => {
         pasteRenderedMessage('A **bold** ~town-square');
 
         expect(execCommandInsertText).toHaveBeenCalledWith('A **bold** ~town-square');
+    });
+
+    it('should keep user mentions as usernames rather than display names', () => {
+        const user = TestHelper.getUserMock({id: 'user_id', username: 'alex.morgan', first_name: 'Alex', last_name: 'Morgan'});
+
+        pasteRenderedMessage('Thanks **a lot** @alex.morgan', {
+            entities: {
+                ...initialState.entities,
+                general: {config: {TeammateNameDisplay: 'full_name'}},
+                users: {profiles: {user_id: user}},
+            },
+        } as typeof initialState);
+
+        expect(execCommandInsertText).toHaveBeenCalledWith('Thanks **a lot** @alex.morgan');
     });
 
     it('should escape markdown characters that are part of the text', () => {

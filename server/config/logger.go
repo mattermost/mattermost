@@ -16,9 +16,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/logr/v2"
-	logrcfg "github.com/mattermost/logr/v2/config"
-	"github.com/mattermost/logr/v2/formatters"
-	"github.com/mattermost/logr/v2/targets"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -36,6 +33,14 @@ const (
 	LogMinMsgLen        = 45
 	LogDelim            = " "
 	LogEnableCaller     = true
+)
+
+// Directory names the server looks up by name to find the directories it manages.
+const (
+	prepackagedPluginsDir = "prepackaged_plugins"
+	templatesDir          = "templates"
+	fontsDir              = "fonts"
+	i18nDir               = "i18n"
 )
 
 type fileLocationFunc func(string) string
@@ -206,74 +211,34 @@ func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAd
 	return false
 }
 
-// validateAuditTargets applies the checks logr's ConfigureTargets makes when audit.Configure
-// builds cfg, so a target the server would reject is not counted as active. It validates each
-// target's type, options and format directly rather than building the targets, which would
-// allocate a logger and dial syslog servers on every check.
+// validateAuditTargets applies the structural target checks, so a target the server would
+// reject is not counted as active. The checks do not create targets or open their outputs.
 func validateAuditTargets(cfg mlog.LoggerConfiguration) error {
+	if err := cfg.CheckTargets(); err != nil {
+		return err
+	}
+
+	// CheckTargets applies the same certificate rule. This call keeps validateInlineCert as
+	// the check used when a standard-base64 certificate is evaluated for a TLS syslog target.
 	for name, target := range cfg {
-		if strings.EqualFold(target.Type, "none") {
+		if !strings.EqualFold(target.Type, "syslog") || len(target.Options) == 0 {
 			continue
 		}
-		if err := validateAuditTargetOptions(target.Type, target.Options); err != nil {
+		var opts struct {
+			TLS  bool   `json:"tls"`
+			Cert string `json:"cert"`
+		}
+		if err := json.Unmarshal(target.Options, &opts); err != nil {
 			return fmt.Errorf("invalid audit target %s: %w", name, err)
 		}
-		if err := validateAuditTargetFormat(target.Format, target.FormatOptions); err != nil {
-			return fmt.Errorf("invalid format for audit target %s: %w", name, err)
+		if !opts.TLS {
+			continue
+		}
+		if err := validateInlineCert(opts.Cert); err != nil {
+			return fmt.Errorf("invalid audit target %s: %w", name, err)
 		}
 	}
 	return nil
-}
-
-func validateAuditTargetOptions(targetType string, options json.RawMessage) error {
-	switch strings.ToLower(targetType) {
-	case "console":
-		var opts logrcfg.ConsoleOptions
-		if len(options) != 0 {
-			if err := json.Unmarshal(options, &opts); err != nil {
-				return err
-			}
-		}
-		switch opts.Out {
-		case "", "stdout", "stderr":
-			return nil
-		default:
-			return fmt.Errorf("invalid console target option %q", opts.Out)
-		}
-	case "file":
-		var opts targets.FileOptions
-		if err := unmarshalTargetOptions(options, &opts); err != nil {
-			return err
-		}
-		return opts.CheckValid()
-	case "tcp":
-		var opts targets.TcpOptions
-		if err := unmarshalTargetOptions(options, &opts); err != nil {
-			return err
-		}
-		return opts.CheckValid()
-	case "syslog":
-		var opts targets.SyslogOptions
-		if err := unmarshalTargetOptions(options, &opts); err != nil {
-			return err
-		}
-		if err := opts.CheckValid(); err != nil {
-			return err
-		}
-		if opts.TLS {
-			return validateInlineCert(opts.Cert)
-		}
-		return nil
-	default:
-		return fmt.Errorf("target type %q is unrecognized", targetType)
-	}
-}
-
-func unmarshalTargetOptions(options json.RawMessage, opts any) error {
-	if len(options) == 0 {
-		return errors.New("missing target options")
-	}
-	return json.Unmarshal(options, opts)
 }
 
 // validateInlineCert rejects a base64 cert that does not hold a PEM certificate. Any other value
@@ -288,28 +253,6 @@ func validateInlineCert(cert string) error {
 		return errors.New("cannot parse cert")
 	}
 	return nil
-}
-
-func validateAuditTargetFormat(format string, options json.RawMessage) error {
-	var formatter interface{ CheckValid() error }
-	switch strings.ToLower(format) {
-	case "json":
-		formatter = &formatters.JSON{}
-	case "plain":
-		formatter = &formatters.Plain{}
-	case "gelf":
-		formatter = &formatters.Gelf{}
-	default:
-		return fmt.Errorf("format %q is unrecognized", format)
-	}
-
-	if len(options) == 0 {
-		return nil
-	}
-	if err := json.Unmarshal(options, formatter); err != nil {
-		return err
-	}
-	return formatter.CheckValid()
 }
 
 func GetLogFileLocation(fileLocation string) string {
@@ -383,29 +326,36 @@ func evalSymlinksLenient(path string) (string, error) {
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the configured log directory.
 func ValidateLogFilePath(filePath string, loggingRoot string) error {
+	_, err := resolveLogFilePath(filePath, loggingRoot)
+	return err
+}
+
+// resolveLogFilePath checks that filePath is within loggingRoot and returns the absolute,
+// symlink-resolved path that the check ran against.
+func resolveLogFilePath(filePath string, loggingRoot string) (string, error) {
 	// Resolve file path to absolute
 	absPath, err := filepath.Abs(filePath)
 	if err != nil {
-		return fmt.Errorf("cannot resolve path %s: %w", filePath, err)
+		return "", fmt.Errorf("cannot resolve path %s: %w", filePath, err)
 	}
 
 	// Resolve symlinks to prevent bypass via symlink attacks
 	absPath, err = evalSymlinksLenient(absPath)
 	if err != nil {
-		return fmt.Errorf("cannot resolve symlinks for %s: %w", filePath, err)
+		return "", fmt.Errorf("cannot resolve symlinks for %s: %w", filePath, err)
 	}
 
 	// Resolve logging root to absolute
 	absRoot, err := filepath.Abs(loggingRoot)
 	if err != nil {
-		return fmt.Errorf("cannot resolve logging root %s: %w", loggingRoot, err)
+		return "", fmt.Errorf("cannot resolve logging root %s: %w", loggingRoot, err)
 	}
 
 	// Must resolve the same way as absPath, or the prefix check below rejects legitimate
 	// paths when an ancestor is a symlink (macOS /var -> /private/var).
 	absRoot, err = evalSymlinksLenient(absRoot)
 	if err != nil {
-		return fmt.Errorf("cannot resolve symlinks for logging root %s: %w", loggingRoot, err)
+		return "", fmt.Errorf("cannot resolve symlinks for logging root %s: %w", loggingRoot, err)
 	}
 
 	// Ensure root has trailing separator for proper prefix matching
@@ -418,17 +368,17 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 	// Check if file is within the logging root
 	// Allow exact match (absPath == absRoot) or proper prefix match
 	if absPath != absRoot && !strings.HasPrefix(absPath, rootWithSep) {
-		return fmt.Errorf("path %s is outside logging root %s", filePath, absRoot)
+		return "", fmt.Errorf("path %s is outside logging root %s", filePath, absRoot)
 	}
 
-	return nil
+	return absPath, nil
 }
 
-// LogPathOutsideRootWarning is the message logged when a log or audit file path resolves
-// outside the logging root and the server is not configured to reject it.
-const LogPathOutsideRootWarning = "Log file path in logging config is outside the logging root directory. " +
+// LogPathInvalidWarning is the message logged when a log or audit file path resolves outside the
+// logging root or inside a server-managed directory and the server is not configured to reject it.
+const LogPathInvalidWarning = "Log file path in logging config is outside the logging root directory or inside a directory the server manages. " +
 	"Set the EnforceLogPathRoot feature flag to reject this configuration now; enforcement will become the default in a future release. " +
-	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, or move log files into the logging root."
+	"To fix, set the MM_LOG_PATH environment variable to a parent directory containing all log paths, and move log files into the logging root but outside the plugin, data, export, compliance, config, executable, client, templates, fonts and translations directories."
 
 // IsLogPathEnforcementEnabled reports whether a log path outside the logging root should be
 // treated as fatal rather than merely logged. Nil-safe: cfg may carry no feature flags at all.
@@ -436,46 +386,169 @@ func IsLogPathEnforcementEnabled(cfg *model.Config) bool {
 	return cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.EnforceLogPathRoot
 }
 
+// errAdvancedLoggingCert is returned when a TLS syslog or tcp target certificate is not a
+// base64-encoded PEM certificate and is not the value already stored for that target with TLS on.
+// The text does not include the certificate value.
+var errAdvancedLoggingCert = errors.New("advanced logging certificate must be a base64-encoded PEM certificate")
+
+// ValidateAdvancedLoggingCerts checks TLS syslog and tcp targets in
+// LogSettings.AdvancedLoggingJSON and ExperimentalAuditSettings.AdvancedLoggingJSON.
+// A certificate must be a standard-base64 PEM certificate that parses as PEM,
+// unless that same string is already stored on the target in active and that target has TLS on.
+func ValidateAdvancedLoggingCerts(cfg, active *model.Config) error {
+	if cfg == nil {
+		return nil
+	}
+
+	var activeLog, activeAudit json.RawMessage
+	if active != nil {
+		activeLog = active.LogSettings.AdvancedLoggingJSON
+		activeAudit = active.ExperimentalAuditSettings.AdvancedLoggingJSON
+	}
+
+	if err := validateLoggingJSONCerts(cfg.LogSettings.AdvancedLoggingJSON, activeLog); err != nil {
+		return err
+	}
+	return validateLoggingJSONCerts(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, activeAudit)
+}
+
+func validateLoggingJSONCerts(raw, activeRaw json.RawMessage) error {
+	if utils.IsEmptyJSON(raw) {
+		return nil
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		return nil
+	}
+
+	stored := storedLoggingCerts(activeRaw)
+	for name, target := range cfg {
+		cert, ok := tlsLoggingCert(target)
+		if !ok {
+			continue
+		}
+		if cert == "" || advancedLoggingCertIsInline(cert) {
+			continue
+		}
+		if prev, found := stored[name]; found && prev == cert {
+			continue
+		}
+		return errAdvancedLoggingCert
+	}
+	return nil
+}
+
+// storedLoggingCerts maps each TLS tcp or syslog target name to the certificate
+// string stored on that target. A target with TLS off is omitted, as is any other type.
+func storedLoggingCerts(raw json.RawMessage) map[string]string {
+	certs := make(map[string]string)
+	if utils.IsEmptyJSON(raw) {
+		return certs
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		return certs
+	}
+
+	for name, target := range cfg {
+		cert, ok := tlsLoggingCert(target)
+		if !ok {
+			continue
+		}
+		certs[name] = cert
+	}
+	return certs
+}
+
+// tlsLoggingCert returns the certificate of a TLS tcp or syslog target.
+func tlsLoggingCert(target mlog.TargetCfg) (string, bool) {
+	switch strings.ToLower(target.Type) {
+	case "tcp", "syslog":
+	default:
+		return "", false
+	}
+	if len(target.Options) == 0 {
+		return "", false
+	}
+
+	var opts struct {
+		TLS  bool   `json:"tls"`
+		Cert string `json:"cert"`
+	}
+	if err := json.Unmarshal(target.Options, &opts); err != nil || !opts.TLS {
+		return "", false
+	}
+	return opts.Cert, true
+}
+
+// advancedLoggingCertIsInline reports whether cert is a standard-base64 PEM certificate.
+func advancedLoggingCertIsInline(cert string) bool {
+	der, err := base64.StdEncoding.DecodeString(cert)
+	if err != nil || len(der) == 0 {
+		return false
+	}
+	return x509.NewCertPool().AppendCertsFromPEM(der)
+}
+
 // ValidateLogPaths checks every log and audit file path in cfg against loggingRoot, returning an
-// error naming the first one that resolves outside it. The fields checked are
-// LogSettings.FileLocation, LogSettings.AdvancedLoggingJSON, ExperimentalAuditSettings.FileName
-// and ExperimentalAuditSettings.AdvancedLoggingJSON.
+// error naming the first one that resolves outside it or inside a server-managed directory. The
+// fields checked are LogSettings.FileLocation, LogSettings.AdvancedLoggingJSON,
+// ExperimentalAuditSettings.FileName and ExperimentalAuditSettings.AdvancedLoggingJSON.
+//
+// activeDirs are further managed directories the server may still be using, such as those of
+// every configuration applied since startup and the directory of the config file it loaded.
 //
 // loggingRoot is a parameter rather than a call to GetLogRootPath so a caller holding a
 // per-instance override (see PlatformService.getLogRootPath) can supply its own root.
-func ValidateLogPaths(cfg *model.Config, loggingRoot string) error {
+func ValidateLogPaths(cfg *model.Config, activeDirs []string, loggingRoot string) error {
 	if cfg == nil {
+		return nil
+	}
+
+	managed := resolvedManagedDirs(cfg, activeDirs, loggingRoot)
+	check := func(filePath string) error {
+		resolved, err := resolveLogFilePath(filePath, loggingRoot)
+		if err != nil {
+			return err
+		}
+		for _, dir := range managed {
+			if isWithinDir(resolved, dir) {
+				return fmt.Errorf("path %s is inside server-managed directory %s", filePath, dir)
+			}
+		}
 		return nil
 	}
 
 	// LogSettings.FileLocation feeds the built-in `_defFile` target.
 	if model.SafeDereference(cfg.LogSettings.EnableFile) {
 		logFile := GetLogFileLocation(model.SafeDereference(cfg.LogSettings.FileLocation))
-		if err := ValidateLogFilePath(logFile, loggingRoot); err != nil {
+		if err := check(logFile); err != nil {
 			return fmt.Errorf("LogSettings.FileLocation: %w", err)
 		}
 	}
 
-	if err := validateAdvancedLoggingPaths(cfg.LogSettings.AdvancedLoggingJSON, "LogSettings.AdvancedLoggingJSON", loggingRoot); err != nil {
+	if err := validateAdvancedLoggingPaths(cfg.LogSettings.AdvancedLoggingJSON, "LogSettings.AdvancedLoggingJSON", check); err != nil {
 		return err
 	}
 
 	// ExperimentalAuditSettings.FileName feeds the built-in `_defAudit` target.
 	if model.SafeDereference(cfg.ExperimentalAuditSettings.FileEnabled) {
 		auditFile := model.SafeDereference(cfg.ExperimentalAuditSettings.FileName)
-		if err := ValidateLogFilePath(auditFile, loggingRoot); err != nil {
+		if err := check(auditFile); err != nil {
 			return fmt.Errorf("ExperimentalAuditSettings.FileName: %w", err)
 		}
 	}
 
-	return validateAdvancedLoggingPaths(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, "ExperimentalAuditSettings.AdvancedLoggingJSON", loggingRoot)
+	return validateAdvancedLoggingPaths(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, "ExperimentalAuditSettings.AdvancedLoggingJSON", check)
 }
 
-// validateAdvancedLoggingPaths validates the file targets of an advanced logging config.
+// validateAdvancedLoggingPaths runs check on the file targets of an advanced logging config.
 //
 // Unparseable JSON is skipped rather than reported: it defines no file target, so it cannot write
 // anywhere, and LogSettings.isValid/ConfigureLogger already reject it with a better message.
-func validateAdvancedLoggingPaths(loggingJSON json.RawMessage, configSection string, loggingRoot string) error {
+func validateAdvancedLoggingPaths(loggingJSON json.RawMessage, configSection string, check func(filePath string) error) error {
 	if utils.IsEmptyJSON(loggingJSON) {
 		return nil
 	}
@@ -499,12 +572,120 @@ func validateAdvancedLoggingPaths(loggingJSON json.RawMessage, configSection str
 			continue
 		}
 
-		if err := ValidateLogFilePath(fileOption.Filename, loggingRoot); err != nil {
+		if err := check(fileOption.Filename); err != nil {
 			return fmt.Errorf("%s target %q: %w", configSection, targetName, err)
 		}
 	}
 
 	return nil
+}
+
+// resolvedManagedDirs returns the managed directories, absolute and symlink-resolved, that a log
+// target must stay out of. A directory that fails to resolve is dropped: a target under it fails
+// the logging root check, which resolves the same way. A directory that is, or contains, the
+// logging root is dropped too, so that a wide root does not reject every target.
+func resolvedManagedDirs(cfg *model.Config, activeDirs []string, loggingRoot string) []string {
+	absRoot, err := resolveDir(loggingRoot)
+	if err != nil {
+		return nil
+	}
+
+	var dirs []string
+	for _, dir := range managedDirs(cfg, activeDirs) {
+		resolved, err := resolveDir(dir)
+		if err != nil || isWithinDir(absRoot, resolved) || slices.Contains(dirs, resolved) {
+			continue
+		}
+		dirs = append(dirs, resolved)
+	}
+	return dirs
+}
+
+func resolveDir(dir string) (string, error) {
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return "", err
+	}
+	return evalSymlinksLenient(abs)
+}
+
+// isWithinDir reports whether path is dir itself or is contained in dir.
+func isWithinDir(path, dir string) bool {
+	rel, err := filepath.Rel(dir, path)
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// ConfigurableManagedDirs returns the managed directories that cfg sets. A caller passes those of
+// every configuration applied since startup to ValidateLogPaths, because a change such as
+// PluginSettings.Directory applies only after a restart.
+func ConfigurableManagedDirs(cfg *model.Config) []string {
+	if cfg == nil {
+		return nil
+	}
+	return []string{
+		model.SafeDereference(cfg.PluginSettings.Directory),
+		model.SafeDereference(cfg.PluginSettings.ClientDirectory),
+		model.SafeDereference(cfg.FileSettings.Directory),
+		model.SafeDereference(cfg.FileSettings.ExportDirectory),
+		model.SafeDereference(cfg.ComplianceSettings.Directory),
+	}
+}
+
+// managedDirs returns the directories the server reads code, config or data from: those cfg
+// sets, activeDirs, and the ones found by name.
+func managedDirs(cfg *model.Config, activeDirs []string) []string {
+	candidates := ConfigurableManagedDirs(cfg)
+	candidates = append(candidates, activeDirs...)
+	candidates = append(candidates,
+		configDir(),
+		executableDir(),
+		foundDir(fileutils.FindDir(model.ClientDir)),
+		foundDir(fileutils.FindDir(prepackagedPluginsDir)),
+		foundDir(fileutils.FindDir(templatesDir)),
+		foundDir(fileutils.FindDir(fontsDir)),
+		foundDir(fileutils.FindDirRelBinary(i18nDir)),
+	)
+
+	dirs := make([]string, 0, len(candidates))
+	for _, dir := range candidates {
+		if strings.TrimSpace(dir) != "" && !slices.Contains(dirs, dir) {
+			dirs = append(dirs, dir)
+		}
+	}
+	return dirs
+}
+
+// foundDir returns dir only when the lookup found it. A failed lookup reports the working
+// directory, which must never count as managed.
+func foundDir(dir string, found bool) string {
+	if !found {
+		return ""
+	}
+	return dir
+}
+
+// configDir returns the default configuration directory. A server started with --config or
+// MM_CONFIG passes the directory of the file it loaded in activeDirs.
+func configDir() string {
+	if path, err := resolveConfigFilePath("config.json"); err == nil {
+		return filepath.Dir(path)
+	}
+	if dir, found := fileutils.FindDir("config"); found {
+		return dir
+	}
+	return ""
+}
+
+// executableDir returns the directory that holds the server executable.
+func executableDir() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	return filepath.Dir(exe)
 }
 
 func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.TargetCfg, error) {

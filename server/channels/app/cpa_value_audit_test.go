@@ -116,9 +116,9 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, true, wildcardRec.Meta["basis_grant_wildcard"])
 	})
 
-	t.Run("a write to a field with no permissions records basis_legacy", func(t *testing.T) {
+	t.Run("a write to a field created without permissions records the converted restriction tier", func(t *testing.T) {
 		field := createField(t, &model.PropertyField{
-			Name:       "legacy basis",
+			Name:       "no permissions basis",
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -133,7 +133,8 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 			Current:    &model.PropertyValue{Value: []byte(`"v"`)},
 		})
 
-		assert.Equal(t, true, rec.Meta["basis_legacy"])
+		assert.Equal(t, model.PermissionLevelMember, rec.Meta["basis_tier"])
+		assert.NotContains(t, rec.Meta, "basis_grant_id")
 	})
 
 	t.Run("a write changing the caller's own holdings on a masked field is called out", func(t *testing.T) {
@@ -217,7 +218,7 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, rec.Meta["caller_id"])
 		for _, key := range []string{
 			"basis_tier", "basis_grant_id", "basis_grant_scope", "basis_grant_wildcard",
-			"basis_legacy", "basis_unrestricted", "basis_holdings_change",
+			"basis_unrestricted", "basis_holdings_change",
 		} {
 			assert.NotContains(t, rec.Meta, key)
 		}
@@ -236,7 +237,7 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, rec.Meta["caller_id"])
 		for _, key := range []string{
 			"basis_tier", "basis_grant_id", "basis_grant_scope", "basis_grant_wildcard",
-			"basis_legacy", "basis_unrestricted", "basis_holdings_change",
+			"basis_unrestricted", "basis_holdings_change",
 		} {
 			assert.NotContains(t, rec.Meta, key)
 		}
@@ -374,11 +375,55 @@ func TestCPAValueChangeAuditForChannelValues(t *testing.T) {
 		writeValue(t, fieldScoped, `"SECRET"`)
 
 		rec = nextRecord(t, func() {
-			require.Nil(t, th.App.DeletePropertyValuesForField(rctx, cpaGroup.ID, fieldScoped.ID))
+			require.Nil(t, th.App.DeletePropertyValuesForField(RequestContextWithCallerID(request.TestContext(t), model.CallerIDLocalAdmin), cpaGroup.ID, fieldScoped.ID))
 		})
 		require.Equal(t, properties.ValueAuditActionDeleteForField, auditMeta(t, rec, "action"))
 		require.Equal(t, fieldScoped.ID, auditMeta(t, rec, "field_id"))
 		require.False(t, auditMetaHasKey(t, rec, "prior_value"))
 		require.False(t, auditMetaHasKey(t, rec, "new_value"))
 	})
+}
+
+// Post values live in access_control, so a change to one reaches the same content-level audit sink
+// as a channel value: post fields are not exempt from the audit hook.
+func TestCPAValueChangeAuditForPostValues(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	// LicenseCheckHook gates access_control writes on an Enterprise license.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	capture := startPluginAuditCapture(t, th)
+
+	rctx := RequestContextWithCallerID(request.TestContext(t), th.BasicUser.Id)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+
+	field, fieldErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       "post_attr_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypePost,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, fieldErr)
+
+	before := len(capture.recordsFor(model.AuditEventCPAValueChange))
+	_, upsertErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+		TargetID:   th.BasicPost.Id,
+		TargetType: model.PropertyValueTargetTypePost,
+		GroupID:    cpaGroup.ID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`"AURORA"`),
+	}}, model.PropertyValueTargetTypePost, th.BasicPost.Id, "")
+	require.Nil(t, upsertErr)
+
+	records := capture.recordsFor(model.AuditEventCPAValueChange)
+	require.Len(t, records, before+1, "expected exactly one new %s record", model.AuditEventCPAValueChange)
+	rec := records[len(records)-1]
+
+	require.Equal(t, model.AuditStatusSuccess, rec[model.AuditKeyStatus])
+	require.Equal(t, model.AccessControlPropertyGroupName, auditMeta(t, rec, "group"))
+	require.Equal(t, properties.ValueAuditActionUpsert, auditMeta(t, rec, "action"))
+	require.Equal(t, model.PropertyValueTargetTypePost, auditMeta(t, rec, "target_type"))
+	require.Equal(t, th.BasicPost.Id, auditMeta(t, rec, "target_id"))
+	require.Equal(t, field.ID, auditMeta(t, rec, "field_id"))
+	require.Equal(t, `"AURORA"`, auditMeta(t, rec, "new_value"))
 }

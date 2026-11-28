@@ -6,6 +6,7 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"iter"
 	"net"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
@@ -58,6 +60,14 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 	require.NoError(t, th.Service.HubRegister(wc))
 	go wc.Pump()
 	return wc
+}
+
+// loadChannelIDs loads a user's channel IDs the way Hub.Register does.
+func loadChannelIDs(tb testing.TB, th *TestHelper, userID string) channelList {
+	tb.Helper()
+	channelIDs, err := th.Service.loadChannelMembership(userID)
+	require.NoError(tb, err)
+	return channelIDs
 }
 
 func TestHubStopWithMultipleConnections(t *testing.T) {
@@ -202,7 +212,7 @@ func TestHubConnIndex(t *testing.T) {
 	for _, fastIterate := range []bool{true, false} {
 		t.Run(fmt.Sprintf("fastIterate=%t", fastIterate), func(t *testing.T) {
 			t.Run("Basic", func(t *testing.T) {
-				connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, fastIterate)
+				connIndex := newHubConnectionIndex(1*time.Second, fastIterate)
 
 				// User1
 				wc1 := &WebConn{
@@ -238,14 +248,10 @@ func TestHubConnIndex(t *testing.T) {
 				wc4.SetConnectionID(model.NewId())
 				wc4.SetSession(&model.Session{})
 
-				errAdd := connIndex.Add(wc1)
-				require.NoError(t, errAdd)
-				err = connIndex.Add(wc2)
-				require.NoError(t, err)
-				err = connIndex.Add(wc3)
-				require.NoError(t, err)
-				err = connIndex.Add(wc4)
-				require.NoError(t, err)
+				connIndex.Add(wc1, channelList{})
+				connIndex.Add(wc2, channelList{})
+				connIndex.Add(wc3, channelList{})
+				connIndex.Add(wc4, channelList{})
 
 				t.Run("Basic", func(t *testing.T) {
 					assert.True(t, connIndex.Has(wc1))
@@ -293,7 +299,7 @@ func TestHubConnIndex(t *testing.T) {
 			})
 
 			t.Run("ByConnectionId", func(t *testing.T) {
-				connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, fastIterate)
+				connIndex := newHubConnectionIndex(1*time.Second, fastIterate)
 
 				// User1
 				wc1ID := model.NewId()
@@ -332,10 +338,8 @@ func TestHubConnIndex(t *testing.T) {
 				})
 
 				t.Run("adding", func(t *testing.T) {
-					err = connIndex.Add(wc1)
-					require.NoError(t, err)
-					err = connIndex.Add(wc3)
-					require.NoError(t, err)
+					connIndex.Add(wc1, channelList{})
+					connIndex.Add(wc3, channelList{})
 
 					assert.Len(t, connIndex.byConnectionId, 2)
 					assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
@@ -356,7 +360,7 @@ func TestHubConnIndex(t *testing.T) {
 	}
 
 	t.Run("ByChannelId", func(t *testing.T) {
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, true)
+		connIndex := newHubConnectionIndex(1*time.Second, true)
 
 		// User1
 		wc1ID := model.NewId()
@@ -387,21 +391,18 @@ func TestHubConnIndex(t *testing.T) {
 		wc3.SetConnectionID(wc3ID)
 		wc3.SetSession(&model.Session{})
 
-		err = connIndex.Add(wc1)
-		require.NoError(t, err)
-		err = connIndex.Add(wc2)
-		require.NoError(t, err)
-		err = connIndex.Add(wc3)
-		require.NoError(t, err)
+		connIndex.Add(wc1, loadChannelIDs(t, th, wc1.UserId))
+		connIndex.Add(wc2, loadChannelIDs(t, th, wc2.UserId))
+		connIndex.Add(wc3, loadChannelIDs(t, th, wc3.UserId))
 
 		t.Run("ForChannel", func(t *testing.T) {
-			require.Len(t, connIndex.byChannelID, 1)
+			require.Len(t, connIndex.byChannelKey, 1)
 			ids := make([]string, 0)
-			for c := range connIndex.ForChannel(th.BasicChannel.Id) {
+			for c := range forChannel(connIndex, th.BasicChannel.Id) {
 				ids = append(ids, c.GetConnectionID())
 			}
 			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
-			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
+			require.Len(t, slices.Collect(forChannel(connIndex, "notexist")), 0)
 		})
 
 		ch := th.CreateChannel(t, th.BasicTeam)
@@ -415,16 +416,16 @@ func TestHubConnIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
-			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 3)
-			require.Len(t, slices.Collect(connIndex.ForChannel(ch.Id)), 2)
+			connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id, loadChannelIDs(t, th, th.BasicUser2.Id))
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 3)
+			require.Len(t, slices.Collect(forChannel(connIndex, ch.Id)), 2)
 		})
 
 		t.Run("Remove", func(t *testing.T) {
 			connIndex.Remove(wc3)
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 2)
 		})
 	})
 }
@@ -433,7 +434,7 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(1*time.Second, false)
 
 	// User2
 	wc2 := &WebConn{
@@ -460,12 +461,9 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	wc4.SetConnectionID("last")
 	wc4.SetSession(&model.Session{})
 
-	err := connIndex.Add(wc2)
-	require.NoError(t, err)
-	err = connIndex.Add(wc3)
-	require.NoError(t, err)
-	err = connIndex.Add(wc4)
-	require.NoError(t, err)
+	connIndex.Add(wc2, channelList{})
+	connIndex.Add(wc3, channelList{})
+	connIndex.Add(wc4, channelList{})
 
 	for wc := range connIndex.ForUser(wc2.UserId) {
 		if !connIndex.Has(wc) {
@@ -483,7 +481,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(2*time.Second, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -511,12 +509,9 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	err := connIndex.Add(wc1)
-	require.NoError(t, err)
-	err = connIndex.Add(wc2)
-	require.NoError(t, err)
-	err = connIndex.Add(wc3)
-	require.NoError(t, err)
+	connIndex.Add(wc1, channelList{})
+	connIndex.Add(wc2, channelList{})
+	connIndex.Add(wc3, channelList{})
 
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
@@ -527,8 +522,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 1)
 
 	wc3.lastUserActivityAt = model.GetMillis()
-	err = connIndex.Add(wc3)
-	require.NoError(t, err)
+	connIndex.Add(wc3, channelList{})
 	connIndex.RemoveInactiveConnections()
 	assert.True(t, connIndex.Has(wc3))
 	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 2)
@@ -578,6 +572,135 @@ func TestReliableWebSocketSend(t *testing.T) {
 	})
 }
 
+// registerResumableWebConn registers a pumped connection with its own connection ID.
+// Closing it leaves it in the hub as inactive, ready to be resumed.
+func registerResumableWebConn(t *testing.T, th *TestHelper, addr net.Addr, userID string, deadQueue ...*model.WebSocketEvent) *WebConn {
+	c, _, err := (&websocket.Dialer{}).Dial("ws://"+addr.String()+"/ws", nil)
+	require.NoError(t, err)
+
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    c,
+		Session:      model.Session{UserId: userID},
+		ConnectionID: model.NewId(),
+	}, th.Suite, &hookRunner{})
+	for _, ev := range deadQueue {
+		wc.addToDeadQueue(ev)
+	}
+	require.NoError(t, th.Service.HubRegister(wc))
+	go wc.Pump()
+	return wc
+}
+
+type wsQueuesCluster struct {
+	testlib.FakeClusterInterface
+	queues map[string]*model.WSQueues
+	err    error
+}
+
+func (c *wsQueuesCluster) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	return c.queues, c.err
+}
+
+func TestCheckWebConn(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	t.Run("single node", func(t *testing.T) {
+		th := Setup(t)
+
+		t.Run("should resume an inactive connection", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+			wc.Close()
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			require.NotNil(t, res)
+			assert.Equal(t, wc.GetConnectionID(), res.ConnectionID)
+			assert.Empty(t, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should report a connection still active on this node", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should not report another user's active connection", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureConnNotFound, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should report an unknown connection as not found", func(t *testing.T) {
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureConnNotFound, reason)
+			assert.False(t, isRemote)
+		})
+	})
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &wsQueuesCluster{}
+		th := SetupWithCluster(t, cluster)
+
+		t.Run("should report a connection active on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": nil,
+				"node2": {Status: model.WSQueuesStatusOldConnStillOpen},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.True(t, isRemote)
+		})
+
+		t.Run("should report message loss on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureMissedEventsEvicted, reason)
+			assert.True(t, isRemote)
+		})
+
+		t.Run("should prefer a connection active on this node over a remote failure", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
+			}
+			cluster.err = nil
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should report a cluster error", func(t *testing.T) {
+			cluster.queues = nil
+			cluster.err = errors.New("timed out")
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureClusterLookupFailed, reason)
+			assert.False(t, isRemote)
+		})
+	})
+}
+
 func TestHubIsRegistered(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -602,9 +725,9 @@ func TestHubIsRegistered(t *testing.T) {
 	defer wc2.Close()
 	defer wc3.Close()
 
-	assert.True(t, th.Service.SessionIsRegistered(*wc1.session.Load()))
-	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load()))
-	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc1.GetSession()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc2.GetSession()))
+	assert.True(t, th.Service.SessionIsRegistered(*wc3.GetSession()))
 
 	session4, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser2.Id,
@@ -647,7 +770,7 @@ var globalIter iter.Seq[*WebConn]
 func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	th := Setup(b)
 
-	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(2*time.Second, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -675,9 +798,9 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc1))
-	require.NoError(b, connIndex.Add(wc2))
-	require.NoError(b, connIndex.Add(wc3))
+	connIndex.Add(wc1, channelList{})
+	connIndex.Add(wc2, channelList{})
+	connIndex.Add(wc3, channelList{})
 
 	b.Run("2 users", func(b *testing.B) {
 		for b.Loop() {
@@ -693,7 +816,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc4.SetConnectionID("conn4")
 	wc4.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc4))
+	connIndex.Add(wc4, channelList{})
 	b.Run("3 users", func(b *testing.B) {
 		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
@@ -708,7 +831,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc5.SetConnectionID("conn5")
 	wc5.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc5))
+	connIndex.Add(wc5, channelList{})
 	b.Run("4 users", func(b *testing.B) {
 		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
@@ -736,7 +859,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	})
 	require.NoError(b, err)
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, true)
+	connIndex := newHubConnectionIndex(1*time.Second, true)
 
 	// User1
 	wc1ID := model.NewId()
@@ -767,12 +890,12 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	wc3.SetConnectionID(wc3ID)
 	wc3.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc1))
-	require.NoError(b, connIndex.Add(wc2))
-	require.NoError(b, connIndex.Add(wc3))
+	connIndex.Add(wc1, loadChannelIDs(b, th, wc1.UserId))
+	connIndex.Add(wc2, loadChannelIDs(b, th, wc2.UserId))
+	connIndex.Add(wc3, loadChannelIDs(b, th, wc3.UserId))
 
 	for b.Loop() {
-		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
+		globalIter = forChannel(connIndex, th.BasicChannel.Id)
 	}
 }
 
@@ -780,7 +903,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 // See: https://github.com/golang/go/issues/27217.
 func BenchmarkHubConnIndex(b *testing.B) {
 	th := Setup(b).InitBasic(b)
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(1*time.Second, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -797,10 +920,8 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	}
 	b.Run("Add", func(b *testing.B) {
 		for b.Loop() {
-			err := connIndex.Add(wc1)
-			require.NoError(b, err)
-			err = connIndex.Add(wc2)
-			require.NoError(b, err)
+			connIndex.Add(wc1, channelList{})
+			connIndex.Add(wc2, channelList{})
 
 			// Cleanup
 			b.StopTimer()
@@ -814,10 +935,8 @@ func BenchmarkHubConnIndex(b *testing.B) {
 		for b.Loop() {
 			// Setup
 			b.StopTimer()
-			err := connIndex.Add(wc1)
-			require.NoError(b, err)
-			err = connIndex.Add(wc2)
-			require.NoError(b, err)
+			connIndex.Add(wc1, channelList{})
+			connIndex.Add(wc2, channelList{})
 
 			b.StartTimer()
 			connIndex.Remove(wc1)
@@ -830,7 +949,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(1*time.Second, false)
 
 	wc := &WebConn{
 		Platform: th.Service,
@@ -845,8 +964,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 		close(ch)
 	})
 
-	err := connIndex.Add(wc)
-	require.NoError(t, err)
+	connIndex.Add(wc, channelList{})
 	connIndex.Remove(wc)
 
 	runtime.GC()
@@ -952,4 +1070,343 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
 		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
 	})
+}
+
+func TestConnSet(t *testing.T) {
+	newConns := func(n int) []*WebConn {
+		conns := make([]*WebConn, n)
+		for i := range conns {
+			conns[i] = &WebConn{}
+		}
+		return conns
+	}
+
+	t.Run("stays a slice up to the limit, then becomes a map", func(t *testing.T) {
+		conns := newConns(connSetSmallMax + 1)
+		var s connSet
+		for _, wc := range conns[:connSetSmallMax] {
+			s.add(wc)
+		}
+		s.add(conns[0])
+		require.Nil(t, s.large)
+		require.Equal(t, connSetSmallMax, s.len(), "adding a member twice keeps one")
+		s.add(conns[connSetSmallMax])
+		require.Nil(t, s.small)
+		require.Equal(t, connSetSmallMax+1, s.len())
+		require.ElementsMatch(t, conns[:connSetSmallMax+1], slices.Collect(s.all()))
+	})
+
+	t.Run("removing the visited member while iterating visits every member once", func(t *testing.T) {
+		conns := newConns(10)
+		var s connSet
+		for _, wc := range conns {
+			s.add(wc)
+		}
+		var visited []*WebConn
+		for wc := range s.all() {
+			visited = append(visited, wc)
+			s.remove(wc)
+		}
+		require.ElementsMatch(t, conns, visited)
+		require.Zero(t, s.len())
+	})
+}
+
+// forChannel returns the connections for channelID, decoding it as the hub does.
+func forChannel(connIndex *hubConnectionIndex, channelID string) iter.Seq[*WebConn] {
+	return connIndex.ForChannel(decodeChannelID(channelID))
+}
+
+func discardingWebsocketHandler() http.HandlerFunc {
+	upgrader := &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		for {
+			if _, _, err := conn.ReadMessage(); err != nil {
+				return
+			}
+		}
+	}
+}
+
+type sessionLookupSuite struct {
+	*mockSuite
+	ps *PlatformService
+}
+
+func (s *sessionLookupSuite) GetSession(token string) (*model.Session, *model.AppError) {
+	session, err := s.ps.GetSession(request.EmptyContext(s.ps.Log()), token)
+	if err != nil {
+		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", nil, "", http.StatusUnauthorized)
+	}
+	return session, nil
+}
+
+func setupChallengeHelper(t *testing.T) *TestHelper {
+	t.Helper()
+
+	th := Setup(t).InitBasic(t)
+	th.Suite = &sessionLookupSuite{mockSuite: &mockSuite{}, ps: th.Service}
+	preWarmStatusOnline(th, th.BasicUser.Id)
+	preWarmStatusOnline(th, th.BasicUser2.Id)
+	return th
+}
+
+func createUserSession(t *testing.T, th *TestHelper, userID string) *model.Session {
+	t.Helper()
+
+	session, err := th.Service.CreateSession(th.Context, &model.Session{UserId: userID})
+	require.NoError(t, err)
+	return session
+}
+
+func newChallengeWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
+	t.Helper()
+
+	c, _, err := websocket.DefaultDialer.Dial("ws://"+addr.String()+"/ws", nil)
+	require.NoError(t, err)
+
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    c,
+		Session:      *session,
+		TFunc:        i18n.IdentityTfunc(),
+		Locale:       "en",
+		ConnectionID: model.NewId(),
+	}, th.Suite, &hookRunner{})
+
+	t.Cleanup(func() {
+		c.Close()
+		go wc.Pump()
+		<-wc.pumpFinished
+	})
+	return wc
+}
+
+func serveChallenge(th *TestHelper, wc *WebConn, seq int64, token any) {
+	th.Service.WebSocketRouter.ServeWebSocket(wc, &model.WebSocketRequest{
+		Seq:    seq,
+		Action: string(model.WebsocketAuthenticationChallenge),
+		Data:   map[string]any{"token": token},
+	})
+}
+
+func websocketClosed(t *testing.T, wc *WebConn) bool {
+	t.Helper()
+
+	err := wc.WebSocket.UnderlyingConn().SetWriteDeadline(time.Time{})
+	if err == nil {
+		return false
+	}
+	require.ErrorIs(t, err, net.ErrClosed)
+	return true
+}
+
+func waitForClearedSessionToken(t *testing.T, th *TestHelper, wc *WebConn, session *model.Session) {
+	t.Helper()
+
+	require.NoError(t, th.Service.RevokeSession(th.Context, session))
+	require.Eventually(t, func() bool { return wc.GetSession() == nil }, 5*time.Second, 10*time.Millisecond)
+	require.False(t, wc.IsBasicAuthenticated())
+	require.Empty(t, wc.GetSessionToken())
+}
+
+func closeSendQueue(t *testing.T, th *TestHelper, wc *WebConn) {
+	t.Helper()
+
+	hub := th.Service.GetHubForUserId(wc.UserId)
+	require.NotNil(t, hub)
+	for i := range sendQueueSize + 1 {
+		hub.SendMessage(wc, model.NewWebSocketResponse(model.StatusOk, int64(i+1), nil))
+	}
+	require.Eventually(t, wc.sendClosed.Load, 5*time.Second, 10*time.Millisecond)
+}
+
+func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupChallengeHelper(t)
+
+	s := httptest.NewServer(discardingWebsocketHandler())
+	t.Cleanup(s.Close)
+
+	t.Run("first challenge binds the connection", func(t *testing.T) {
+		session := createUserSession(t, th, th.BasicUser.Id)
+		wc := newChallengeWebConn(t, th, s.Listener.Addr(), &model.Session{})
+		require.Empty(t, wc.UserId)
+
+		serveChallenge(th, wc, 1, session.Token)
+
+		assert.Equal(t, th.BasicUser.Id, wc.UserId)
+		assert.Equal(t, session.Token, wc.GetSessionToken())
+		assert.True(t, th.Service.SessionIsRegistered(*session))
+		assert.False(t, websocketClosed(t, wc))
+	})
+
+	t.Run("first challenge on an authenticated connection keeps it open and unchanged", func(t *testing.T) {
+		session := createUserSession(t, th, th.BasicUser.Id)
+		other := createUserSession(t, th, th.BasicUser2.Id)
+		wc := newChallengeWebConn(t, th, s.Listener.Addr(), session)
+		require.NoError(t, th.Service.HubRegister(wc))
+		require.True(t, th.Service.SessionIsRegistered(*session))
+
+		serveChallenge(th, wc, 1, other.Token)
+
+		assert.False(t, websocketClosed(t, wc))
+		assert.Equal(t, th.BasicUser.Id, wc.UserId)
+		assert.Equal(t, session.Token, wc.GetSessionToken())
+		assert.True(t, th.Service.SessionIsRegistered(*session))
+		assert.False(t, th.Service.SessionIsRegistered(*other))
+	})
+
+	t.Run("first challenge after the upgrade token is cleared closes the connection", func(t *testing.T) {
+		session := createUserSession(t, th, th.BasicUser.Id)
+		other := createUserSession(t, th, th.BasicUser2.Id)
+		wc := newChallengeWebConn(t, th, s.Listener.Addr(), session)
+		require.NoError(t, th.Service.HubRegister(wc))
+		require.True(t, th.Service.SessionIsRegistered(*session))
+
+		waitForClearedSessionToken(t, th, wc, session)
+		require.False(t, websocketClosed(t, wc))
+		serveChallenge(th, wc, 1, other.Token)
+
+		assert.True(t, websocketClosed(t, wc))
+		assert.Equal(t, th.BasicUser.Id, wc.UserId)
+		assert.False(t, th.Service.SessionIsRegistered(*other))
+	})
+
+	testCases := []struct {
+		name   string
+		revoke bool
+		token  func(own, other *model.Session) any
+	}{
+		{
+			name:  "same session token",
+			token: func(own, _ *model.Session) any { return own.Token },
+		},
+		{
+			name:  "another user's session token",
+			token: func(_, other *model.Session) any { return other.Token },
+		},
+		{
+			name:   "another user's session token after the session is revoked",
+			revoke: true,
+			token:  func(_, other *model.Session) any { return other.Token },
+		},
+		{
+			name:  "empty token",
+			token: func(_, _ *model.Session) any { return "" },
+		},
+		{
+			name:  "non-string token",
+			token: func(_, _ *model.Session) any { return true },
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run("second challenge closes the connection with "+tc.name, func(t *testing.T) {
+			own := createUserSession(t, th, th.BasicUser.Id)
+			other := createUserSession(t, th, th.BasicUser2.Id)
+			wc := newChallengeWebConn(t, th, s.Listener.Addr(), &model.Session{})
+			serveChallenge(th, wc, 1, own.Token)
+			require.True(t, th.Service.SessionIsRegistered(*own))
+
+			if tc.revoke {
+				waitForClearedSessionToken(t, th, wc, own)
+			}
+
+			require.False(t, websocketClosed(t, wc))
+			serveChallenge(th, wc, 2, tc.token(own, other))
+
+			assert.True(t, websocketClosed(t, wc))
+			assert.Equal(t, th.BasicUser.Id, wc.UserId)
+			assert.False(t, th.Service.SessionIsRegistered(*other))
+		})
+	}
+}
+
+func TestHubKeepsConnectionsAfterChallengeOnClosedConn(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupChallengeHelper(t)
+
+	s := httptest.NewServer(discardingWebsocketHandler())
+	t.Cleanup(s.Close)
+
+	bystanderSession := createUserSession(t, th, th.BasicUser.Id)
+	bystander := newChallengeWebConn(t, th, s.Listener.Addr(), bystanderSession)
+	require.NoError(t, th.Service.HubRegister(bystander))
+	require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+	attackerSession := createUserSession(t, th, th.BasicUser.Id)
+	attacker := newChallengeWebConn(t, th, s.Listener.Addr(), &model.Session{})
+	serveChallenge(th, attacker, 1, attackerSession.Token)
+	require.True(t, th.Service.SessionIsRegistered(*attackerSession))
+	require.Equal(t, 2, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+	waitForClearedSessionToken(t, th, attacker, attackerSession)
+	closeSendQueue(t, th, attacker)
+	require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+	secondSession := createUserSession(t, th, th.BasicUser.Id)
+	require.False(t, websocketClosed(t, attacker))
+	serveChallenge(th, attacker, 2, secondSession.Token)
+
+	assert.True(t, websocketClosed(t, attacker))
+	assert.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+	assert.True(t, th.Service.SessionIsRegistered(*bystanderSession))
+	assert.False(t, th.Service.SessionIsRegistered(*secondSession))
+}
+
+func TestHubRegisterIgnoresClosedConn(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupChallengeHelper(t)
+
+	s := httptest.NewServer(discardingWebsocketHandler())
+	t.Cleanup(s.Close)
+
+	bystanderSession := createUserSession(t, th, th.BasicUser.Id)
+	bystander := newChallengeWebConn(t, th, s.Listener.Addr(), bystanderSession)
+	require.NoError(t, th.Service.HubRegister(bystander))
+
+	session := createUserSession(t, th, th.BasicUser.Id)
+	wc := newChallengeWebConn(t, th, s.Listener.Addr(), session)
+	require.NoError(t, th.Service.HubRegister(wc))
+	require.Equal(t, 2, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+	closeSendQueue(t, th, wc)
+	require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+	require.NoError(t, th.Service.HubRegister(wc))
+	require.NoError(t, th.Service.HubRegister(wc))
+
+	assert.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+	assert.True(t, th.Service.SessionIsRegistered(*bystanderSession))
+	assert.False(t, th.Service.SessionIsRegistered(*session))
+}
+
+func TestCloseAndRemoveConnClosesOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	connIndex := newHubConnectionIndex(time.Second, true)
+	wc := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   th.BasicUser.Id,
+		send:     make(chan model.WebSocketMessage, 1),
+	}
+	wc.SetConnectionID(model.NewId())
+	wc.SetSession(&model.Session{})
+	connIndex.Add(wc, loadChannelIDs(t, th, wc.UserId))
+	require.True(t, connIndex.Has(wc))
+
+	closeAndRemoveConn(connIndex, wc)
+	require.NotPanics(t, func() { closeAndRemoveConn(connIndex, wc) })
+
+	assert.True(t, wc.sendClosed.Load())
+	assert.False(t, connIndex.Has(wc))
+	_, open := <-wc.send
+	assert.False(t, open)
 }

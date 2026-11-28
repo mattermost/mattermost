@@ -21,31 +21,27 @@ const (
 )
 
 var versionEOL = healthcheck.Rule{
-	Code:     "VERSION_EOL",
-	Area:     model.AreaVersion,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.version_eol.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.version_eol.remediation"),
-		DocsURL:       releasesDocsURL,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalVersionEOL(model.ReleaseLifecycles(), time.Now),
+	Code:          "VERSION_EOL",
+	Area:          model.AreaVersion,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.version_eol.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.version_eol.remediation"),
+	DocsURL:       releasesDocsURL,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalVersionEOL(model.ReleaseLifecycles(), time.Now),
 }
 
 var versionESRNearEOL = healthcheck.Rule{
-	Code:     "VERSION_ESR_NEAR_EOL",
-	Area:     model.AreaVersion,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.version_esr_near_eol.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.version_esr_near_eol.remediation"),
-		DocsURL:       releasesDocsURL,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalVersionESRNearEOL(model.ReleaseLifecycles(), time.Now),
+	Code:          "VERSION_ESR_NEAR_EOL",
+	Area:          model.AreaVersion,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.version_esr_near_eol.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.version_esr_near_eol.remediation"),
+	DocsURL:       releasesDocsURL,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Eval:          evalVersionESRNearEOL(model.ReleaseLifecycles(), time.Now),
 }
 
 func evalVersionEOL(table []model.ReleaseLifecycle, now func() time.Time) func(*healthcheck.Snapshot) []healthcheck.Result {

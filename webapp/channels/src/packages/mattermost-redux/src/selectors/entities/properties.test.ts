@@ -14,7 +14,7 @@ import {
     getPropertyFieldsByIds,
     getPropertyGroupById,
     getPropertyGroupByName,
-    getPropertyValuesForTarget,
+    makeGetPropertyValuesForTarget,
     getPropertyValueForTargetField,
     getPropertyValuesForTargetByFieldIds,
     getPropertyValuesForField,
@@ -22,6 +22,8 @@ import {
     getChannelLabelFields,
     getUnlinkedSystemFieldsForGroup,
     makeGetResolvedChannelAttributes,
+    makeGetPostAttributeFields,
+    arePropertyValuesLoadedForTarget,
 } from './properties';
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -249,7 +251,7 @@ describe('Value selectors', () => {
                 },
             };
 
-            const result = getPropertyValuesForTarget(state as GlobalState, 'target-1');
+            const result = makeGetPropertyValuesForTarget()(state as GlobalState, 'target-1');
             expect(result).toHaveLength(2);
             expect(result).toContain(val1);
             expect(result).toContain(val2);
@@ -266,7 +268,7 @@ describe('Value selectors', () => {
                 },
             };
 
-            expect(getPropertyValuesForTarget(state as GlobalState, 'unknown')).toEqual([]);
+            expect(makeGetPropertyValuesForTarget()(state as GlobalState, 'unknown')).toEqual([]);
         });
     });
 
@@ -768,5 +770,158 @@ describe('makeGetResolvedChannelAttributes', () => {
 
         expect(forThis(state, CHANNEL_ID)).toBe(first);
         expect(forOther(state, 'other_channel')[0].displayValue).toBe('NOFORN');
+    });
+});
+
+const POST_GROUP_ID = 'group_access_control';
+const POST_CHANNEL_ID = 'channel_with_attributes';
+const POST_TEAM_ID = 'team_with_attributes';
+
+function postField(overrides: Partial<PropertyField> & {id: string}): PropertyField {
+    return {
+        group_id: POST_GROUP_ID,
+        name: overrides.id,
+        type: 'select',
+        target_id: '',
+        target_type: 'system',
+        object_type: 'post',
+        create_at: 1,
+        update_at: 1,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        ...overrides,
+    };
+}
+
+function makePostAttrState(fields: PropertyField[], groupLoaded = true, otherFields: PropertyField[] = []): GlobalState {
+    return deepFreeze({
+        entities: {
+            channels: {
+                channels: {
+                    [POST_CHANNEL_ID]: {id: POST_CHANNEL_ID, team_id: POST_TEAM_ID},
+                    channel_without_team: {id: 'channel_without_team', team_id: ''},
+                },
+            },
+            properties: {
+                groups: groupLoaded ? {
+                    byId: {[POST_GROUP_ID]: {id: POST_GROUP_ID, name: 'access_control'}},
+                    byName: {access_control: {id: POST_GROUP_ID, name: 'access_control'}},
+                } : {byId: {}, byName: {}},
+                fields: {
+                    byId: Object.fromEntries([...fields, ...otherFields].map((f) => [f.id, f])),
+                    byObjectType: {
+                        post: {
+                            [POST_GROUP_ID]: Object.fromEntries(fields.map((f) => [f.id, f])),
+                        },
+
+                        // The access_control group also holds user and channel fields.
+                        ...Object.fromEntries(['user', 'channel'].map((objectType) => [objectType, {
+                            [POST_GROUP_ID]: Object.fromEntries(otherFields.
+                                filter((f) => f.object_type === objectType).
+                                map((f) => [f.id, f])),
+                        }])),
+                    },
+                },
+                values: {byTargetId: {}, byFieldId: {}},
+            },
+        },
+    }) as unknown as GlobalState;
+}
+
+describe('makeGetPostAttributeFields', () => {
+    let getPostAttributeFields: ReturnType<typeof makeGetPostAttributeFields>;
+
+    beforeEach(() => {
+        getPostAttributeFields = makeGetPostAttributeFields();
+    });
+
+    test('returns nothing while the group name has not resolved to an id', () => {
+        const state = makePostAttrState([postField({id: 'a'})], false);
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID)).toEqual([]);
+    });
+
+    // The bucket this reads accumulates every channel visited this session, so the
+    // scope filter is the only thing keeping one channel's fields off another's posts.
+    test('excludes a channel-scoped field belonging to another channel', () => {
+        const state = makePostAttrState([
+            postField({id: 'mine', target_type: 'channel', target_id: POST_CHANNEL_ID}),
+            postField({id: 'theirs', target_type: 'channel', target_id: 'some_other_channel'}),
+        ]);
+
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['mine']);
+    });
+
+    // access_control is shared with user and channel attributes, so the group
+    // alone does not identify a post field.
+    test('ignores user and channel fields in the same group', () => {
+        const state = makePostAttrState([postField({id: 'post_field'})], true, [
+            postField({id: 'user_field', object_type: 'user'}),
+            postField({id: 'channel_field', object_type: 'channel'}),
+        ]);
+
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['post_field']);
+    });
+
+    test('includes a system-scoped field for every channel', () => {
+        const state = makePostAttrState([postField({id: 'everywhere'})]);
+
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['everywhere']);
+        expect(getPostAttributeFields(state, 'channel_without_team').map((f) => f.id)).toEqual(['everywhere']);
+    });
+
+    test('includes a team-scoped field only for a channel in that team', () => {
+        const state = makePostAttrState([
+            postField({id: 'this_team', target_type: 'team', target_id: POST_TEAM_ID}),
+            postField({id: 'other_team', target_type: 'team', target_id: 'some_other_team'}),
+        ]);
+
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['this_team']);
+    });
+
+    test('returns nothing without a channel, since there is no scope chain to resolve', () => {
+        const state = makePostAttrState([postField({id: 'everywhere'})]);
+
+        expect(getPostAttributeFields(state, '')).toEqual([]);
+    });
+
+    test('orders by sort_order, then by name', () => {
+        const state = makePostAttrState([
+            postField({id: 'd', name: 'bravo'}),
+            postField({id: 'b', name: 'zulu', attrs: {sort_order: 20}}),
+            postField({id: 'c', name: 'alpha'}),
+            postField({id: 'a', name: 'yankee', attrs: {sort_order: 10}}),
+        ]);
+
+        // Ranked fields lead in sort_order; the unranked ones follow, sorted by name
+        // rather than by whatever order the store happened to hold them in.
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['a', 'b', 'c', 'd']);
+    });
+
+    test('breaks a sort_order tie by name', () => {
+        const state = makePostAttrState([
+            postField({id: 'second', name: 'bravo', attrs: {sort_order: 10}}),
+            postField({id: 'first', name: 'alpha', attrs: {sort_order: 10}}),
+        ]);
+
+        expect(getPostAttributeFields(state, POST_CHANNEL_ID).map((f) => f.id)).toEqual(['first', 'second']);
+    });
+});
+
+describe('arePropertyValuesLoadedForTarget', () => {
+    const state = {
+        entities: {
+            properties: {
+                loadedValueTargets: {c1: true},
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('is true for a target marked as loaded', () => {
+        expect(arePropertyValuesLoadedForTarget(state, 'c1')).toBe(true);
+    });
+
+    test('is false for a target that was never loaded', () => {
+        expect(arePropertyValuesLoadedForTarget(state, 'c2')).toBe(false);
     });
 });

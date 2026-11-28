@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -12,6 +12,8 @@ import {openModal} from 'actions/views/modals';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import * as Menu from 'components/menu';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -22,6 +24,7 @@ type Props = {
 const ArchiveChannel = ({
     channel,
 }: Props) => {
+    const channelKind = useChannelKind(channel);
     const dispatch = useDispatch();
 
     const handleArchiveChannel = () => {
@@ -43,15 +46,23 @@ const ArchiveChannel = ({
             id='channelArchiveChannel'
             leadingElement={<ArchiveIcon size={18}/>}
             onClick={handleArchiveChannel}
-            labels={
-                <FormattedMessage
-                    id='channel_header.delete'
-                    defaultMessage='Archive Channel'
-                />
-            }
+            labels={<FormattedMessage {...messages.archive[channelKind]}/>}
             isDestructive={true}
         />
     );
 };
+
+const messages = {
+    archive: {
+        channel: defineMessage({
+            id: 'channel_header.delete',
+            defaultMessage: 'Archive Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_header.delete.board',
+            defaultMessage: 'Archive Board',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default memo(ArchiveChannel);

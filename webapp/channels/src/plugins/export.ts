@@ -7,7 +7,7 @@ import type {JSX} from 'react';
 import * as reactJSXDevRuntime from 'react/jsx-dev-runtime';
 import * as reactJSXRuntime from 'react/jsx-runtime';
 
-import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
+import type {PublishedComponents, PublishedEditorUtils, PublishedIsolatedFrameUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -44,7 +44,9 @@ import {imageURLForUser} from 'utils/utils';
 
 import {AccessControlCELEditor, AccessControlTableEditor} from './access_control_editors';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
+import {publishedComponents} from './published_components';
 import {publishedEditorUtils} from './published_editor';
+import {publishedIsolatedFrameUtils} from './published_isolated_frames';
 import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 import {wrapReactDOMRoot} from './react_dom_compatibility';
 import {loadSharedDependency} from './shared_dependencies';
@@ -99,6 +101,8 @@ interface WindowWithLibraries {
             popoutRhsPlugin: typeof popoutRhsPlugin;
         };
         editor: PublishedEditorUtils;
+        components: PublishedComponents;
+        isolatedFrames: PublishedIsolatedFrameUtils;
     };
     loadSharedDependency(request: string): unknown;
     openPricingModal: () => void;
@@ -213,6 +217,8 @@ window.WebappUtils = {
         popoutRhsPlugin,
     },
     editor: publishedEditorUtils,
+    components: publishedComponents,
+    isolatedFrames: publishedIsolatedFrameUtils,
 };
 window.loadSharedDependency = loadSharedDependency;
 

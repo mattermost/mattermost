@@ -68,6 +68,12 @@ type countingPropertyFieldStore struct {
 	store.PropertyFieldStore
 	gets         int
 	linkedFields int
+	rankReads    int
+}
+
+func (c *countingPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	c.rankReads++
+	return c.PropertyFieldStore.GetOptionRanks(field, optionIDs)
 }
 
 func (c *countingPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
@@ -78,6 +84,18 @@ func (c *countingPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (
 func (c *countingPropertyFieldStore) GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
 	c.linkedFields++
 	return c.PropertyFieldStore.GetLinkedFields(fieldIDs, excludeIDs)
+}
+
+// countingOptionPageStore counts the option pages read from the store, so a
+// test can assert a listing the hook refused never reached it.
+type countingOptionPageStore struct {
+	store.PropertyFieldStore
+	pages int
+}
+
+func (c *countingOptionPageStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error) {
+	c.pages++
+	return c.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, filter)
 }
 
 func TestResolveFieldMasking(t *testing.T) {
@@ -128,6 +146,23 @@ func TestResolveFieldMasking(t *testing.T) {
 		return created
 	}
 
+	// newLinkedFieldDirect is newLinkedField, but straight through the store:
+	// for a link created after its template is already masked, the service's
+	// create-time gate requires a caller holding field.write on the template,
+	// which none of these fixtures models -- these tests are about how a read
+	// resolves masking, not about who may create the link, so it is bypassed
+	// the same way CreatePropertyFieldDirect always is.
+	newLinkedFieldDirect := func(name string, templateID string) *model.PropertyField {
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          name,
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &templateID,
+		})
+	}
+
 	// setMasking persists masking directly through the store rather than the
 	// service, for a template or an unlinked field -- the two object shapes
 	// PropertyField.IsValid allows to carry masking. A linked field's own
@@ -162,7 +197,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		template := newTemplate("Template-MaskByFieldID")
 		holdings := newLinkedField("Holdings-ForTemplate", template.ID)
 		template = setMasking(template, &model.Masking{MaskByFieldID: holdings.ID})
-		linked := newLinkedField("Linked-UsesTemplateHoldings", template.ID)
+		linked := newLinkedFieldDirect("Linked-UsesTemplateHoldings", template.ID)
 
 		fm, err := h.resolveFieldMasking(th.Context, linked)
 		require.NoError(t, err)
@@ -203,7 +238,7 @@ func TestResolveFieldMasking(t *testing.T) {
 			MaskByFieldID: holdings.ID,
 			Except:        []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
 		})
-		linked := newLinkedField("Linked-OwnMaskingIgnored", template.ID)
+		linked := newLinkedFieldDirect("Linked-OwnMaskingIgnored", template.ID)
 		// PropertyField.IsValid rejects a linked field's own masking, so this
 		// sets it on the in-memory struct without persisting: resolveFieldMasking
 		// reads a linked field's masking off the struct it is handed and only
@@ -243,7 +278,7 @@ func TestResolveFieldMasking(t *testing.T) {
 		template := newTemplate("Template-Cached")
 		holdings := newLinkedField("Holdings-ForCached", template.ID)
 		template = setMasking(template, &model.Masking{MaskByFieldID: holdings.ID})
-		linked := newLinkedField("Linked-Cached", template.ID)
+		linked := newLinkedFieldDirect("Linked-Cached", template.ID)
 
 		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
 		th.service.fieldStore = counter
@@ -257,6 +292,81 @@ func TestResolveFieldMasking(t *testing.T) {
 
 		assert.Equal(t, fm1, fm2)
 		assert.Equal(t, 1, counter.gets)
+	})
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph} {
+		t.Run(string(fieldType)+": holdings field on the same option list", func(t *testing.T) {
+			f := newMaskedListFixture(t, th, fieldType, "Resolve-Same")
+
+			fm, err := h.resolveFieldMasking(th.Context, f.linked)
+			require.NoError(t, err)
+			assert.False(t, fm.holdingsListDiffers, "a holdings field linked to the same template reads the same list")
+			assert.Equal(t, f.holdings.ID, fm.holdingsFieldID)
+
+			fm, err = h.resolveFieldMasking(th.Context, f.template)
+			require.NoError(t, err)
+			assert.False(t, fm.holdingsListDiffers, "the template itself reads the list its holdings field is linked to")
+		})
+
+		for _, b := range holdingsBreaks {
+			t.Run(string(fieldType)+": holdings field "+b.name, func(t *testing.T) {
+				f := newMaskedListFixture(t, th, fieldType, "Resolve-"+b.name)
+				b.apply(t, f)
+
+				for name, field := range map[string]*model.PropertyField{"linked field": f.linked, "template": f.template} {
+					fm, err := h.resolveFieldMasking(th.Context, field)
+					require.NoError(t, err, name)
+					assert.True(t, fm.holdingsListDiffers, name)
+				}
+			})
+		}
+
+		for name, readErr := range map[string]error{"cannot be read": errors.New("boom"), "row is missing": store.NewErrNotFound("PropertyField", "x")} {
+			t.Run(string(fieldType)+": holdings field "+name+" is an error, not a verdict", func(t *testing.T) {
+				f := newMaskedListFixture(t, th, fieldType, "Resolve-Err-"+name)
+
+				original := th.service.fieldStore
+				th.service.fieldStore = &failingGetFieldStore{PropertyFieldStore: original, failID: f.holdings.ID, err: readErr}
+				t.Cleanup(func() { th.service.fieldStore = original })
+
+				_, err := h.resolveFieldMasking(th.Context, f.linked)
+				require.Error(t, err)
+				assert.ErrorIs(t, err, readErr)
+			})
+		}
+	}
+
+	t.Run("holdings are read only for a rank or graph field that names a holdings field", func(t *testing.T) {
+		// A select template whose holdings field was unlinked costs no read: only
+		// rank and graph compare ranks within one option list.
+		sel := newMaskedListFixture(t, th, model.PropertyFieldTypeSelect, "Resolve-Select")
+		holdingsBreaks[1].apply(t, sel)
+
+		// A rank field naming no holdings field is its own holdings field.
+		rank := setMasking(th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Resolve-RankSelfHoldings",
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+			},
+		}), &model.Masking{})
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		fm, err := h.resolveFieldMasking(th.Context, sel.template)
+		require.NoError(t, err)
+		assert.False(t, fm.holdingsListDiffers)
+
+		fm, err = h.resolveFieldMasking(th.Context, rank)
+		require.NoError(t, err)
+		assert.False(t, fm.holdingsListDiffers)
+		assert.Equal(t, rank.ID, fm.holdingsFieldID)
+		assert.Zero(t, counter.gets, "neither resolution reads another field")
 	})
 }
 
@@ -488,8 +598,8 @@ func TestMaskValueReads(t *testing.T) {
 		assert.Nil(t, retrieved)
 	})
 
-	t.Run("rank: exact match visible, and a target above or below the caller is dropped rather than clamped", func(t *testing.T) {
-		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Rank", model.PropertyFieldTypeRank, &model.Masking{}))
+	t.Run("rank: a target at or below the caller is visible whole, and one above is dropped rather than clamped", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Rank", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
 		require.NoError(t, err)
 
 		caller := model.NewId()
@@ -511,7 +621,8 @@ func TestMaskValueReads(t *testing.T) {
 
 		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, below.ID)
 		require.NoError(t, err)
-		assert.Nil(t, retrieved, "a target ranked below the caller must be dropped too -- rank order plays no part in masking")
+		require.NotNil(t, retrieved, "a target ranked below the caller is visible")
+		assert.Equal(t, below.Value, retrieved.Value, "returned whole, not rewritten to the caller's rank")
 	})
 
 	t.Run("scalar: identical bytes visible, different bytes dropped, no caller value dropped", func(t *testing.T) {
@@ -775,22 +886,23 @@ func TestMaskValueReads(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    th.CPAGroupID,
-			Name:       "Mask-Linked",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeChannel,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			// A linked field's own restrictions/grants are its own -- only
-			// masking is locked to the template -- but it must still carry a
-			// (masking-empty) Permissions object of its own for the permission
-			// gate this test's ladder-checker stub answers to run at all; a
-			// nil Permissions here would fall through to the legacy
-			// access_mode path instead.
+		// Created straight through the store: the service's create-time gate on
+		// a masked template needs a caller holding field.write on it, which is
+		// not what this test is about. A linked field's own restrictions/grants
+		// are its own -- only masking is locked to the template -- but it must
+		// still carry a (masking-empty) Permissions object of its own for the
+		// permission gate this test's ladder-checker stub answers to run at
+		// all; a nil Permissions here would fall through to the legacy
+		// access_mode path instead.
+		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Linked",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
 		})
-		require.NoError(t, err)
 
 		caller := model.NewId()
 		// The caller's holdings live on the holdings field, keyed by the
@@ -1130,6 +1242,17 @@ func (e *erroringAncestorsFieldStore) GetOptionAncestorsOrSelf(field *model.Prop
 	return nil, errors.New("forced failure for test")
 }
 
+// erroringRanksFieldStore wraps a store.PropertyFieldStore and forces
+// GetOptionRanks to fail, so a test can exercise the fail-closed path a rank
+// lookup failure takes.
+type erroringRanksFieldStore struct {
+	store.PropertyFieldStore
+}
+
+func (e *erroringRanksFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	return nil, errors.New("forced failure for test")
+}
+
 // erroringSearchValueStore wraps a store.PropertyValueStore and forces
 // SearchPropertyValues to fail, so a test can exercise a masking filter's
 // holdings-lookup failure path -- the one every field type shares, not just
@@ -1211,7 +1334,7 @@ func TestMaskFieldOptions(t *testing.T) {
 		assert.ElementsMatch(t, []string{"opt_a", "opt_c"}, optionIDsOf(t, retrieved))
 	})
 
-	t.Run("rank: only the option the caller holds exactly comes back, not the options below it", func(t *testing.T) {
+	t.Run("rank: the option the caller holds and every option ranked below it come back", func(t *testing.T) {
 		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Rank-Options", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
 		require.NoError(t, err)
 
@@ -1220,11 +1343,7 @@ func TestMaskFieldOptions(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		// TestRankSharedOnly_FieldOptions shows the whole ladder at or below
-		// opt_secret for the legacy path. Masking must show only the exact
-		// option, never the ladder below it.
-		assert.Equal(t, []string{"opt_secret"}, optionIDsOf(t, retrieved),
-			"masking must never apply the rank ladder, only exact-option membership")
+		assert.ElementsMatch(t, []string{"opt_public", "opt_confidential", "opt_secret"}, optionIDsOf(t, retrieved))
 	})
 
 	t.Run("graph: a caller holding an ancestor receives that option and the ones below it that they cover, and no unrelated branch", func(t *testing.T) {
@@ -1365,14 +1484,9 @@ func TestMaskFieldOptions(t *testing.T) {
 	})
 }
 
-// TestMaskOptionPage covers the paged option listing on a field carrying
-// masking: option.read (stubbed here to always allow a human caller) still
-// gates whether the caller may enumerate at all, and masking decides which
-// options on the page come back. This is a separate gate from
-// TestMaskFieldOptions because the paged listing reads options straight from
-// their own rows and reaches none of the inline-list filtering -- so this
-// generalizes filterSharedOnlyGraphOptionPage off graph-only and access_mode
-// onto every option-supporting type and masking.
+// TestMaskOptionPage is separate from TestMaskFieldOptions because the paged
+// listing reads options from their own rows and never reaches the inline-list
+// filtering.
 func TestMaskOptionPage(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	alwaysAllow := func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
@@ -1602,19 +1716,24 @@ func TestMaskOptionPage(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    th.CPAGroupID,
-			Name:       "Mask-Picker-Linked",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeChannel,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			// A linked field's masking is locked to its template, but it still
-			// needs its own (masking-empty) Permissions object for the
-			// permission gate to run at all -- a nil Permissions falls
-			// through to the legacy access_mode path instead.
+		// Created through createPropertyField directly rather than the full
+		// service call: that still copies the template's type and options onto
+		// the linked field the way a real create does, but skips the
+		// create-time gate on a masked template, which needs a caller holding
+		// field.write on it -- not what this test is about. A linked field's
+		// masking is locked to its template, but it still needs its own
+		// (masking-empty) Permissions object for the permission gate to run at
+		// all -- a nil Permissions falls through to the legacy access_mode
+		// path instead.
+		linked, err := th.service.createPropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Picker-Linked",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
-		})
+		}, false, true)
 		require.NoError(t, err)
 
 		admin := model.NewId()
@@ -1674,7 +1793,12 @@ func TestMaskOptionPage(t *testing.T) {
 		require.NoError(t, err)
 		template = updated[0]
 
-		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		// Created through createPropertyField directly rather than the full
+		// service call: that still copies the template's type and options onto
+		// the linked field the way a real create does, but skips the
+		// create-time gate on a masked template, which needs a caller holding
+		// field.write on it -- not what this test is about.
+		linked, err := th.service.createPropertyField(th.Context, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "Mask-Listing-Once-Linked",
 			Type:          model.PropertyFieldTypeText,
@@ -1682,7 +1806,7 @@ func TestMaskOptionPage(t *testing.T) {
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
-		})
+		}, false, true)
 		require.NoError(t, err)
 
 		caller := model.NewId()
@@ -1702,11 +1826,11 @@ func TestMaskOptionPage(t *testing.T) {
 		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), linked.GroupID, linked.ID, 0, "", 1)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{"Program D"}, listedNames(page.Options))
-		// Two field reads for the whole listing: the field the listing is aimed
-		// at, and its masking template. Neither repeats per page -- resolving
-		// the template per page would make it one more for each of the four
-		// pages scanned.
-		assert.Equal(t, 2, fieldCounter.gets, "the masking template is resolved once for the whole listing, not once per page of rows scanned")
+		// Three field reads for the whole listing: the field the listing is aimed
+		// at, its masking template, and the holdings field the template names.
+		// None repeats per page -- resolving any of them per page would make it
+		// one more for each of the four pages scanned.
+		assert.Equal(t, 3, fieldCounter.gets, "the masking template and holdings field are resolved once for the whole listing, not once per page of rows scanned")
 		assert.Equal(t, 1, valueCounter.searches, "the caller's holdings are searched once for the whole listing, not once per page of rows scanned")
 	})
 
@@ -1729,5 +1853,478 @@ func TestMaskOptionPage(t *testing.T) {
 		})
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{"A"}, listedNames(page), "the fallback context still filters to what the caller holds")
+	})
+}
+
+// maskedListFixture is a masked template whose holdings field is linked back to
+// it, plus a channel field linked to the template -- the shape a classification
+// marking takes. The options form a chain, Top Secret > Secret > Internal: a
+// graph holder of Secret covers Secret and Internal, and so does a rank holder.
+type maskedListFixture struct {
+	th                         *TestHelper
+	fieldType                  model.PropertyFieldType
+	template, holdings, linked *model.PropertyField
+	ids                        map[string]string
+	label                      string
+}
+
+func newMaskedListFixture(t *testing.T, th *TestHelper, fieldType model.PropertyFieldType, label string) *maskedListFixture {
+	t.Helper()
+	f := &maskedListFixture{th: th, fieldType: fieldType, label: label}
+	f.template = f.newTemplate(t, "Template")
+	f.ids = optionIDsByName(t, f.template)
+
+	var err error
+	f.holdings, err = th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          label + "-" + string(fieldType) + "-Holdings",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &f.template.ID,
+	})
+	require.NoError(t, err)
+
+	f.template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: f.holdings.ID}}
+	updated, err := th.dbStore.PropertyField().Update(f.template.GroupID, []*model.PropertyField{f.template}, nil)
+	require.NoError(t, err)
+	f.template = updated[0]
+
+	// createPropertyField rather than CreatePropertyField: it copies the
+	// template's type and options like a real create, but skips the create-time
+	// gate on a masked template, which is not what these tests are about.
+	f.linked, err = th.service.createPropertyField(th.Context, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          label + "-" + string(fieldType) + "-Linked",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		Permissions:   &model.Permissions{},
+		LinkedFieldID: &f.template.ID,
+	}, false, true)
+	require.NoError(t, err)
+	return f
+}
+
+// newTemplate creates an unmasked template of the fixture's type carrying the
+// Top Secret > Secret > Internal options.
+func (f *maskedListFixture) newTemplate(t *testing.T, name string) *model.PropertyField {
+	t.Helper()
+	options := []any{
+		map[string]any{"name": "Top Secret", "rank": 3},
+		map[string]any{"name": "Secret", "rank": 2},
+		map[string]any{"name": "Internal", "rank": 1},
+	}
+	if f.fieldType == model.PropertyFieldTypeGraph {
+		options = []any{
+			map[string]any{"name": "Top Secret"},
+			map[string]any{"name": "Secret", "parents": []string{"Top Secret"}},
+			map[string]any{"name": "Internal", "parents": []string{"Secret"}},
+		}
+	}
+	created, err := f.th.service.CreatePropertyField(f.th.Context, &model.PropertyField{
+		GroupID:    f.th.CPAGroupID,
+		Name:       f.label + "-" + string(f.fieldType) + "-" + name,
+		Type:       f.fieldType,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, err)
+	return created
+}
+
+// value is a stored value naming the options called names: a bare ID for rank
+// and select, a list for graph.
+func (f *maskedListFixture) value(names ...string) any {
+	if f.fieldType == model.PropertyFieldTypeGraph || f.fieldType == model.PropertyFieldTypeMultiselect {
+		ids := make([]string, len(names))
+		for i, n := range names {
+			ids[i] = f.ids[n]
+		}
+		return ids
+	}
+	return f.ids[names[0]]
+}
+
+// holdingsBreaks are the ways a masked template's holdings field can end up
+// reading a different option list than the template. The store does not
+// re-check a template's mask_by_field_id when the holdings field itself
+// changes, so each is applied straight through it.
+var holdingsBreaks = []struct {
+	name  string
+	apply func(t *testing.T, f *maskedListFixture)
+}{
+	{"linked to another template", func(t *testing.T, f *maskedListFixture) {
+		other := f.newTemplate(t, "Other")
+		f.holdings.LinkedFieldID = &other.ID
+		_, err := f.th.dbStore.PropertyField().Update(f.holdings.GroupID, []*model.PropertyField{f.holdings}, nil)
+		require.NoError(t, err)
+	}},
+	// An unlinked holdings field keeps the template's option IDs, so matching
+	// IDs must not be mistaken for sharing the list.
+	{"unlinked", func(t *testing.T, f *maskedListFixture) {
+		f.holdings.LinkedFieldID = nil
+		_, err := f.th.dbStore.PropertyField().Update(f.holdings.GroupID, []*model.PropertyField{f.holdings}, nil)
+		require.NoError(t, err)
+	}},
+	{"deleted", func(t *testing.T, f *maskedListFixture) {
+		require.NoError(t, f.th.dbStore.PropertyField().Delete(f.holdings.GroupID, f.holdings.ID))
+	}},
+}
+
+// failingGetFieldStore fails Get for one field ID, so a test can make a
+// holdings field unreadable without breaking the rest of the resolution.
+type failingGetFieldStore struct {
+	store.PropertyFieldStore
+	failID string
+	err    error
+}
+
+func (s *failingGetFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	if id == s.failID {
+		return nil, s.err
+	}
+	return s.PropertyFieldStore.Get(rctx, groupID, id)
+}
+
+// TestMaskingHoldingsOnAnotherOptionList: ranks are comparable only within one
+// option list, so a masked rank or graph field whose holdings field reads a
+// different list shows its caller no options and no values, on every read path
+// and the write check.
+func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool { return true })
+	t.Cleanup(func() {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(nil)
+	})
+
+	type outcome struct {
+		inline, listed []string
+		readable       bool
+		updateErr      error
+		newTargetErr   error
+	}
+	observe := func(t *testing.T, f *maskedListFixture, caller string) outcome {
+		t.Helper()
+		ctx := RequestContextWithCallerID(th.Context, caller)
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+		stored := writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value("Secret"))
+
+		var o outcome
+		field, err := th.service.GetPropertyField(ctx, f.linked.GroupID, f.linked.ID)
+		require.NoError(t, err)
+		o.inline = inlineOptionNames(t, field)
+
+		page, err := th.service.GetFieldOptions(ctx, f.linked.GroupID, f.linked.ID, 0, "", 100)
+		require.NoError(t, err)
+		o.listed = listedNames(page.Options)
+
+		read, err := th.service.GetPropertyValue(ctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		o.readable = read != nil
+
+		_, o.updateErr = th.service.UpdatePropertyValue(ctx, th.CPAGroupID, stored)
+
+		encoded, err := json.Marshal(f.value("Secret"))
+		require.NoError(t, err)
+		_, o.newTargetErr = th.service.CreatePropertyValue(ctx, &model.PropertyValue{
+			GroupID: th.CPAGroupID, FieldID: f.linked.ID, TargetType: "channel", TargetID: model.NewId(), Value: encoded,
+		})
+		return o
+	}
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph} {
+		t.Run(string(fieldType)+": holdings on the same list still see what they hold", func(t *testing.T) {
+			f := newMaskedListFixture(t, th, fieldType, "Foreign-Control")
+			o := observe(t, f, model.NewId())
+
+			want := []string{"Secret", "Internal"}
+			assert.ElementsMatch(t, want, o.inline)
+			assert.ElementsMatch(t, want, o.listed)
+			assert.True(t, o.readable)
+			assert.NoError(t, o.updateErr)
+			assert.NoError(t, o.newTargetErr)
+		})
+
+		for _, b := range holdingsBreaks {
+			t.Run(string(fieldType)+": holdings field "+b.name+" hides every option and value", func(t *testing.T) {
+				f := newMaskedListFixture(t, th, fieldType, "Foreign-"+b.name)
+				b.apply(t, f)
+				o := observe(t, f, model.NewId())
+
+				assert.Empty(t, o.inline, "the inline option list is empty")
+				assert.Empty(t, o.listed, "every listing page is empty")
+				assert.False(t, o.readable, "a stored value is dropped from the read")
+				assert.ErrorIs(t, o.updateErr, ErrAccessDenied, "a value the caller cannot see cannot be overwritten")
+				assert.NoError(t, o.newTargetErr, "an object with nothing stored can still be marked")
+			})
+		}
+
+		for _, b := range holdingsBreaks {
+			t.Run(string(fieldType)+": a caller named in except still sees everything when holdings field "+b.name, func(t *testing.T) {
+				f := newMaskedListFixture(t, th, fieldType, "ForeignExcept-"+b.name)
+				exempt := model.NewId()
+				f.template.Permissions = &model.Permissions{Masking: &model.Masking{
+					MaskByFieldID: f.holdings.ID,
+					Except:        []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: exempt}},
+				}}
+				updated, err := th.dbStore.PropertyField().Update(f.template.GroupID, []*model.PropertyField{f.template}, nil)
+				require.NoError(t, err)
+				f.template = updated[0]
+				b.apply(t, f)
+				o := observe(t, f, exempt)
+
+				all := []string{"Top Secret", "Secret", "Internal"}
+				assert.ElementsMatch(t, all, o.inline)
+				assert.ElementsMatch(t, all, o.listed)
+				assert.True(t, o.readable)
+				assert.NoError(t, o.updateErr)
+				assert.NoError(t, o.newTargetErr)
+			})
+		}
+	}
+
+	t.Run("the listing is refused up front, without scanning the field's rows", func(t *testing.T) {
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph} {
+			for _, b := range holdingsBreaks {
+				t.Run(string(fieldType)+": holdings field "+b.name, func(t *testing.T) {
+					f := newMaskedListFixture(t, th, fieldType, "Foreign-Filter-"+b.name)
+					b.apply(t, f)
+					// The unlinked holdings field keeps the template's option IDs, so
+					// the caller holds IDs the masked list also has.
+					caller := model.NewId()
+					writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+					ctx := RequestContextWithCallerID(th.Context, caller)
+
+					filter, err := h.PreGetPropertyFieldOptions(ctx, f.linked, nil)
+					require.NoError(t, err)
+					require.NotNil(t, filter)
+					assert.True(t, filter.ShowNothing)
+					assert.Empty(t, filter.CoveredBy)
+
+					counter := &countingOptionPageStore{PropertyFieldStore: th.service.fieldStore}
+					th.service.fieldStore = counter
+					t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+					page, err := th.service.GetFieldOptions(ctx, f.linked.GroupID, f.linked.ID, 0, "", 1)
+					require.NoError(t, err)
+					assert.Empty(t, page.Options)
+					assert.False(t, page.HasMore)
+					assert.Zero(t, counter.pages, "no option row is scanned for a page the hook already knows is empty")
+				})
+			}
+		}
+	})
+
+	t.Run("a batch read of several values on such a field reads the holdings field once", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "Foreign-Batch")
+		holdingsBreaks[1].apply(t, f)
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		values := make([]*model.PropertyValue, 5)
+		for i := range values {
+			values[i] = writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value("Secret"))
+		}
+		counter.gets = 0
+		read, err := h.PostGetPropertyValues(RequestContextWithCallerID(th.Context, model.NewId()), values)
+		require.NoError(t, err)
+		assert.Empty(t, read)
+		assert.Equal(t, 2, counter.gets, "the template and the holdings field are each read once, not once per value")
+	})
+}
+
+// TestMaskingRankOrder: a masked rank field shows a caller every option ranked
+// at or below the highest one they hold, on the inline list, the paged listing,
+// value reads and the write check alike, and a value is returned whole or not
+// at all.
+func TestMaskingRankOrder(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool { return true })
+	t.Cleanup(func() {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(nil)
+	})
+
+	// listAll pages one option at a time, so a page that stops early or repeats
+	// an option shows up.
+	listAll := func(t *testing.T, ctx request.CTX, f *maskedListFixture) []string {
+		t.Helper()
+		var names []string
+		var cursorCreateAt int64
+		var cursorID string
+		for pages := 1; ; pages++ {
+			require.LessOrEqual(t, pages, 5, "the listing has to end")
+			page, err := th.service.GetFieldOptions(ctx, f.linked.GroupID, f.linked.ID, cursorCreateAt, cursorID, 1)
+			require.NoError(t, err)
+			names = append(names, listedNames(page.Options)...)
+			if !page.HasMore {
+				return names
+			}
+			cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
+		}
+	}
+
+	cases := []struct {
+		held    string // "" holds nothing
+		visible []string
+	}{
+		{"Top Secret", []string{"Top Secret", "Secret", "Internal"}},
+		{"Secret", []string{"Secret", "Internal"}},
+		{"Internal", []string{"Internal"}},
+		{"", nil},
+	}
+	for _, tc := range cases {
+		t.Run("holding "+tc.held, func(t *testing.T) {
+			f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-"+tc.held)
+			caller := model.NewId()
+			if tc.held != "" {
+				writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value(tc.held))
+			}
+			ctx := RequestContextWithCallerID(th.Context, caller)
+
+			field, err := th.service.GetPropertyField(ctx, f.linked.GroupID, f.linked.ID)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, tc.visible, inlineOptionNames(t, field), "inline list")
+			assert.ElementsMatch(t, tc.visible, listAll(t, ctx, f), "paged listing")
+
+			for _, stored := range []string{"Top Secret", "Secret", "Internal"} {
+				canSee := slices.Contains(tc.visible, stored)
+				value := writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value(stored))
+
+				read, readErr := th.service.GetPropertyValue(ctx, th.CPAGroupID, value.ID)
+				require.NoError(t, readErr)
+				if canSee {
+					require.NotNil(t, read, "a stored %s value is visible", stored)
+					assert.Equal(t, string(value.Value), string(read.Value), "returned whole, same bytes")
+				} else {
+					assert.Nil(t, read, "a stored %s value is dropped, never replaced by a lower option", stored)
+				}
+
+				_, updateErr := th.service.UpdatePropertyValue(ctx, th.CPAGroupID, value)
+				if canSee {
+					assert.NoError(t, updateErr, "updating a visible %s value", stored)
+				} else {
+					assert.ErrorIs(t, updateErr, ErrAccessDenied, "updating an invisible %s value", stored)
+				}
+			}
+
+			encoded, err := json.Marshal(f.value("Top Secret"))
+			require.NoError(t, err)
+			_, err = th.service.CreatePropertyValue(ctx, &model.PropertyValue{
+				GroupID: th.CPAGroupID, FieldID: f.linked.ID, TargetType: "channel", TargetID: model.NewId(), Value: encoded,
+			})
+			assert.NoError(t, err, "a target with nothing stored can always be marked")
+		})
+	}
+
+	t.Run("a batch read of several values on one field reads each option rank once", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-Batch")
+		caller := model.NewId()
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		stored := []string{"Secret", "Secret", "Internal", "Internal", "Top Secret"}
+		values := make([]*model.PropertyValue, len(stored))
+		for i, name := range stored {
+			values[i] = writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value(name))
+		}
+		counter.rankReads = 0
+		read, err := h.PostGetPropertyValues(RequestContextWithCallerID(th.Context, caller), values)
+		require.NoError(t, err)
+		readIDs := make([]string, len(read))
+		for i, v := range read {
+			readIDs[i] = v.ID
+		}
+		assert.ElementsMatch(t, []string{values[0].ID, values[1].ID, values[2].ID, values[3].ID}, readIDs)
+		assert.Equal(t, 3, counter.rankReads, "each distinct option is asked about once (Secret, Internal, Top Secret), not once per value")
+	})
+
+	t.Run("an option with no rank is asked about once and never becomes visible", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-Unranked")
+		caller := model.NewId()
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		gone := model.NewId() // an option the field does not list, as a deleted one is
+		var values []*model.PropertyValue
+		for range 3 {
+			values = append(values, writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), gone))
+		}
+		visible := writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value("Secret"))
+		values = append(values, visible)
+
+		counter.rankReads = 0
+		read, err := h.PostGetPropertyValues(RequestContextWithCallerID(th.Context, caller), values)
+		require.NoError(t, err)
+		require.Len(t, read, 1)
+		assert.Equal(t, visible.ID, read[0].ID)
+		assert.Equal(t, 1, counter.rankReads, "the unranked option is remembered after its first lookup")
+	})
+
+	t.Run("a failed rank lookup denies on every path and is not reported as access denied on a write", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "RankOrder-LookupFailure", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_secret")
+		// below the caller's rank, so it is visible and writable unless the lookup fails
+		stored := writeValueDirect(t, th, field.ID, "user", model.NewId(), "opt_public")
+
+		original := th.service.fieldStore
+		th.service.fieldStore = &erroringRanksFieldStore{PropertyFieldStore: original}
+		t.Cleanup(func() { th.service.fieldStore = original })
+		ctx := RequestContextWithCallerID(th.Context, caller)
+
+		retrieved, err := th.service.GetPropertyField(ctx, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsHidden(t, retrieved)
+
+		_, err = th.service.GetFieldOptions(ctx, field.GroupID, field.ID, 0, "", 100)
+		require.Error(t, err, "a listing has somewhere to put a lookup failure")
+
+		read, err := th.service.GetPropertyValue(ctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		assert.Nil(t, read, "a value is hidden, never granted, when its rank cannot be looked up")
+
+		_, err = th.service.UpdatePropertyValue(ctx, th.CPAGroupID, stored)
+		require.Error(t, err)
+		assert.NotErrorIs(t, err, ErrAccessDenied, "a lookup failure is a server error, not a refusal")
+	})
+
+	t.Run("an empty option list reads no ranks", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-EmptyList")
+		caller := model.NewId()
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		field := *f.linked
+		field.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{}}
+		counter.rankReads = 0
+		masked := h.applyFieldReadAccessControl(RequestContextWithCallerID(th.Context, caller), newMaskingContext(), &field, caller)
+		assert.Empty(t, inlineOptionNames(t, masked))
+		assert.Zero(t, counter.rankReads, "no candidate options, nothing to rank")
 	})
 }

@@ -406,6 +406,9 @@ func (s *SqlPropertyFieldStore) unfilteredFieldOptionsPage(replica *sqlxDBWrappe
 // covered's seeds come from PropertyOptions rather than straight from
 // coveredBy, so a held option that is no longer live reaches nothing.
 //
+// A rank field has no edges, so it swaps covered for a number: a candidate passes
+// when its Rank is at or below the highest Rank among the live coveredBy options.
+//
 // LIMIT applies to candidates, after covered has already been computed in
 // full -- so a page comes back full while options remain, rather than being
 // filtered down from a LIMIT taken before the masking. That is the whole point
@@ -445,15 +448,30 @@ func (s *SqlPropertyFieldStore) filteredFieldOptionsPage(replica *sqlxDBWrapper,
 	pageBuilder := s.getQueryBuilder().
 		Select(propertyOptionColumns...).
 		From("candidates").
-		Where("ID IN (SELECT OptionID FROM covered)").
 		OrderBy("CreateAt ASC", "ID ASC").
-		Limit(uint64(perPage)).
-		Prefix(`WITH RECURSIVE covered (OptionID) AS (
+		Limit(uint64(perPage))
+	if field.Type == model.PropertyFieldTypeRank {
+		// MAX over no rows is NULL, so held options that are unranked, deleted or
+		// not in the field's set cover nothing, as does a NULL candidate rank.
+		maxHeldRank := s.getSubQueryBuilder().
+			Select("MAX(held.Rank)").
+			From("PropertyOptions held").
+			Where(sq.Eq{"held.FieldID": optionOwnerIDs(field)}).
+			Where(sq.Eq{"held.ID": coveredBy}).
+			Where(sq.Eq{"held.DeleteAt": 0})
+		pageBuilder = pageBuilder.
+			Where(sq.Expr("Rank <= (?)", maxHeldRank)).
+			Prefix("WITH candidates AS (?)", candidatesQuery())
+	} else {
+		pageBuilder = pageBuilder.
+			Where("ID IN (SELECT OptionID FROM covered)").
+			Prefix(`WITH RECURSIVE covered (OptionID) AS (
 			? UNION
 			SELECT edge.ChildOptionID FROM PropertyOptionEdges edge
 			JOIN covered ON covered.OptionID = edge.ParentOptionID
 			WHERE edge.FieldID = ?
 		), candidates AS (?)`, coveredSeeds, ownerID, candidatesQuery())
+	}
 
 	rows := []*propertyOptionRow{}
 	if err := replica.SelectBuilder(&rows, pageBuilder); err != nil {
@@ -611,6 +629,45 @@ func (s *SqlPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optio
 // has a use for.
 func (s *SqlPropertyFieldStore) GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error) {
 	return s.getFieldOptionsWhere(field, "Name", names)
+}
+
+// GetOptionRanks returns the rank of each given option that is live in the
+// field's effective option set and has one, as option ID -> rank. Everything else
+// is absent from the map: an ID the set lacks, a deleted option, and an option
+// that carries no rank -- which callers read as "ranks nowhere", so the absence
+// has to stay distinguishable from rank 0.
+//
+// A separate lookup because an option read drops the rank on purpose, and a field
+// past model.PropertyFieldMaxHydratedOptions carries no inline option list to
+// read it from.
+func (s *SqlPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	type ranked struct {
+		ID   string
+		Rank *int64
+	}
+
+	ranks := make(map[string]int64, len(optionIDs))
+	if field == nil {
+		return ranks, nil
+	}
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ID", "Rank").
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.Eq{"DeleteAt": 0}).
+			Where(sq.NotEq{"Rank": nil})
+
+		rows := []*ranked{}
+		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_ranks_query")
+		}
+		for _, row := range rows {
+			ranks[row.ID] = *row.Rank
+		}
+	}
+	return ranks, nil
 }
 
 // getFieldOptionsWhere runs one lookup over a field's effective option set,
@@ -1111,6 +1168,25 @@ func storedFieldPermissions(field *model.PropertyField) any {
 	return string(model.ToJSON(field.Permissions))
 }
 
+// applyProjectedPermissionColumns overrides the Protected and Permission* columns
+// the SELECT read with the values projected from field.Permissions, so a converted
+// field reports the v2 view of its permissions object rather than whatever its
+// columns held when it was converted -- and a load-modify-save does not look like a
+// legacy-column change. A field with no permissions object is skipped and keeps the
+// columns as stored. Create and Update apply it to the fields they return too.
+func applyProjectedPermissionColumns(fields []*model.PropertyField) {
+	for _, field := range fields {
+		if field == nil || field.Permissions == nil {
+			continue
+		}
+		projected := model.ProjectLegacyPermissions(field)
+		field.Protected = projected.Protected
+		field.PermissionField = projected.PermissionField
+		field.PermissionValues = projected.PermissionValues
+		field.PermissionOptions = projected.PermissionOptions
+	}
+}
+
 // hydratePropertyFieldOptions inlines each field's effective option set into
 // Attrs["options"], in the order the options were last written in. Fields whose
 // type carries no options are left untouched.
@@ -1121,6 +1197,8 @@ func storedFieldPermissions(field *model.PropertyField) any {
 // options_count/options_omitted instead. Callers that must tell those two apart
 // have to check options_omitted.
 func (s *SqlPropertyFieldStore) hydratePropertyFieldOptions(db sqlxExecutor, fields []*model.PropertyField) error {
+	applyProjectedPermissionColumns(fields)
+
 	var targets []*model.PropertyField
 	var ownerIDs []string
 	for _, field := range fields {

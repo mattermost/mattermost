@@ -17,6 +17,8 @@ import type {Team} from '@mattermost/types/teams';
 import {General} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
+import {toFullListIndex} from 'selectors/views/product_rail';
+
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
 import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
@@ -60,6 +62,12 @@ type Props = WrappedComponentProps & {
     onDragEnd: (result: DropResult) => void;
     markAllAsReadWithoutConfirm: boolean;
     markAllAsReadShortcutEnabled: boolean;
+
+    // The product rail is showing Boards and the team has none the user can see.
+    showNoBoards: boolean;
+
+    // Categories the product rail's Channels or Boards section leaves empty, which aren't shown.
+    categoryIdsHiddenByProductRail: Set<string>;
 
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
@@ -448,7 +456,16 @@ export class SidebarList extends React.PureComponent<Props, State> {
             if (result.type === 'SIDEBAR_CHANNEL') {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
             } else if (result.type === 'SIDEBAR_CATEGORY') {
-                this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
+                // While the product rail hides categories, the shown ones are numbered among
+                // themselves, so a drop needs translating to a place in the full list.
+                let newIndex = result.destination.index;
+                if (this.props.categoryIdsHiddenByProductRail.size > 0) {
+                    const nonManagedCategoryIds = this.props.categories.filter((c) => c.type !== CategoryTypes.MANAGED).map((c) => c.id);
+                    const shownCategoryIds = nonManagedCategoryIds.filter((id) => !this.props.categoryIdsHiddenByProductRail.has(id));
+                    newIndex = toFullListIndex(shownCategoryIds, nonManagedCategoryIds, result.draggableId, result.destination.index);
+                }
+
+                this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, newIndex);
             }
         }
 
@@ -499,14 +516,26 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
-            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+            // Categories the product rail hides aren't rendered at all, so the ones shown are
+            // numbered without gaps, as dragging needs.
+            const shownCategories = categories.filter((c) => !this.props.categoryIdsHiddenByProductRail.has(c.id));
+            const managedCategories = shownCategories.filter((c) => c.type === CategoryTypes.MANAGED);
+            const nonManagedCategories = shownCategories.filter((c) => c.type !== CategoryTypes.MANAGED);
 
             const renderedManagedCategories = managedCategories.map(this.renderCategory);
             const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
+                    {this.props.showNoBoards && (
+                        <div className='SidebarProductRailEmpty'>
+                            <FormattedMessage
+                                id='sidebar.productRail.noBoards'
+                                defaultMessage='No boards in this team yet.'
+                                description='Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of.'
+                            />
+                        </div>
+                    )}
                     {unreadsCategory}
                     {renderedManagedCategories}
                     <DragDropContext

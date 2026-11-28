@@ -230,38 +230,43 @@ func TestPropertyFieldOptions(t *testing.T) {
 		// field must go out with none at all -- unlike the public fields above,
 		// which still carry theirs. A client that needs the list reads the field
 		// back, and that read is filtered per caller.
-		none := model.PermissionLevelNone
-		sysadmin := model.PermissionLevelSysadmin
-		sharedTemplate, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		// Created as the local-mode admin: linking to a masked template needs a
+		// caller holding field.write on it, and an unnamed caller holds nothing.
+		adminRctx := app.RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
+
+		// Masking is declared on the template that owns the option scheme, and
+		// the system admin is exempt from it so the read at the end of this
+		// subtest can confirm the rename landed. That exemption is per-caller,
+		// which is the whole reason a broadcast has to withhold regardless: it
+		// has no caller to be exempt.
+		sharedTemplate, appErr := th.App.CreatePropertyField(adminRctx, &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       graph,
 			GroupID:    group.ID,
 			ObjectType: template,
 			TargetType: "system",
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:  true,
-				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+				Masking: &model.Masking{
+					Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: th.SystemAdminUser.Id}},
+				},
 			},
-			Protected:         true,
-			PermissionField:   &none,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &memberLevel,
-		}, true, "")
+		}, false, "")
 		require.Nil(t, appErr)
 
-		sharedLinked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		// No permissions object of its own: a linked field inherits the
+		// template's restrictions on create and follows it for masking, which
+		// is what makes its own broadcast withhold too.
+		sharedLinked, appErr := th.App.CreatePropertyField(adminRctx, &model.PropertyField{
 			Name:          model.NewId(),
 			GroupID:       group.ID,
 			ObjectType:    userObject,
 			TargetType:    "system",
 			LinkedFieldID: &sharedTemplate.ID,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsProtected:  true,
-				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
-			},
-			Protected:       true,
-			PermissionField: &none,
-		}, true, "")
+		}, false, "")
 		require.Nil(t, appErr)
 
 		created, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, []*model.PropertyFieldOption{

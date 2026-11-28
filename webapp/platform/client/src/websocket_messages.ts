@@ -4,7 +4,7 @@
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import type {Limits, Subscription} from '@mattermost/types/cloud';
+import type {Subscription} from '@mattermost/types/cloud';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
@@ -266,13 +266,20 @@ export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.Channel
 // Channel access control messages
 
 export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelAccessControlUpdated, {
+
+    // Empty for a member the channel's read rules deny.
     channel: JsonEncodedValue<Channel>;
 }>;
 
 // Emitted after a system-scoped (TypePermission) permission policy is created, updated,
-// deleted, or toggled active. No payload — the policy is global so the client reconciles
-// the currently visible channel only.
-export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.PermissionPolicyUpdated, Record<string, never>>;
+// deleted, or has auto-add toggled. The policy is global, so the event names no resource.
+export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.PermissionPolicyUpdated, {
+
+    // The rule actions the change touched: the old and new rules' on a save, the deleted
+    // policy's on a delete, and none on an auto-add toggle, which changes no rule. Servers
+    // that predate the field leave it out, and then any action may have changed.
+    actions?: string[];
+}>;
 
 export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
     team: JsonEncodedValue<TeamType>;
@@ -447,18 +454,12 @@ export type LicenseChanged = BaseWebSocketMessage<WebSocketEvents.LicenseChanged
 }>;
 
 export type CloudSubscriptionChanged = BaseWebSocketMessage<WebSocketEvents.CloudSubscriptionChanged, {
-    limits?: Limits;
     subscription: Subscription;
 }>;
 
 export type FirstAdminVisitMarketplaceStatusReceived =
     BaseWebSocketMessage<WebSocketEvents.FirstAdminVisitMarketplaceStatusReceived, {
         firstAdminVisitMarketplaceStatus: JsonEncodedValue<boolean>;
-    }>;
-
-export type HostedCustomerSignupProgressUpdated =
-    BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
-        progress: string;
     }>;
 
 // Custom properties messages

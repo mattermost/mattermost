@@ -1624,7 +1624,7 @@ func TestChannelMigrationWithAttachments(t *testing.T) {
 	}
 	require.NotNil(t, attachmentPost, "post with attachment must exist on dest")
 
-	fileInfos, _, appErr := th.App.GetFileInfosForPost(th.Context, attachmentPost, false, false)
+	fileInfos, appErr := th.App.GetFileInfosForPost(th.Context, attachmentPost, false, false)
 	require.Nil(t, appErr)
 	assert.NotEmpty(t, fileInfos, "imported post must have at least one file attachment")
 	assert.Equal(t, int64(len(fileContent)), fileInfos[0].Size,

@@ -4,6 +4,7 @@
 package jobs_test
 
 import (
+	"cmp"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -55,10 +56,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 
 	// Check for environment variable override for console log level (useful for debugging tests)
-	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
-	if consoleLevel == "" {
-		consoleLevel = mlog.LvlStdLog.Name
-	}
+	consoleLevel := cmp.Or(os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL"), mlog.LvlStdLog.Name)
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false

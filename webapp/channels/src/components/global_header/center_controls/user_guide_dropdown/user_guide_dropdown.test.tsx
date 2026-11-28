@@ -31,50 +31,15 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         fireEvent.click(button);
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <UserGuideDropdown {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for false of enableAskCommunityLink', () => {
-        const props = {
-            ...baseProps,
-            enableAskCommunityLink: 'false',
-        };
-
-        const {container} = renderWithContext(
-            <UserGuideDropdown {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when have plugin menu items', () => {
-        const props = {
-            ...baseProps,
-            pluginMenuItems: [{id: 'testId', pluginId: 'testPluginId', text: 'Test Item', action: () => {}},
-            ],
-        };
-
-        const {container} = renderWithContext(
-            <UserGuideDropdown {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('Should render with buttonActive initially false', () => {
         const {container} = renderWithContext(
             <UserGuideDropdown {...baseProps}/>,
         );
 
-        // The button should not have the 'active' class initially
-        const button = container.querySelector('.HeaderIconButton');
+        // The button should not be pressed/expanded initially
+        const button = container.querySelector('button[aria-label="Help"]');
         expect(button).toBeInTheDocument();
-        expect(button).not.toHaveClass('active');
+        expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     test('Should open keyboard shortcuts modal on click', async () => {

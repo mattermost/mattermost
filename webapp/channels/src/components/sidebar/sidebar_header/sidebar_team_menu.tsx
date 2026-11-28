@@ -21,7 +21,7 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
@@ -31,7 +31,6 @@ import {openModal} from 'actions/views/modals';
 import {getMainMenuPluginComponents} from 'selectors/plugins';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import InvitationModal from 'components/invitation_modal';
 import LeaveTeamModal from 'components/leave_team_modal';
 import * as Menu from 'components/menu';
@@ -41,7 +40,7 @@ import TeamSettingsModal from 'components/team_settings_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {LicenseSkus, ModalIdentifiers, MattermostFeatures, CloudProducts} from 'utils/constants';
+import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
@@ -380,20 +379,15 @@ function CreateTeamMenuItem({isCloud}: CreateTeamMenuItemProps) {
     const history = useHistory();
 
     const cloudSubscription = useSelector(getCloudSubscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isFreeTrial = isCloud && cloudSubscription?.is_free_trial === 'true';
-    const isStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-    const usageDeltas = useGetUsageDeltas();
-    const isTeamsLimitReached = isStarterFree && !isFreeTrial && usageDeltas.teams.active >= 0;
-    const isTeamCreateRestricted = isCloud && (isFreeTrial || isTeamsLimitReached);
 
     const handleClick = useCallback(() => {
-        if (isTeamsLimitReached || isTeamCreateRestricted) {
+        if (isFreeTrial) {
             return;
         }
 
         history.push('/create_team');
-    }, [history, isTeamsLimitReached]);
+    }, [history, isFreeTrial]);
 
     return (
         <Menu.Item
@@ -410,19 +404,18 @@ function CreateTeamMenuItem({isCloud}: CreateTeamMenuItemProps) {
                     defaultMessage='Create a team'
                 />
             )}
-            trailingElements={isTeamCreateRestricted && <RestrictedIndicatorForCreateTeam isFreeTrial={isFreeTrial}/>}
+            trailingElements={isFreeTrial && <RestrictedIndicatorForCreateTeam/>}
         />
     );
 }
 
-function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean}) {
+function RestrictedIndicatorForCreateTeam() {
     const {formatMessage} = useIntl();
 
     return (
         <RestrictedIndicator
             feature={MattermostFeatures.CREATE_MULTIPLE_TEAMS}
             minimumPlanRequiredForFeature={LicenseSkus.Professional}
-            blocked={!isFreeTrial}
             tooltipMessage={formatMessage({
                 id: 'navbar_dropdown.create.tooltip.cloudFreeTrial',
                 defaultMessage: 'During your trial you are able to create multiple teams. These teams will be archived after your trial.',

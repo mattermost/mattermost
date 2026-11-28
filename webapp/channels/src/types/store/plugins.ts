@@ -13,7 +13,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {ClientPluginManifest, NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {EntityCard, Post, PostEmbed} from '@mattermost/types/posts';
 import type {ProductScope} from '@mattermost/types/products';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
@@ -40,6 +40,8 @@ export type PluginsState = {
         ChannelHeaderIcon: ChannelHeaderIconComponent[];
         ChannelHeaderButton: ChannelHeaderButtonAction[];
         MobileChannelHeaderButton: MobileChannelHeaderButtonAction[];
+        ChannelInfoMenu: ChannelInfoMenuAction[];
+        ChannelBookmarksMenu: ChannelBookmarksMenuAction[];
         AppBar: AppBarAction[];
         UserGuideDropdown: UserGuideDropdownAction[];
         FileUploadMethod: FileUploadMethodAction[];
@@ -74,7 +76,9 @@ export type PluginsState = {
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelKind: ChannelKindRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
+        EntityCardPart: EntityCardPartComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
@@ -181,6 +185,24 @@ export type ChannelHeaderAction = PluginComponent & {
     text: PluggableText;
     action: (channelId: string) => void;
     shouldRender: (state: GlobalState) => boolean;
+};
+
+export type ChannelInfoMenuAction = PluginComponent & {
+    icon: React.ReactNode;
+    text: PluggableText;
+    action: (channelId: string) => void;
+    shouldRender: (state: GlobalState, channel: Channel) => boolean;
+
+    // Optional trailing badge (e.g. item count), matching built-in Files / Members rows.
+    badge?: string | number | React.ReactNode;
+    opensSubpanel?: boolean;
+};
+
+export type ChannelBookmarksMenuAction = PluginComponent & {
+    icon: React.ReactNode;
+    text: PluggableText;
+    action: (channelId: string) => void;
+    shouldRender: (state: GlobalState, channelId: string) => boolean;
 };
 
 export type ChannelHeaderButtonAction = PluginComponent & {
@@ -411,6 +433,7 @@ export type SearchSuggestionsComponent = PluginComponent & {
 export type SearchButtonsComponent = PluginComponent & {
     component: React.ComponentType; // Review the props
     action: (terms: string) => void;
+    priority?: number;
 };
 
 export type PostActionComponent = PluginComponent & {
@@ -467,6 +490,9 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
+
+    /** Where the item sits: 'afterCreateChannel' puts it right below "Create new channel"; by default it follows the built-in items. */
+    placement?: 'default' | 'afterCreateChannel';
 };
 
 export type ChannelIconOverrideRegistration = PluginComponent & {
@@ -474,8 +500,25 @@ export type ChannelIconOverrideRegistration = PluginComponent & {
     iconName: IconGlyphTypes;
 };
 
+/** The kinds a plugin can register a channel as (registerChannelKind), each with its own wording. */
+export const CHANNEL_KINDS = ['board'] as const;
+export type RegisteredChannelKind = typeof CHANNEL_KINDS[number];
+
+/** The kind of a channel, which picks the words the webapp names it with: a registered kind, or 'channel'. */
+export type ChannelKind = 'channel' | RegisteredChannelKind;
+
+export type ChannelKindRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    kind: RegisteredChannelKind;
+};
+
 export type ChannelComposerBannerComponent = PluginComponent & {
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type EntityCardPartComponent = PluginComponent & {
+    part: string;
+    component: React.ComponentType<{card: EntityCard; reload?: () => void}>;
 };
 
 export type ChannelIntroRegistration = PluginComponent & {
@@ -522,6 +565,13 @@ export type ChannelTypeOptionComponent = PluginComponent & {
     description: PluggableText;
     icon: React.ReactNode;
     createButtonText?: PluggableText;
+
+    /**
+     * Whether "Create a new channel" lists the option; true when unset. An option that is not listed
+     * is offered only when the plugin opens the modal for its own channel types (new_channel_modal
+     * with channelTypePluginId).
+     */
+    showInNewChannelModal?: boolean;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

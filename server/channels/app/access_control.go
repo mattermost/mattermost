@@ -172,6 +172,13 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	// The update event lists the actions the change touched, including any the save
+	// removes, so read the stored version before it is replaced. A new policy has none.
+	var previous *model.AccessControlPolicy
+	if policy.Type == model.AccessControlPolicyTypePermission && policy.ID != "" {
+		previous, _ = a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -186,7 +193,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 	case model.AccessControlPolicyTypePermission:
-		a.publishPermissionPolicyUpdate(rctx)
+		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(previous, policy))
 	}
 
 	return policy, nil
@@ -229,9 +236,9 @@ func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.A
 
 	mode := storedAutoAdd
 	if raw, specified := rule.Metadata[model.AccessControlRuleMetadataAutoAdd]; specified {
-		requested, appErr := requestedAutoAddMode(raw)
-		if appErr != nil {
-			return appErr
+		requested, err := requestedAutoAddMode(raw)
+		if err != nil {
+			return model.AsAppError(err)
 		}
 		mode = requested
 	}
@@ -254,7 +261,7 @@ func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.A
 // empty string is how a client turns auto-adding off; any other unrecognized
 // value is a client error rather than a silent downgrade to off, so a client
 // asking for a mode this server does not implement hears about it.
-func requestedAutoAddMode(raw any) (string, *model.AppError) {
+func requestedAutoAddMode(raw any) (string, error) {
 	mode, ok := raw.(string)
 	if !ok {
 		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
@@ -505,6 +512,9 @@ func saveForbiddenError(rctx request.CTX, where, internalReason string) *model.A
 //     so plugin saves pass mergeFromStore=false)
 //  3. rejectMaskedTokens — never persist the masking sentinel
 //
+// Non-sysadmins also can't write or replace a channel/team membership rule that
+// needs the Advanced editor (checkMembershipRuleEditable).
+//
 // Self-inclusion always runs for non-sysadmins with a non-empty callerID, even
 // when AttributeValueMasking is off. That matches product intent (a non-sysadmin
 // cannot save a policy that excludes them) and keeps the plugin path from
@@ -547,12 +557,17 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 			}
 		}
 
-		if appErr := rejectMaskedTokens(policy); appErr != nil {
-			return nil, appErr
+		if err := rejectMaskedTokens(policy); err != nil {
+			return nil, model.AsAppError(err)
 		}
 	}
 
 	if callerID != "" && !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
+		if policy.Type == model.AccessControlPolicyTypeTeam || policy.Type == model.AccessControlPolicyTypeChannel {
+			if appErr := a.checkMembershipRuleEditable(rctx, policy); appErr != nil {
+				return nil, appErr
+			}
+		}
 		if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
 			return nil, appErr
 		}
@@ -585,6 +600,74 @@ func (a *App) checkSelfInclusion(rctx request.CTX, policy *model.AccessControlPo
 	return nil
 }
 
+// checkMembershipRuleEditable keeps membership rules the table editor can't represent
+// (|| beyond multiselect "any of", grouping) System Console only: a non-sysadmin may
+// resubmit them unchanged, but not write one or replace one. Runs after the masking
+// merge so an unchanged masked round-trip compares equal to the stored rules.
+//
+// Covers every rule carrying the membership action, named or not, because the engine
+// ORs all of them; checking only the first would let a second rule slip through.
+func (a *App) checkMembershipRuleEditable(rctx request.CTX, policy *model.AccessControlPolicy) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
+	}
+
+	existing, appErr := acs.GetPolicy(rctx, policy.ID)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return appErr
+	}
+
+	submitted := membershipExpressions(policy)
+	stored := membershipExpressions(existing)
+	if slices.Equal(submitted, stored) {
+		return nil
+	}
+
+	return a.rejectAdvancedMembershipRules(rctx, slices.Concat(submitted, stored))
+}
+
+// rejectAdvancedMembershipRules returns 403 if any expression needs the Advanced editor.
+func (a *App) rejectAdvancedMembershipRules(rctx request.CTX, expressions []string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
+	}
+
+	expressions = slices.Clone(expressions)
+	slices.Sort(expressions)
+	for _, expression := range slices.Compact(expressions) {
+		if expression == "" || expression == "true" {
+			continue
+		}
+		// Same conversion the table editor loads rules with; it fails exactly when the rule needs the Advanced editor.
+		if _, appErr := acs.ExpressionToVisualAST(rctx, expression); appErr != nil {
+			if appErr.StatusCode != http.StatusBadRequest {
+				return appErr
+			}
+			return model.NewAppError("rejectAdvancedMembershipRules", "app.pap.save_policy.advanced_rule_requires_system_admin", nil, "", http.StatusForbidden)
+		}
+	}
+
+	return nil
+}
+
+// membershipExpressions returns the sorted expressions of every rule on p that carries
+// the membership action, so a reorder alone doesn't read as a change. Nil-safe.
+func membershipExpressions(p *model.AccessControlPolicy) []string {
+	if p == nil {
+		return nil
+	}
+	var expressions []string
+	for _, rule := range p.Rules {
+		if slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) || slices.Contains(rule.Actions, "*") {
+			expressions = append(expressions, rule.Expression)
+		}
+	}
+	slices.Sort(expressions)
+	return expressions
+}
+
 func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppError {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -608,6 +691,17 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 				return appErr
 			} else if hasMasked {
 				return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
+			}
+		}
+	}
+
+	// Deleting replaces the membership rules with none, so it gets the same
+	// System Console only guard as a save.
+	if session := rctx.Session(); session != nil && session.UserId != "" && policy != nil &&
+		(policy.Type == model.AccessControlPolicyTypeTeam || policy.Type == model.AccessControlPolicyTypeChannel) {
+		if expressions := membershipExpressions(policy); len(expressions) > 0 && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
+			if appErr := a.rejectAdvancedMembershipRules(rctx, expressions); appErr != nil {
+				return appErr
 			}
 		}
 	}
@@ -638,7 +732,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
 		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
 	case policy.Type == model.AccessControlPolicyTypePermission:
-		a.publishPermissionPolicyUpdate(rctx)
+		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(policy))
 	}
 
 	return nil
@@ -653,6 +747,20 @@ func (a *App) CheckExpression(rctx request.CTX, expression string) ([]model.CELE
 	errs, appErr := acs.CheckExpression(rctx, expression)
 	if appErr != nil {
 		return nil, model.NewAppError("CheckExpression", "app.pap.check_expression.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	return errs, nil
+}
+
+func (a *App) CheckMembershipExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("CheckMembershipExpression", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	errs, appErr := acs.CheckMembershipExpression(rctx, expression)
+	if appErr != nil {
+		return nil, model.NewAppError("CheckMembershipExpression", "app.pap.check_expression.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return errs, nil
@@ -883,23 +991,25 @@ func (p protectedCPAAttributes) set(objectType string) map[string]struct{} {
 // caller is not a system admin.
 //
 // A field is treated as protected — and therefore redacted — when
-// any of the following applies (channel and team admins are never a
-// CPA field's source plugin, so the access_mode branches collapse
-// to "not public" for these callers):
+// any of the following applies (the redaction is one answer for every
+// channel and team admin, so anything short of "everyone may read it"
+// collapses to "inaccessible"):
 //
 //   - `visibility == "hidden"`: the field is hidden on the user
 //     profile page; the simulate UI must not be a side channel.
 //
-//   - `access_mode == "source_only"`: the CPA value is reserved for
-//     the source plugin. Channel/team admins are never plugin
-//     callers, so the value is always inaccessible to them.
+//   - a value.read tier below everyone (none, sysadmin, admin, creator
+//     or member): not every caller may read the value.
 //
-//   - `access_mode == "shared_only"`: the underlying property
-//     service computes an intersection of the caller's and target's
-//     values on read. The simulator does NOT call the property
-//     service (it reads from UserAttributeView directly), so we
-//     conservatively redact these values rather than ship them
-//     unfiltered.
+//   - for a field with options, an option.read tier below everyone:
+//     the simulator's values are option names, which the property
+//     read path hides from a caller denied option.read.
+//
+//   - masking (the template's, for a linked field): the underlying
+//     property service filters the values to what the caller holds
+//     on read. The simulator does NOT call the property service (it
+//     reads from UserAttributeView directly), so we conservatively
+//     redact these values rather than ship them unfiltered.
 //
 // System admins (passed via callerIsSystemAdmin=true) bypass the
 // filter entirely; they always see every attribute the simulator
@@ -952,7 +1062,9 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // protectedCPAFieldNamesForCaller returns, per attribute root, the set of
 // CPA field names whose contents must be hidden from a non-system-admin
 // caller. The set includes both `visibility: hidden` fields and any field
-// whose `access_mode` is not public (source_only / shared_only). The
+// whose values not everyone may read: masking, or a value.read tier below
+// everyone -- or, for a field with options, an option.read tier below
+// everyone (see attributeReadActions). The
 // simulator's UserAttributeView populates its per-user map keyed by
 // `pf.Name` (see db/migrations/postgres/000223_move_property_options_to_table.up.sql,
 // which recreates the views 000216 split by object type),
@@ -965,6 +1077,10 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 		user:     map[string]struct{}{},
 		resource: map[string]struct{}{},
 	}
+
+	// The fields and their templates are read as the request's caller: an
+	// untagged read has the access control hook hide every field's options.
+	rctx = rctxWithSessionCallerID(rctx)
 
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -1000,7 +1116,11 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 			set[pf.Name] = struct{}{}
 			continue
 		}
-		if cpaFieldIsProtectedForChannelAdmin(f) {
+		// Resolved from pf, not f: NewCPAFieldFromPropertyField zeroes
+		// Permissions on the CPAField it builds, so readability has to be
+		// read off the raw field, before that happens.
+		readable := a.readableByEveryone(rctx, group.ID, pf, attributeReadActions(pf)...)
+		if cpaFieldIsProtectedForChannelAdmin(f, readable) {
 			set[f.Name] = struct{}{}
 		}
 	}
@@ -1010,21 +1130,21 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 // cpaFieldIsProtectedForChannelAdmin reports whether a CPA field's
 // value must be hidden from a non-system-admin caller. Pure helper
 // so the protected-set construction and the per-leaf tree walker can
-// share the same predicate.
-func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField) bool {
+// share the same predicate. readableByEveryone is the field's resolved
+// answer from readableByEveryone for attributeReadActions rather than
+// anything on f directly, since a linked field never carries its
+// template's masking.
+func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField, readableByEveryone bool) bool {
 	if f == nil {
 		return false
 	}
 	if f.Attrs.Visibility == model.CustomProfileAttributesVisibilityHidden {
 		return true
 	}
-	// access_mode "" defaults to public — only non-public values are
-	// protected. Channel/team admins are never the source plugin so
-	// both source_only and shared_only collapse to "inaccessible".
-	if f.Attrs.AccessMode != "" && f.Attrs.AccessMode != model.PropertyAccessModePublic {
-		return true
-	}
-	return false
+	// The redaction is one answer for every channel/team admin, so a
+	// value only some readers may see -- a tier below everyone, or a
+	// masked field -- collapses to "inaccessible".
+	return !readableByEveryone
 }
 
 // simulationHasRedactableAttributeData reports whether any result row
@@ -1728,7 +1848,7 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 
 	for _, channelID := range channelIDs {
 		if _, ok := childPolicies[channelID]; !ok {
-			mlog.Warn("Policy is not assigned to the parent policy", mlog.String("channel_id", channelID), mlog.String("parent_policy_id", policyID))
+			rctx.Logger().Warn("Policy is not assigned to the parent policy", mlog.String("channel_id", channelID), mlog.String("parent_policy_id", policyID))
 			continue
 		}
 
@@ -1843,7 +1963,7 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 
 	for _, teamID := range teamIDs {
 		if _, ok := childPolicies[teamID]; !ok {
-			mlog.Warn("Policy is not assigned to the parent policy", mlog.String("team_id", teamID), mlog.String("parent_policy_id", policyID))
+			rctx.Logger().Warn("Policy is not assigned to the parent policy", mlog.String("team_id", teamID), mlog.String("parent_policy_id", policyID))
 			continue
 		}
 
@@ -1894,7 +2014,7 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 
 		normlizedPolicy, appErr := acs.NormalizePolicy(rctx, policy)
 		if appErr != nil {
-			mlog.Error("Failed to normalize policy", mlog.String("policy_id", policy.ID), mlog.Err(appErr))
+			rctx.Logger().Error("Failed to normalize policy", mlog.String("policy_id", policy.ID), mlog.Err(appErr))
 			continue
 		}
 		policies[i] = normlizedPolicy
@@ -1918,7 +2038,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 		return attributes, nil
 	}
 
-	// Strip source_only and shared_only fields: their values must not be
+	// Strip every field whose values not everyone may read: they must not be
 	// exposed to channel members through the invite modal / members sidebar.
 	// Fail closed: if the CPA group or a field cannot be resolved, omit that
 	// field rather than leaking its values.
@@ -1934,8 +2054,8 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 	}
 
 	for fieldName := range attributes {
-		// Read directly from the store so this security filter sees the raw
-		// access_mode, unaffected by property read hooks for the request caller.
+		// Read directly from the store so this security filter sees the stored
+		// permissions, unaffected by property read hooks for the request caller.
 		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			// If the error is due to not being found, we won't skip to the next field just yet
@@ -1953,10 +2073,21 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 				delete(attributes, fieldName)
 				continue
 			}
-		}
 
-		switch field.GetAccessMode() {
-		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
+			// A native attribute is a column on the user table, synthesized into a
+			// field shape for this lookup alone. It carries no permissions object
+			// and never will, so it has no read tier to judge -- and asking
+			// readableByEveryoneUsing anyway would get the answer it gives an
+			// unconverted property field, which is to strip.
+			continue
+		}
+		// Same store bypass for a linked field's template: a linked field's own
+		// Masking is always nil, so readability must follow the template to see
+		// a masked scheme (readableByEveryoneUsing).
+		readable := readableByEveryoneUsing(field, func(id string) (*model.PropertyField, error) {
+			return a.Srv().Store().PropertyField().Get(rctx, cpaGroup.ID, id)
+		}, attributeReadActions(field)...)
+		if !readable {
 			delete(attributes, fieldName)
 		}
 	}
@@ -2008,7 +2139,9 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
-	return fields, nil
+	// This endpoint feeds policy authoring, which has no use for a field's
+	// grants or masking configuration -- only the field shape itself.
+	return a.ShapePropertyFieldsForCaller(rctxWithCaller, model.Session{UserId: callerID}, fields, false), nil
 }
 
 func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
@@ -2062,7 +2195,8 @@ func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []mod
 		}
 	}
 	if permissionPolicyChanged {
-		a.publishPermissionPolicyUpdate(rctx)
+		// Auto-add only decides who joins a channel; no permission rule changed.
+		a.publishPermissionPolicyUpdate(rctx, []string{})
 	}
 
 	return policies, nil
@@ -2382,17 +2516,50 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
 	messageWs.Add("channel", string(channelJSON))
+	// Unlike other channel events this one has to reach members the channel's read rules
+	// deny, because it is how their client learns to drop the channel. They get it
+	// without the channel itself.
+	if a.ChannelAccessEnforcementActive() {
+		useChannelReadAccessRedactHook(messageWs, channel.Id)
+	}
 	a.Publish(messageWs)
 }
 
 // publishPermissionPolicyUpdate broadcasts a system-scoped permission policy change.
 // TypePermission policies are global, so no channel ID is included in the event.
-func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
+//
+// actions lists the rule actions the change touched, so a client can skip work an action
+// it cares about isn't part of: every connected client gets this event, and refetching its
+// whole channel list is only needed when channel_read_access changed.
+func (a *App) publishPermissionPolicyUpdate(rctx request.CTX, actions []string) {
 	// Permission policies are system-scoped, so every channel's render-ETag epoch folds them in.
 	// Clear the whole epoch cache rather than a single channel key.
 	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
+	if actions == nil {
+		// An empty list, not null: clients read a missing list as "anything may have changed".
+		actions = []string{}
+	}
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
+	messageWs.Add("actions", actions)
 	a.Publish(messageWs)
+}
+
+// policyRuleActions returns the distinct actions the policies' rules declare.
+func policyRuleActions(policies ...*model.AccessControlPolicy) []string {
+	actions := []string{}
+	seen := map[string]struct{}{}
+	for _, policy := range policies {
+		for _, rule := range policy.EffectiveRules() {
+			for _, action := range rule.Actions {
+				if _, ok := seen[action]; ok {
+					continue
+				}
+				seen[action] = struct{}{}
+				actions = append(actions, action)
+			}
+		}
+	}
+	return actions
 }
 
 // publishTeamPolicyEnforcedUpdate reloads the team, hydrates its policy
@@ -2495,7 +2662,11 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 		return appErr
 	}
 
-	// Check if user has channel admin permission for the specific channel
+	// Check if user has channel admin permission for the specific channel.
+	// Policy administration has to survive a policy that denies its own author, or a
+	// mis-scoped rule would lock the channel admin out of the only API that can repair
+	// it. HasPermissionToChannel is RBAC-only, which is what makes that hold: do not
+	// switch this to SessionHasPermissionToChannel, which does evaluate the policy.
 	if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
@@ -2543,7 +2714,9 @@ func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX,
 
 	// For read-only operations, allow access to system policies if they're applied to the specific channel
 	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
-		// Check if user has access to the channel
+		// Check if user has access to the channel. Reached from the policy-administration
+		// surfaces, so it stays RBAC-only for the same reason as above: reading the policy
+		// that denies you is how you find out it needs fixing.
 		if ok, _ := a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
 			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
 		}
@@ -2723,7 +2896,9 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
-	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	// Group is the cached lookup; GetPropertyGroup reads the store on every call,
+	// and subjects are built on hot paths such as websocket delivery.
+	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2814,9 +2989,13 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // the given channel.
 //
 // Resolution order:
-//  1. Look up ChannelMember; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
+//  1. Look up the membership's role fields; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
+//
+// The role fields come from the cached membership of this one user in this one channel rather
+// than a ChannelMember read, because this runs on the websocket hub for every recipient of
+// every channel-scoped event.
 //
 // Returns ("", nil) when no channel role can be determined — either
 // because the user is not a member of the channel, or because the
@@ -2827,29 +3006,38 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // a fabricated role. Inconsistent-row cases are logged at WARN with the
 // row's flags and Roles for operator triage.
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
-	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
+	memberRoles, err := a.Srv().Store().Channel().GetChannelMemberRoles(rctx, userID, []string{channelID}, true)
 	if err != nil {
-		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
-			// Not a member: return an empty role and let the caller
-			// decide what "no resource role" means for them. We used
-			// to fabricate a role from the user's system roles here,
-			// but that synthesised channel-scope information from
-			// data the user has no actual channel membership behind —
-			// callers (e.g. attachChannelScopedRole in file.go) now
-			// gate on the empty string and skip the channel scope
-			// rather than evaluating against a guess.
-			return "", nil
-		}
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	cm, ok := memberRoles[channelID]
+	if !ok {
+		// Not a member: return an empty role and let the caller
+		// decide what "no resource role" means for them. We used
+		// to fabricate a role from the user's system roles here,
+		// but that synthesised channel-scope information from
+		// data the user has no actual channel membership behind —
+		// callers (e.g. attachChannelScopedRole in file.go) now
+		// gate on the empty string and skip the channel scope
+		// rather than evaluating against a guess.
+		return "", nil
+	}
 
+	return channelRoleForMember(rctx, userID, channelID, cm), nil
+}
+
+// channelRoleForMember maps a user's membership role fields in a channel to its
+// channel-scoped role, as GetSubjectChannelRole describes. It is shared with callers
+// that resolve many channels at once, so a batch resolves each exactly as a single
+// lookup would.
+func channelRoleForMember(rctx request.CTX, userID, channelID string, cm store.ChannelMemberRoles) string {
 	switch {
 	case cm.SchemeAdmin:
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	case cm.SchemeGuest:
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	case cm.SchemeUser:
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 
 	// Inspect the Roles tokens deterministically rather than returning
@@ -2872,13 +3060,13 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 	// and `channel_guest` is the sole recognised token in the row.
 	tokens := strings.Fields(cm.Roles)
 	if slices.Contains(tokens, model.ChannelAdminRoleId) {
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	}
 	if slices.Contains(tokens, model.ChannelUserRoleId) {
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 	if slices.Contains(tokens, model.ChannelGuestRoleId) {
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	}
 
 	// ChannelMember row exists but neither the scheme flags nor the
@@ -2900,7 +3088,7 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 		mlog.Bool("scheme_user", cm.SchemeUser),
 		mlog.Bool("scheme_guest", cm.SchemeGuest),
 	)
-	return "", nil
+	return ""
 }
 
 // ResolveSystemRole returns the highest-precedence base system role token

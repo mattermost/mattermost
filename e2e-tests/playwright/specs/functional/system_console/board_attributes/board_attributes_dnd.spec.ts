@@ -61,7 +61,7 @@ test.describe('Board Attributes - reorder', {tag: '@board_attributes'}, () => {
         await ba.saveAndWaitForSettled();
 
         // * Persisted sort_order reflects the swap: A is now below B
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const aField = (fields ?? []).find((f) => f.name === a);
         const bField = (fields ?? []).find((f) => f.name === b);
         const aOrder = (aField?.attrs as {sort_order?: number})?.sort_order ?? 0;

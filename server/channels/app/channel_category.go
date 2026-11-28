@@ -36,13 +36,10 @@ func (a *App) GetSidebarCategoriesForTeamForUser(rctx request.CTX, userID, teamI
 	}
 
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategoriesForTeamForUser", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return categories, nil
@@ -60,13 +57,10 @@ func (a *App) GetSidebarCategories(rctx request.CTX, userID string, teamID strin
 	}
 
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return categories, nil
@@ -75,13 +69,10 @@ func (a *App) GetSidebarCategories(rctx request.CTX, userID string, teamID strin
 func (a *App) GetSidebarCategoryOrder(rctx request.CTX, userID, teamID string) ([]string, *model.AppError) {
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoryOrder(userID, teamID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return categories, nil
@@ -90,13 +81,10 @@ func (a *App) GetSidebarCategoryOrder(rctx request.CTX, userID, teamID string) (
 func (a *App) GetSidebarCategory(rctx request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().GetSidebarCategory(categoryId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return category, nil
@@ -105,13 +93,10 @@ func (a *App) GetSidebarCategory(rctx request.CTX, categoryId string) (*model.Si
 func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	category, err := a.Srv().Store().Channel().CreateSidebarCategory(userID, teamID, newCategory)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryCreated, teamID, "", userID, nil, "")
 	message.Add("category_id", category.Id)
@@ -122,16 +107,12 @@ func (a *App) CreateSidebarCategory(rctx request.CTX, userID, teamID string, new
 func (a *App) UpdateSidebarCategoryOrder(rctx request.CTX, userID, teamID string, categoryOrder []string) *model.AppError {
 	err := a.Srv().Store().Channel().UpdateSidebarCategoryOrder(userID, teamID, categoryOrder)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &invErr):
+		} else if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("UpdateSidebarCategoryOrder", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryOrderUpdated, teamID, "", userID, nil, "")
 	message.Add("order", categoryOrder)
@@ -269,13 +250,10 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 func (a *App) DeleteSidebarCategory(rctx request.CTX, userID, teamID, categoryId string) *model.AppError {
 	err := a.Srv().Store().Channel().DeleteSidebarCategory(categoryId)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return model.NewAppError("DeleteSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return model.NewAppError("DeleteSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("DeleteSidebarCategory", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryDeleted, teamID, "", userID, nil, "")
@@ -309,7 +287,7 @@ func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryNam
 		Value:      nameJSON,
 	}
 
-	if _, appErr := a.UpsertPropertyValues(rctx, []*model.PropertyValue{value}, model.PropertyFieldObjectTypeChannel, channelID, ""); appErr != nil {
+	if _, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), []*model.PropertyValue{value}, model.PropertyFieldObjectTypeChannel, channelID, ""); appErr != nil {
 		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.set.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -317,6 +295,8 @@ func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryNam
 }
 
 func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *model.AppError {
+	rctx = rctxWithSessionCallerID(rctx)
+
 	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
 		FieldID:   a.Channels().managedCategoryFieldID,
 		TargetIDs: []string{channelID},
@@ -335,6 +315,33 @@ func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *m
 	}
 
 	return nil
+}
+
+// rctxWithSessionCallerID tags rctx with the property-service caller ID the
+// access control hook needs, taken from the request's session. The managed
+// category entry points and channel creation's attribute values reach here
+// from the channel handlers, where the session's user ID is the right caller
+// to attribute the write to, and from PluginAPI.CreateChannel, which has no
+// session. Post hydration uses it to identify the viewer of a post read, and
+// the policy simulation's redaction to read CPA fields as the requester. A
+// local-mode session (empty UserId, full privileges) is tagged
+// CallerIDLocalAdmin instead, matching how api4's sessionCallerID does it for
+// other property writes.
+func rctxWithSessionCallerID(rctx request.CTX) request.CTX {
+	session := rctx.Session()
+	if session.IsUnrestricted() {
+		return RequestContextWithCallerID(rctx, model.CallerIDLocalAdmin)
+	}
+	if session.UserId != "" {
+		return RequestContextWithCallerID(rctx, session.UserId)
+	}
+	// No session user means the caller is not an HTTP request, so keep
+	// whatever caller the context already carries: PluginAPI.CreateChannel
+	// tags the plugin's manifest ID before it calls in. Overwriting that with
+	// an empty caller would have the hook refuse the write, and CreateChannel
+	// logs and drops that error, so the channel would quietly come back with
+	// no managed category at all.
+	return rctx
 }
 
 // GetVisibleManagedCategoryMappings returns a map of channelID -> categoryName for all channels
@@ -357,7 +364,10 @@ func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string)
 		channelIDs = append(channelIDs, ch.Id)
 	}
 
-	values, appErr := a.SearchPropertyValues(rctx, a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
+	// Tagged like the write and the clear: this read goes through the access
+	// control hook, and an untagged context names nobody, which filters every
+	// value out and hands back an empty map instead of the caller's categories.
+	values, appErr := a.SearchPropertyValues(rctxWithSessionCallerID(rctx), a.Channels().managedCategoryGroupID, model.PropertyValueSearchOpts{
 		FieldID:   a.Channels().managedCategoryFieldID,
 		TargetIDs: channelIDs,
 		PerPage:   len(channelIDs),

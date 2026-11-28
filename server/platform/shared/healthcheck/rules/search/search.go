@@ -5,7 +5,6 @@ package search
 
 import (
 	"net/url"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/versions"
 )
 
@@ -52,166 +52,144 @@ var supportedMajors = map[string]struct{ min, max int }{
 
 var icuPlugins = []string{"analysis-icu", "opensearch-analysis-icu"}
 
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
-
 var esLocalhostURL = healthcheck.Rule{
-	Code:     "ES_LOCALHOST_URL",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_localhost_url.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_localhost_url.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    connectionURLSubject,
-	Eval:       whenIndexing(evalESLocalhostURL),
+	Code:          "ES_LOCALHOST_URL",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.es_localhost_url.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_localhost_url.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       connectionURLSubject,
+	Eval:          whenIndexing(evalESLocalhostURL),
 }
 
 var esServerError = healthcheck.Rule{
-	Code:     "ES_SERVER_ERROR",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_server_error.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_server_error.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityProbe,
-	Subject:    connectionURLSubject,
-	Eval:       healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalESServerError)),
+	Code:          "ES_SERVER_ERROR",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.es_server_error.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_server_error.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityProbe,
+	Subject:       connectionURLSubject,
+	Eval:          healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalESServerError)),
 }
 
 var searchUnavailable = healthcheck.Rule{
-	Code:     "SEARCH_UNAVAILABLE",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.search_unavailable.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.search_unavailable.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SqlSettings.DisableDatabaseSearch",
-	Eval:       healthcheck.Single(evalSearchUnavailable),
+	Code:          "SEARCH_UNAVAILABLE",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.search_unavailable.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.search_unavailable.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "SqlSettings.DisableDatabaseSearch",
+	Eval:          healthcheck.Single(evalSearchUnavailable),
 }
 
 var scaleESRequired = healthcheck.Rule{
-	Code:     "SCALE_ES_REQUIRED",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.scale_es_required.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.scale_es_required.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    enableSearchingSubject,
-	Eval:       healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalScaleESRequired)),
+	Code:          "SCALE_ES_REQUIRED",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.scale_es_required.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.scale_es_required.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       enableSearchingSubject,
+	Eval:          healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalScaleESRequired)),
 }
 
 var scaleESRecommended = healthcheck.Rule{
-	Code:     "SCALE_ES_RECOMMENDED",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.scale_es_recommended.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.scale_es_recommended.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    enableSearchingSubject,
-	Eval:       healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalScaleESRecommended)),
+	Code:          "SCALE_ES_RECOMMENDED",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.scale_es_recommended.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.scale_es_recommended.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityThreshold,
+	Subject:       enableSearchingSubject,
+	Eval:          healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalScaleESRecommended)),
 }
 
 var esLiveBatchSync = healthcheck.Rule{
-	Code:     "ES_LIVE_BATCH_SYNC",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_live_batch_sync.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_live_batch_sync.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    liveBatchSubject,
-	Eval:       whenIndexing(evalESLiveBatchSync),
+	Code:          "ES_LIVE_BATCH_SYNC",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.es_live_batch_sync.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_live_batch_sync.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       liveBatchSubject,
+	Eval:          whenIndexing(evalESLiveBatchSync),
 }
 
 var esLiveBatchTooHigh = healthcheck.Rule{
-	Code:     "ES_LIVE_BATCH_TOO_HIGH",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_live_batch_too_high.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_live_batch_too_high.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    liveBatchSubject,
-	Eval:       whenIndexing(evalESLiveBatchTooHigh),
+	Code:          "ES_LIVE_BATCH_TOO_HIGH",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.es_live_batch_too_high.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_live_batch_too_high.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       liveBatchSubject,
+	Eval:          whenIndexing(evalESLiveBatchTooHigh),
 }
 
 var esVersionUnsupported = healthcheck.Rule{
-	Code:     "ES_VERSION_UNSUPPORTED",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_version_unsupported.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_version_unsupported.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ElasticsearchSettings.Backend",
-	Eval:       whenIndexing(evalESVersionUnsupported),
+	Code:          "ES_VERSION_UNSUPPORTED",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityCritical,
+	TitleID:       healthcheck.TranslationId("health.rule.es_version_unsupported.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_version_unsupported.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ElasticsearchSettings.Backend",
+	Eval:          whenIndexing(evalESVersionUnsupported),
 }
 
 var esMissingICU = healthcheck.Rule{
-	Code:     "ES_MISSING_ICU",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_missing_icu.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_missing_icu.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    connectionURLSubject,
-	Eval:       whenIndexing(evalESMissingICU),
+	Code:          "ES_MISSING_ICU",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.es_missing_icu.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_missing_icu.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       connectionURLSubject,
+	Eval:          whenIndexing(evalESMissingICU),
 }
 
 var esSkipTLSVerify = healthcheck.Rule{
-	Code:     "ES_SKIP_TLS_VERIFY",
-	Area:     model.AreaSearch,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.es_skip_tls_verify.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.es_skip_tls_verify.remediation"),
-		DocsURL:       searchDocsURL,
-		ConsolePath:   searchConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ElasticsearchSettings.SkipTLSVerification",
-	Eval:       whenIndexing(evalESSkipTLSVerify),
+	Code:          "ES_SKIP_TLS_VERIFY",
+	Area:          model.AreaSearch,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.es_skip_tls_verify.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.es_skip_tls_verify.remediation"),
+	DocsURL:       searchDocsURL,
+	ConsolePath:   searchConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityStable,
+	Subject:       "ElasticsearchSettings.SkipTLSVerification",
+	Eval:          whenIndexing(evalESSkipTLSVerify),
 }
 
 func unknownConfig() healthcheck.Result {
@@ -241,10 +219,6 @@ func searchingEnabled(s *healthcheck.Snapshot) (bool, bool) {
 
 func connectionURL(s *healthcheck.Snapshot) (string, bool) {
 	return s.ConfigString(func(cfg *model.Config) *string { return cfg.ElasticsearchSettings.ConnectionURL })
-}
-
-func maskURLCredentials(s string) string {
-	return urlCredentials.ReplaceAllString(s, "${1}****@")
 }
 
 func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
@@ -278,19 +252,20 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 }
 
 func evalESServerError(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := s.LeaderDiag(model.SectionSearchProbe)
+	return probes.Eval(s, esProbe, esServerErrorMessage(s), healthcheck.TranslationId("health.rule.es_server_error.message.partial"))
+}
+
+// A disabled status means the node does not use the search engine, so it counts as passing.
+func esProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionSearchProbe)
 	if !ok {
-		return unknownDiag()
+		return "", ""
 	}
 
-	switch diag.ElasticSearch.Status {
-	case model.StatusFail:
-		return healthcheck.Firing(esServerErrorMessage(s)).WithDetail("error", maskURLCredentials(diag.ElasticSearch.Error))
-	case model.StatusOk, model.StatusDisabled:
-		return healthcheck.Resolved()
-	default:
-		return unknownDiag()
+	if diag.ElasticSearch.Status == model.StatusDisabled {
+		return model.StatusOk, ""
 	}
+	return diag.ElasticSearch.Status, probes.MaskURLCredentials(diag.ElasticSearch.Error)
 }
 
 // esServerErrorMessage says search is fully down when Elasticsearch serves search and there is no database fallback.

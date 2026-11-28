@@ -5,34 +5,11 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/compass-ui/components/button';
-import {Icon} from '@mattermost/compass-ui/components/icon';
-
-import BlockableLink from 'components/admin_console/blockable_link';
 import CompanySvg from 'components/common/svg_images_components/company_svg';
 
 import type {GlobalState} from 'types/store';
 
 import './company_info_display.scss';
-
-const addInfoButton = (
-    <div className='CompanyInfoDisplay__addInfo'>
-        <Button
-            asChild={true}
-            emphasis='primary'
-            className='CompanyInfoDisplay__addInfoButton'
-            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
-        >
-            <BlockableLink to='/admin_console/billing/company_info_edit'>
-                <FormattedMessage
-                    id='admin.billing.company_info.add'
-                    defaultMessage='Add Company Information'
-                />
-            </BlockableLink>
-        </Button>
-    </div>
-);
 
 const noCompanyInfoSection = (
     <div className='CompanyInfoDisplay__noCompanyInfo'>
@@ -46,18 +23,6 @@ const noCompanyInfoSection = (
                 defaultMessage='There is currently no company information on file.'
             />
         </div>
-        <Button
-            asChild={true}
-            emphasis='primary'
-            className='CompanyInfoDisplay__noCompanyInfo-link'
-        >
-            <BlockableLink to='/admin_console/billing/company_info_edit'>
-                <FormattedMessage
-                    id='admin.billing.company_info.add'
-                    defaultMessage='Add Company Information'
-                />
-            </BlockableLink>
-        </Button>
     </div>
 );
 
@@ -100,14 +65,6 @@ const CompanyInfoDisplay: React.FC = () => {
                         <div>{address.country}</div>
                     </div>
                 </div>
-                <div className='CompanyInfoDisplay__companyInfo-edit'>
-                    <BlockableLink
-                        to='/admin_console/billing/company_info_edit'
-                        className='CompanyInfoDisplay__companyInfo-editButton'
-                    >
-                        <i className='icon icon-pencil-outline'/>
-                    </BlockableLink>
-                </div>
             </div>
         );
     }
@@ -122,20 +79,15 @@ const CompanyInfoDisplay: React.FC = () => {
                             defaultMessage='Company Details'
                         />
                     </div>
-                    <div className='CompanyInfoDisplay__headerText-bottom'>
-                        {isCompanyBillingFilled &&
+                    {isCompanyBillingFilled &&
+                        <div className='CompanyInfoDisplay__headerText-bottom'>
                             <FormattedMessage
                                 id='admin.billing.company_info_display.detailsProvided'
                                 defaultMessage='Your company name and address'
-                            />}
-                        {!isCompanyBillingFilled &&
-                            <FormattedMessage
-                                id='admin.billing.company_info_display.provideDetails'
-                                defaultMessage='Provide your company name and address'
-                            />}
-                    </div>
+                            />
+                        </div>
+                    }
                 </div>
-                {!address?.line1 && addInfoButton}
             </div>
             <div className='CompanyInfoDisplay__body'>
                 {body}

@@ -5,6 +5,7 @@ import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
+import type {Page} from '@playwright/test';
 
 // Channel attributes share the access_control group with Classification Markings.
 export const GROUP = 'access_control';
@@ -20,7 +21,7 @@ export const DISPLAY_BANNER_TOP = 'display_banner_top';
 
 type CreateOptions = {
     objectType?: 'channel' | 'user';
-    type?: 'select' | 'multiselect' | 'text';
+    type?: 'select' | 'multiselect' | 'text' | 'rank';
     options?: string[];
 
     required?: boolean;
@@ -36,12 +37,61 @@ type CreateOptions = {
 
     sortOrder?: number;
     optionColors?: Record<string, string>;
+
+    // Rank fields only. The server requires a positive, unique rank on every option,
+    // so unlisted options take their 1-based position.
+    optionRanks?: Record<string, number>;
 };
 
 // The server validates field names as CEL identifiers, so anything that is not
 // a word character has to be folded away before it reaches the API.
 export function attributeName(suffix: string, uniqueId: string): string {
     return `${FIELD_PREFIX}_${suffix}_${uniqueId}`.replace(/[^A-Za-z0-9_]/g, '_');
+}
+
+export async function backfillChannelAttribute(
+    adminClient: Client4,
+    field: PropertyField,
+    value: unknown,
+): Promise<void> {
+    const perPage = 200;
+    let page = 0;
+    let visited = 0;
+    const localChannelIDs: string[] = [];
+
+    for (;;) {
+        const result = await adminClient.getChannelsMissingAttributeValue(GROUP, field.id, page, perPage);
+        for (const channel of result.channels) {
+            if (channel.is_local) {
+                localChannelIDs.push(channel.channel_id);
+            }
+        }
+
+        visited += result.channels.length;
+        if (visited >= result.total_count || result.channels.length < perPage) {
+            break;
+        }
+        page++;
+    }
+
+    // Collect every page before writing values. Updating while traversing an
+    // offset-paginated "missing" result would remove rows from earlier pages
+    // and cause later offsets to skip channels.
+    for (const channelID of localChannelIDs) {
+        await setChannelValue(adminClient, channelID, field, value);
+    }
+}
+
+export async function backfillAndRequireChannelAttribute(
+    adminClient: Client4,
+    field: PropertyField,
+    value: unknown,
+): Promise<PropertyField> {
+    await backfillChannelAttribute(adminClient, field, value);
+
+    return adminClient.patchPropertyField(GROUP, 'channel', field.id, {
+        attrs: {...field.attrs, required: true},
+    });
 }
 
 export async function createAttribute(
@@ -57,6 +107,7 @@ export async function createAttribute(
         permissionValues = 'member',
         sortOrder,
         optionColors,
+        optionRanks,
     }: CreateOptions = {},
 ): Promise<PropertyField> {
     const field: Record<string, unknown> = {
@@ -72,13 +123,15 @@ export async function createAttribute(
     const attrs: Record<string, unknown> = {};
 
     if (options.length) {
-        attrs.options = options.map((optionName) => ({
+        attrs.options = options.map((optionName, index) => ({
             id: '',
             name: optionName,
             ...(optionColors?.[optionName] ? {color: optionColors[optionName]} : {}),
+            ...(type === 'rank' ? {rank: optionRanks?.[optionName] ?? index + 1} : {}),
         }));
     }
-    if (required !== undefined) {
+    const requiresBackfill = objectType === 'channel' && required === true;
+    if (required !== undefined && !requiresBackfill) {
         attrs.required = required;
     }
     if (editable !== undefined) {
@@ -95,7 +148,24 @@ export async function createAttribute(
         field.attrs = attrs;
     }
 
-    return adminClient.createPropertyField(GROUP, objectType, field as Parameters<Client4['createPropertyField']>[2]);
+    const created = await adminClient.createPropertyField(
+        GROUP,
+        objectType,
+        field as Parameters<Client4['createPropertyField']>[2],
+    );
+    if (!requiresBackfill) {
+        return created;
+    }
+
+    const createdOptions = (created.attrs?.options ?? []) as Array<{id: string}>;
+    let backfillValue: unknown = 'e2e backfill';
+    if (created.type === 'select' || created.type === 'rank') {
+        backfillValue = createdOptions[0].id;
+    } else if (created.type === 'multiselect') {
+        backfillValue = [createdOptions[0].id];
+    }
+
+    return backfillAndRequireChannelAttribute(adminClient, created, backfillValue);
 }
 
 // Sets up channel state without driving the UI.
@@ -183,6 +253,17 @@ export function valueFor(values: Array<PropertyValue<unknown>>, field: PropertyF
     return values.find((value) => value.field_id === field.id)?.value;
 }
 
+// Counts channel-create requests, for proving a key press did or didn't confirm the modal.
+export function trackChannelCreates(page: Page): () => number {
+    let count = 0;
+    page.on('request', (request) => {
+        if (request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v4/channels')) {
+            count++;
+        }
+    });
+    return () => count;
+}
+
 export async function deleteAttributes(adminClient: Client4, fields: PropertyField[]): Promise<void> {
     for (const field of fields) {
         try {
@@ -195,7 +276,7 @@ export async function deleteAttributes(adminClient: Client4, fields: PropertyFie
 export async function purgeAttributes(adminClient: Client4): Promise<void> {
     for (const objectType of ['channel', 'user'] as const) {
         try {
-            const fields = await adminClient.getPropertyFields(GROUP, objectType, TARGET_TYPE);
+            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: TARGET_TYPE});
             const stale = (fields ?? []).filter(
                 (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
             );
@@ -214,7 +295,7 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
  * deletes a field someone meant to keep.
  */
 export async function assertNoForeignRequiredAttributes(adminClient: Client4): Promise<void> {
-    const fields = await adminClient.getPropertyFields(GROUP, 'channel', TARGET_TYPE, undefined, {perPage: 200});
+    const fields = await adminClient.getPropertyFields(GROUP, 'channel', {targetType: TARGET_TYPE, perPage: 200});
     const foreign = (fields ?? []).filter(
         (field) => field.delete_at === 0 && field.attrs?.required === true && !field.name.startsWith(FIELD_PREFIX),
     );

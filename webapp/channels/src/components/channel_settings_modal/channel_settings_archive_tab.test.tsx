@@ -10,6 +10,7 @@ import * as teams from 'mattermost-redux/selectors/entities/teams';
 import * as channelActions from 'actions/views/channel';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
@@ -27,6 +28,7 @@ jest.mock('utils/browser_history', () => ({
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveITeamPermission: jest.fn().mockReturnValue(true),
     haveIChannelPermission: jest.fn().mockReturnValue(true),
+    haveISystemPermission: jest.fn().mockReturnValue(false),
     getRoles: jest.fn().mockReturnValue({}),
 }));
 
@@ -63,6 +65,24 @@ describe('ChannelSettingsArchiveTab', () => {
         const archiveButton = screen.getByRole('button', {name: 'Archive channel Test Channel'});
         expect(archiveButton).toBeInTheDocument();
         expect(archiveButton).toHaveTextContent('Archive this channel');
+    });
+
+    it('says board rather than channel for a board', async () => {
+        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>, boardChannelsState(mockChannel.id));
+
+        expect(screen.getByText(/Archiving a board removes it from the user interface/)).toBeInTheDocument();
+        expect(screen.queryByText(/Archiving a channel/)).not.toBeInTheDocument();
+
+        const archiveButton = screen.getByRole('button', {name: 'Archive board Test Channel'});
+        expect(archiveButton).toHaveTextContent('Archive this board');
+        expect(screen.queryByText('Archive this channel')).not.toBeInTheDocument();
+
+        await userEvent.click(archiveButton);
+
+        expect(screen.getByText('Archive board?')).toBeInTheDocument();
+        expect(screen.queryByText('Archive channel?')).not.toBeInTheDocument();
+        expect(screen.getByText('This will archive the board from the team. Board contents will still be accessible by board members.')).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to archive the/)).toHaveTextContent('Are you sure you wish to archive the Test Channel board?');
     });
 
     it('should show confirmation modal when archive button is clicked', async () => {
@@ -212,5 +232,28 @@ describe('ChannelSettingsArchiveTab', () => {
             // Clean up - remove the mock backdrop
             document.body.removeChild(mockBackdrop);
         }
+    });
+
+    describe('when the channel is read-only', () => {
+        // A channel_management_access denial. The tab stays visible so the modal is not
+        // empty, but archiving is managing the channel and has to be refused.
+        it('disables the archive button and explains why', () => {
+            renderWithContext(
+                <ChannelSettingsArchiveTab
+                    {...baseProps}
+                    isReadOnly={true}
+                />,
+            );
+
+            expect(screen.getByText('Archive this channel').closest('button')).toBeDisabled();
+            expect(screen.getByText('Editing is restricted')).toBeInTheDocument();
+        });
+
+        it('leaves the archive button enabled otherwise', () => {
+            renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+
+            expect(screen.getByText('Archive this channel').closest('button')).toBeEnabled();
+            expect(screen.queryByText('Editing is restricted')).not.toBeInTheDocument();
+        });
     });
 });

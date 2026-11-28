@@ -18,6 +18,7 @@ const (
 	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
+// Deprecated: The cloud subscription invoice endpoints have been removed.
 const UpcomingInvoice = "upcoming"
 
 var MockCWS string
@@ -98,12 +99,16 @@ type AddOn struct {
 }
 
 // StripeSetupIntent represents the SetupIntent model from Stripe for updating payment methods.
+//
+// Deprecated: No longer used.
 type StripeSetupIntent struct {
 	ID           string `json:"id"`
 	ClientSecret string `json:"client_secret"`
 }
 
 // ConfirmPaymentMethodRequest contains the fields for the customer payment update API.
+//
+// Deprecated: No longer used.
 type ConfirmPaymentMethodRequest struct {
 	StripeSetupIntentID string `json:"stripe_setup_intent_id"`
 	SubscriptionID      string `json:"subscription_id"`
@@ -133,6 +138,7 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+// Deprecated: No longer used.
 type SubscriptionLicenseSelfServeStatusResponse struct {
 	IsExpandable bool `json:"is_expandable"`
 	IsRenewable  bool `json:"is_renewable"`
@@ -170,17 +176,19 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID                      string   `json:"id"`
-	CustomerID              string   `json:"customer_id"`
-	ProductID               string   `json:"product_id"`
-	AddOns                  []string `json:"add_ons"`
-	StartAt                 int64    `json:"start_at"`
-	EndAt                   int64    `json:"end_at"`
-	CreateAt                int64    `json:"create_at"`
-	Seats                   int      `json:"seats"`
-	Status                  string   `json:"status"`
-	DNS                     string   `json:"dns"`
-	LastInvoice             *Invoice `json:"last_invoice"`
+	ID         string   `json:"id"`
+	CustomerID string   `json:"customer_id"`
+	ProductID  string   `json:"product_id"`
+	AddOns     []string `json:"add_ons"`
+	StartAt    int64    `json:"start_at"`
+	EndAt      int64    `json:"end_at"`
+	CreateAt   int64    `json:"create_at"`
+	Seats      int      `json:"seats"`
+	Status     string   `json:"status"`
+	DNS        string   `json:"dns"`
+	// Deprecated: Retained for compatibility; the cloud subscription invoice endpoints have been removed.
+	LastInvoice *Invoice `json:"last_invoice"`
+	// Deprecated: Retained for compatibility; the cloud subscription invoice endpoints have been removed.
 	UpcomingInvoice         *Invoice `json:"upcoming_invoice"`
 	IsFreeTrial             string   `json:"is_free_trial"`
 	TrialEndAt              int64    `json:"trial_end_at"`
@@ -227,6 +235,8 @@ func (s *Subscription) GetWorkSpaceNameFromDNS() string {
 }
 
 // Invoice model represents a cloud invoice
+//
+// Deprecated: The cloud subscription invoice endpoints have been removed.
 type Invoice struct {
 	ID                 string             `json:"id"`
 	Number             string             `json:"number"`
@@ -243,6 +253,8 @@ type Invoice struct {
 }
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
+//
+// Deprecated: The cloud subscription invoice endpoints have been removed.
 type InvoiceLineItem struct {
 	PriceID      string         `json:"price_id"`
 	Total        int64          `json:"total"`
@@ -255,12 +267,15 @@ type InvoiceLineItem struct {
 	PeriodEnd    int64          `json:"period_end"`
 }
 
+// Deprecated: No longer used.
 type DelinquencyEmailTrigger struct {
 	EmailToTrigger string `json:"email_to_send"`
 }
 
+// Deprecated: No longer used.
 type DelinquencyEmail string
 
+// Deprecated: No longer used.
 const (
 	DelinquencyEmail7  DelinquencyEmail = "7"
 	DelinquencyEmail14 DelinquencyEmail = "14"
@@ -292,6 +307,7 @@ type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
 
+// Deprecated: No longer used.
 type SubscriptionChange struct {
 	ProductID       string             `json:"product_id"`
 	Seats           int                `json:"seats"`
@@ -319,6 +335,8 @@ type ProductLimits struct {
 }
 
 // CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+//
+// Deprecated: No longer used.
 type CreateSubscriptionRequest struct {
 	ProductID             string   `json:"product_id"`
 	AddOns                []string `json:"add_ons"`

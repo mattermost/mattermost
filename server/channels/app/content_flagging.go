@@ -462,17 +462,17 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	if includeAdditionalReviewers {
 		var additionalReviewers []*model.User
 		if *reviewerSettings.TeamAdminsAsReviewers {
-			teamAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, nil, []string{model.TeamAdminRoleId})
-			if appErr != nil {
-				return nil, appErr
+			teamAdminReviewers, err := a.getAllUsersInTeamForRoles(teamId, nil, []string{model.TeamAdminRoleId})
+			if err != nil {
+				return nil, model.AsAppError(err)
 			}
 			additionalReviewers = append(additionalReviewers, teamAdminReviewers...)
 		}
 
 		if *reviewerSettings.SystemAdminsAsReviewers {
-			sysAdminReviewers, appErr := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId}, nil)
-			if appErr != nil {
-				return nil, appErr
+			sysAdminReviewers, err := a.getAllUsersInTeamForRoles(teamId, []string{model.SystemAdminRoleId}, nil)
+			if err != nil {
+				return nil, model.AsAppError(err)
 			}
 			additionalReviewers = append(additionalReviewers, sysAdminReviewers...)
 		}
@@ -490,7 +490,7 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	return reviewerUserIDs, nil
 }
 
-func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []string) ([]*model.User, *model.AppError) {
+func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []string) ([]*model.User, error) {
 	var additionalReviewers []*model.User
 
 	options := &model.UserGetOptions{
@@ -607,10 +607,14 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 
 	// Send the deletion report even if there is an error as there can be partial deletion of data
 	// which must be reported to the reviewers.
+	deletionReportSent := make(chan struct{})
 	if deletionReport != nil {
 		a.Srv().Go(func() {
+			defer close(deletionReportSent)
 			a.sendDeletionReportToReviewers(rctx, flaggedPost.Id, deletionReport, groupId)
 		})
+	} else {
+		close(deletionReportSent)
 	}
 
 	if appErr != nil {
@@ -678,6 +682,9 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	})
 
 	a.Srv().Go(func() {
+		// The report and this notice can be the first two replies on a reviewer's thread, and
+		// two first replies saved concurrently race to create the thread, losing one of them.
+		<-deletionReportSent
 		a.sendFlaggedPostRemovalNotification(rctx, flaggedPost, reviewerId, actionRequest.Comment, groupId)
 	})
 

@@ -1,0 +1,52 @@
+---
+# Runs the integration tests of server/public/pluginapi/testhelper. They need a Docker
+# socket, which the Server CI test job lacks, and they test a published server image
+# rather than one built from the PR, so they run only when the package or the
+# server/public go.mod/go.sum change.
+name: Plugin testhelper CI
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "server/public/pluginapi/testhelper/**"
+      - "server/public/go.mod"
+      - "server/public/go.sum"
+      - ".github/workflows/pluginapi-testhelper-ci.yml"
+  pull_request:
+    paths:
+      - "server/public/pluginapi/testhelper/**"
+      - "server/public/go.mod"
+      - "server/public/go.sum"
+      - ".github/workflows/pluginapi-testhelper-ci.yml"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: server/public
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: server/public/go.mod
+          cache-dependency-path: server/public/go.sum
+      - name: Run integration tests
+        env:
+          MM_TEST_IMAGE: mattermostdevelopment/mattermost-enterprise-edition:master
+          # Empty on pull requests from forks, where the cluster tests skip.
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+        run: go test -tags integration -count=1 -timeout 20m -v ./pluginapi/testhelper/

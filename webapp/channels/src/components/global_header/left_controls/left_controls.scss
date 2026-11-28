@@ -70,7 +70,25 @@ $menuWidth: 240px;
             &-heading {
                 font-family: "Metropolis";
                 font-size: 16px;
-                font-weight: bold;
+                font-weight: 600;
+            }
+        }
+
+        // With the product rail on, the site name stands in for the product name; a long name
+        // truncates rather than pushing into the search box.
+        &-siteName {
+            min-width: 0;
+
+            .globalHeader-leftControls-productBranding-licensedEdition-heading {
+                position: relative;
+
+                // Metropolis sits its capitals about 1px above the middle of its line box, so
+                // nudge it down to line them up with the centre of the grid icon beside it.
+                top: 1px;
+                overflow: hidden;
+                max-width: 200px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
     }

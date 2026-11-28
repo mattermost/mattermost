@@ -19,18 +19,16 @@ const failoverBurst = 400
 var poolerHostMarkers = []string{"bouncer", "pgpool", "pooler"}
 
 var dbHAFailoverStormRisk = healthcheck.Rule{
-	Code:     "DB_HA_FAILOVER_STORM_RISK",
-	Area:     model.AreaDatabase,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.remediation"),
-		DocsURL:       databaseDocsURL,
-		ConsolePath:   databaseConsolePath,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityTopology,
-	Subject:    maxOpenConnsSubject,
+	Code:          "DB_HA_FAILOVER_STORM_RISK",
+	Area:          model.AreaDatabase,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.remediation"),
+	DocsURL:       databaseDocsURL,
+	ConsolePath:   databaseConsolePath,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityTopology,
+	Subject:       maxOpenConnsSubject,
 	Eval: healthcheck.Licensed(healthcheck.FeatureCluster,
 		healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalDBHAFailoverStormRisk)),
 }

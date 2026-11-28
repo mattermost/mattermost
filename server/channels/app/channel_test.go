@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 
@@ -505,6 +506,33 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
 
+func TestCreateChannelWithUserMaxChannelsPerTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	count, appErr := th.App.GetNumberOfChannelsOnTeam(th.Context, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	newChannel := func() *model.Channel {
+		return &model.Channel{DisplayName: "Channel", Name: "name" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}
+	}
+
+	t.Run("blocked when the team is at the limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxChannelsPerTeam = int64(count) })
+
+		_, appErr := th.App.CreateChannelWithUser(th.Context, newChannel(), th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.create_channel.max_channel_limit.app_error", appErr.Id)
+	})
+
+	t.Run("no limit when max channels per team is 0", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxChannelsPerTeam = 0 })
+
+		_, appErr := th.App.CreateChannelWithUser(th.Context, newChannel(), th.BasicUser.Id)
+		require.Nil(t, appErr)
+	})
+}
+
 // TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues documents that
 // "required" is enforced only by the api4 handler that builds propertyValues
 // for the public create-channel endpoint, not by this app-layer entry point.
@@ -524,7 +552,11 @@ func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
-	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+
+	// Seeded through the property service: App.CreatePropertyField refuses a
+	// field created already required while any active channel lacks a value,
+	// and this test is about creating a channel once such a field exists.
+	field, err := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
 		Name:              "f_" + model.NewId(),
 		Type:              model.PropertyFieldTypeText,
 		GroupID:           group.ID,
@@ -536,8 +568,8 @@ func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T
 		Attrs: model.StringInterface{
 			model.PropertyFieldAttrRequired: true,
 		},
-	}, false, "")
-	require.Nil(t, appErr)
+	})
+	require.NoError(t, err)
 	t.Cleanup(func() {
 		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
 	})
@@ -550,6 +582,112 @@ func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T
 	}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 	require.NotNil(t, channel)
+}
+
+// markerRecordingHook records the write marker and values seen by each
+// PreUpsertPropertyValues call.
+type markerRecordingHook struct {
+	properties.BasePropertyHook
+	mu    sync.Mutex
+	calls []recordedUpsert
+}
+
+type recordedUpsert struct {
+	marker  properties.WriteMarker
+	fields  []string
+	targets []string
+}
+
+func (h *markerRecordingHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	rec := recordedUpsert{marker: properties.WriteMarkerFromContext(rctx)}
+	for _, v := range values {
+		rec.fields = append(rec.fields, v.FieldID)
+		rec.targets = append(rec.targets, v.TargetID)
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.calls = append(h.calls, rec)
+	return values, nil
+}
+
+func (h *markerRecordingHook) recorded() []recordedUpsert {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return slices.Clone(h.calls)
+}
+
+func TestCreateChannelMarksPropertyValueWrite(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	hook := &markerRecordingHook{}
+	th.App.Srv().PropertyService().AddHook(hook)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "f_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
+	})
+
+	channel, appErr := th.App.CreateChannelWithUserAndPropertyValues(th.Context, &model.Channel{
+		DisplayName: "Marked Create",
+		Name:        "marked-create-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, th.BasicUser.Id, []*model.PropertyValue{{
+		GroupID: group.ID,
+		FieldID: field.ID,
+		Value:   json.RawMessage(`"first"`),
+	}})
+	require.Nil(t, appErr)
+
+	callsForField := func() (fieldCalls []recordedUpsert) {
+		for _, c := range hook.recorded() {
+			if slices.Contains(c.fields, field.ID) {
+				fieldCalls = append(fieldCalls, c)
+			}
+		}
+		return fieldCalls
+	}
+	fieldCalls := callsForField()
+	require.Len(t, fieldCalls, 1)
+	assert.Equal(t, properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id}, fieldCalls[0].marker)
+	for _, target := range fieldCalls[0].targets {
+		assert.Equal(t, channel.Id, target)
+	}
+
+	// Set-on-create will trust this marker, so an ordinary write to an existing
+	// channel must stay a standard write; otherwise moving the marking into a
+	// shared write path would let edits pass as creates.
+	_, appErr = th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{{
+		GroupID:    group.ID,
+		FieldID:    field.ID,
+		TargetID:   channel.Id,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		Value:      json.RawMessage(`"second"`),
+	}}, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	require.Nil(t, appErr)
+
+	fieldCalls = callsForField()
+	require.Len(t, fieldCalls, 2)
+	assert.Equal(t, properties.WriteMarker{}, fieldCalls[1].marker)
 }
 
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {

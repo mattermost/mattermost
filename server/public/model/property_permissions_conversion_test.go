@@ -1087,6 +1087,51 @@ func TestPermissionsFromLegacyMaskingSourceOnlyAndPublic(t *testing.T) {
 func TestProjectLegacyPermissionsNilReturnsFieldUnchanged(t *testing.T) {
 	field := &PropertyField{ID: "field1"}
 	assert.Same(t, field, ProjectLegacyPermissions(field))
+	assert.Same(t, field, ProjectLegacyPermissionsWithTemplate(field, &PropertyField{Permissions: &Permissions{Masking: &Masking{}}}))
+}
+
+func TestProjectLegacyPermissionsWithTemplate(t *testing.T) {
+	public := &Restrictions{
+		Field:  WriteOnly{Write: PermissionLevelNone},
+		Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelNone},
+		Option: ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelNone},
+	}
+	template := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: public, Masking: &Masking{}}}
+	linked := &PropertyField{
+		ID:            NewId(),
+		LinkedFieldID: &template.ID,
+		Attrs:         StringInterface{PropertyAttrsSourcePluginID: "plugin"},
+		Permissions:   &Permissions{Restrictions: public},
+	}
+
+	t.Run("reports the template's access mode", func(t *testing.T) {
+		projected := ProjectLegacyPermissionsWithTemplate(linked, template)
+		assert.Equal(t, PropertyAccessModeSharedOnly, projected.Attrs[PropertyAttrsAccessMode])
+		assert.Equal(t, true, projected.Attrs[PropertyAttrsProtected])
+		assert.NotContains(t, linked.Attrs, PropertyAttrsAccessMode)
+	})
+	t.Run("a nil template matches ProjectLegacyPermissions", func(t *testing.T) {
+		assert.Equal(t, ProjectLegacyPermissions(linked), ProjectLegacyPermissionsWithTemplate(linked, nil))
+	})
+	t.Run("a shared_only field converted under an unmasked template reports source_only", func(t *testing.T) {
+		// The conversion narrows such a field's own reads to none rather than
+		// masking it, so its own mode is stricter than its public template's.
+		unmasked := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: public}}
+		converted := &PropertyField{
+			ID:            NewId(),
+			ObjectType:    PropertyFieldObjectTypeChannel,
+			LinkedFieldID: &unmasked.ID,
+			Attrs: StringInterface{
+				PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+				PropertyAttrsProtected:  true,
+			},
+		}
+		converted.Permissions = PermissionsFromLegacy(converted, LegacyConversionOpts{ConvertAttrs: true, Template: unmasked.Permissions})
+		require.Nil(t, converted.Permissions.Masking)
+
+		projected := ProjectLegacyPermissionsWithTemplate(converted, unmasked)
+		assert.Equal(t, PropertyAccessModeSourceOnly, projected.Attrs[PropertyAttrsAccessMode])
+	})
 }
 
 func TestProjectLegacyPermissionsRoundTrip(t *testing.T) {
@@ -1832,7 +1877,7 @@ func TestProjectLegacyPermissionsPreservesV2View(t *testing.T) {
 			} else {
 				assert.Equal(t, *original.PermissionValues, *projected.PermissionValues, "PermissionValues")
 			}
-			assert.Equal(t, original.GetAccessMode(), projected.GetAccessMode(), "access_mode")
+			assert.Equal(t, LegacyAccessMode(&original), LegacyAccessMode(projected), "access_mode")
 			if tt.convertAttrs {
 				// Only access_control reads the attr; elsewhere the projection
 				// mirrors the column into it.

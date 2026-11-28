@@ -504,6 +504,11 @@
         "RedisPassword": null,
         "RedisDB": null,
         "RedisCachePrefix": null,
+        "RedisEnableTLS": null,
+        "RedisTLSSkipVerify": null,
+        "RedisTLSCA": null,
+        "RedisTLSClientCert": null,
+        "RedisTLSClientKey": null,
         "DisableClientCache": null
     },
     "ClusterSettings": {
@@ -611,6 +616,9 @@
         "CleanupJobsThresholdDays": null,
         "CleanupConfigThresholdDays": null
     },
+    "SiteHealthSettings": {
+        "EnableAutomaticChecks": null
+    },
     "PluginSettings": {
         "Enable": null,
         "EnableUploads": null,
@@ -625,7 +633,8 @@
         "AutomaticPrepackagedPlugins": null,
         "RequirePluginSignature": null,
         "MarketplaceURL": null,
-        "SignaturePublicKeyFiles": null
+        "SignaturePublicKeyFiles": null,
+        "RestrictUnauthenticatedWebappPlugins": null
     },
     "DisplaySettings": {
         "CustomURLSchemes": null,
@@ -646,7 +655,8 @@
         "CWSURL": null,
         "CWSAPIURL": null,
         "Disable": null,
-        "PreviewModalBucketURL": null
+        "PreviewModalBucketURL": null,
+        "PreviewLandingPath": null
     },
     "ImportSettings": {
         "Directory": null,
@@ -729,17 +739,20 @@
         "PermissionPolicies": false,
         "ChannelPermissionPolicies": false,
         "PolicySimulation": false,
+        "ChannelPermissionActions": false,
         "ContentFlagging": false,
         "EnableMattermostEntry": false,
         "MobileSSOCodeExchange": false,
         "EnableShiftEscapeToMarkAllRead": false,
         "AutoTranslation": false,
+        "Entities": false,
         "ClassificationMarkings": false,
         "BurnOnRead": false,
         "EnableAIPluginBridge": false,
         "EnableAIRecaps": false,
         "IntegratedBoards": false,
         "EnableDocs": false,
+        "ProductRail": false,
         "CJKSearch": false,
         "AggregatePluginMetrics": false,
         "ManagedChannelCategories": false,
@@ -749,6 +762,7 @@
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
+        "PropertyFieldPermissionsV3": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,

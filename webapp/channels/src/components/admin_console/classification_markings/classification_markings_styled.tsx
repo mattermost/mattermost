@@ -7,19 +7,12 @@ import styled from 'styled-components';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
-import {SectionContent} from '../system_properties/controls';
-
-export const GlobalBannerSectionContent = styled(SectionContent).attrs({
-    $compact: true,
-})`
-    &&& {
-        padding: 24px;
-    }
-`;
-
 export const GlobalBannerSectionSetting = styled.div`
     min-height: 36px;
-    margin-top: 24px;
+
+    & + & {
+        margin-top: 24px;
+    }
 `;
 
 export const LevelOptionLabel = styled.div`
@@ -76,25 +69,17 @@ export const PresetDropdownWrapper = styled.div`
     }
 `;
 
-export const ClassificationLevelsSectionContent = styled(SectionContent).attrs({
-    $compact: true,
-})`
-    &&& {
-        padding: 0;
-        padding-bottom: 16px;
-    }
-`;
-
-export const AddLevelButtonRow = styled.div`
-    margin-top: 16px;
-    margin-left: 16px;
+export const ClassificationLevelsBody = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 `;
 
 export const AddLevelButton = ({style, ...props}: ComponentProps<typeof Button>) => (
     <Button
         type='button'
         emphasis='tertiary'
-        style={{paddingInline: 16, ...style}}
+        style={{alignSelf: 'flex-start', width: 'auto', paddingInline: 16, ...style}}
         {...props}
     />
 );

@@ -107,6 +107,23 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 </Note>
 
+### Restrict plugins available before login
+
+Available from Mattermost v12.2.
+
+<table>
+<colgroup>
+<col style={{width: '65%'}} />
+<col style={{width: '34%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default for new installations)</strong> Only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. Plugins that need to run before login, such as custom login buttons, must set <code>webapp.pre_auth</code> in their manifest.</li><li><strong>false</strong>: <strong>(Default for upgraded installations)</strong> All enabled plugins are listed to visitors who are not logged in.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>RestrictUnauthenticatedWebappPlugins</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_RESTRICTUNAUTHENTICATEDWEBAPPPLUGINS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Upload Plugin
 
 <table>

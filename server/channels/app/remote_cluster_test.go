@@ -119,6 +119,29 @@ func TestAddRemoteCluster(t *testing.T) {
 		_, err = th.App.AddRemoteCluster(remoteCluster)
 		require.Nil(t, err, "Adding a duplicate remote cluster should work fine")
 	})
+
+	t.Run("adding remote cluster with an existing remote id and name returns a conflict error", func(t *testing.T) {
+		remoteCluster := &model.RemoteCluster{
+			RemoteId:  model.NewId(),
+			Name:      "test2",
+			SiteURL:   "http://www2.example.com:8065",
+			Token:     model.NewId(),
+			CreatorId: th.BasicUser.Id,
+		}
+		_, appErr := th.App.AddRemoteCluster(remoteCluster)
+		require.Nil(t, appErr)
+
+		duplicate := *remoteCluster
+		duplicate.SiteURL = "http://www3.example.com:8065"
+		_, appErr = th.App.AddRemoteCluster(&duplicate)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.remote_cluster.save_not_unique.app_error", appErr.Id)
+		require.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+		existing, appErr := th.App.GetRemoteCluster(remoteCluster.RemoteId, false)
+		require.Nil(t, appErr)
+		require.Equal(t, remoteCluster.SiteURL, existing.SiteURL, "the existing remote cluster must be left in place")
+	})
 }
 
 func TestCreateRemoteClusterWithInvite(t *testing.T) {

@@ -4,13 +4,24 @@
 package model
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"maps"
+	"math/big"
+	"net"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -271,6 +282,40 @@ func TestCacheSettingsIsValid(t *testing.T) {
 		settings.SetDefaults()
 
 		assert.Nil(t, settings.isValid())
+	})
+	t.Run("redis tls client cert and key", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			enableTLS bool
+			cert      string
+			key       string
+			valid     bool
+		}{
+			"neither":            {enableTLS: true, valid: true},
+			"both":               {enableTLS: true, cert: "client.crt", key: "client.key", valid: true},
+			"cert only":          {enableTLS: true, cert: "client.crt", valid: false},
+			"key only":           {enableTLS: true, key: "client.key", valid: false},
+			"cert only, tls off": {enableTLS: false, cert: "client.crt", valid: true},
+		} {
+			t.Run(name, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:          NewPointer(CacheTypeRedis),
+					RedisAddress:       NewPointer("localhost:6379"),
+					RedisDB:            NewPointer(0),
+					RedisEnableTLS:     NewPointer(tc.enableTLS),
+					RedisTLSClientCert: NewPointer(tc.cert),
+					RedisTLSClientKey:  NewPointer(tc.key),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				if tc.valid {
+					assert.Nil(t, appErr)
+					return
+				}
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.redis_tls_client_cert_key.app_error", appErr.Id)
+			})
+		}
 	})
 }
 
@@ -686,6 +731,36 @@ func TestEmailSettingsIsValid(t *testing.T) {
 			appErr := settings.isValid()
 			require.NotNil(t, appErr)
 			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
+func TestEmailSettingsIsSMTPConfigured(t *testing.T) {
+	t.Run("defaults are not configured", func(t *testing.T) {
+		settings := &EmailSettings{}
+		settings.SetDefaults(false)
+
+		assert.False(t, settings.IsSMTPConfigured())
+	})
+
+	for _, tc := range []struct {
+		name       string
+		server     *string
+		port       *string
+		configured bool
+	}{
+		{name: "server unset", configured: false},
+		{name: "empty server", server: NewPointer(""), port: NewPointer("587"), configured: false},
+		{name: "default server and port", server: NewPointer("localhost"), port: NewPointer("10025"), configured: false},
+		{name: "localhost relay on port 25", server: NewPointer("localhost"), port: NewPointer("25"), configured: true},
+		{name: "loopback address on the default port", server: NewPointer("127.0.0.1"), port: NewPointer("10025"), configured: true},
+		{name: "remote server", server: NewPointer("smtp.example.com"), port: NewPointer("587"), configured: true},
+		{name: "remote server without port", server: NewPointer("smtp.example.com"), configured: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &EmailSettings{SMTPServer: tc.server, SMTPPort: tc.port}
+
+			assert.Equal(t, tc.configured, settings.IsSMTPConfigured())
 		})
 	}
 }
@@ -1528,6 +1603,81 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 	})
 }
 
+func TestPluginSettingsSetDefaultsRemovesNilPluginStates(t *testing.T) {
+	const arbitraryPluginID = "com.example.someplugin"
+	const otherPluginID = "com.example.otherplugin"
+
+	testCases := []struct {
+		name   string
+		states map[string]*PluginState
+	}{
+		{
+			name:   "nil entry for an arbitrary plugin",
+			states: map[string]*PluginState{arbitraryPluginID: nil},
+		},
+		{
+			name:   "nil entry for the channel export plugin",
+			states: map[string]*PluginState{"com.mattermost.plugin-channel-export": nil},
+		},
+		{
+			name: "nil entry alongside non-nil entries",
+			states: map[string]*PluginState{
+				arbitraryPluginID: nil,
+				otherPluginID:     {Enable: true},
+			},
+		},
+		{
+			name: "nil entries for built-in plugins",
+			states: map[string]*PluginState{
+				PluginIdNPS:       nil,
+				PluginIdCalls:     nil,
+				PluginIdPlaybooks: nil,
+				PluginIdAI:        nil,
+				arbitraryPluginID: nil,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			expected := map[string]PluginState{}
+			for id, state := range tc.states {
+				if state != nil {
+					expected[id] = *state
+				}
+			}
+
+			c := Config{}
+			c.PluginSettings.PluginStates = tc.states
+			c.SetDefaults()
+
+			states := c.PluginSettings.PluginStates
+			for id, state := range states {
+				assert.NotNilf(t, state, "PluginStates[%q] must not be nil after SetDefaults", id)
+			}
+
+			for id, want := range expected {
+				require.Contains(t, states, id)
+				assert.Equal(t, want, *states[id])
+			}
+
+			_, present := states[arbitraryPluginID]
+			assert.False(t, present, "nil entry for a non built-in plugin should be removed")
+			_, present = states["com.mattermost.plugin-channel-export"]
+			assert.False(t, present, "nil entry for the channel export plugin should be removed")
+
+			require.NotNil(t, states[PluginIdNPS])
+			assert.True(t, states[PluginIdNPS].Enable)
+			require.NotNil(t, states[PluginIdCalls])
+			assert.True(t, states[PluginIdCalls].Enable)
+			require.NotNil(t, states[PluginIdPlaybooks])
+			assert.True(t, states[PluginIdPlaybooks].Enable)
+			require.NotNil(t, states[PluginIdAI])
+			assert.True(t, states[PluginIdAI].Enable)
+		})
+	}
+}
+
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -1535,6 +1685,56 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
+}
+
+func TestTeamSettingsMaxUsersAndChannelsPerTeam(t *testing.T) {
+	t.Run("defaults to no limit", func(t *testing.T) {
+		config := Config{}
+		config.SetDefaults()
+
+		require.Equal(t, 0, *config.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, int64(0), *config.TeamSettings.MaxChannelsPerTeam)
+		require.Nil(t, config.TeamSettings.isValid())
+	})
+
+	for name, testCase := range map[string]struct {
+		value        int
+		expectsError bool
+	}{
+		"zero means no limit": {value: 0},
+		"positive":            {value: 50},
+		"negative":            {value: -1, expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Run("MaxUsersPerTeam", func(t *testing.T) {
+				config := Config{}
+				config.SetDefaults()
+				config.TeamSettings.MaxUsersPerTeam = new(testCase.value)
+
+				appErr := config.TeamSettings.isValid()
+				if testCase.expectsError {
+					require.NotNil(t, appErr)
+					require.Equal(t, "model.config.is_valid.max_users.app_error", appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+				}
+			})
+
+			t.Run("MaxChannelsPerTeam", func(t *testing.T) {
+				config := Config{}
+				config.SetDefaults()
+				config.TeamSettings.MaxChannelsPerTeam = new(int64(testCase.value))
+
+				appErr := config.TeamSettings.isValid()
+				if testCase.expectsError {
+					require.NotNil(t, appErr)
+					require.Equal(t, "model.config.is_valid.max_channels.app_error", appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+				}
+			})
+		})
+	}
 }
 
 func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {
@@ -4754,6 +4954,192 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestAdvancedLoggingJSONCertAndFileTargets(t *testing.T) {
+	syslogUnavailable := runtime.GOOS == "windows" || runtime.GOOS == "plan9"
+
+	tests := []struct {
+		name  string
+		audit bool
+		kind  string
+	}{
+		{name: "log settings results match", kind: "match"},
+		{name: "audit settings results match", audit: true, kind: "match"},
+		{name: "log settings connection is not accepted", kind: "connection"},
+		{name: "audit settings connection is not accepted", audit: true, kind: "connection"},
+		{name: "log settings file target", kind: "file"},
+		{name: "audit settings file target", audit: true, kind: "file"},
+		{name: "log settings console target", kind: "console"},
+		{name: "audit settings console target", audit: true, kind: "console"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.kind != "file" && tc.kind != "console" && syslogUnavailable {
+				t.Skip("syslog target is unavailable on this platform")
+			}
+
+			switch tc.kind {
+			case "match":
+				port := closedTCPPort(t)
+				certPEM, _ := newTestCertPEM(t)
+				dir := t.TempDir()
+				missing := filepath.Join(dir, "missing.pem")
+				nonPEM := filepath.Join(dir, "note.pem")
+				require.NoError(t, os.WriteFile(nonPEM, []byte("not a certificate\n"), 0600))
+				pemPath := filepath.Join(dir, "cert.pem")
+				require.NoError(t, os.WriteFile(pemPath, certPEM, 0600))
+
+				outcomes := make([]advancedLoggingOutcome, 0, 3)
+				for _, cert := range []string{missing, nonPEM, pemPath} {
+					raw := advancedLoggingTargetJSON(t, "syslog", tc.audit, map[string]any{
+						"host":     "127.0.0.1",
+						"port":     port,
+						"tls":      true,
+						"cert":     cert,
+						"insecure": true,
+					})
+					outcomes = append(outcomes, advancedLoggingOutcomeOf(validateAdvancedLoggingJSON(tc.audit, raw)))
+				}
+				require.Equal(t, []advancedLoggingOutcome{outcomes[0], outcomes[0], outcomes[0]}, outcomes, "the three results match")
+			case "connection":
+				certPEM, _ := newTestCertPEM(t)
+				pemPath := filepath.Join(t.TempDir(), "cert.pem")
+				require.NoError(t, os.WriteFile(pemPath, certPEM, 0600))
+
+				listener, err := net.Listen("tcp", "127.0.0.1:0")
+				require.NoError(t, err)
+				t.Cleanup(func() { _ = listener.Close() })
+
+				accepted := make(chan struct{}, 1)
+				go func() {
+					conn, accErr := listener.Accept()
+					if accErr != nil {
+						return
+					}
+					accepted <- struct{}{}
+					_ = conn.Close()
+				}()
+
+				raw := advancedLoggingTargetJSON(t, "syslog", tc.audit, map[string]any{
+					"host":     "127.0.0.1",
+					"port":     listener.Addr().(*net.TCPAddr).Port,
+					"tls":      true,
+					"cert":     pemPath,
+					"insecure": true,
+				})
+				_ = validateAdvancedLoggingJSON(tc.audit, raw)
+
+				select {
+				case <-accepted:
+					require.FailNow(t, "a connection is not accepted")
+				case <-time.After(200 * time.Millisecond):
+				}
+			case "file":
+				filename := filepath.Join(t.TempDir(), "app.log")
+				raw := advancedLoggingTargetJSON(t, "file", tc.audit, map[string]any{
+					"filename": filename,
+				})
+				require.Nil(t, validateAdvancedLoggingJSON(tc.audit, raw), "a file target is accepted")
+			case "console":
+				raw := advancedLoggingTargetJSON(t, "console", tc.audit, map[string]any{
+					"out": "stdout",
+				})
+				require.Nil(t, validateAdvancedLoggingJSON(tc.audit, raw), "a console target is accepted")
+			default:
+				require.FailNow(t, "unknown case "+tc.kind)
+			}
+		})
+	}
+}
+
+type advancedLoggingLevel struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type advancedLoggingOutcome struct {
+	id   string
+	text string
+}
+
+func advancedLoggingLevels(audit bool) []advancedLoggingLevel {
+	if audit {
+		return []advancedLoggingLevel{{ID: 100, Name: "audit-api"}}
+	}
+	return []advancedLoggingLevel{{ID: 2, Name: "error"}}
+}
+
+func advancedLoggingTargetJSON(t *testing.T, targetType string, audit bool, options map[string]any) json.RawMessage {
+	t.Helper()
+
+	raw, err := json.Marshal(map[string]any{
+		"t": map[string]any{
+			"type":    targetType,
+			"format":  "json",
+			"levels":  advancedLoggingLevels(audit),
+			"options": options,
+		},
+	})
+	require.NoError(t, err)
+	return raw
+}
+
+func validateAdvancedLoggingJSON(audit bool, raw json.RawMessage) *AppError {
+	if audit {
+		settings := ExperimentalAuditSettings{AdvancedLoggingJSON: raw}
+		settings.SetDefaults()
+		return settings.isValid()
+	}
+	settings := LogSettings{AdvancedLoggingJSON: raw}
+	settings.SetDefaults()
+	return settings.isValid()
+}
+
+func advancedLoggingOutcomeOf(appErr *AppError) advancedLoggingOutcome {
+	if appErr == nil {
+		return advancedLoggingOutcome{}
+	}
+	text := ""
+	if wrapped := appErr.Unwrap(); wrapped != nil {
+		text = wrapped.Error()
+	}
+	return advancedLoggingOutcome{id: appErr.Id, text: text}
+}
+
+func closedTCPPort(t *testing.T) int {
+	t.Helper()
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := listener.Addr().(*net.TCPAddr).Port
+	require.NoError(t, listener.Close())
+	return port
+}
+
+func newTestCertPEM(t *testing.T) (certPEM, keyPEM []byte) {
+	t.Helper()
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(time.Hour),
+		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	keyBytes, err := x509.MarshalECPrivateKey(key)
+	require.NoError(t, err)
+	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
+	return certPEM, keyPEM
+}
+
 func TestFilterConfig(t *testing.T) {
 	t.Run("should clear default values", func(t *testing.T) {
 		cfg := &Config{}
@@ -5082,6 +5468,7 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 	specialTags := map[string]bool{
 		ConfigAccessTagWriteRestrictable: true,
 		ConfigAccessTagCloudRestrictable: true,
+		ConfigAccessTagManageSystemWrite: true,
 		ConfigAccessTagAnySysConsoleRead: true,
 	}
 

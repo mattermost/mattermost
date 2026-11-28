@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -57,14 +58,10 @@ func getConfigDSN(command *cobra.Command, env map[string]string) string {
 	configDSN, _ := command.Flags().GetString("config")
 
 	// Config not supplied in flag, check env
-	if configDSN == "" {
-		configDSN = env["MM_CONFIG"]
-	}
+	configDSN = cmp.Or(configDSN, env["MM_CONFIG"])
 
 	// Config not supplied in env or flag use default
-	if configDSN == "" {
-		configDSN = "config.json"
-	}
+	configDSN = cmp.Or(configDSN, "config.json")
 
 	return configDSN
 }

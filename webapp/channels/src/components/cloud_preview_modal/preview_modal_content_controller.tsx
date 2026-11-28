@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 
 import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
 
 import PreviewModalContent from './preview_modal_content';
@@ -84,8 +85,8 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                     <Button
                         emphasis='tertiary'
                         onClick={handlePrevious}
+                        leadingIcon={<Icon glyph={<ArrowLeftIcon/>}/>}
                     >
-                        <ArrowLeftIcon size={18}/>
                         {intl.formatMessage({
                             id: 'cloud_preview_modal.previous',
                             defaultMessage: 'Previous',
@@ -96,6 +97,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                 <Button
                     emphasis='primary'
                     onClick={isLastSlide ? onClose : handleNext}
+                    trailingIcon={isLastSlide ? undefined : <Icon glyph={<ArrowRightIcon/>}/>}
                 >
                     {isLastSlide ? (
                         intl.formatMessage({
@@ -103,13 +105,10 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                             defaultMessage: 'Finish',
                         })
                     ) : (
-                        <>
-                            {intl.formatMessage({
-                                id: 'cloud_preview_modal.next',
-                                defaultMessage: 'Next',
-                            })}
-                            <ArrowRightIcon size={18}/>
-                        </>
+                        intl.formatMessage({
+                            id: 'cloud_preview_modal.next',
+                            defaultMessage: 'Next',
+                        })
                     )}
                 </Button>
             </div>

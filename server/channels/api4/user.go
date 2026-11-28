@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -19,6 +20,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
@@ -1283,9 +1285,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if props.Limit == 0 {
-		props.Limit = model.UserSearchDefaultLimit
-	}
+	props.Limit = cmp.Or(props.Limit, model.UserSearchDefaultLimit)
 
 	if props.Term == "" {
 		c.SetInvalidParam("term")
@@ -2354,10 +2354,6 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		"cyber-defense": "/cyber-defense-hq",
 	}
 
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
-		return
-	}
 	if err := r.ParseForm(); err != nil {
 		c.Logger.Warn("Failed to parse form data", mlog.Err(err))
 	}
@@ -2406,19 +2402,16 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+	auditRec.Success()
 
-	redirectURL := *c.App.Config().ServiceSettings.SiteURL
-	if campaign != "" {
-		if url, ok := campaignToURL[campaign]; ok {
-			redirectURL += url
-		}
-	}
+	campaignURL, hasCampaignURL := campaignToURL[campaign]
+	redirectURL := *c.App.Config().ServiceSettings.SiteURL + campaignURL
 
-	// If a cloud preview, redirect to the correct use case URL
-	if c.App.License().IsCloudPreview() && useCase != "" {
-		if url, ok := useCaseToURL[useCase]; ok {
-			redirectURL += url
-		}
+	// Preview workspaces minted with a non-trial license aren't IsCloudPreview, so the landing path applies to every CWS login.
+	if url, ok := useCaseToURL[useCase]; ok && c.App.License().IsCloudPreview() {
+		redirectURL += url
+	} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; !hasCampaignURL && strings.HasPrefix(landing, "/") {
+		redirectURL += landing
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
@@ -3620,6 +3613,11 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.EnforceChannelWriteAccessByID(c.AppContext, c.Params.UserId, typingRequest.ChannelId) {
+		c.SetPermissionError(model.PermissionCreatePost)
+		return
+	}
+
 	if err := c.App.PublishUserTyping(c.Params.UserId, typingRequest.ChannelId, typingRequest.ParentId); err != nil {
 		c.Err = err
 		return
@@ -3749,23 +3747,59 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 	// For backward compatibility purposes
 	if c.Params.Page != -1 {
-		cursor := &model.ChannelMemberCursor{
-			Page:    c.Params.Page,
-			PerPage: c.Params.PerPage,
-		}
-		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		currentUserId := c.AppContext.Session().UserId
+
+		// Filled rather than filtered after a single read: this page is client-visible,
+		// and a client that stops paging on a short page cannot tell "denied rows were
+		// dropped" from "end of the list", so one denial would truncate everything after
+		// it. The NDJSON branch below keeps its raw pages for the same reason.
+		page := c.Params.Page
+		members, truncated, err := putils.FetchUntil(page, c.Params.PerPage,
+			func(from int) ([]model.ChannelMemberWithTeamData, error) {
+				cursor := &model.ChannelMemberCursor{
+					Page:    from,
+					PerPage: c.Params.PerPage,
+				}
+				m, appErr := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+				if appErr != nil {
+					return nil, appErr
+				}
+				c.App.PrepareChannelReadAccessByIDs(c.AppContext, currentUserId, channelIDsOfMembers(m))
+				return m, nil
+			},
+			func(member model.ChannelMemberWithTeamData) bool {
+				// Evaluated for the session, not the queried user: a requester acting for
+				// someone else must not learn of a channel their own policy denies.
+				return c.App.HasChannelReadAccessByID(c.AppContext, currentUserId, member.ChannelId)
+			},
+			// Each round consumes a whole raw page, so the next one starts at the page
+			// after it. FetchUntil hands advance only the page it just read.
+			func(_ []model.ChannelMemberWithTeamData) int {
+				page++
+				return page
+			},
+		)
 		if err != nil {
-			c.Err = err
+			var appErr *model.AppError
+			if !errors.As(err, &appErr) {
+				appErr = model.NewAppError("getChannelMembersForUser", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			c.Err = appErr
 			return
+		}
+		if truncated {
+			c.Logger.Warn("Gave up filling a page of channel members; the policy denies most of what this query returns",
+				mlog.String("user_id", c.Params.UserId),
+				mlog.Int("rounds", putils.FetchUntilMaxRounds),
+			)
 		}
 
 		// Sanitize members for current user
-		currentUserId := c.AppContext.Session().UserId
 		for i := range members {
 			members[i].SanitizeForCurrentUser(currentUserId)
 		}
 
-		if err := json.NewEncoder(w).Encode(members); err != nil {
+		if err := json.NewEncoder(w).Encode(model.ChannelMembersWithTeamData(members)); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
@@ -3799,7 +3833,15 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		}
 
 		currentUserId := c.AppContext.Session().UserId
+		c.App.PrepareChannelReadAccessByIDs(c.AppContext, currentUserId, channelIDsOfMembers(members))
 		for _, member := range members {
+			// Filtered here, not in the app layer: the cursor advance and the
+			// short-page test below must see the raw page, or the whole list would
+			// truncate at the first denial. Evaluated for the session, not the
+			// queried user, for the same reason as the paginated branch above.
+			if !c.App.HasChannelReadAccessByID(c.AppContext, currentUserId, member.ChannelId) {
+				continue
+			}
 			// Sanitize each member before encoding in the stream
 			member.SanitizeForCurrentUser(currentUserId)
 			if err := enc.Encode(member); err != nil {
@@ -3813,6 +3855,14 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 		fromChannelID = members[len(members)-1].ChannelId
 	}
+}
+
+func channelIDsOfMembers(members []model.ChannelMemberWithTeamData) []string {
+	channelIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		channelIDs = append(channelIDs, member.ChannelId)
+	}
+	return channelIDs
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {

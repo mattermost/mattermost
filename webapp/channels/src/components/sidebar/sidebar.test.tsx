@@ -76,6 +76,7 @@ describe('components/sidebar', () => {
         hasSeenModal: true,
         isCloud: false,
         unreadFilterEnabled: false,
+        productRailKind: 'channel' as const,
         isMobileView: false,
         isKeyBoardShortcutModalOpen: false,
         userGroupsEnabled: false,

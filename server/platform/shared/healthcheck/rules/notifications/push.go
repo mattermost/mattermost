@@ -9,10 +9,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 )
 
 func init() {
-	healthcheck.Register(pushEmptyURL, pushBadScheme, pushTestProxy)
+	healthcheck.Register(pushEmptyURL, pushBadScheme, pushTestProxy, pushProxyUnreachable)
 }
 
 // The codes share a Subject so a mute on one condition never hides another.
@@ -23,15 +24,13 @@ const (
 )
 
 var pushEmptyURL = healthcheck.Rule{
-	Code:     "PUSH_EMPTY_URL",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_empty_url.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_empty_url.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_EMPTY_URL",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityCritical,
+	TitleID:        healthcheck.TranslationId("health.rule.push_empty_url.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_empty_url.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -40,15 +39,13 @@ var pushEmptyURL = healthcheck.Rule{
 }
 
 var pushBadScheme = healthcheck.Rule{
-	Code:     "PUSH_BAD_SCHEME",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityCritical,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_bad_scheme.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_bad_scheme.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_BAD_SCHEME",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityCritical,
+	TitleID:        healthcheck.TranslationId("health.rule.push_bad_scheme.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_bad_scheme.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
@@ -57,20 +54,33 @@ var pushBadScheme = healthcheck.Rule{
 }
 
 var pushTestProxy = healthcheck.Rule{
-	Code:     "PUSH_TEST_PROXY",
-	Area:     model.AreaNotifications,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.push_test_proxy.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.push_test_proxy.remediation"),
-		DocsURL:       pushDocsURL,
-		ConsolePath:   pushConsolePath,
-	},
+	Code:           "PUSH_TEST_PROXY",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.push_test_proxy.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_test_proxy.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
 	Surface:        healthcheck.SurfaceProduct,
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        pushSubject,
 	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushTestProxy),
+}
+
+var pushProxyUnreachable = healthcheck.Rule{
+	Code:           "PUSH_PROXY_UNREACHABLE",
+	Area:           model.AreaNotifications,
+	Severity:       healthcheck.SeverityWarning,
+	TitleID:        healthcheck.TranslationId("health.rule.push_proxy_unreachable.title"),
+	RemediationID:  healthcheck.TranslationId("health.rule.push_proxy_unreachable.remediation"),
+	DocsURL:        pushDocsURL,
+	ConsolePath:    pushConsolePath,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityProbe,
+	AppliesToCloud: true,
+	Subject:        pushSubject,
+	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushProxyUnreachable),
 }
 
 func pushEnabled(s *healthcheck.Snapshot) (bool, bool) {
@@ -134,4 +144,30 @@ func evalPushTestProxy(s *healthcheck.Snapshot) healthcheck.Result {
 	default:
 		return healthcheck.Resolved()
 	}
+}
+
+func evalPushProxyUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
+	server, ok := pushServer(s)
+	if !ok {
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	}
+
+	// Skip only what PUSH_EMPTY_URL and PUSH_BAD_SCHEME report. A malformed HTTPS URL passes both, so the
+	// failed probe is its only signal.
+	if server == "" || !hasScheme(server, "https://") {
+		return healthcheck.Resolved()
+	}
+
+	return probes.Eval(s, pushProxyProbe,
+		healthcheck.TranslationId("health.rule.push_proxy_unreachable.message"),
+		healthcheck.TranslationId("health.rule.push_proxy_unreachable.message.partial"))
+}
+
+func pushProxyProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionPushProbe)
+	if !ok {
+		return "", ""
+	}
+
+	return diag.Notifications.Push.Status, probes.MaskURLCredentials(diag.Notifications.Push.Error)
 }

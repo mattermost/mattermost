@@ -26,7 +26,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
@@ -571,6 +573,88 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
 	assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
 	assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
+}
+
+type handlerRecordingCluster struct {
+	testlib.FakeClusterInterface
+	handlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
+}
+
+func (c *handlerRecordingCluster) RegisterClusterMessageHandler(event model.ClusterEvent, h einterfaces.ClusterMessageHandler) {
+	c.handlers[event] = h
+}
+
+func TestSharedChannelSyncFromFollowerNode(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic(t)
+
+	service, ok := th.Server.GetSharedChannelSyncService().(*sharedchannel.Service)
+	require.True(t, ok)
+	require.True(t, service.Active())
+
+	testCluster := &handlerRecordingCluster{handlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{}}
+	th.Server.Platform().SetCluster(testCluster)
+	th.Server.registerClusterHandlers()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "cluster"))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = true })
+	th.Server.InvokeClusterLeaderChangedListeners()
+	require.False(t, th.Server.IsLeader())
+	require.Eventually(t, func() bool { return !service.Active() }, 5*time.Second, 10*time.Millisecond)
+
+	rc, err := th.App.Srv().Store().RemoteCluster().Save(&model.RemoteCluster{
+		Name:      "remote",
+		SiteURL:   "http://example.com",
+		Token:     model.NewId(),
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	_, err = th.App.Srv().Store().SharedChannel().SaveUser(&model.SharedChannelUser{
+		UserId:    th.BasicUser.Id,
+		RemoteId:  rc.RemoteId,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.NoError(t, err)
+
+	type forwardedTask struct {
+		ChannelID string `json:"channel_id"`
+		RemoteID  string `json:"remote_id"`
+	}
+	forwarded := func() []*model.ClusterMessage {
+		return testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventSharedChannelSyncTask
+		})
+	}
+
+	_, appErr := th.App.PatchUser(th.Context, th.BasicUser.Id, &model.UserPatch{FirstName: new("Renamed")}, false)
+	require.Nil(t, appErr)
+	require.Eventually(t, func() bool { return len(forwarded()) == 1 }, 10*time.Second, 50*time.Millisecond,
+		"a profile change on a follower must be sent to the leader")
+	var task forwardedTask
+	require.NoError(t, json.Unmarshal(forwarded()[0].Data, &task))
+	assert.Equal(t, th.BasicChannel.Id, task.ChannelID)
+	assert.Equal(t, rc.RemoteId, task.RemoteID)
+
+	require.NoError(t, th.App.SyncSharedChannel(th.BasicChannel.Id), "plugins run on every node, so a follower must accept a forced sync")
+	require.Eventually(t, func() bool { return len(forwarded()) == 2 }, 10*time.Second, 50*time.Millisecond)
+	task = forwardedTask{}
+	require.NoError(t, json.Unmarshal(forwarded()[1].Data, &task))
+	assert.Equal(t, th.BasicChannel.Id, task.ChannelID)
+	assert.Empty(t, task.RemoteID)
+	assert.False(t, service.HasPendingTasksForTesting())
+
+	handler := testCluster.handlers[model.ClusterEventSharedChannelSyncTask]
+	require.NotNil(t, handler)
+	handler(forwarded()[0])
+	assert.False(t, service.HasPendingTasksForTesting(), "only the leader queues a received task")
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ClusterSettings.Enable = false })
+	th.Server.InvokeClusterLeaderChangedListeners()
+	require.Eventually(t, service.Active, 5*time.Second, 10*time.Millisecond)
+
+	require.False(t, service.HasPendingTasksForTesting())
+	handler(forwarded()[0])
+	require.Eventually(t, service.HasPendingTasksForTesting, 5*time.Second, 10*time.Millisecond,
+		"the leader must queue the received task, which stays queued for retry since the remote is offline")
 }
 
 // TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote verifies that when a channel has multiple
@@ -1282,6 +1366,152 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 		assert.Equal(t, "hello from the plugin remote", post.Message)
 		assert.Equal(t, channel.Id, post.ChannelId)
 		assert.Equal(t, userID, post.UserId)
+	})
+}
+
+func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.cursor-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	// The plugin remote is never pinged in tests, so its invites stay pending until confirmed here.
+	confirmInvite := func(t *testing.T, channelID string) {
+		t.Helper()
+		src, err := th.App.Srv().Store().SharedChannel().GetRemoteByIds(channelID, rc.RemoteId)
+		require.NoError(t, err)
+		src.IsInviteConfirmed = true
+		_, err = th.App.Srv().Store().SharedChannel().UpdateRemote(src)
+		require.NoError(t, err)
+	}
+	confirmInvite(t, channel.Id)
+
+	t.Run("reads back the cursor written by UpdateSharedChannelCursor", func(t *testing.T) {
+		cursor := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 1000,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 2000,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(channel.Id, rc.RemoteId, cursor))
+
+		got, err := api.GetSharedChannelCursor(channel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, cursor, got)
+
+		rewound := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 1,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 2,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(channel.Id, rc.RemoteId, rewound))
+
+		got, err = api.GetSharedChannelCursor(channel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, rewound, got)
+	})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		_, err := api.GetSharedChannelCursor(channel.Id, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch remote")
+	})
+
+	t.Run("channel not shared with remote returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		_, err := api.GetSharedChannelCursor(otherChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, "com.test.other-cursor-plugin", otherChannel)
+		_, err := api.GetSharedChannelCursor(otherChannel.Id, otherRC.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("channel no longer shared with remote returns error", func(t *testing.T) {
+		uninvitedChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, uninvitedChannel)
+		src, err := th.App.Srv().Store().SharedChannel().GetRemoteByIds(uninvitedChannel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().SharedChannel().DeleteRemote(src.Id)
+		require.NoError(t, err)
+
+		_, err = api.GetSharedChannelCursor(uninvitedChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no longer shared")
+	})
+
+	t.Run("unconfirmed invite returns error until confirmed", func(t *testing.T) {
+		pendingChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, pendingChannel)
+
+		_, err := api.GetSharedChannelCursor(pendingChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not yet confirmed")
+
+		confirmInvite(t, pendingChannel.Id)
+		cursor := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 5000,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 6000,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(pendingChannel.Id, rc.RemoteId, cursor))
+
+		got, err := api.GetSharedChannelCursor(pendingChannel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, cursor, got)
+	})
+
+	t.Run("permanently deleted channel returns error", func(t *testing.T) {
+		deletedChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, deletedChannel)
+		require.Nil(t, th.App.PermanentDeleteChannel(th.Context, deletedChannel))
+
+		_, err := api.GetSharedChannelCursor(deletedChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
+	})
+
+	t.Run("archived channel returns cursor", func(t *testing.T) {
+		archivedChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, archivedChannel)
+		confirmInvite(t, archivedChannel.Id)
+
+		cursor := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 3000,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 4000,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(archivedChannel.Id, rc.RemoteId, cursor))
+
+		require.Nil(t, th.App.DeleteChannel(th.Context, archivedChannel, ""))
+
+		got, err := api.GetSharedChannelCursor(archivedChannel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, cursor, got)
+	})
+
+	t.Run("deleted remote returns error", func(t *testing.T) {
+		deletedPluginID := "com.test.deleted-cursor-plugin"
+		deletedChannel := th.CreateChannel(t, th.BasicTeam)
+		deletedRC := registerPluginRemoteForTest(t, th, deletedPluginID, deletedChannel)
+		_, err := th.App.Srv().Store().RemoteCluster().Delete(deletedRC.RemoteId)
+		require.NoError(t, err)
+
+		deletedAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: deletedPluginID})
+		_, err = deletedAPI.GetSharedChannelCursor(deletedChannel.Id, deletedRC.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch remote")
 	})
 }
 
@@ -2162,6 +2392,201 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 		assert.NotEmpty(t, postImgBytes)
 		assert.NotEqual(t, preImgBytes, postImgBytes, "profile image should differ after sync")
 	})
+}
+
+// inactiveSharedChannelService simulates a cluster follower node, where the
+// shared channel service exists but is not active.
+type inactiveSharedChannelService struct {
+	SharedChannelServiceIFace
+}
+
+func (inactiveSharedChannelService) Active() bool {
+	return false
+}
+
+func TestPluginAPIReceiveSharedChannelOnInactiveService(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.inactive-service-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	remoteUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    model.NewId() + "@remote.test",
+		Username: "remote-inactive-" + model.NewId()[:8],
+		Password: model.NewTestPassword(),
+		RemoteId: new(rc.RemoteId),
+	})
+	require.Nil(t, appErr)
+
+	pngData, err := os.ReadFile("tests/test.png")
+	require.NoError(t, err, "Failed to load tests/test.png")
+
+	scService := th.Server.GetSharedChannelSyncService()
+	require.NotNil(t, scService)
+	require.True(t, scService.Active())
+
+	inactive := inactiveSharedChannelService{SharedChannelServiceIFace: scService}
+	th.Server.SetSharedChannelSyncService(inactive)
+	t.Cleanup(func() {
+		th.Server.SetSharedChannelSyncService(scService)
+	})
+	require.False(t, th.Server.GetSharedChannelSyncService().Active())
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	newFileInfo := func() *model.FileInfo {
+		return &model.FileInfo{Id: model.NewId(), Name: "follower.txt", Size: 4, CreatorId: remoteUser.Id}
+	}
+
+	t.Run("sync msg succeeds", func(t *testing.T) {
+		userID := model.NewId()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: "follower-user-" + model.NewId()[:8],
+				Email:    model.NewId() + "@remote.test",
+				RemoteId: new(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Contains(t, resp.UsersSyncd, userID)
+		assert.Empty(t, resp.UserErrors)
+
+		user, appErr := th.App.GetUser(th.Context, userID)
+		require.Nil(t, appErr)
+		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+	})
+
+	t.Run("attachment succeeds", func(t *testing.T) {
+		fi := newFileInfo()
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, fi.Id, saved.Id)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fi.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
+	})
+
+	t.Run("profile image succeeds", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		require.NoError(t, err)
+
+		updatedUser, appErr := th.App.GetUser(th.Context, remoteUser.Id)
+		require.Nil(t, appErr)
+		assert.Greater(t, updatedUser.LastPictureUpdate, remoteUser.LastPictureUpdate)
+	})
+
+	t.Run("nil service returns service disabled error", func(t *testing.T) {
+		th.Server.SetSharedChannelSyncService(nil)
+		defer th.Server.SetSharedChannelSyncService(inactive)
+
+		requireServiceDisabled := func(t *testing.T, err error) {
+			t.Helper()
+			require.Error(t, err)
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, "api.command_share.service_disabled", appErr.Id)
+		}
+
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, model.NewSyncMsg(channel.Id))
+		requireServiceDisabled(t, err)
+
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, newFileInfo(), bytes.NewReader([]byte("data")))
+		requireServiceDisabled(t, err)
+
+		err = api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		requireServiceDisabled(t, err)
+	})
+}
+
+func TestSharedChannelDMCreatedOnFollowerSyncsFirstPost(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsDMs = true })
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+			return true
+		}
+
+		func (p *MyPlugin) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+			var resp model.SyncResponse
+			for _, post := range msg.Posts {
+				if appErr := p.API.KVSet(post.Id, []byte(post.Message)); appErr != nil {
+					return resp, appErr
+				}
+				resp.PostsLastUpdateAt = max(resp.PostsLastUpdateAt, post.UpdateAt)
+			}
+			return resp, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	remoteID, err := th.App.RegisterPluginForSharedChannels(th.Context, model.RegisterPluginOpts{
+		Displayname: "dm-plugin-remote",
+		PluginID:    pluginID,
+		CreatorID:   th.BasicUser.Id,
+		SiteURL:     "plugin://" + pluginID,
+	})
+	require.NoError(t, err)
+	require.NoError(t, th.App.Srv().Store().RemoteCluster().SetLastPingAt(remoteID))
+
+	remoteUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    model.NewId() + "@remote.test",
+		Username: "remote-dm-" + model.NewId()[:8],
+		Password: model.NewTestPassword(),
+		RemoteId: new(remoteID),
+	})
+	require.Nil(t, appErr)
+
+	// The DM and its first post are created on a follower, where the shared channel service is inactive.
+	scService := th.Server.GetSharedChannelSyncService()
+	th.Server.SetSharedChannelSyncService(inactiveSharedChannelService{SharedChannelServiceIFace: scService})
+	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, remoteUser.Id)
+	require.Nil(t, appErr)
+	require.True(t, dm.IsShared())
+	post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		ChannelId: dm.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "first post of the DM",
+	}, dm, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+	th.Server.SetSharedChannelSyncService(scService)
+
+	// The leader handles the forwarded direct_added event after the post was created.
+	require.Eventually(t, func() bool { return model.GetMillis() > post.CreateAt }, time.Second, time.Millisecond)
+	event := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", dm.Id, "", nil, "")
+	event.Add("creator_id", th.BasicUser.Id)
+	event.Add("teammate_id", remoteUser.Id)
+	th.Server.Platform().SharedChannelSyncHandler(event, false)
+
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		value, appErr := th.App.GetPluginKey(pluginID, post.Id)
+		assert.Nil(c, appErr)
+		assert.Equal(c, post.Message, string(value))
+	}, 10*time.Second, 100*time.Millisecond, "the first post of the DM was not synced to the plugin remote")
 }
 
 // activatePluginFromTemplate compiles a Go plugin from a .go.tmpl template file located
