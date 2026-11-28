@@ -58,7 +58,7 @@ describe('components/FilePreviewModal', () => {
         onExited: jest.fn(),
     };
 
-    const renderModal = (props = baseProps) => {
+    const renderModal = (props: Omit<typeof baseProps, 'post'> & {post?: typeof baseProps.post} = baseProps) => {
         const ref = React.createRef<FilePreviewModal>();
         const utils = render(
             <FilePreviewModal
@@ -68,6 +68,24 @@ describe('components/FilePreviewModal', () => {
         );
         return {ref, ...utils};
     };
+
+    test('should offer a public link only for a file the server can make one for', () => {
+        const lastShowPublicLink = () => mockHeader.mock.calls[mockHeader.mock.calls.length - 1][0].showPublicLink;
+
+        // # A posted file
+        let {unmount} = renderModal({...baseProps, post: undefined, fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', post_id: 'post_id'})]});
+        expect(lastShowPublicLink()).toBe(true);
+        unmount();
+
+        // # A file just posted by this user: its stored info, from the upload, has no post_id yet
+        ({unmount} = renderModal({...baseProps, post: TestHelper.getPostMock({id: 'post_id'}), fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', post_id: ''})]}));
+        expect(lastShowPublicLink()).toBe(true);
+        unmount();
+
+        // # A file with no post, such as one shown in a dialog preview
+        renderModal({...baseProps, post: undefined, fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', post_id: ''})]});
+        expect(lastShowPublicLink()).toBe(false);
+    });
 
     test('should go to next or previous upon key press of right or left, respectively', () => {
         const fileInfos = [

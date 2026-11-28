@@ -79,6 +79,7 @@ Each dialog supports elements for users to enter information.
 - `file`: File upload field. Use this to allow users to attach one or more files as part of a dialog submission.
 - `action_button`: Clickable button that opens a child (stacked) dialog. Use this to branch into a follow-up dialog without submitting the current one. (Minimum server version 11.10.)
 - `collapsible`: Container that groups other elements under a heading, either stacked vertically or laid out as a table. Use this to break a long form into sections, or to let users fill in a set of similar records as a grid.
+- `preview`: Display-only view of an image or PDF the user can read, opened full-size in the file preview when clicked. Use this to show a document the user should review before submitting. (Minimum server version 12.3.)
 
 Each element is required by default, otherwise the client will return an error as shown below. Note that the error message will appear below the help text, if one is specified. To make an element optional, set the field `"optional": "true"`.
 
@@ -947,6 +948,52 @@ Note the following when laying out a grid:
 - **Non-container children render under the table.** Anything in the grid container that is not itself a container cannot be a row, so it is rendered below the table rather than dropped.
 
 To let users add rows, pair the grid with a [field refresh](#dynamic-field-refresh): when the refresh request arrives, append a row to the grid you return and echo the submitted cell values back as each element's `default`, so half-finished input stays on screen. Carry the grid itself in the dialog's `state`.
+
+### Preview elements
+#### Minimum Server Version: 12.3
+
+Preview elements show a file inside the dialog, such as a load plan or a photo the user should review before submitting. They are display-only: the user can look at the file and click it to open it full-size in the standard file preview, but a preview holds no value and is never submitted. Below is an example of a `preview` element that shows a PDF.
+
+```json
+{
+    "display_name": "Load plan",
+    "name": "load_plan",
+    "type": "preview",
+    "default": "<file ID>",
+    "help_text": "Click to open the full load plan."
+}
+```
+
+The full list of supported fields is included below:
+
+| Field          | Type    | Description |
+|----------------|---------|-------------|
+| `display_name` | String  | (Optional) Label shown above the preview. Maximum 24 characters. Omit it to show the preview without a label, for example when it is the only element in a [collapsible](#collapsible-elements) section whose heading already names it. |
+| `name`         | String  | Name of the element. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`         | String  | Set this value to `preview` for a preview element. |
+| `default`      | String  | ID of the file to show. If empty, the preview isn't shown, for example until a [field refresh](#dynamic-field-refresh) supplies a file. |
+| `subtype`      | String  | (Optional) How the file is shown. See the table below. |
+| `max_height`   | Integer | (Optional) Height in pixels. See the table below. Not allowed with the `file` subtype. |
+| `help_text`    | String  | (Optional) Set help text shown below the preview. Maximum 150 characters. |
+
+How the file is shown depends on its type and the `subtype`:
+
+| File type | `subtype` | Shown as | `max_height` |
+|-----------|-----------|----------|--------------|
+| PDF | (none) | A scrollable viewer of every page. | Sets the viewer's height, up to the height of the browser window. Without it, the viewer is one page tall, so the whole first page shows and the later pages scroll into view. |
+| PDF | `first_page` | Only the first page, without scrolling. | Crops the page to this many pixels from the top. Without it, the whole page shows. |
+| Image | (none) | The image at its natural size, scaled down only to fit the dialog. | Crops the image to this many pixels from the top. |
+| Any | `file` | A standard file attachment card. | Not allowed. |
+| Other types | (none) | The file name, without a preview. | Ignored. |
+
+#### Providing the file
+
+The file is fetched with the session of the user viewing the dialog, so that user must be able to read it: the file must belong to a channel the user can read, such as the channel the dialog was opened from. If the user can't read the file, or `default` is not a valid file ID, the preview shows **Preview unavailable** and the rest of the dialog works normally.
+
+To show a file that isn't already in a post, upload it to the channel the dialog is opened from with `POST /api/v4/files` (see the [Files API](https://api.mattermost.com/#tag/files)), and use the returned file ID. The file doesn't need to be posted. Keep in mind:
+
+- An uploaded file isn't deleted for never being posted, so reuse its file ID rather than uploading the same file each time the dialog opens. If a file data retention policy is enabled, though, unposted uploads are deleted with other files once they're older than the retention period, and the preview then shows **Preview unavailable**. When that happens, upload the file again and use the new ID.
+- File uploads are subject to the server's maximum file size. Prefer small PDFs: every PDF preview is downloaded and drawn in the user's browser, so a dialog with several large ones is slow to open. A PDF over 10 MB, or an image over 10 MB that has no server-generated preview image, is shown as a file card instead, as with `subtype: "file"`.
 
 ## Dialog width
 ### Minimum Server Version: 12.1
