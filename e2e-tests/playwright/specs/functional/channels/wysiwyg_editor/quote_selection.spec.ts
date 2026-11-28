@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, postWith, settle, test} from '@mattermost/playwright-lib';
 
 import {selectTextWithMouse} from '../messaging/quote_selection_helpers';
 
-import {lastPostText, openRichComposer} from './support';
+import {blockquoteIn, expectDocument, openRichComposer} from './support';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
@@ -30,34 +30,32 @@ test.describe('WYSIWYG editor - quoting selected text', TAGS, () => {
         const app = await openRichComposer(pw, setup);
         await app.channelsPage.goto({team, channel: townSquare});
         const composer = app.center.postCreate;
-        const editor = composer.message.container.locator;
+        const editor = composer.message.container;
         await expect(editor).toHaveAttribute('contenteditable', 'true');
 
         // # Select part of the message and quote it
         const post = app.center.postList.post(created);
         await selectTextWithMouse(post.message.container.locator, 'Diam sapien pellentesque');
-        await app.page.getByRole('button', {name: 'Quote selection'}).click();
+        await app.quoteSelection.quoteButton.click();
 
         // * Verify the editor has the quote and is focused
-        await expect(editor.getByRole('blockquote')).toHaveText('Diam sapien pellentesque');
+        await expect(blockquoteIn(editor)).toHaveText('Diam sapien pellentesque');
         await expect(editor).toBeFocused();
 
         // # Type a reply without moving the caret
         await app.page.keyboard.type('What do you mean?');
 
         // * Verify the reply went below the quote, not into it
-        await expect(editor.getByRole('blockquote')).toHaveText('Diam sapien pellentesque');
-        await expect(editor.getByRole('paragraph').last()).toHaveText('What do you mean?');
+        await expect(blockquoteIn(editor)).toHaveText('Diam sapien pellentesque');
+        await expectDocument(composer, /<\/blockquote>\s*<p>[^<]*What do you mean\?/);
 
         // # Send the message
         await expect(composer.sendButton).toBeEnabled();
-        await composer.message.container.press('Enter');
+        await settle(composer.message.container, {wait: Api.CreatePost}).press('Enter');
 
         // * Verify the posted message contains the quote followed by the reply
-        await expect.poll(() => lastPostText(app.center.postList)).toContain('What do you mean?');
-        const replyId = (await app.center.postList.postList.keys()).at(-1)!;
-        const reply = app.center.postList.post({id: replyId}).message.container.locator;
-        await expect(reply.getByRole('blockquote')).toHaveText('Diam sapien pellentesque');
-        await expect(reply).toContainText('What do you mean?');
+        const reply = await postWith(app.center.postList, {text: 'What do you mean?'});
+        await expect(blockquoteIn(reply.message.container)).toHaveText('Diam sapien pellentesque');
+        await expect(reply.message.container).toContainText('What do you mean?');
     });
 });

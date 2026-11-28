@@ -118,11 +118,11 @@ const RecapChannelCard = ({channel}: Props) => {
     return (
         <div
             className={`recap-channel-card${isCollapsed ? ' collapsed' : ''}`}
-            data-testid='recap-channel-card'
+            data-testid={`recaps.recap.channel:${channel.channel_id}`}
         >
             <div
                 className='recap-channel-header'
-                data-testid='recap-channel-collapse-button'
+                data-testid='recaps.recap.channel.collapse--button'
                 role='button'
                 tabIndex={0}
                 onClick={(e) => e.target === e.currentTarget && setIsCollapsed(!isCollapsed)}
@@ -131,7 +131,7 @@ const RecapChannelCard = ({channel}: Props) => {
             >
                 <button
                     className='recap-channel-name-tag'
-                    data-testid='recap-channel-name-tag'
+                    data-testid='recaps.recap.channel.open--button'
                     onClick={handleChannelClick}
                     disabled={!channelObject}
                 >
@@ -139,11 +139,12 @@ const RecapChannelCard = ({channel}: Props) => {
                 </button>
                 <div
                     className='recap-channel-header-actions'
-                    data-testid='recap-channel-header-actions'
                     onClick={(e) => e.stopPropagation()}
                 >
                     <RecapMenu
                         actions={menuActions}
+                        testIdScope='recaps.recap.channel.menu'
+                        menuTestIdScope='recap_channel_menu'
                         ariaLabel={formatMessage(
                             {
                                 id: 'recaps.channelMenu.ariaLabel',

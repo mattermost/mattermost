@@ -74,9 +74,9 @@ describe('components/AboutBuildModal', () => {
 
     test('should render for enterprise edition', () => {
         renderAboutBuildModal({config, license, socketStatus});
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
         expect(screen.getByText('Modern communication from behind your firewall.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com'})).toHaveAttribute('href', 'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=enterprise&server_version=3.6.0');
@@ -96,9 +96,9 @@ describe('components/AboutBuildModal', () => {
         };
 
         renderAboutBuildModal({config: teamConfig, license: {}, socketStatus: {connected: false}});
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=team&server_version=3.6.0');
@@ -127,7 +127,7 @@ describe('components/AboutBuildModal', () => {
 
         expect(screen.getByText('Mattermost Cloud')).toBeInTheDocument();
         expect(screen.getByText('High-trust messaging for the enterprise')).toBeInTheDocument();
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
+        expect(screen.getByTestId('about_build_modal.cloud_version--text')).toHaveTextContent('Mattermost Version: 3.6.0');
         expect(screen.getByText('0123456789abcdef', {exact: false})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
         expect(screen.getByRole('link', {name: 'desktop'})).toHaveAttribute('href', 'https://github.com/mattermost/desktop/blob/master/NOTICE.txt');
@@ -146,9 +146,9 @@ describe('components/AboutBuildModal', () => {
 
         renderAboutBuildModal({config: sameBuildConfig, license: {}, socketStatus: {connected: true}});
 
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: dev');
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: n/a');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Server Version: dev');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Build Number: n/a');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=team&server_version=dev');
@@ -234,8 +234,8 @@ describe('components/AboutBuildModal', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('aboutModalVersionInfo')).toBeInTheDocument();
-            expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Load Metric: 75');
+            expect(screen.getByTestId('about_build_modal.version--text')).toBeInTheDocument();
+            expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Load Metric: 75');
         });
     });
 
@@ -248,7 +248,7 @@ describe('components/AboutBuildModal', () => {
             expect(Client4.getLicenseLoadMetric).toHaveBeenCalled();
         });
 
-        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
+        expect(screen.getByTestId('about_build_modal.version--text')).not.toHaveTextContent('Load Metric:');
     });
 
     test('should handle API errors gracefully', async () => {
@@ -267,7 +267,7 @@ describe('components/AboutBuildModal', () => {
 
         // The error should be logged but not cause the component to crash
         expect(console.error).toHaveBeenCalled();
-        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
+        expect(screen.getByTestId('about_build_modal.version--text')).not.toHaveTextContent('Load Metric:');
     });
 
     test('should show FIPS indicator when IsFipsEnabled is true', () => {
@@ -278,7 +278,7 @@ describe('components/AboutBuildModal', () => {
 
         renderAboutBuildModal({config: fipsConfig});
 
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0 (FIPS)');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Server Version: 3.6.0 (FIPS)');
     });
 
     test('should not show FIPS indicator when IsFipsEnabled is false', () => {
@@ -289,8 +289,8 @@ describe('components/AboutBuildModal', () => {
 
         renderAboutBuildModal({config: nonFipsConfig});
 
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
-        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('about_build_modal.version--text')).not.toHaveTextContent('(FIPS)');
     });
 
     test('should not show FIPS indicator when IsFipsEnabled is not set', () => {
@@ -300,8 +300,8 @@ describe('components/AboutBuildModal', () => {
 
         renderAboutBuildModal({config: nonFipsConfig});
 
-        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
-        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
+        expect(screen.getByTestId('about_build_modal.version--text')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('about_build_modal.version--text')).not.toHaveTextContent('(FIPS)');
     });
 
     function renderAboutBuildModal(props = {}) {

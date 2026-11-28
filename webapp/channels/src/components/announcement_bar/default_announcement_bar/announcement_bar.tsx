@@ -18,6 +18,8 @@ import './default_announcement_bar.scss';
 
 type Props = {
     id?: string;
+
+    testId?: string;
     showCloseButton: boolean;
     className?: string;
     color: string;
@@ -165,6 +167,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <a
                     href='#'
                     className='announcement-bar__close'
+                    data-testid={this.props.testId ? `${this.props.testId}.close--link` : undefined}
                     style={linkStyle}
                     onClick={this.handleClose}
                 >
@@ -190,6 +193,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             <span
                 ref={this.messageRef}
                 onMouseEnter={this.enableToolTipIfNeeded}
+                data-testid={this.props.testId ? `${this.props.testId}.message--text` : undefined}
             >
                 {message}
             </span>
@@ -241,7 +245,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 style={barStyle}
                 // eslint-disable-next-line react/no-unknown-property
                 css={{gridArea: 'announcement'}}
-                data-testid={this.props.id}
+                data-testid={this.props.testId}
             >
                 {barContent}
                 {closeButton}

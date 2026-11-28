@@ -168,6 +168,7 @@ const ScheduleConfiguration = ({
                     </label>
                     <DropdownInput
                         name='timeOfDay'
+                        testId='create_recap_modal.schedule.time_of_day'
                         legend={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
                         value={timeOptions.find((o) => o.value === timeOfDay)}
                         options={timeOptions}
@@ -206,6 +207,7 @@ const ScheduleConfiguration = ({
                     </label>
                     <DropdownInput
                         name='timePeriod'
+                        testId='create_recap_modal.schedule.time_period'
                         legend={formatMessage({id: 'recaps.modal.timePeriod', defaultMessage: 'Time period to cover'})}
                         value={timePeriodOptions.find((o) => o.value === timePeriod)}
                         options={timePeriodOptions}
@@ -231,6 +233,7 @@ const ScheduleConfiguration = ({
                     <Input
                         type='textarea'
                         name='customInstructions'
+                        testId='create_recap_modal.schedule.custom_instructions'
                         placeholder={formatMessage({id: 'recaps.modal.customInstructionsPlaceholder', defaultMessage: 'Add any specific instructions for the AI...'})}
                         value={customInstructions}
                         onChange={(e) => setCustomInstructions(e.target.value)}

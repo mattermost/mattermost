@@ -44,6 +44,7 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
     return (
         <GenericModal
             id='showTranslationModal'
+            testId='show_translation_modal'
             className='ShowTranslationModal a11y__modal'
             show={true}
             onHide={handleHide}
@@ -57,7 +58,10 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
         >
             <div className='ShowTranslationModal__content'>
                 {/* Original Message */}
-                <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--original'>
+                <div
+                    className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--original'
+                    data-testid='show_translation_modal.original'
+                >
                     <div className='ShowTranslationModal__badgeContainer'>
                         <span className='ShowTranslationModal__languageText'>
                             {originalLanguage === 'unknown' ? intl.formatMessage({
@@ -85,7 +89,10 @@ function ShowTranslationModal({postId, onExited, onHide}: Props) {
                 </div>
 
                 {/* Translated Message */}
-                <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--translated'>
+                <div
+                    className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--translated'
+                    data-testid='show_translation_modal.translated'
+                >
                     <div className='ShowTranslationModal__badgeContainer'>
                         <span className='ShowTranslationModal__languageText'>
                             {intl.formatDisplayName(intl.locale, {type: 'language'})}

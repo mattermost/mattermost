@@ -132,7 +132,7 @@ const CloudPreviewModal: React.FC = () => {
             {shouldShowFAB && (
                 <div
                     className='cloud-preview-modal-fab'
-                    data-testid='cloud-preview-fab'
+                    data-testid='cloud_preview.fab'
                 >
                     <WithTooltip
                         title={intl.formatMessage({

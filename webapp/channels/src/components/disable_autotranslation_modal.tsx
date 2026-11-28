@@ -73,6 +73,7 @@ const DisableAutotranslationModal = ({channel}: Props) => {
 
     return (
         <ConfirmModal
+            testId='disable_autotranslation_modal'
             show={show}
             title={texts.title}
             message={texts.message}

@@ -35,6 +35,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                 role='alert'
                 className='control-label'
                 id='teamNameInputError'
+                data-testid='create_team.name_error--alert'
             >
                 {nameError}
             </label>
@@ -63,6 +64,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                             <Input
                                 id='teamNameInput'
                                 name='teamNameInput'
+                                testId='create_team.name'
                                 type='text'
                                 value={teamDisplayName}
                                 autoFocus={true}
@@ -85,6 +87,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                 </div>
                 <Button
                     id='teamNameNextButton'
+                    data-testid='create_team.next--button'
                     type='submit'
                     emphasis='primary'
                     className='mt-8'

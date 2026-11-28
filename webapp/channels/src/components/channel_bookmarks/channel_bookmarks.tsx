@@ -74,7 +74,7 @@ function ChannelBookmarks({channelId}: Props) {
     return (
         <Container
             ref={containerRef}
-            data-testid='channel-bookmarks-container'
+            data-testid='channel_bookmarks'
             className='channel-bookmarks-container'
         >
             <BookmarksBarContent>

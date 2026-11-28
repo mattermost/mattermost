@@ -21,6 +21,7 @@ describe('components/ListModal', () => {
     const totalCount = mockItems.length + mockItemsPage2.length;
 
     const baseProps = {
+        testId: 'test_list_modal' as const,
         loadItems: jest.fn(async (pageNumber: number, searchTerm: string) => {
             if (searchTerm === mockSearchTerm) {
                 return {items: mockItemsSearch, totalCount};

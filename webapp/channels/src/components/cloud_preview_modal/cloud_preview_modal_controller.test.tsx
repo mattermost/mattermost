@@ -145,7 +145,7 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
-        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cloud_preview.fab')).not.toBeInTheDocument();
     });
 
     it('should not show modal when not in cloud preview', () => {
@@ -211,7 +211,7 @@ describe('CloudPreviewModal', () => {
             stateWithModalShown,
         );
 
-        expect(screen.getByTestId('cloud-preview-fab')).toBeInTheDocument();
+        expect(screen.getByTestId('cloud_preview.fab')).toBeInTheDocument();
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
@@ -224,7 +224,7 @@ describe('CloudPreviewModal', () => {
             initialState,
         );
 
-        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cloud_preview.fab')).not.toBeInTheDocument();
         expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
     });
 
@@ -260,7 +260,7 @@ describe('CloudPreviewModal', () => {
         );
 
         // FAB should be visible
-        const fabButton = screen.getByTestId('cloud-preview-fab');
+        const fabButton = screen.getByTestId('cloud_preview.fab');
         expect(fabButton).toBeInTheDocument();
 
         // Click the FAB button
@@ -285,7 +285,7 @@ describe('CloudPreviewModal', () => {
         );
 
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cloud_preview.fab')).not.toBeInTheDocument();
     });
 
     it('should have proper tooltip on FAB button', async () => {
@@ -315,7 +315,7 @@ describe('CloudPreviewModal', () => {
             stateWithModalShown,
         );
 
-        const fabButton = screen.getByTestId('cloud-preview-fab').querySelector('button');
+        const fabButton = screen.getByTestId('cloud_preview.fab').querySelector('button');
         expect(fabButton).toHaveAttribute('aria-label', 'Open cloud preview overview');
         expect(fabButton).toHaveClass('cloud-preview-modal-fab__button');
     });

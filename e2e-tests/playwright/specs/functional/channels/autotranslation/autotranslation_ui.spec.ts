@@ -13,6 +13,7 @@ import {
     setMockSourceLanguage,
     duration,
     postWith,
+    Msg,
 } from '@mattermost/playwright-lib';
 
 // Autotranslation tests involve real UI interactions with plugin state and can run
@@ -25,12 +26,8 @@ test.beforeEach(async () => {
 // into other suites. Individual tests enable the feature via
 // enableAutotranslationConfig() as needed.
 test.afterAll(async () => {
-    try {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await disableAutotranslationConfig(adminClient);
-    } catch {
-        // Best-effort cleanup.
-    }
+    const {adminClient} = await getAdminClient({skipLog: true});
+    await disableAutotranslationConfig(adminClient);
 });
 test(
     'translated message has indicator; click opens Show Translation modal',
@@ -151,23 +148,11 @@ test(
         });
         await expect(modalPost).toBeVisible({timeout: duration.half_min});
 
-        // * Check for translation button - if it exists, click it and verify modal
-        const translationButton = modalPost.translationButton.locator;
-        const hasTranslationButton = (await translationButton.count()) > 0;
-
-        // Translation button should be present - test expects translation to happen
-        if (!hasTranslationButton) {
-            throw new Error(
-                'Translation button not found on post. Expected autotranslation to produce a translated message indicator.',
-            );
-        }
-
-        // Translation happened - verify the modal opens
-        await translationButton.click();
-        const showTranslationDialog = page.getByRole('dialog').filter({hasText: 'Show Translation'});
-        await expect(showTranslationDialog).toBeVisible();
-        await expect(showTranslationDialog.getByText('ORIGINAL')).toBeVisible();
-        await expect(showTranslationDialog.getByText('AUTO-TRANSLATED')).toBeVisible();
+        // * The translation indicator is present (autotranslation produced a translated message) and opens the modal
+        await expect(modalPost.translationButton).toBeVisible();
+        const showTranslationModal = await modalPost.translationButton.clickTo(app.showTranslationModal);
+        await expect(showTranslationModal.original).toContainMessage(Msg.show_translation.original_badge);
+        await expect(showTranslationModal.translated).toContainMessage(Msg.show_translation.auto_translated_badge);
     },
 );
 
@@ -292,8 +277,7 @@ test(
         // The mock appends "[translated to en]" to the original Spanish text, confirming
         // translation.state==='ready' so that "Show translation" will be in the dot menu.
         const post = await postWith(app.center.postList, {text: 'Este mensaje es para probar el menú de acciones'});
-        const messagePost = post.locator;
-        await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: duration.half_min});
+        await expect(post.message.container).toContainText(/\[translated to en\]/i, {timeout: duration.half_min});
 
         // * Open dot menu using the established hover → wait → click pattern
         await post.container.hover();
@@ -340,7 +324,7 @@ test(
         await adminClient.addToChannel(user.id, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
 
-        const {page, app} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
         await app.channelsPage.goto({team, channel: channelName});
 
         // Defeat concurrent initSetup() config resets: re-apply on every poll iteration until badge appears.
@@ -357,19 +341,19 @@ test(
             )
             .toBeTruthy();
 
-        await app.channelHeader.openMenuButton.click();
-        await expect(page.getByRole('menuitem', {name: 'Disable autotranslation'})).toBeVisible();
-        await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
-        await expect(page.getByRole('button', {name: 'Turn off auto-translation'})).toBeVisible();
-        await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
+        const {autotranslationMenuItem} = app.channelHeader.menu;
+        await app.channelHeader.openMenuButton.clickTo(autotranslationMenuItem);
+        await expect(autotranslationMenuItem).toContainMessage(Msg.channel_header.autotranslation.disable);
+        const disableModal = await autotranslationMenuItem.clickTo(app.disableAutotranslationModal);
+        await disableModal.confirmButton.click();
 
         await expect(app.channelHeader.autotranslationBadgeText).not.toBeVisible();
 
         // Re-apply config before opening menu to ensure "Enable autotranslation" option is present.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        await app.channelHeader.openMenuButton.click();
-        await expect(page.getByRole('menuitem', {name: 'Enable autotranslation'})).toBeVisible();
-        await page.getByRole('menuitem', {name: 'Enable autotranslation'}).click();
+        await app.channelHeader.openMenuButton.clickTo(autotranslationMenuItem);
+        await expect(autotranslationMenuItem).toContainMessage(Msg.channel_header.autotranslation.enable);
+        await autotranslationMenuItem.click();
 
         // Poll with config re-apply until badge reappears.
         await expect
@@ -510,15 +494,18 @@ test(
 
         await expect(app.channelHeader.autotranslationBadgeText).not.toBeVisible({timeout: duration.half_min});
 
-        await app.channelHeader.openMenuButton.click();
-        const channelMenu = page
-            .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
-        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible({
-            timeout: duration.half_min,
-        });
-        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible({timeout: duration.half_min});
-        const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
-        await expect(autotranslationItem).toBeDisabled();
+        const {autotranslationMenuItem} = app.channelHeader.menu;
+        await app.channelHeader.openMenuButton.clickTo(autotranslationMenuItem);
+        await expect(autotranslationMenuItem).toContainMessage(
+            Msg.channel_header.autotranslation.language_not_supported.title,
+            undefined,
+            {timeout: duration.half_min},
+        );
+        await expect(autotranslationMenuItem).toContainMessage(
+            Msg.channel_header.autotranslation.language_not_supported.subtitle,
+            undefined,
+            {timeout: duration.half_min},
+        );
+        await expect(autotranslationMenuItem).toBeDisabled();
     },
 );

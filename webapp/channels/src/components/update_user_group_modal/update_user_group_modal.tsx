@@ -216,7 +216,7 @@ const UpdateUserGroupModal = ({
                             placeholder={formatMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                             onChange={updateNameState}
                             value={name}
-                            data-testid='nameInput'
+                            testId='update_user_group_modal.name'
                             autoFocus={true}
                             customMessage={{type: ItemStatus.ERROR, value: nameInputErrorText}}
                         />
@@ -227,7 +227,7 @@ const UpdateUserGroupModal = ({
                             placeholder={formatMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                             onChange={updateMentionState}
                             value={mention}
-                            data-testid='nameInput'
+                            testId='update_user_group_modal.mention'
                             customMessage={{type: ItemStatus.ERROR, value: mentionInputErrorText}}
                         />
                     </div>
@@ -245,6 +245,7 @@ const UpdateUserGroupModal = ({
                         <Button
                             onClick={onBackClick}
                             emphasis='tertiary'
+                            data-testid='update_user_group_modal.back--button'
                         >
                             <FormattedMessage
                                 id='multiselect.backButton'
@@ -253,6 +254,7 @@ const UpdateUserGroupModal = ({
                         </Button>
                         <SaveButton
                             id='saveItems'
+                            testId='update_user_group_modal.save'
                             saving={saving}
                             disabled={!isSaveEnabled()}
                             onClick={onSaveClick}

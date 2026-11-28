@@ -172,6 +172,7 @@ const GroupMemberList = (props: Props) => {
                     style={style}
                     key={user.id}
                     role='listitem'
+                    data-testid={`user_group_popover.member:${user.id}--listitem`}
                 >
                     <ProfilePopover
                         userId={user.id}
@@ -205,6 +206,7 @@ const GroupMemberList = (props: Props) => {
                                     {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
                                     {user: name})}
                                 onClick={() => showDirectChannel(user)}
+                                data-testid='user_group_popover.member.message--button'
                             >
                                 <i
                                     className='icon icon-send'
@@ -222,7 +224,7 @@ const GroupMemberList = (props: Props) => {
                 first={index === 0}
                 last={index === members.length}
             >
-                <LoadingSpinner/>
+                <LoadingSpinner testId='user_group_popover.loading_more_spinner'/>
             </LoadingItem>
         );
     };
@@ -231,7 +233,7 @@ const GroupMemberList = (props: Props) => {
         if (searchState === Load.LOADING) {
             return (
                 <LargeLoadingItem>
-                    <LoadingSpinner/>
+                    <LoadingSpinner testId='user_group_popover.loading_spinner'/>
                 </LargeLoadingItem>
             );
         } else if (searchState === Load.FAILED) {

@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
+
+import {goToChannel, selectUser} from './dm_dialog';
 
 /**
  * @objective Verify adding a member to an existing group message starts a new conversation with every selected member and no message history.
@@ -13,45 +15,44 @@ test('MM-T468 Group Messaging: Add member to existing GM', {tag: '@direct_messag
     const groupChannel = await adminClient.createGroupChannel([user.id, ...members.map((member) => member.id)]);
 
     // # Open the existing group message and add historical messages
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.gotoMessage(team.name, groupChannel.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage('some');
-    await channelsPage.postMessage('historical');
-    await channelsPage.postMessage('messages');
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, path: 'messages', channel: groupChannel.name});
+    await expect(app.center.postCreate).toBeVisible();
+    for (const message of ['some', 'historical', 'messages']) {
+        await app.center.postCreate.message.container.fill(message);
+        await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    }
 
     // # Open the channel member list and choose to add a member
-    await channelsPage.centerView.header.openChannelMenu();
-    await channelsPage.channelMenu.members.click();
-    await channelsPage.sidebarRight.toBeVisible();
-    await channelsPage.sidebarRight.addMembersButton.click();
-    const modal = channelsPage.directChannelsModal;
-    await modal.toBeVisible();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
+    await app.channelHeader.menu.membersMenuItem.clickTo(app.rhs.channelMembers);
+    const modal = await app.rhs.channelMembers.addButton.clickTo(app.directMessagesModal);
 
     // * Verify the new-conversation warning and all existing members are selected
-    await expect(modal.newConversationWarning).toBeVisible();
+    await expect(modal.options.noteText).toContainText(
+        "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead.",
+    );
     for (const member of members) {
-        await expect(modal.getRemoveButton(member.username)).toBeVisible();
+        await expect(modal.options.remove(member.id)).toBeVisible();
     }
 
     // # Select another member and create the new group message
-    await modal.selectUser(newMember);
-    await modal.goToChannel();
+    await selectUser(app, newMember);
+    await goToChannel(app);
 
     // * Verify the historical messages are absent and the new group message intro is shown
-    await channelsPage.toNotContainText('historical');
-    await expect(channelsPage.centerView.channelIntro).toContainText(
+    await expect(app.center.postList.channelIntro).toContainText(
         'This is the start of your group message history with',
     );
-    await channelsPage.centerView.header.toHaveTitle(newMember.username);
+    await expect(app.center.postList.container).not.toContainText('historical');
+    await expect(app.channelHeader.openMenuButton).toContainText(newMember.username);
 
     // # Open the group message member list
-    await channelsPage.centerView.header.openChannelMenu();
-    await channelsPage.channelMenu.members.click();
-    await channelsPage.sidebarRight.toBeVisible();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
+    await app.channelHeader.menu.membersMenuItem.clickTo(app.rhs.channelMembers);
 
     // * Verify the new member and every original member remain in the conversation
     for (const member of [...members, newMember]) {
-        await channelsPage.sidebarRight.toContainText(member.username);
+        await expect(app.rhs.channelMembers.member(member)).toContainText(member.username);
     }
 });

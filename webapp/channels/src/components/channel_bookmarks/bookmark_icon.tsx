@@ -26,6 +26,7 @@ type Props = {
     imageUrl?: string;
     fileInfo?: FileInfo | FilePreviewInfo;
     size?: 16 | 24;
+    testId?: string;
 };
 
 const BookmarkIcon = ({
@@ -34,6 +35,7 @@ const BookmarkIcon = ({
     imageUrl,
     fileInfo,
     size = 16,
+    testId,
 }: Props) => {
     let icon = <BookOutlineIcon size={size}/>;
     if (type === 'file') {
@@ -80,7 +82,7 @@ const BookmarkIcon = ({
     return (
         <Icon
             $size={size}
-            data-testid='bookmark-icon'
+            data-testid={testId}
             data-icon-kind={iconKind}
         >
             {icon}

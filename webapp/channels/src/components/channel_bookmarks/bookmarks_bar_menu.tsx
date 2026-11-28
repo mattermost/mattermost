@@ -182,6 +182,7 @@ function BookmarksBarMenu({
             <Menu.Item
                 key='channelBookmarksAddLink'
                 id='channelBookmarksAddLink'
+                data-testid='bookmarks_menu.add_link--menuitem'
                 onClick={handleCreateLink}
                 disabled={limitReached}
                 leadingElement={<LinkVariantIcon size={18}/>}
@@ -193,6 +194,7 @@ function BookmarksBarMenu({
                 <Menu.Item
                     key='channelBookmarksAttachFile'
                     id='channelBookmarksAttachFile'
+                    data-testid='bookmarks_menu.attach_file--menuitem'
                     onClick={handleCreateFile}
                     disabled={limitReached}
                     leadingElement={<PaperclipIcon size={18}/>}
@@ -240,6 +242,7 @@ function BookmarksBarMenu({
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 menuButton={{
                     id: 'channelBookmarksBarMenuButton',
+                    dataTestId: 'channel_bookmarks.open_menu--button',
                     class: useIconButtonTrigger ? undefined : 'channelBookmarksBarMenuButton withLabel',
                     as: useIconButtonTrigger ? BookmarksBarIconMenuTrigger : undefined,
                     count: hasOverflow ? overflowItems.length : undefined,

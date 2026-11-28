@@ -131,7 +131,7 @@ describe('components/preparing_workspace/preparing_workspace', () => {
 
         expect(await screen.findByText(inviteTitle)).toBeInTheDocument();
         expect(testSiteURL).toHaveBeenCalledWith('https://chat.example.com');
-        expect(screen.getByTestId('shareLinkInput')).toHaveValue('https://chat.example.com/signup_user_complete/?id=invite1');
+        expect(screen.getByTestId('preparing_workspace.invite.link--textbox')).toHaveValue('https://chat.example.com/signup_user_complete/?id=invite1');
 
         await finishSetup();
         expect(completeSetup).toHaveBeenCalledWith({
@@ -159,7 +159,7 @@ describe('components/preparing_workspace/preparing_workspace', () => {
 
         await act(async () => resolveCreateTeam({data: {id: 'team1', invite_id: 'invite1'}}));
 
-        expect(screen.getByTestId('shareLinkInput')).toHaveValue('https://chat.example.com/signup_user_complete/?id=invite1');
+        expect(screen.getByTestId('preparing_workspace.invite.link--textbox')).toHaveValue('https://chat.example.com/signup_user_complete/?id=invite1');
     });
 
     test('shows the step when the Site URL is the default localhost URL', async () => {

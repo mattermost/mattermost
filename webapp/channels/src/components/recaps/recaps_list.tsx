@@ -63,7 +63,10 @@ const RecapsList = ({recaps}: Props) => {
 
     if (recaps.length === 0) {
         return (
-            <div className='recaps-empty-state'>
+            <div
+                className='recaps-empty-state'
+                data-testid='recaps.caught_up'
+            >
                 <div className='empty-state-icon'>
                     <i className='icon icon-check-circle'/>
                 </div>

@@ -116,6 +116,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
 
     const notification = (
         <NotificationBox
+            testId='move_thread_modal.notification'
             variant={'info'}
             text={notificationText}
             id={'move_thread'}
@@ -187,6 +188,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         <GenericModal
             className='a11y__modal forward-post move-thread'
             id='move-thread-modal'
+            testId='move_thread_modal'
             show={true}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
@@ -228,6 +230,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
                         onClick={preventActionOnPreview}
                     >
                         <PostMessagePreview
+                            testIdScope='move_thread_modal.preview'
                             metadata={previewMetaData}
                             handleFileDropdownOpened={noop}
                             preventClickAction={true}

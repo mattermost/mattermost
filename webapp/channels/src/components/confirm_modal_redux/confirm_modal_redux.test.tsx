@@ -12,6 +12,7 @@ describe('ConfirmModalRedux', () => {
         cancelButtonText: 'cancel',
         confirmButtonText: 'submit',
         onExited: jest.fn(),
+        testId: 'test_confirm_modal' as const,
     };
 
     test('should call closeModal after confirming', async () => {

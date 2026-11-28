@@ -111,7 +111,7 @@ describe('PreviewModalController', () => {
         renderComponent();
 
         // Find dots by their container and check children
-        const dotsContainer = screen.getByTestId('pagination-dots');
+        const dotsContainer = screen.getByTestId('cloud_preview_modal.pagination');
         expect(dotsContainer.children).toHaveLength(3);
     });
 

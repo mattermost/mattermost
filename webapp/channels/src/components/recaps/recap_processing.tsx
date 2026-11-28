@@ -14,7 +14,7 @@ const RecapProcessing = ({recap}: Props) => {
     return (
         <div
             className='recap-processing'
-            data-testid='recap-processing'
+            data-testid={`recaps.processing:${recap.id}`}
         >
             <div className='recap-processing-header'>
                 <h2 className='recap-processing-title'>{recap.title}</h2>

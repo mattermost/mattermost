@@ -19,7 +19,7 @@ export function invitePeople(typeText: string, resultsCount: number, verifyText:
     cy.uiOpenTeamMenu('Invite people');
 
     // # Click on the next icon to invite guest
-    cy.findByTestId('inviteGuestLink').click();
+    cy.findByTestId('invitation_modal.invite.as_guest').click();
 
     // # Search and add a user
     cy.get('.users-emails-input__control').should('be.visible').within(() => {

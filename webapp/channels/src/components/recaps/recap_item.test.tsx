@@ -6,7 +6,7 @@ import React from 'react';
 import type {Recap} from '@mattermost/types/recaps';
 import {RecapStatus} from '@mattermost/types/recaps';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import RecapItem from './recap_item';
 
@@ -106,6 +106,37 @@ describe('RecapItem', () => {
     beforeEach(() => {
         mockDispatch.mockClear();
         jest.clearAllMocks();
+    });
+
+    test('toggles from the header with a click and reports its state', () => {
+        const onToggle = jest.fn();
+        renderWithContext(
+            <RecapItem
+                recap={baseRecap}
+                isExpanded={false}
+                onToggle={onToggle}
+            />,
+        );
+
+        const header = screen.getByTestId('recaps.recap.header--button');
+        expect(header).toHaveAttribute('role', 'button');
+        expect(header).toHaveAttribute('aria-expanded', 'false');
+
+        fireEvent.click(header);
+
+        expect(onToggle).toHaveBeenCalledTimes(1);
+    });
+
+    test('a failed recap has no clickable header', () => {
+        renderWithContext(
+            <RecapItem
+                recap={{...baseRecap, status: RecapStatus.FAILED}}
+                isExpanded={false}
+                onToggle={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByTestId('recaps.recap.header--button')).not.toBeInTheDocument();
     });
 
     test('shows mark read button and full menu for unread recaps', () => {

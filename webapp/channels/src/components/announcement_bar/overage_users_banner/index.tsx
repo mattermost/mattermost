@@ -98,6 +98,7 @@ const OverageUsersBanner = () => {
 
     return (
         <AnnouncementBar
+            testId='announcement_bars.overage_users'
             type={isBetween5PercerntAnd10PercentPurchasedSeats ? AnnouncementBarTypes.ADVISOR : AnnouncementBarTypes.CRITICAL}
             showCloseButton={true}
             onButtonClick={handleClick}

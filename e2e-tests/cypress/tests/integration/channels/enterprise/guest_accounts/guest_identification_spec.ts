@@ -105,7 +105,7 @@ describe('Guest Accounts', () => {
 
         // # Open team menu, click Invite People, then invite guest
         cy.uiOpenTeamMenu('Invite people');
-        cy.findByTestId('inviteGuestLink').click();
+        cy.findByTestId('invitation_modal.invite.as_guest').click();
 
         // # Type guest user e-mail address.
         cy.get('.users-emails-input__control').should('be.visible').within(() => {

@@ -17,13 +17,13 @@ test('MM-T1239 CTRL/CMD+/ and /shortcuts open keyboard shortcuts', async ({pw}) 
     await page.keyboard.press('ControlOrMeta+/');
 
     // * Verify the shortcuts modal opens and shows the platform-specific "Upload files" shortcut
-    // The shortcut dialog declares no scope here, so it is found by its accessible name.
-    const modal = app.page.getByRole('dialog', {name: /Keyboard shortcuts/});
+    const shortcuts = app.keyboardShortcutsModal;
+    const modal = shortcuts.container;
     await expect(modal).toBeVisible();
-    const filesSection = modal.locator('.subsection').filter({hasText: 'Files'});
-    await expect(filesSection).toBeVisible();
-    await expect(filesSection.getByText(process.platform === 'darwin' ? '⌘' : 'Ctrl')).toBeVisible();
-    await expect(filesSection.getByText('U', {exact: true})).toBeVisible();
+    await expect(shortcuts.files).toBeVisible();
+    await expect(shortcuts.files).toContainText(process.platform === 'darwin' ? '⌘' : 'Ctrl');
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the key cap is plain text inside the shortcut sequence, which has no id
+    await expect(shortcuts.files.locator.getByText('U', {exact: true})).toBeVisible();
 
     // # Close the modal by pressing the same shortcut again
     await page.keyboard.press('ControlOrMeta+/');
@@ -33,7 +33,8 @@ test('MM-T1239 CTRL/CMD+/ and /shortcuts open keyboard shortcuts', async ({pw}) 
     await app.center.postCreate.message.container.fill('/shortcuts');
     await app.center.postCreate.sendButton.click();
     await expect(modal).toBeVisible();
-    await modal.getByRole('button', {name: 'Close'}).click();
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the close button is the one react-bootstrap renders in the modal header and cannot take an id
+    await modal.locator.getByRole('button', {name: 'Close'}).click();
     await expect(modal).not.toBeVisible();
 
     // # Reopen via the slash command and close by pressing Escape

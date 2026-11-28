@@ -54,7 +54,7 @@ const PreviewModalContent: React.FC<Props> = ({content}) => {
                         poster={content.videoPoster}
                         controls={isPlaying && showControls}
                         loop={true}
-                        data-testid='video-element'
+                        data-testid='cloud_preview_modal.video'
                         onClick={handleVideoClick}
                         onPause={handleVideoPause}
                         onPlay={() => setIsPlaying(true)}

@@ -32,6 +32,7 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
                 role='alert'
                 className='control-label'
                 id='teamURLInputError'
+                data-testid='create_team.url_error--alert'
             >
                 {nameError}
             </label>
@@ -69,6 +70,7 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
                                 </WithTooltip>
                                 <input
                                     id='teamURLInput'
+                                    data-testid='create_team.url--textbox'
                                     type='text'
                                     ref={teamURLInput}
                                     className='form-control'
@@ -115,6 +117,7 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
                 <div className='mt-8'>
                     <Button
                         id='teamURLFinishButton'
+                        data-testid='create_team.finish--button'
                         type='submit'
                         emphasis='primary'
                         disabled={isLoading}
@@ -127,6 +130,7 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
                     <a
                         href='#'
                         onClick={onBack}
+                        data-testid='create_team.back--link'
                     >
                         <FormattedMessage
                             id='create_team.team_url.back'

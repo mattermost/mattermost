@@ -54,7 +54,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
             <div className='preview-modal-controller__pagination'>
                 <div
                     className='preview-modal-controller__pagination-dots'
-                    data-testid='pagination-dots'
+                    data-testid='cloud_preview_modal.pagination'
                 >
                     {activeContentData.map((_, index) => (
                         <div

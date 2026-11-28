@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {Page} from '@playwright/test';
 
 import {
     openSystemConsoleSection,
@@ -54,12 +53,13 @@ test.describe('Single-channel guests', () => {
         return previous;
     }
 
-    async function navigateWithGuestPatch(page: Page, adminClient: Client4, url: string, guestEnabled: boolean) {
-        await page.goto(url);
-        await page.waitForLoadState('networkidle');
+    /** Opens a System Console page, applies the guest setting, then reloads so the page reads the fresh config. */
+    async function navigateWithGuestPatch(app: App, adminClient: Client4, url: string, guestEnabled: boolean) {
+        await app.page.goto(url);
+        await expect(app.admin.sidebar).toBeVisible();
         await patchGuestEnabled(adminClient, guestEnabled);
-        await page.reload();
-        await page.waitForLoadState('networkidle');
+        await app.page.reload();
+        await expect(app.admin.sidebar).toBeVisible();
     }
 
     /**
@@ -97,7 +97,7 @@ test.describe('Single-channel guests', () => {
 
             // Re-apply patch after initial load + reload to counter WebSocket config resets
             // from concurrent initSetup() calls (default_config has Enable: false).
-            await navigateWithGuestPatch(app.page, adminClient, systemConsolePath('reporting/system_analytics'), true);
+            await navigateWithGuestPatch(app, adminClient, systemConsolePath('reporting/system_analytics'), true);
 
             // * Verify the single-channel guests card is visible
             await expect(app.admin.statistics.stat('singleChannelGuests').valueText).toBeVisible({
@@ -107,24 +107,16 @@ test.describe('Single-channel guests', () => {
             // * Verify the count is at least 1.
             // Analytics are indexed asynchronously on the server — poll with reload until
             // the card reflects the newly created guest (can take several seconds in CI).
-            await expect
-                .poll(
-                    async () => {
-                        // Re-apply guest patch before reload: a concurrent initSetup() may
-                        // reset the config back to the default (Enable: false), which would
-                        // hide the card and make the textContent call return null.
-                        await patchGuestEnabled(adminClient, true);
-                        await app.page.reload();
-                        await app.page.waitForLoadState('networkidle');
-                        const text = await app.admin.statistics
-                            .stat('singleChannelGuests')
-                            .valueText.text()
-                            .catch(() => '');
-                        return Number(text?.match(/(\d+)/)?.[1] ?? 0);
-                    },
-                    {timeout: duration.four_min, intervals: [3000, 5000, 8000, 12000]},
-                )
-                .toBeGreaterThanOrEqual(1);
+            const guestsCard = app.admin.statistics.stat('singleChannelGuests').valueText;
+            await expect(async () => {
+                // Re-apply guest patch before reload: a concurrent initSetup() may
+                // reset the config back to the default (Enable: false), which would
+                // hide the card until the next attempt.
+                await patchGuestEnabled(adminClient, true);
+                await app.page.reload();
+                await expect(guestsCard).toBeVisible();
+                expect(Number((await guestsCard.text()).match(/(\d+)/)?.[1] ?? 0)).toBeGreaterThanOrEqual(1);
+            }).toPass({timeout: duration.four_min, intervals: [3000, 5000, 8000, 12000]});
         },
     );
 
@@ -162,11 +154,12 @@ test.describe('Single-channel guests', () => {
             await openConsole(app);
 
             // Re-apply patch after initial load + reload to counter WebSocket config resets.
-            await navigateWithGuestPatch(app.page, adminClient, systemConsolePath('about/license'), true);
+            await navigateWithGuestPatch(app, adminClient, systemConsolePath('about/license'), true);
 
             // * Verify the single-channel guests row is visible
-            // The license card label has no generated part; check it within the declared license panel.
-            await expect(app.admin.license.locator.getByText('SINGLE-CHANNEL GUESTS:')).toBeVisible();
+            await expect(app.admin.license.enterprisePanel.detail('single_channel_guests')).toContainText(
+                'SINGLE-CHANNEL GUESTS:',
+            );
         },
     );
 
@@ -191,7 +184,7 @@ test.describe('Single-channel guests', () => {
             await openConsole(app);
 
             // Re-apply patch (disabled) + reload to ensure the browser reads the fresh config.
-            await navigateWithGuestPatch(app.page, adminClient, systemConsolePath('reporting/system_analytics'), false);
+            await navigateWithGuestPatch(app, adminClient, systemConsolePath('reporting/system_analytics'), false);
 
             // * Verify the single-channel guests card is not in the DOM
             await expect(app.admin.statistics.stat('singleChannelGuests').valueText).not.toBeVisible();
@@ -265,7 +258,7 @@ test.describe('Single-channel guests', () => {
             await openConsole(app);
 
             // Re-apply patch + reload to counter WebSocket config resets.
-            await navigateWithGuestPatch(app.page, adminClient, systemConsolePath('reporting/system_analytics'), true);
+            await navigateWithGuestPatch(app, adminClient, systemConsolePath('reporting/system_analytics'), true);
 
             // * Verify the card title does NOT have error class (count is within limit)
             const cardTitle = app.admin.statistics.stat('singleChannelGuests').titleText;
@@ -296,12 +289,10 @@ test.describe('Single-channel guests', () => {
         await openConsole(app);
         await patchGuestEnabled(adminClient, true);
         await app.page.reload();
-        await app.page.waitForLoadState('networkidle');
+        await expect(app.admin.sidebar).toBeVisible();
 
         // * Verify the guest limit banner is not visible (count is within limit)
-        // AnnouncementBar's existing id is not exposed by the generated surface.
-        // The banner carries only the legacy single_channel_guest_limit_banner testid, outside the generated surface.
-        await expect(app.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
+        await expect(app.announcementBars.singleChannelGuestLimit.container).not.toBeVisible();
     });
 
     /**
@@ -348,12 +339,7 @@ test.describe('Single-channel guests', () => {
             // JSON body — route.fulfill({response, json}) does not reliably merge bodies in Playwright.
             await context.route('**/api/v4/limits/server', async (route) => {
                 const response = await route.fetch();
-                let json: Record<string, unknown> = {};
-                try {
-                    json = (await response.json()) as Record<string, unknown>;
-                } catch {
-                    // ignore — replace with minimal payload
-                }
+                const json = (await response.json()) as Record<string, unknown>;
                 json.singleChannelGuestLimit = 1;
                 json.singleChannelGuestCount = 3;
                 await route.fulfill({
@@ -365,7 +351,7 @@ test.describe('Single-channel guests', () => {
 
             // # Navigate to site statistics page, re-applying patch to counter concurrent resets.
             await openConsole(app);
-            await navigateWithGuestPatch(app.page, adminClient, systemConsolePath('reporting/system_analytics'), true);
+            await navigateWithGuestPatch(app, adminClient, systemConsolePath('reporting/system_analytics'), true);
 
             // * Verify the card title has error styling
             const cardTitle = app.admin.statistics.stat('singleChannelGuests').titleText;
@@ -373,9 +359,7 @@ test.describe('Single-channel guests', () => {
             await expect(cardTitle).toHaveClass(/team_statistics--error/);
 
             // * Verify the dismissible guest limit banner is visible
-            // AnnouncementBar's existing id is not exposed by the generated surface.
-            // The banner carries only the legacy single_channel_guest_limit_banner testid, outside the generated surface.
-            await expect(app.page.getByTestId('single_channel_guest_limit_banner')).toBeVisible();
+            await expect(app.announcementBars.singleChannelGuestLimit.container).toBeVisible();
         },
     );
 
@@ -426,7 +410,7 @@ test.describe('Single-channel guests', () => {
             // concurrent initSetup() resets (default_config has GuestAccountsSettings.Enable: false).
             const {app} = await pw.testBrowser.login(adminUser);
             await openConsole(app);
-            await navigateWithGuestPatch(app.page, adminClient, systemConsolePath('reporting/system_analytics'), true);
+            await navigateWithGuestPatch(app, adminClient, systemConsolePath('reporting/system_analytics'), true);
 
             // * Verify the single-channel guests card is visible
             const singleChannelGuestsCard = app.admin.statistics.stat('singleChannelGuests').valueText;
@@ -436,20 +420,14 @@ test.describe('Single-channel guests', () => {
             const readGuestCount = async () => {
                 await patchGuestEnabled(adminClient, true);
                 await app.page.reload();
-                await app.page.waitForLoadState('networkidle');
-                const text = await singleChannelGuestsCard.text().catch(() => '');
-                return Number(text?.match(/(\d+)/)?.[1] ?? NaN);
+                await expect(singleChannelGuestsCard).toBeVisible();
+                return Number((await singleChannelGuestsCard.text()).match(/(\d+)/)?.[1] ?? NaN);
             };
             let singleChannelGuestCount = NaN;
-            await expect
-                .poll(
-                    async () => {
-                        singleChannelGuestCount = await readGuestCount();
-                        return singleChannelGuestCount;
-                    },
-                    {timeout: duration.four_min, intervals: [3000, 5000, 8000, 12000]},
-                )
-                .toBeGreaterThanOrEqual(0);
+            await expect(async () => {
+                singleChannelGuestCount = await readGuestCount();
+                expect(singleChannelGuestCount).toBeGreaterThanOrEqual(0);
+            }).toPass({timeout: duration.four_min, intervals: [3000, 5000, 8000, 12000]});
 
             // # Now create a single-channel guest to confirm baseline counting works
             const singleChannelGuest = await adminClient.createUser(await pw.random.user(), '', '');
@@ -458,9 +436,9 @@ test.describe('Single-channel guests', () => {
             await adminClient.addToChannel(singleChannelGuest.id, channelA.id);
 
             // * Verify the count increased by exactly 1 for the new single-channel guest
-            await expect
-                .poll(readGuestCount, {timeout: duration.four_min, intervals: [3000, 5000, 8000, 12000]})
-                .toBe(singleChannelGuestCount + 1);
+            await expect(async () => {
+                expect(await readGuestCount()).toBe(singleChannelGuestCount + 1);
+            }).toPass({timeout: duration.four_min, intervals: [3000, 5000, 8000, 12000]});
         },
     );
 });

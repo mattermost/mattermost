@@ -13,7 +13,7 @@ import type {RecapMenuAction} from './recap_menu';
 jest.mock('components/menu', () => ({
     createMenuIconButtonTrigger: () => 'button',
     Container: ({children, menuButton}: any) => {
-        const {class: className, as, ...buttonProps} = menuButton; // eslint-disable-line @typescript-eslint/no-unused-vars
+        const {class: className, as, dataTestId, ...buttonProps} = menuButton; // eslint-disable-line @typescript-eslint/no-unused-vars
         return (
             <div data-testid='menu-container'>
                 <button

@@ -341,7 +341,7 @@ export default function AboutBuildModal(props: Props) {
                         <div className='form-group less'>
                             <div
                                 className='about-modal__version-info'
-                                data-testid='aboutModalVersionInfo'
+                                data-testid='about_build_modal.version--text'
                             >
                                 {getServerVersionString()}<br/>
                                 {isDesktopApp() && (
