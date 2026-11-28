@@ -20,7 +20,7 @@ import {
 } from 'selectors/calls';
 
 import type {DialablePhone} from 'components/call_options_menu';
-import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions, useStartDMCall} from 'components/call_options_menu';
+import CallOptionsMenu, {DMCallButton, hasStartCallMenu, useCanStartCall, usePhoneCallOptions, useStartDMCall} from 'components/call_options_menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
 
@@ -68,10 +68,12 @@ const CallButton = ({
         return false;
     });
 
-    // With a phone number for the user, the button opens a menu offering a call or a phone call.
+    // A plugin that supports it gets the Start call menu. With an older plugin that can dial, and a phone number
+    // for the user, the button opens a menu offering a call or a phone call.
     const callButtonAction = useSelector((state: GlobalState) => state.plugins.components?.CallButton?.[0]);
-    const phoneAction = callButtonAction?.phoneAction;
-    const phones = usePhoneCallOptions(userId, Boolean(phoneAction) && shouldRenderButton && !hasDMCall);
+    const offerStartMenu = hasStartCallMenu(callButtonAction);
+    const startPhoneCallAction = callButtonAction?.startPhoneCallAction;
+    const phones = usePhoneCallOptions(userId, !offerStartMenu && Boolean(startPhoneCallAction) && shouldRenderButton && !hasDMCall);
     const startDMCall = useStartDMCall(userId, dmChannel);
 
     function handleStartCall() {
@@ -81,14 +83,28 @@ const CallButton = ({
 
     function handlePhoneCall(phone: DialablePhone) {
         hide?.();
-        phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
+        startPhoneCallAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
     }
 
     if (!shouldRenderButton) {
         return null;
     }
 
-    if (phoneAction && phones.length > 0) {
+    if (offerStartMenu && callButtonAction) {
+        return (
+            <DMCallButton
+                menuId='profilePopoverStartCallMenu'
+                buttonId='startCallButton'
+                callButton={callButtonAction}
+                userId={userId}
+                dmChannel={dmChannel}
+                onStartCall={startDMCall}
+                onSelect={hide}
+            />
+        );
+    }
+
+    if (startPhoneCallAction && phones.length > 0) {
         return (
             <CallOptionsMenu
                 menuId='profilePopoverCallOptionsMenu'

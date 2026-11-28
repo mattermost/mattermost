@@ -270,15 +270,18 @@ export type PhoneCallRequest = {
 export type CallButtonAction = PluginComponent & {
     button: React.ReactNode;
     dropdownButton: React.ReactNode;
-    action: (channel?: Channel | null, member?: ChannelMembership) => void;
-    phoneAction?: (call: PhoneCallRequest) => void;
+    startCallAction?: (channel?: Channel | null, member?: ChannelMembership) => void;
+    startPhoneCallAction?: (call: PhoneCallRequest) => void;
+    callSettingsAction?: () => void;
+    isInCall?: (state: GlobalState, channelId: string) => boolean;
+    getCallLink?: (channel: Channel) => string;
 };
 
 export type MobileChannelHeaderButtonAction = PluginComponent & {
     button?: CallButtonAction['button'];
     dropdownButton?: CallButtonAction['dropdownButton'];
     icon: ChannelHeaderButtonAction['icon'];
-    action: ChannelHeaderButtonAction['action'];
+    action?: ChannelHeaderButtonAction['action'];
     dropdownText?: ChannelHeaderButtonAction['dropdownText'];
     tooltipText?: ChannelHeaderButtonAction['tooltipText'];
 };

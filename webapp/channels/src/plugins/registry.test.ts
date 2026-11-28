@@ -399,6 +399,103 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerCallButtonAction', () => {
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getCallButtons() {
+        return mockCurrentStore.getState().components.CallButton;
+    }
+
+    function getMobileHeaderButtons() {
+        return mockCurrentStore.getState().components.MobileChannelHeaderButton;
+    }
+
+    it('passes every field through to the call button', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const startCallAction = jest.fn();
+        const startPhoneCallAction = jest.fn();
+        const callSettingsAction = jest.fn();
+        const isInCall = jest.fn();
+        const getCallLink = jest.fn();
+
+        registry.registerCallButtonAction({
+            button: null,
+            dropdownButton: null,
+            startCallAction,
+            icon: null,
+            dropdownText: null,
+            startPhoneCallAction,
+            callSettingsAction,
+            isInCall,
+            getCallLink,
+        });
+
+        const [entry] = getCallButtons();
+        expect(entry.startCallAction).toBe(startCallAction);
+        expect(entry.startPhoneCallAction).toBe(startPhoneCallAction);
+        expect(entry.callSettingsAction).toBe(callSettingsAction);
+        expect(entry.isInCall).toBe(isInCall);
+        expect(entry.getCallLink).toBe(getCallLink);
+    });
+
+    it('maps positional arguments in order, as the Calls plugin passes them', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const startCallAction = jest.fn();
+        const startPhoneCallAction = jest.fn();
+        const callSettingsAction = jest.fn();
+        const isInCall = jest.fn();
+        const getCallLink = jest.fn();
+
+        registry.registerCallButtonAction(null, null, startCallAction, null, null, startPhoneCallAction, callSettingsAction, isInCall, getCallLink);
+
+        const [entry] = getCallButtons();
+        expect(entry.startCallAction).toBe(startCallAction);
+        expect(entry.startPhoneCallAction).toBe(startPhoneCallAction);
+        expect(entry.callSettingsAction).toBe(callSettingsAction);
+        expect(entry.isInCall).toBe(isInCall);
+        expect(entry.getCallLink).toBe(getCallLink);
+    });
+
+    it('still accepts the old action and phoneAction names from plugins that pass an object', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const action = jest.fn();
+        const phoneAction = jest.fn();
+
+        registry.registerCallButtonAction({button: null, dropdownButton: null, action, icon: null, dropdownText: null, phoneAction});
+
+        const [entry] = getCallButtons();
+        expect(entry.button).toBeNull();
+        expect(entry.startCallAction).toBe(action);
+        expect(entry.startPhoneCallAction).toBe(phoneAction);
+    });
+
+    it('gives the mobile channel header the start call function as its action', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const startCallAction = jest.fn();
+
+        registry.registerCallButtonAction({button: null, dropdownButton: null, startCallAction, icon: null, dropdownText: null});
+
+        const [entry] = getMobileHeaderButtons();
+        expect(entry.action).toBe(startCallAction);
+    });
+
+    it('leaves the new fields undefined for a plugin that registers positionally, as older plugins do', () => {
+        const registry = new PluginRegistry('com.mattermost.calls');
+        const startCallAction = jest.fn();
+
+        registry.registerCallButtonAction(null, null, startCallAction);
+
+        const [entry] = getCallButtons();
+        expect(entry.startCallAction).toBe(startCallAction);
+        expect(entry.startPhoneCallAction).toBeUndefined();
+        expect(entry.callSettingsAction).toBeUndefined();
+        expect(entry.isInCall).toBeUndefined();
+        expect(entry.getCallLink).toBeUndefined();
+    });
+});
+
 describe('PluginRegistry — registerChannelViewComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 
