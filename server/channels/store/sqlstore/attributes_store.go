@@ -33,6 +33,11 @@ var attributeViewsByObjectType = map[string]string{
 	model.PropertyFieldObjectTypeUser:    "UserAttributeView",
 }
 
+// userAttributeViewAccessControlGroup limits a UserAttributeView join to the
+// access_control row, since other groups can hold user fields too. It's a
+// literal because the callers number their placeholders by hand.
+const userAttributeViewAccessControlGroup = "UserAttributeView.GroupID = (SELECT ID FROM PropertyGroups WHERE Name = '" + model.AccessControlPropertyGroupName + "')"
+
 // attributeViewFor maps a property-field object type to its materialized view.
 // An unrecognized type is an error rather than a fallback to the user view: a
 // silent coercion would surface a future miswire as a wrong-but-successful user
@@ -136,10 +141,10 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID, objectTyp
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID AND " + userAttributeViewAccessControlGroup).
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("UserAttributeView ON Users.Id = UserAttributeView.TargetID AND " + userAttributeViewAccessControlGroup)
 
 	if opts.Query != "" {
 		// Wrap the CEL-derived expression in parentheses so that any top-level
@@ -238,7 +243,7 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
 		// resolve here, mirroring SearchUsers on the add path.
 		LeftJoin("Users ON Users.Id = ChannelMembers.UserId").
-		LeftJoin("UserAttributeView ON ChannelMembers.UserId = UserAttributeView.TargetID").
+		LeftJoin("UserAttributeView ON ChannelMembers.UserId = UserAttributeView.TargetID AND " + userAttributeViewAccessControlGroup).
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
@@ -320,7 +325,7 @@ func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID str
 		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
 		// resolve here, mirroring SearchUsers on the add path.
 		LeftJoin("Users ON Users.Id = TeamMembers.UserId").
-		LeftJoin("UserAttributeView ON TeamMembers.UserId = UserAttributeView.TargetID").
+		LeftJoin("UserAttributeView ON TeamMembers.UserId = UserAttributeView.TargetID AND " + userAttributeViewAccessControlGroup).
 		Where("TeamMembers.DeleteAt = 0").
 		OrderBy("TeamMembers.UserId ASC")
 
