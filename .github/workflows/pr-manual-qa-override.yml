@@ -1,0 +1,61 @@
+---
+name: PR Manual QA Override
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  override:
+    permissions:
+      statuses: write
+      pull-requests: read
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/qa-override') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Apply QA override statuses
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 <<'PY'
+          import os
+          import re
+          import subprocess
+
+          body = os.environ.get("COMMENT_BODY", "")
+          reason = re.sub(r"^/qa-override\s*", "", body, flags=re.I)
+          reason = re.sub(r"[^\w\s.,!?_-]", "", reason)[:100]
+          desc = f"(override) {reason}" if reason.strip() else "(override)"
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          pr = os.environ["PR_NUMBER"]
+          sha = subprocess.check_output(
+              ["gh", "pr", "view", pr, "--repo", repo, "--json", "headRefOid", "-q", ".headRefOid"],
+              text=True,
+          ).strip()
+
+          for ctx in ("QA/plan", "QA/skipped", "QA/automation", "QA/execution"):
+              subprocess.run(
+                  [
+                      "gh",
+                      "api",
+                      f"repos/{repo}/statuses/{sha}",
+                      "-f",
+                      "state=success",
+                      "-f",
+                      f"context={ctx}",
+                      "-f",
+                      f"description={desc}",
+                  ],
+                  check=True,
+              )
+          PY
